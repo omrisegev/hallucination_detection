@@ -1,3 +1,30 @@
+## 2026-10-08 Advisor meeting held; next meeting next week, PRMBench focus (Claude)
+
+**START HERE for the next meeting:** [meeting record and plan](docs/meetings/advisor_meeting_2026-10-08/README_HE.md).
+
+- Presented: the findings HTML page (https://claude.ai/artifact/NQNTYpFqVyx6xRnRS4NENV, v4), sources and generator in `docs/meetings/advisor_meeting_2026-10-08/findings_page/`.
+- Decision: too much material; the next meeting (next week) is focused on **PRMBench**. ProcessBench is de-prioritized: no meaningful gain over the plain average there, and a small gap to the supervised LR.
+- To prepare (details in the plan): (1) PRMBench performance: within-AUC and official PRMScore, spread across methods/banks/flag rule/gate, PRMScore by error type and by Overall/Simplicity/Soundness/Sensitivity; (2) generalization tests; (3) conditional statistics between features on error vs correct steps; (4) teacher-forcing comparison, including the open empty-think-block issue; (5) analysis against supervised LR: where each is right/wrong and our weights vs LR weights; (6) proposed extras: position-controlled AUC, paired CIs, N13 vs N16 (digit contribution).
+- No new experiment was launched by this documentation.
+
+## 2026-10-08 Codex: Qwen3 no-think teacher-forcing/prefix review remains open
+
+After the advisor meeting, resume from [the review memo](docs/research_notes/QWEN3_TEACHER_FORCING_PREFIX_REVIEW_20261008_HE.md). The repo documents a 40-answer GSM8K Qwen3 telemetry check, but `validate_telemetry` is an internal consistency check, not by itself a teacher-forced replay against generation telemetry; the external runbook still lacks a compatible no-think Gate-B cache. The official Qwen3 template inserts an empty think block only when `enable_thinking=False`; the legacy `/no_think` path uses the literal user suffix and default template, while answer parsing can strip an emitted empty block. Next: verify actual saved prefixes/token IDs per Qwen3 model and quantify the first 1/3/5 content-token scores under the exact matching prefix. No model run or score change was made in this review.
+
+## 2026-10-02 evening: research handoff prepared; consolidation still pending
+
+[New-agent handoff](docs/research_notes/HANDOFF_RESEARCH_SYNTHESIS_20261002.md) defines source-pinned inventory now and implementation from a validated consolidation commit later. It maps all 21 collected topics to the unified research scope without reopening deferred lines. At 22:29 Israel time the completed upload run had 22/25 OK and 3 failures; the sequential retry had started. No consolidation branch existed in this check; this is dated status, not a readiness assertion. Preserve the entire multi-commit `codex/advisor-prep-2026-10-05` branch per its [integration handoff](docs/meetings/advisor_prep_2026-10-05/MERGE_HANDOFF.md). No new agent or experiment started.
+
+## 2026-10-02 Omri clarification: map algorithms before research synthesis
+
+The next research stage should identify the algorithms/components tried, their matched experiments and comparator/failure analyses, then define a small set of complete recipes for evaluation across feature banks and against PRM/Mind the Gap. CT7, bank11, B13/B16, family15 and fam421 are not interchangeable method names. Start with [the sourced scope draft](docs/research_notes/RESEARCH_SYNTHESIS_SCOPE_20261002_HE.md). This turn maps evidence and proposes scope only; no candidate selection or new experiment has started. Existing user decisions and deferred directions remain in effect.
+
+## 2026-10-02 Codex: Monday advisor preparation documented; slides pending
+
+Start here for the 2026-10-05 meeting: [work plan and checklist](docs/meetings/advisor_prep_2026-10-05/PLAN_HE.md), [Hebrew research narrative](docs/meetings/advisor_prep_2026-10-05/PREPARATION_HE.html), [dated Claude status](docs/meetings/advisor_prep_2026-10-05/CONSOLIDATION_STATUS_20261002.md). Preparation proceeds in parallel with consolidation; no new worktree due disk constraints.
+
+Completed: source-based narrative, eight-slide outline, explicit claim boundaries, 27 small report snapshots with hashes, and merge handoff. Not completed: reconciliation with Claude's Monday sheet, final claim ledger, two worked answer examples, review of Claude's reported 17-slide draft against our plan and rehearsal. V2/V3 audits are approved but not certified complete here. Research directions, proposals and deferred lines remain separate in the plan. Dedicated documentation ref: `codex/advisor-prep-2026-10-05`; no experiment launched.
+
 ## 2026-09-24: maximal-step tail rows (TRANSFER_LOCK_V3) source + external COMPLETE (Claude)
 
 **START HERE next session: `docs/HANDOFF_FAMILY_TAIL_LSML_2026-09-24.md`** (where we stopped, branches/commits, fragile source-pool dependency, recommended next research, paste-ready prompt).
@@ -27,6 +54,32 @@ Three new rows with standardized top-1 tail marks: family15, bank11 unoriented a
 - The family/tail line is closed; bank11 L-SML stays the learned transfer candidate.
 - Exploratory; independent audits of V2 not run.
 - Step 444; `results/family_tail_external_v2/REPORT_HE.md`; `docs/experiments/FAMILY_TAIL_EXTERNAL_V2.md`.
+
+## 2026-09-24: group-confidence / sensitivity-specificity experiment COMPLETE, negative
+
+User-authorized CPU experiment on all13,769 source answers/145,597steps, fixed
+28features/15families, binary latent-tree fit and continuous likelihood extension.
+All5fits converge;3fit/1unlabeled-cal/1test with same-model calibration. No new
+inference or external quality evaluation. Five mechanism tests and three
+independent full-population reviews pass; historical bank11/CT7 anchors replay.
+
+Primary PRMScore (6,211noncontrol answers): candidate0.631878 vs evidence-average
+0.632473,raw28equal0.640876,family15equal0.643323,binary-family spectral L-SML
+0.641834. Candidate minus familyequal−0.011444, corrected paired CI
+[−0.015013,−0.007668]; versus matched evidence-average CI includes0. Do not
+promote this implementation to external evaluation; frozen bank11 remains the
+leading learned transfer method from the completed external study below.
+
+Sensitivity/specificity are estimated relative to latent states, not measured
+gold accuracy. Posthoc PRMB accuracy discrepancies and approximate covariance
+fit caution against interpreting confident latent predictions as true reliability.
+This is fixed-family latent-tree EM, not exact published L-SML; the bank was
+previously label-selected and the continuous extension is unproved. Negative
+implementation result does not close the broader direction.
+
+Report: docs/experiments/LSML_GROUP_CONFIDENCE_RESULTS_20260924_HE.md.
+Artifacts/code/protocol/seals/audits: results/lsml_group_confidence_v1/.
+No follow-on sweep started. The existing external-study record follows unchanged.
 
 ## 2026-09-24: external L-SML comparison COMPLETE; frozen bank11 leads
 
@@ -6459,7 +6512,6 @@ token/window sampling shortlist remain pending after this run.
 - Verbalized confidence on 7B+ — parser is ready; needs one inference run with Qwen2.5-Math-7B on GSM8K
 - Phase 10 RAG re-run with variant=4 prompt — low priority
 - LapEigvals integration into spectral_utils — potential Group D feature for M=12, low priority
-
 ## 2026-09-24: Family15 tail20 transfer complete; independent review deferred
 
 All ten registered arms were scored on 6,190/6,190 answer/backbone records and
@@ -6476,3 +6528,50 @@ PASS, including a documented post-seal integrity-guard correction in the indepen
 metric-audit script. Do not treat this as a combined sign-off. The archived
 source files and existing telemetry are reusable; no further external tuning is
 licensed by this result.
+
+
+## 2026-10-04 - Omri requests HEM+MoM slide finding and authorizes continuation
+
+Preserve [the graph takeaways and decision-rule explanation](docs/meetings/advisor_prep_2026-10-05/FUSION_GRAPH_TAKEAWAYS_20261004_HE.html). New direct input contrast: HEM+MoM channels/cell vs groups/answer, original banks, +1.062 pp PB argmax first-error accuracy; q80 official F1 -0.529 pp. Sources, exploratory uncertainty and review status are linked there. Omri explicitly reports disk cleanup and asks Codex to continue the approved plan. Resume from sealed chunks after correcting random-control eligibility and the mixed-reference selection baseline in a versioned analysis; preserve frozen protocols/results. Decision rule still belongs to Omri.
+
+
+## 2026-10-04 evening ? round-two execution requests from Omri via Claude
+
+Omri forwarded MESSAGE_TO_CODEX_1_LR_HELPER.md and MESSAGE_TO_CODEX_2_CANDIDATE_PANEL.md under results/monday_fusion_review_claude_20261004_round2/. Implement the parallel, identical LR helper and replace automatic combined adoption with the four-candidate panel; Omri chooses both recipe and rule. Execution amendment: docs/experiments/MONDAY_ROUND2_EXECUTION_20261004.json. Main runner PID 455132 continues position/decision. Identity-checked guardian PID 7500 watches the completed input_report / combined boundary and will terminate only that legacy workflow there; its status is results/monday_fusion_analysis_v1/candidate_panel_guard/STATUS.json. The legacy ledger may remain RUNNING after guardian termination: check actual liveness. No rule freeze or external evaluation authorized by this change. Helper and panel implementation/testing in progress; do not infer that either has started from this note.
+
+
+## 2026-10-04 evening - parallel LR and manual candidate choice
+
+Omri forwarded the two MESSAGE_TO_CODEX notes in results/monday_fusion_review_claude_20261004_round2/. The identical LR helper is now active as PID455924, with two-process exact determinism PASS before any LR publication, five helper tests PASS, read-only input/code hashes, reconstructed argmax checks and guarded immutable output publication. Source commit f0669d88003134ce9a45444573063f31d4853f27. Provenance: results/monday_fusion_analysis_v1/lr_helper_20261004T160144Z_455924/PROVENANCE.json; logs LR_HELPER_20261004.log/.err; STOP_LR_HELPER stops between stems. Main PID455132 continues the earlier workflow. Guardian PID7500 terminates only that identified main process at completed input_report / combined boundary; candidate_panel_guard/STATUS.json is authoritative if the old workflow ledger then remains RUNNING. The candidate panel supersedes automatic recipe adoption, with both candidate and rule chosen by Omri. Read docs/experiments/MONDAY_ROUND2_EXECUTION_20261004.json. A read-only final-refresh watcher is implemented, pending launch after panel validation. No freeze or external evaluation.
+
+
+## 2026-10-04 19:21 - round-two helpers running
+
+LEVEL position/decision is complete (360 checkpoints); estimator-input layers now run. LR helper PID455924 is active with zero failures at this check; exact counts and sealed-hash verification: results/monday_fusion_analysis_v1/ROUND2_RUNTIME_CHECK.json. Optimized candidate panel PID448696 builds the full comparison after 24 direct rule-metric checks, 144 Claude-table rows and 108 core checks passed; report is not yet complete. Entry: scripts/build_monday_candidate_panel.py; code commit d165f860f3b56a1e40a7610f212742986ab6b5ef. Combined guardian PID7500 remains active. Refresh watcher was replaced: current PID457248 (old98364 intentionally stopped), refreshing after all32 original PRMB LR stems, all288 original LR stems, and final report boundary. Check candidate_panel_refresh/STATUS.json and candidate_panel_guard/STATUS.json before trusting legacy workflow liveness. No candidate or rule chosen.
+
+
+## 2026-10-05 - Contrast-span oracle diagnostic complete (Codex)
+
+Omri requested the proposed oracle experiment and emphasized the whole contrast ensemble. Full reviewed artifacts: results/contrast_span_oracle_20261005/run_v3/REPORT_HE.html (SUMMARY.csv, PAIRED_CONTRASTS.csv, REVIEW.json, COMPLETE.json). Two banks x nine cells, 13,769 answers per bank; endpoints use 6,030 mixed-label PRMB answers and 4,442 erroneous PB answers. Supervised C=1 balanced LR readouts use source-question-disjoint OOF training; historical unlabeled per-cell DS survivors/groups remain transductive. No label-free method gain or untouched confirmation claimed.
+
+PRMB: plain B13/B32 .780179/.746716; PC1 plus all within-group linear contrasts .810653/.800011; full LR .812462/.806071. The named single contrast in B13 gives .804586. Group contrasts recover 94%/90% of the plain-to-LR point gap versus 76% for the single contrast in B13. B32 has no realized_drv, so that named arm is explicitly unavailable. Complete pairwise contrasts plus mean and PC1 plus all residuals reproduce full LR by construction; group-restricted spans are 9/11 and 22/27 dimensions. PB group contrasts .381185/.408615 versus plain .369790/.323610; B13 interval includes zero, B32 gain interval [.063341,.107052].
+
+Validation: seven tests, all 18 cells, 90 fold fits, eight historical aggregate replays, 81 independently recomputed metric rows, 5,000 paired source-group bootstrap draws per comparison, unchanged input/code hashes. First attempt stopped on B32 missing feature; second stopped at the unchanged numerical rotation gate. Both preserved. Final solver Newton-refines the same C=1 objective; legacy replay keeps its original solver. No historical score file changed. Next research question: learn a joint direction over the contrast space without correctness labels; no follow-on run authorized by this note.
+
+
+## 2026-10-05 - Group-level contrast oracle complete (Codex)
+
+Omri authorized testing whether contrasts can act between existing groups instead of between features. Report: results/group_contrast_oracle_20261005/run_v1/REPORT_HE.html. All 18 B13/B32 cells completed, 13,769 answers per bank; 6,030 PRMB mixed-label and 4,442 erroneous PB answers define the endpoints. Same frozen group matrices, DS survivors and source folds; only diagnostic supervised OOF readouts changed. No GPU/inference or label-free candidate result.
+
+PRMB B13/B32: existing MEAN_MOM .781659/.753675; LR on native group scores .783899/.761303; adding all within-group contrasts .812610/.804840; full-feature LR .812462/.806071. Within-group additions gain .028710 [.024840,.032613] and .043538 [.038964,.048105]. Native group signed LR does not beat its nonnegative counterpart: B13 equal; B32 nonnegative .761881. Using raw group means before answer standardization only reaches .784248/.762822. The scalar group compression, not merely between-group weighting or normalization, loses much of the linearly recoverable signal.
+
+PB group LR -> groups plus within contrasts: .361992 -> .387736 (B13), .358033 -> .412449 (B32); paired intervals positive for both additions. Near full-LR point estimates are not equivalence evidence. Four new unit tests, 90 fold fits, 234 independent metric rows, 48 paired comparisons (5000 source-question draws each), exact historical controls, full-span equivalence checks and unchanged input/code hashes PASS. Follow-up question: preserve internal group structure while learning the final fusion without correctness labels; one internal direction per group has not been established sufficient.
+
+
+## 2026-10-05 - Fixed orthogonal-family label-free weighting complete (Codex)
+
+Omri requested SML/MoM/HEM/DS on a common-plus-orthogonal-contrast representation inside frozen families. Completed all 18 B13/B32 cells (13769 answers per bank), with 6030 PRMB eligible and 4442 erroneous PB answers. Report: results/orthogonal_family_fusion_20261005/run_v1/REPORT_HE.html. Candidate fitting is label-free, transductive per cell. Fixed alphabetical Helmert coordinates replace original columns, followed by within-answer standardization and native weighting; no new filtering, grouping or sign search. RAW matched controls and common-only replay retained. EQ between groups is primary, MoM secondary.
+
+PRMB primary RAW -> ORTH: SML: B13 0.778598 -> 0.599104; B32 0.731631 -> 0.737647 | MOM: B13 0.779632 -> 0.491271; B32 0.742690 -> 0.559498 | HEM: B13 0.778355 -> 0.753295; B32 0.746882 -> 0.602148 | DS: B13 0.779285 -> 0.522549; B32 0.741728 -> 0.622258. 7/8 primary PRMB comparisons have negative paired 95% intervals; 1/8 positive. SML B32 gains .006016 [.002004,.009977] over RAW SML but remains below COMMON_EQ. With MoM between groups, its differences against RAW SML+MoM and COMMON_MOM both include zero. No general recovery of the supervised gap.
+
+Four tests, all common-only/raw EQ/raw HEM replay controls, 432 independent metric rows and unchanged input/code hashes PASS. All candidate scores sealed before full-run quality evaluation. Native small-group equal guards and clipping documented; expected failures: 0. Orthogonality does not imply independent error votes. This result tests one fixed representation/normalization/weighting recipe, not the whole contrast direction. No supervised-label use to orient or weight contrasts, no GPU/inference, no historical score overwrite. Initial manifest-type smoke error preserved and corrected without changing a numerical gate.

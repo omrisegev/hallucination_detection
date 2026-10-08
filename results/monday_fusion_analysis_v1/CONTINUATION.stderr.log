@@ -1,0 +1,20 @@
+Traceback (most recent call last):
+  File "C:\Users\omris\TAU\hallucination_detection\results\monday_fusion_analysis_v1\code\scripts\experiments\monday_fusion_run.py", line 19, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\omris\TAU\hallucination_detection\results\monday_fusion_analysis_v1\code\spectral_utils\monday_fusion_gates.py", line 124, in main
+    continue_workflow(data)
+    ~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\omris\TAU\hallucination_detection\results\monday_fusion_analysis_v1\code\spectral_utils\monday_fusion_workflow.py", line 44, in continue_workflow
+    try: run()
+         ~~~^^
+  File "C:\Users\omris\TAU\hallucination_detection\results\monday_fusion_analysis_v1\code\spectral_utils\monday_fusion_workflow.py", line 28, in <lambda>
+    ('estimator_b',lambda:run_estimators(data,'cell')),
+                          ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\omris\TAU\hallucination_detection\results\monday_fusion_analysis_v1\code\spectral_utils\monday_fusion_estimators.py", line 92, in run_estimators
+    save_chunk(out,stem,state,metrics,stats,extra_artifacts=['.accuracy.json'])
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\omris\TAU\hallucination_detection\results\monday_fusion_analysis_v1\code\spectral_utils\monday_fusion_execution.py", line 84, in save_chunk
+    if shutil.disk_usage(ROOT).free<100_000_000: raise RuntimeError('Less than 100 MB free; stop before checkpoint')
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Less than 100 MB free; stop before checkpoint

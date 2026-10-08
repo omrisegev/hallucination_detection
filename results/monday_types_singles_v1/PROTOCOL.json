@@ -1,0 +1,19 @@
+{
+ "name": "monday_types_singles_v1",
+ "status": "FROZEN",
+ "frozen_at": "2026-10-07",
+ "requested_by": "Omri, 2026-10-07: (1) the PRMBench error-type profile is the most interesting finding and was not optimized for; show it with intervals and across all configurations, not one bank. (2) Single strong channels vs fusion per benchmark: one channel excels on one benchmark, fusion helps on the other.",
+ "inputs": "monday_nested_banks_v2 PER_ANSWER.npz (4 methods, plain average, PRM, step index, Mind the Gap reproduction) and monday_cont_baselines_v1 PER_ANSWER.npz (oriented plain average, continuous L-SML, IU-PCR); single channels from bank['V'] of the validated adapter on N56 (all 56 channels, as the plain average sees them).",
+ "A_error_types": {
+  "types": "PRMBench classification field, excluding 'correct' and 'multi_solutions' (8 types).",
+  "scorers": "every label-free configuration complete on PRMBench: 4 methods x 10 banks (where complete), plain average, oriented plain average, continuous L-SML and IU-PCR x 10 banks; plus references: supervised PRM-7B, step index, Mind the Gap reproduction.",
+  "metric": "within-answer AUC restricted to answers of the type; paired source-group bootstrap (seed 20261006, 5000 draws, same weights as dev_run.py) for each label-free configuration minus PRM.",
+  "summary": "per type: share of label-free configurations clearly above / clearly below the PRM (95% interval excludes 0), median delta, and the N16 values."
+ },
+ "B_single_channels": {
+  "scorers": "each of the 56 N56 channels alone, label-free sign = sign of correlation with the 5-channel LEVEL mean per cell (the oriented-average rule); also raw as-is sign recorded.",
+  "metrics": "PRMBench within-answer AUC, ProcessBench argmax first-error hit (8-cell mean), with bootstrap intervals; contrasts best-fusion vs single channel.",
+  "caveat": "The best single channel per benchmark is chosen with labels (oracle selection over 56); fusion configurations are fixed rules. Report as such."
+ },
+ "scope": "Development data only. CPU. No labels used in any fit; labels used only for evaluation."
+}

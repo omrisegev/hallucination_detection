@@ -1,0 +1,10 @@
+<section id="external" data-transition="fade" style="background:#f7f6f2;color:#1b2430;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:24px">
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:64px;font-weight:600;line-height:1.1">External: small gains on Socratic, none on Hard2Verify</h2>
+<img src="/_blob/96ac8fb7697226d6f9f6986f7a94edca" alt="Official metric on Hard2Verify and two Socratic cells: ours N16 0.397, 0.629 and 0.640; plain average 0.401, 0.627, 0.636; frozen bank11 L-SML 0.437, 0.632, 0.642; step index 0.483, 0.580, 0.580; published PRM-7B and critic numbers higher" style="width:1664px;height:470px;object-fit:contain">
+<div style="display:flex;gap:32px">
+<p style="flex:1;font-size:26px;color:#33404f;line-height:1.4"><b>Socratic:</b> channel-vote methods beat the plain average (AUC +0.013 to +0.031; PRMScore +0.004 to +0.010), are not distinguishable from the frozen bank11 L-SML on PRMScore, and are +0.04 over CT7.</p>
+<p style="flex:1;font-size:26px;color:#33404f;line-height:1.4"><b>Hard2Verify</b> (200 answers): no gain; bank11 L-SML is higher (−0.039 for HEM_MOM_cc). Step index alone beats every method on AUC in all 3 cells.</p>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7a8394">19 · Exploratory: labels opened in earlier rounds; N16 = old B16, seen before · label-free refit per cell, q80 of the cell · paper numbers are context only, not comparable thresholds</p>
+<aside>Predictions were sealed before labels were opened and the official evaluators were replayed exactly. The published PRM and critic numbers use their own fixed or target-tuned thresholds, so no arithmetic difference against our transductive q80 metric is claimed. On Hard2Verify the step index alone reaches 0.483 Balanced F1 at the same flag budget, above the published PRM-7B: the metric there is position-dominated.</aside>
+</section>

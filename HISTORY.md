@@ -18252,6 +18252,43 @@ Negative result recorded: results/lsml_external_generalization_v1/evaluation/NEG
 
 ---
 
+### 2026-09-24 [Codex] Binary latent-group confidence: full source negative result
+
+User authorized testing whether nonduplicated member evidence should affect group
+confidence, and suggested sensitivity/specificity. Implemented fixed-family binary
+latent-tree EM with spectral initialization and a declared continuous likelihood
+extension. This is not the exact published L-SML estimator. Existing selected
+28-feature/15-family bank remains development-label-selected.
+
+All13,769 source answers/145,597steps, five3fit/1cal/1test rotations, same-model
+calibration and full frozen-anchor replay. All5fits converge; five mechanism tests
+pass; three independent reviews confirm raw metrics, full coverage, calibration,
+likelihood algebra and shuffled-label null. No new inference or external tuning.
+
+PRMScore on6,211 noncontrol answers/83,371steps: candidate0.631878, matched
+evidence-average0.632473,raw28equal0.640876,family15equal0.643323,binary-family
+spectral L-SML0.641834. Candidate-familyequal difference-0.011444, corrected
+paired CI[-0.015013,-0.007668],20,000question-group draws,4primary contrasts.
+Matched evidence-average difference-0.000595 has CI including0. Candidate
+within-AUC0.757599(N6030),PB localization macro8 0.348029(N4442).
+
+The simulation validates the mechanism but the actual benchmark does not improve.
+Posthoc diagnostics distinguish inferred latent sensitivities/specificities from
+empirical true-error accuracy. Do not promote this implementation to external
+evaluation or close the broader direction. Frozen bank11 remains the leading
+learned transfer candidate from the previous external comparison.
+
+Files: spectral_utils/lsml_group_confidence.py,
+spectral_utils/lsml_group_confidence_experiment.py,
+scripts/run_lsml_group_confidence.py,scripts/analyze_lsml_group_confidence.py,
+tests/test_lsml_group_confidence.py,docs/experiments/LSML_GROUP_CONFIDENCE_V1.md,
+docs/experiments/LSML_GROUP_CONFIDENCE_RESULTS_20260924_HE.md.
+Artifacts: results/lsml_group_confidence_v1/, including freezes,seals,full scores,
+calibration,parameters,metrics,paired intervals,three independent audits.
+Negative result recorded: results/lsml_group_confidence_v1/NEGATIVE_RESULT.md.
+
+---
+
 ### 2026-09-24 [Codex] Family15 tail20 transfer across two external benchmarks
 
 **What:** Reconstructed 48 source features on all13,769 answers/145,597 steps
@@ -18359,3 +18396,55 @@ render_family_external.py and archive_family_external.py.
 - **Conclusion**: the frozen bank11 L-SML stays the leading candidate on the PRMScore benchmarks. On bank11 the max-step learning object beats equal clearly externally, although it only tied equal on source. Source rank again did not predict external rank.
 - **Limits**: exploratory; independent audits not re-run.
 - **Reports**: `results/family_tail_external_v3/REPORT_HE.md` and `docs/experiments/FAMILY_TAIL_EXTERNAL_V3.md`.
+
+
+## 2026-10-02 [Codex advisor preparation] Sourced Monday plan preserved during consolidation
+
+Omri requested a current Claude-status check and project documentation of the preparation for Monday 2026-10-05. He waived an additional worktree if disk was insufficient. Codex documented `docs/meetings/advisor_prep_2026-10-05/PLAN_HE.md`, retained the earlier Hebrew preparation page, preserved 27 small source reports/protocols with SHA256 and commit provenance, added a dated operational status and a merge handoff, and linked the plan from canonical project documents.
+
+The status check found four night-run archives matching Drive by size+MD5 and 21 incomplete/failed checks; one retry upload was active. It did not certify the complete backup or perform a merge. Presentation tasks remain explicit: reconcile Claude's draft, finalize the claim ledger, choose two real examples, review Claude's reported 17-slide draft for topic coverage and rehearse. No new experimental scoring, inference, upload or cleanup was done. Dedicated documentation ref: `codex/advisor-prep-2026-10-05`.
+
+
+### Step 447 [Codex contrast-span oracle] - Joint contrasts recover most of the supervised gap, 2026-10-05
+
+**What**: User-requested supervised OOF diagnostic comparing one named contrast, all within-group contrasts, complete pairwise contrasts, and full residual/full-feature references on B13/B32, all nine cells.
+**Why**: Test whether a single contrast explains the missing signal or a broader joint representation is required.
+**Result**: Group-restricted linear spans recover 94%/90% of the PRMB plain-to-LR point gap (6,030 eligible answers); B13 single contrast recovers 76%. No named single contrast exists in B32. PB group contrast scores .381185/.408615 on 4,442 erroneous answers; B13 gain interval includes zero. All results are supervised development diagnostics, not a label-free improvement. Seven tests and 81 independent metric replays pass. Complete report/provenance: results/contrast_span_oracle_20261005/run_v3/. Initial failed attempts preserved; no historical score changes.
+
+
+### Step 448 [Codex group-contrast oracle] - Scalar group scores leave most of the recoverable gap inside groups, 2026-10-05
+
+**What**: User-authorized supervised OOF comparison of existing group fusion, signed/nonnegative group LR, and group scores plus within-group contrasts, on all B13/B32 cells.
+**Why**: Test whether the contrast mechanism can be reduced to interactions between scalar group scores.
+**Result**: PRMB group LR .783899/.761303 rises to .812610/.804840 after internal contrasts (6,030 eligible answers); signed coefficients do not improve on nonnegative group LR. PB internal additions improve both banks (4,442 erroneous answers). Full results/protocol/model weights: results/group_contrast_oracle_20261005/run_v1/. Four tests and 234 independent metric rows pass. Supervised exploratory evidence only; historical data and scores preserved.
+
+
+### Step 449 [Codex orthogonal-family weighting] - Fixed common-plus-contrast coordinates with native label-free estimators, 2026-10-05
+
+**What**: User-requested SML/MoM/HEM/DS within fixed Helmert family coordinates, matched RAW controls, EQ/MoM between groups, full development population.
+**Why**: Test whether an invertible common-plus-contrast basis lets existing label-free estimators recover the supervised contrast signal.
+**Result**: 7/8 primary PRMB comparisons have negative paired 95% intervals; 1/8 positive. SML B32 gains .006016 [.002004,.009977] over RAW SML but remains below COMMON_EQ. With MoM between groups, its differences against RAW SML+MoM and COMMON_MOM both include zero. No general recovery of the supervised gap. 432 independent metric rows and all replay/hash gates PASS. Complete report: results/orthogonal_family_fusion_20261005/run_v1/REPORT_HE.html. Fixed representation failure is not a general impossibility result.
+Negative result recorded: results/orthogonal_family_fusion_20261005/run_v1/NEGATIVE_RESULT.md
+
+
+### Step 450 [Codex, Qwen3 teacher-forcing/prefix review] - Record the no-think Gate-B and empty-think questions for post-meeting follow-up, 2026-10-08
+
+**What**: Read the Qwen3 teacher-forcing, external telemetry, tokenizer, and self-generated-answer records. The repository documents a 40-answer GSM8K telemetry check, but its `validate_telemetry` routine is not itself a model replay; the external runbook says a compatible Qwen3/no-think Gate-B cache is still missing. The official Qwen3 template adds an empty think block with `enable_thinking=False`, while the legacy `/no_think` path uses a literal user suffix with the default template.
+**Why**: Preserve the distinction between evidence already present and the still-open question of whether the first content-token scores use the same prefix as native Qwen3 generation.
+**Result**: No model was run and no score or frozen protocol changed. Exact prompt IDs, generation IDs, model/tokenizer revisions, and the first 1/3/5 content-token comparison remain the next checks. Full evidence and procedure: `docs/research_notes/QWEN3_TEACHER_FORCING_PREFIX_REVIEW_20261008_HE.md`.
+
+**Files changed**:
+- `docs/research_notes/QWEN3_TEACHER_FORCING_PREFIX_REVIEW_20261008_HE.md` — post-meeting investigation note.
+- `PROGRESS.md` — resume pointer and open status.
+- `HISTORY.md` — record of this repository review.
+- `LESSONS.md` — recurrence of the shell working-directory mistake.
+
+---
+
+### Step 451 [Claude, advisor meeting] - Findings page presented; next meeting refocused on PRMBench, 2026-10-08
+
+**What**: The 2026-10-05 advisor meeting took place on 2026-10-08. We presented the findings HTML page (not the slide decks): methods/metrics, ProcessBench and PRMBench method x bank tables (with per-method mean rows, per-bank mean columns and N16 highlighted), error types, published competitors, transfer sets, teacher forcing vs own answers, caveats, plus three deep-dive pages. Sources and generators are saved in `docs/meetings/advisor_meeting_2026-10-08/findings_page/`.
+**Why**: Record what the advisors saw and what they decided.
+**Result**: Next meeting next week, focused on PRMBench only; ProcessBench de-prioritized (no meaningful gain over the plain average and a small gap to supervised LR). Preparation plan, including Omri's request for an analysis against supervised LR, is in `docs/meetings/advisor_meeting_2026-10-08/README_HE.md`. No experiment launched.
+
+---

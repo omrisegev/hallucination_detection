@@ -1,0 +1,21 @@
+<section id="partition" data-transition="fade" style="background:#f7f6f2;color:#1b2430;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:32px">
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:64px;font-weight:600;line-height:1.1">Clustering the channels: groups are stable, not independent</h2>
+<div style="display:flex;gap:40px">
+<div style="flex:1.1;display:flex;flex-direction:column;gap:18px">
+<p style="font-size:24px;color:#2a78d6;font-weight:600;text-transform:uppercase;letter-spacing:1px">Procedure</p>
+<p style="font-size:26px;line-height:1.4">1. L-SML Algorithm 1 on tie-aware tail marks of the DS survivors; K chosen by the rank-one residual.</p>
+<p style="font-size:26px;line-height:1.4">2. Merge: ρ(A,B) = λ₂(R[A∪B]) / min(λ₁(R[A]), λ₁(R[B])); merge the smallest-ρ pair while ρ &lt; 0.5.</p>
+<p style="font-size:26px;line-height:1.4">3. Never below 3 groups; fewer = grouping failure (no fallback).</p>
+<p style="font-size:24px;color:#2a78d6;font-weight:600;text-transform:uppercase;letter-spacing:1px">Origin</p>
+<p style="font-size:26px;line-height:1.4">Eqs. 14–15 of Jaffe et al. 2016; the merge step is ours (Step 456).</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:18px;background:#ffffff;border-radius:16px;padding:32px">
+<p style="font-size:24px;color:#eb6834;font-weight:600;text-transform:uppercase;letter-spacing:1px">What we know about the groups</p>
+<p style="font-size:26px;line-height:1.4">Original banks: 0 failures in 72 bank-cells, 3–8 groups. Nested core bank N11: 1 failure (2 groups on one ProcessBench cell).</p>
+<p style="font-size:26px;line-height:1.4">Found partitions beat 2,000 random ones on dependence, but stay far from conditional independence.</p>
+<p style="font-size:26px;line-height:1.4">Supervised LR on 30 <b>random</b> equal-size partitions does as well as on ours (0.7874 vs 0.7839 on B13): the partition itself is not validated as useful.</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7a8394">7 · Partition · sources: lsml_merge_step_v1, group_contrast_oracle_20261005, monday_nested_banks_v1 COVERAGE.json</p>
+<aside>The groups are reproducible and capture real dependence (near-duplicate channels end up together), which is why the group-level estimators behave better than channel-level ones. But a supervised reference does just as well on random groupings of the same sizes, so we cannot claim the clustering adds localization accuracy.</aside>
+</section>

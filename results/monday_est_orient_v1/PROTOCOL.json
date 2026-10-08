@@ -1,0 +1,15 @@
+{
+ "name": "monday_est_orient_v1",
+ "status": "FROZEN",
+ "frozen_at": "2026-10-07",
+ "requested_by": "Omri, 2026-10-07: if orientation recovers most of the gain, orient with one of our own label-free estimators (e.g. MoM) instead of the level-mean anchor.",
+ "inputs": "Same as monday_nested_banks_v2 / monday_cont_baselines_v1: bank['V'] (channels as they are, answer z-scored) and bank['marks'] (the 20% tail votes) of the validated adapter, all 10 nested banks, all 9 development cells.",
+ "scorers": {
+  "DS_ORIENTED": "Dawid-Skene EM (er_stage_a.em_estimate(marks, 'ds')) on the tail votes; channel sign +1 if estimated balanced accuracy pi_j > 0.5, else -1; plain average of the signed channels.",
+  "MOM_ORIENTED": "same with the tensor method-of-moments estimate (er_stage_a.tensor_mom_estimate(marks, 0)).",
+  "SML_ORIENTED": "same with the spectral meta-learner sign (er_stage_a.sml_estimate(marks, 0), t_j > 0)."
+ },
+ "references": "plain average (ALL_EQ), level-anchor oriented average (ALL_EQ_ORIENTED), DS-filtered average (drop instead of flip), 4 pipeline methods, IU-PCR, continuous L-SML.",
+ "metrics": "PRMBench within-answer AUC, ProcessBench argmax hit (8-cell mean); same bootstrap as dev_run.py (seed 20261006, 5000 draws). Also the overlap of the flipped-channel sets with the level-anchor flips.",
+ "scope": "Development data, CPU, no labels in any fit."
+}

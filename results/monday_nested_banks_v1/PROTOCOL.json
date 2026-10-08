@@ -1,0 +1,35 @@
+{
+  "schema": "monday-nested-banks-v1",
+  "status": "FROZEN",
+  "frozen_local_date": "2026-10-06",
+  "author": "Claude, at Omri's request (2026-10-06)",
+  "why": {
+    "nesting": "Omri asked whether the 8 Monday banks are nested. They are not: B13 (core11 + realized_z/realized_drv), B20 (core11 + 9 ct7/H1/evidence channels), B32 (core11 + 21 sign-flipped lf__ channels) and B51 (B20 + 31 raw channels) are sibling families; only the +3 digit twins are nested. realized_* (incl. realized_drv, the strongest single PRMBench channel) is absent from B20..B54, and B32/B35 also differ by a label-free sign flip. Bank comparisons were therefore confounded by composition.",
+    "reference": "Omri: the algorithm must be compared with the plain average of ALL channels as they are (ALL_EQ), not with DS_FILTER_EQ, because the DS filter is itself an estimate. ALL_EQ is the primary reference; DS_FILTER_EQ is reported only as a decomposition (filter vs weighting)."
+  },
+  "banks": {
+    "rule": "Nested chain of raw (un-flipped) channels from the original manifest, each with and without the 3 digit channels: N11 = core11 (historical bank11) < N13 = + realized_z, realized_drv < N22 = + the 9 B20 channels < N53 = + the 31 further B51 channels. Digit twins N14 < N16 < N25 < N56. Every smaller bank of the same digit status is a strict subset of every larger one; each no-digit bank is a subset of its digit twin.",
+    "lf_family": "B32/B35 are not in the chain: their 21 channels are sign-flipped (lf__) versions of channels already in N53. Reported as historical only (results/monday_presentation_panels_v1).",
+    "definition_source": "results/estimator_input_v1/run_20261004_resume/INPUT_MANIFEST.json banks (core = first 11 of B13; digits = last 3 of B16)"
+  },
+  "methods": ["HEM_MOM_cc", "MEAN_MOM_cc", "MEAN_MOM_ga", "HEM_MOM_ga", "TCI_ONLY_ga"],
+  "controls": {"ALL_EQ": "primary reference (plain average of every channel in the bank, answer-z, no filter, no sign estimation)",
+               "DS_FILTER_EQ": "decomposition only (average of DS survivors)", "MEAN_EQ": "secondary", "HEM_EQ": "secondary"},
+  "code": "results/monday_external_panel_v1/score.py Population / fit_cell / decisions with the nested bank dictionary; this path reproduced the frozen development scores of the original banks to 3e-15 (SOURCE_PARITY_GATE.json). A re-check on original B13 (PRMBench) is repeated at start.",
+  "development": {
+    "population": "13,769 source answers (PRMBench + 8 ProcessBench cells), label-free fit per cell (as Monday)",
+    "decision_rules": ["ANSWER_Z_Q80", "R2_COUNT", "ENTROPY_GATE_Q80 (answer-level mean entropy 'epr' from answer_gate_v1 ANSWER_FEATURES.npz)", "TOP_1", "TOP_2 (post hoc label)"],
+    "metrics": "as results/monday_presentation_panels_v1 (PRMB within-answer AUC, top-1-on-error, PRMScore top-1 and own rule; PB argmax hit cell-equal, official F1 per rule); competitors PRM-7B, MTG, step index, step length, step 0, longest step",
+    "highlight_rule": "Bank with the highest mean PRMBench within-answer AUC over the 4 registered methods (HEM_MOM_cc, MEAN_MOM_cc, MEAN_MOM_ga, TCI_ONLY_ga), decided from development results BEFORE external scoring; recorded in HIGHLIGHT.json."
+  },
+  "external": {
+    "cells": ["hard2verify_qwen3_8b", "socratic_qwen3_8b", "socratic_qwq32b"],
+    "access": "label-free refit on each target cell, threshold = q80 of the cell itself (Omri's decision)",
+    "exposure": "exploratory: labels exposed in earlier rounds; MedPRMBench untouched",
+    "seal": "predictions hashed before labels are opened; official evaluators replayed",
+    "contrasts": "highlight-bank methods minus ALL_EQ (primary), minus DS_FILTER_EQ (decomposition), minus STEP_INDEX (AUC), minus frozen bank11 L-SML and CT7 (sealed references)"
+  },
+  "figures": "Omri: method/scorer names on the X axis and scores on the Y axis (vertical layout) wherever names were on the Y axis.",
+  "statistics": {"bootstrap_draws": 5000, "seed": 20261006, "unit": "source question group", "interval": "descriptive 95% percentile, no multiplicity claim"},
+  "supersedes": "Bank-level conclusions and the B16 highlight of results/monday_presentation_panels_v1 and results/monday_external_panel_v1 are superseded for bank comparisons; those runs stay as historical records (original banks)."
+}

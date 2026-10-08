@@ -1,0 +1,83 @@
+{
+  "schema_version": "graybox-cross-view-manifest-v1",
+  "claim": "target-cell-zero-label graph adaptation conditional on a frozen fusion contract",
+  "access_tier": "normalized_probability_and_allowed_metadata",
+  "phase1": {
+    "views": {
+      "distribution_state": {
+        "coordinates": [
+          "registered_synthetic_distribution_coordinate_0",
+          "registered_synthetic_distribution_coordinate_1",
+          "registered_synthetic_distribution_coordinate_2"
+        ],
+        "graph_eligible": true,
+        "audit_eligible": true,
+        "fusion_eligible": false
+      },
+      "realized_token": {
+        "coordinates": [
+          "registered_synthetic_realized_coordinate_0",
+          "registered_synthetic_realized_coordinate_1",
+          "registered_synthetic_realized_coordinate_2"
+        ],
+        "graph_eligible": true,
+        "audit_eligible": true,
+        "fusion_eligible": false
+      },
+      "nuisance": {
+        "coordinates": [
+          "registered_synthetic_nuisance_coordinate"
+        ],
+        "graph_eligible": false,
+        "audit_eligible": false,
+        "nuisance_eligible": true,
+        "fusion_eligible": false
+      },
+      "fusion": {
+        "coordinates": "registered_12_column_synthetic_fusion_matrix",
+        "graph_eligible": false,
+        "audit_eligible": false,
+        "fusion_eligible": true
+      }
+    },
+    "forbidden_method_inputs": [
+      "labels",
+      "target_latent",
+      "oracle_graph",
+      "raw_text",
+      "hidden_states",
+      "attention",
+      "raw_logit_magnitude"
+    ]
+  },
+  "real_data_future": {
+    "distribution_state_primitives": [
+      "predictive_entropy",
+      "top1_probability",
+      "top2_margin",
+      "tail_mass",
+      "renyi2_concentration",
+      "effective_support",
+      "provenance_named_varentropy"
+    ],
+    "realized_token_primitives": [
+      "exact_selected_token_surprisal",
+      "exact_selected_vs_top1_gap"
+    ],
+    "strict_fusion_exclusions": [
+      "epr_energy",
+      "min_energy",
+      "sw_var_peak_energy",
+      "cusum_max_energy"
+    ],
+    "required_provenance": [
+      "primitive_source",
+      "exact_or_coarsened",
+      "transformation",
+      "group_id",
+      "validity_rule",
+      "view_assignment",
+      "fusion_eligibility"
+    ]
+  }
+}

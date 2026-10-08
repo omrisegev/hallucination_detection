@@ -1,0 +1,13 @@
+{
+  "amendment": "A1",
+  "date": "2026-10-06",
+  "written_before_any_metric": true,
+  "trigger": "dev_run.py stopped at N11 / pb_math_q4: monday_fusion_core.fit_content GROUPING failure '2 groups before merge: minimum is 3'. Only fit status was seen (no metric computed).",
+  "policy": [
+    "No fallback. A grouping failure leaves every group-based scorer (MEAN_EQ, HEM_EQ, MEAN_MOM_*, HEM_MOM_*, TCI_ONLY_ga) undefined in that bank x cell; ALL_EQ and DS_FILTER_EQ are still computed from the same fit.",
+    "Failures are listed in COVERAGE.json (development) and in SCORING_STATUS.json (external).",
+    "A bank x scorer with any failed cell gets no aggregate metric and no contrast (reported as INCOMPLETE with the failed cells); partial-population averages are not reported.",
+    "A bank with an INCOMPLETE registered method is not eligible for the highlight rule.",
+    "External cells follow the same rule (no fallback; INCOMPLETE rows)."
+  ]
+}

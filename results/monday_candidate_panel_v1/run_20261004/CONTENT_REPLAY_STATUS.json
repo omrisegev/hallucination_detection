@@ -1,0 +1,59 @@
+{
+  "time_utc": "2026-10-04T16:57:38.285864+00:00",
+  "status": "FULL_CONTENT_REPLAY_PASS",
+  "n_rows": 5184,
+  "n_banks": 8,
+  "n_cells": 9,
+  "numeric_values_checked": 25344,
+  "max_difference": 0.0,
+  "source_sha256": {
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\monday_candidate_panel_v1\\run_20261004\\CONTENT_METRICS.csv": "ba5732349867699615a8096ef47beff0c43443d395272280bd7ff03792fac1e2",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\monday_fusion_review_claude_20261004_round2\\decision_rules_precompute\\DECISION_METRICS.csv": "faa7eee037814ff30a477d6b8773e1c0aab6dadf7457386db2ed7f72fef7fa5d"
+  },
+  "pb_f1_full_population_point_checks": [
+    {
+      "recipe": "MEAN_MOM",
+      "decision_rule": "ANSWER_Z_Q80",
+      "groups_answer": 0.11124725854090103,
+      "channels_cell": 0.10452955623101966,
+      "delta_pb_official_f1": -0.0067177023098813765
+    },
+    {
+      "recipe": "MEAN_MOM",
+      "decision_rule": "R2_COUNT",
+      "groups_answer": 0.32747648691073605,
+      "channels_cell": 0.33652032364989903,
+      "delta_pb_official_f1": 0.00904383673916298
+    },
+    {
+      "recipe": "MEAN_MOM",
+      "decision_rule": "ENTROPY_GATE_Q80",
+      "groups_answer": 0.34035073993503323,
+      "channels_cell": 0.35232958836887296,
+      "delta_pb_official_f1": 0.011978848433839728
+    },
+    {
+      "recipe": "HEM_MOM",
+      "decision_rule": "ANSWER_Z_Q80",
+      "groups_answer": 0.10747918491373615,
+      "channels_cell": 0.1021884139289263,
+      "delta_pb_official_f1": -0.005290770984809845
+    },
+    {
+      "recipe": "HEM_MOM",
+      "decision_rule": "R2_COUNT",
+      "groups_answer": 0.32131664493322537,
+      "channels_cell": 0.33250484317203843,
+      "delta_pb_official_f1": 0.011188198238813063
+    },
+    {
+      "recipe": "HEM_MOM",
+      "decision_rule": "ENTROPY_GATE_Q80",
+      "groups_answer": 0.3323730656959901,
+      "channels_cell": 0.34619104460404065,
+      "delta_pb_official_f1": 0.013817978908050532
+    }
+  ],
+  "intervals": "Pending completion of independent paired bootstrap; do not copy Claude intervals as ours",
+  "scope": "Preselection development; no chosen recipe; no untouched confirmation; final position/LR/forensics report pending"
+}

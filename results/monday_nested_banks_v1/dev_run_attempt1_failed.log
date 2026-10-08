@@ -1,0 +1,15 @@
+population built 116
+recheck 8.881784197001252e-16
+N11 pb_gsm8k_q4 145
+N11 pb_gsm8k_q8 149
+Traceback (most recent call last):
+  File "C:\Users\omris\TAU\hallucination_detection\results\monday_nested_banks_v1\dev_run.py", line 284, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\omris\TAU\hallucination_detection\results\monday_nested_banks_v1\dev_run.py", line 126, in main
+    sc, surv, d = ext.fit_cell(pop, bank, 1000 * bi + ci); diag[f'{bk}/{ce}'] = d
+                  ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\omris\TAU\hallucination_detection\results\monday_external_panel_v1\score.py", line 126, in fit_cell
+    if missing: raise RuntimeError(f'fit failures {missing}: ' + json.dumps(st['failures'], default=str))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: fit failures ['MEAN_EQ', 'MEAN_MOM', 'HEM_EQ', 'HEM_MOM']: {"GROUPING": "2 groups before merge: minimum is 3"}

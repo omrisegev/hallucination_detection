@@ -1,0 +1,24 @@
+<section id="tails" data-section="Each algorithm: formula, origin, use, estimate vs truth" data-transition="fade" style="background:#eef1f5;color:#1b2430;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:32px">
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:64px;font-weight:600;line-height:1.1">Why binary tails: estimators need votes, not scores</h2>
+<p style="font-size:28px;color:#4a5568;line-height:1.4">Per answer, each channel votes <b>+1 ("error")</b> on its top k = max(1, ⌈0.2·n⌉) steps, else −1; exact ties broken by a fixed random key. Votes go to DS, SML, MoM and HEM; continuous values are what we average.</p>
+<div style="display:flex;gap:32px">
+<div style="flex:1;background:#ffffff;border-radius:16px;padding:32px;display:flex;flex-direction:column;gap:16px;border-top:6px solid #2a78d6">
+<h3 style="font-size:32px;font-weight:600">For</h3>
+<ul style="font-size:24px;color:#33404f;line-height:1.4">
+<li>Dawid–Skene, SML and MoM are defined on ±1 classifiers; no continuous guarantee</li>
+<li>Less dependence between groups: class-conditional |r| 0.08–0.21 on marks vs 0.14–0.31 continuous</li>
+<li>Conditional-independence test is far more sensitive on marks (z 13 vs 0.8 for a 0.15-SD shared factor)</li>
+<li>Stable partition: same 4 groups in 5 of 5 folds (tie-aware marks)</li>
+</ul></div>
+<div style="flex:1;background:#ffffff;border-radius:16px;padding:32px;display:flex;flex-direction:column;gap:16px;border-top:6px solid #eb6834">
+<h3 style="font-size:32px;font-weight:600">Against / limits</h3>
+<ul style="font-size:24px;color:#33404f;line-height:1.4">
+<li>Weights learned on marks lose to equal weights: −0.0022 AUC [−0.0045, −0.0001]</li>
+<li>Prevalence is not estimable: MoM returns the marked share (0.231 vs quota 0.230)</li>
+<li>Quota hardly matters: 14 thresholds give PRMScore 63.8–64.3</li>
+<li>Every clean answer also casts votes: false votes by construction</li>
+</ul></div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7a8394">4 · Binary tails · sources: lsml_merge_step_v1, TCI_CALIBRATION.json, expectation_realization_v1, tail_threshold_calibration_v1</p>
+<aside>Bottom line: tails are a necessity for the estimators, not a source of accuracy. They make the conditional-independence machinery usable and the partition stable; they do not improve localization by themselves, and the 20% quota is not a tuned parameter (all 14 tested thresholds land within half a PRMScore point). Development PRMBench numbers.</aside>
+</section>

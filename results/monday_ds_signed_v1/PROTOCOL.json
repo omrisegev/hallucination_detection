@@ -1,0 +1,13 @@
+{
+ "name": "monday_ds_signed_v1",
+ "status": "FROZEN",
+ "frozen_at": "2026-10-08",
+ "requested_by": "Omri, 2026-10-08: the deck's sign-corrected control must flip channels with our own label-free estimator (DS or MoM), not with the level-mean anchor.",
+ "control": "DS_SIGNED = DS_ORIENTED of monday_est_orient_v1 (frozen 2026-10-07), unchanged: Dawid-Skene EM (er_stage_a.em_estimate(marks, 'ds')) on the 20% tail votes of the cell; channel sign +1 if pi_j > 0.5 else -1; plain average of the signed, answer-z-scored channels bank['V']. MOM_SIGNED (tensor MoM, same rule) is recomputed for the notes only.",
+ "why_DS": "DS is the estimator our pipeline already uses for its filter (step 5). On the 10 banks DS and MoM give identical PRMBench AUC up to N25 and differ by <= 0.0004 AUC above; on ProcessBench DS is closer to the level-anchor control on N40 (-0.008 vs -0.016). Chosen before computing any new metric in this run.",
+ "dev_metrics": "Same definitions, seed (20261006) and 5000 source-group draws as monday_nested_banks_v2/dev_run.py and monday_cont_baselines_v1/run.py: PRMBench within-answer AUC, top-ranked step is an error, PRMScore one flag per answer (non-control answers); ProcessBench SLA = argmax first-error hit on erroneous answers, cell-equal mean over 8 cells. Parity gate: PRMBench AUC and ProcessBench SLA must equal monday_est_orient_v1/ABSOLUTE.csv.",
+ "contrasts": "Each of the 4 pipeline methods, DS_FILTER_EQ, ALL_EQ, ALL_EQ_ORIENTED, IU_PCR and LSML_CONT minus DS_SIGNED, per bank, PRMBench AUC and ProcessBench SLA; paired 95% intervals, descriptive.",
+ "error_types": "monday_types_singles_v1 analysis with DS_SIGNED replacing ALL_EQ_ORIENTED (80 configurations = 8 scorers x 10 banks); other rows reused from TYPES_ALL_CONFIGS.csv (identical bootstrap weights).",
+ "external": "Exploratory, computed AFTER the seal like monday_nested_banks_v2/external_oriented.py: same features, same ANSWER_Z_Q80 rule and frozen evaluator, only the sign rule replaced by the DS rule above. No tuning. Labelled computed_after_seal.",
+ "scope": "Development data plus the three exploratory external cells; CPU; no labels in any fit."
+}

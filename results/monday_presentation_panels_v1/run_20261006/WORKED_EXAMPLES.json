@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "purpose": "Teaching examples only; selected by deterministic criteria, not representative performance estimates.",
+  "method": "HEM_MOM_cc (B16, ProcessBench GSM8K Qwen3-8B cell)",
+  "alignment_checks": {
+    "roster_rows": 400,
+    "score_indices_exact": true,
+    "step_lengths_exact": true,
+    "first_error_labels_exact": true,
+    "raw_records_joined": 400
+  },
+  "selection": {
+    "error": "lowest numeric GSM8K id with first error after step 0, HEM argmax exactly at first error; prefer a case where MTG argmax differs.",
+    "clean": "prefer a clean answer with >=1 ANSWER_Z_Q80 flag and no R2 flags; then fewest steps and lowest numeric GSM8K id."
+  },
+  "examples": {
+    "error": {
+      "j": 0,
+      "id": "gsm8k::gsm8k-0",
+      "uid": "pb_gsm8k_q8__e1f113836d9f20c1",
+      "source_group": "pb_source_v2:5f6c587679bc685623729580",
+      "target_first_error_step_0based": 1,
+      "n_steps": 4,
+      "hem_argmax_0based": 1,
+      "hem_q80_flags_0based": [
+        1
+      ],
+      "hem_r2_flags_0based": [
+        1,
+        2
+      ],
+      "mtg_argmax_0based": 2,
+      "hem_scores_rounded": [
+        -0.8824,
+        0.7599,
+        0.4376,
+        -0.3151
+      ],
+      "raw_record_sha256": "81b52c600e72eaa767ab106befd89c3466a621a2bcd9b7dc1934289e2666eb78",
+      "final_answer_correct": false
+    },
+    "clean_false_flag": {
+      "j": 177,
+      "id": "gsm8k::gsm8k-258",
+      "uid": "pb_gsm8k_q8__6b80a6bd212b816e",
+      "source_group": "pb_source_v2:e4d81d5ad61492bdf4c1d82a",
+      "target_first_error_step_0based": -1,
+      "n_steps": 3,
+      "hem_argmax_0based": 1,
+      "hem_q80_flags_0based": [
+        1
+      ],
+      "hem_r2_flags_0based": [],
+      "mtg_argmax_0based": 1,
+      "hem_scores_rounded": [
+        -0.2596,
+        0.7044,
+        -0.4448
+      ],
+      "raw_record_sha256": "e3c296dcbdf0d0cfb06eefa1ea8a3ebaed617731c08dd9c592ccefee1e2c3a40",
+      "final_answer_correct": true
+    }
+  },
+  "source_hashes": {
+    "OOF_ANSWERS.csv": "d44ee1cb7cce3265318913a4d10c9c3cd5b279d6ad6736ccad7464b7d9d0a2c9",
+    "OOF_STEP_SCORES.npz": "473c7caa001d6c5487c9f0663c705b1de1338c0e7408f1b9f6afccf0963e58cd",
+    "candidate_scores.npz": "3950dd2a4a6498c3bf23381f54f3d01a46c94fe5f102c48818bc66f6c68ebfb4",
+    "processbench_gsm8k.pkl": "c258e8a37fad43216290fef2f70c88735f413f8c0ceb5cce39dfefe67d66955d"
+  }
+}

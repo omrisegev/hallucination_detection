@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-04",
+  "source": "Omri asks whether SML can fuse the decision/selection methods rather than manually choosing one.",
+  "status": "PROPOSED FOLLOW-UP; no new scoring arm launched; current approved run unchanged.",
+  "interpretation": "Fuse q80, R2 flag allocation and entropy-gated q80 predictions as step-level binary classifiers, or separately fuse whether-to-flag answer decisions. Never average returned step indices.",
+  "prior_search": "No direct policy-prediction SML ensemble found in Step459 decision_rule_run.py, Step460 answer_gate_run.py, current monday_fusion decision code, or targeted exported-code/documentation searches. Step460 fused answer features to build detectors, not outputs of the decision rules. Not an exhaustive assertion over every historical notebook.",
+  "specific_limitations": [
+    "Entropy-gated q80 flags are a subset of q80 flags; the three policies share the same step-score ranking. Conditional independence of their errors is not a safe assumption.",
+    "Within an answer, q80 and R2 flags are nested prefixes of the same risk ordering, and gated q80 is either its q80 prefix or empty. With nonnegative meta weights their combination remains monotone in that ordering (possibly ties): it can change flag counts/gating, not add new localization evidence.",
+    "Current sml_fuse_signed small_m_guard=True returns equal weights on SD-standardized units for exactly three input classifiers; it would not learn spectral reliabilities. This is a project guard, not a universal impossibility theorem for three-classifier SML. Do not silently bypass or inflate the roster with near-duplicate thresholds.",
+    "Meta fusion still needs a defined final class decision and a ProcessBench readout (index or clean). Class imbalance and clean-answer specificity must be evaluated."
+  ],
+  "bounded_next_check": [
+    "Inspect disagreement, vote duplication and rank/nesting structure on complete existing populations; conditional error dependence only where full step truth exists (PRMBench).",
+    "If informative diversity supports a study, freeze a separate protocol for policy fusion against every constituent and matched majority/equal-weight controls, with unchanged scores and no label-fitted weights.",
+    "Evaluate PRMScore, PB official F1, clean flags and first-error metrics separately, with source-question paired uncertainty; no method promotion from agreement alone."
+  ],
+  "paper": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3910607/",
+  "code": "results/monday_fusion_analysis_v1/code/spectral_utils/fusion_utils.py::sml_fuse_signed"
+}

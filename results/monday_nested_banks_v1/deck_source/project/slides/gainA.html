@@ -1,0 +1,10 @@
+<section id="gainA" data-transition="fade" style="background:#f7f6f2;color:#1b2430;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:24px">
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:64px;font-weight:600;line-height:1.1">Against a fair plain average, fusion helps only on the small banks</h2>
+<img src="/_blob/6178726cac86d8b1b5070ae8e2d676a1" alt="Two heatmaps of PRMBench AUC gains per nested bank: left, each scorer minus the plain average of all channels (mostly blue, gains up to 0.016); right, each method minus the oriented plain average (blue only on N13 and N16, red on N14, N25, N53, N56)" style="width:1664px;height:505px;object-fit:contain">
+<div style="display:flex;gap:32px">
+<p style="flex:1;font-size:26px;color:#33404f;line-height:1.4"><b>vs plain average (as is):</b> 21 of 35 method×bank cells better on PRMBench AUC, 5 worse. Much of it is orientation: flipping signs alone gives +0.016 on N53.</p>
+<p style="flex:1;font-size:26px;color:#33404f;line-height:1.4"><b>vs oriented plain average:</b> 9 better, 20 worse (range −0.017 to +0.009). ProcessBench top step: 1 better, 13 worse.</p>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7a8394">14 · Panel A · paired source-group 95% intervals, descriptive, no multiplicity correction · PANEL_A_CONTRASTS.csv, ORIENTED_CONTRASTS.csv</p>
+<aside>The plain average of all channels as they are is the reference Omri asked for. But in the large banks it averages 10 channels pointing the wrong way, so it understates what a trivial label-free sign flip achieves. Against the oriented plain average, the full fusion machinery is worth +0.004 to +0.009 AUC on N13/N16 and is negative elsewhere. ProcessBench shows no gain. The DS filter alone (top-left row of the right map) is +0.003/+0.004 on N11/N13.</aside>
+</section>

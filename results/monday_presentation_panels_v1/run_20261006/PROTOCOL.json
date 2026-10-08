@@ -1,0 +1,76 @@
+{
+  "schema": "monday-presentation-panels-v1",
+  "status": "FROZEN_BEFORE_FINAL_TABLES",
+  "frozen_local_date": "2026-10-06",
+  "author": "Claude (implementing in place of Codex at Omri's request, 2026-10-06)",
+  "scope": "Development presentation panels on the already exposed PRMBench/ProcessBench population. Descriptive; not a locked recipe; not untouched confirmation.",
+  "exposure_disclosure": "Before this protocol, the Claude review of results/monday_fusion_competitor_extension_v1/run_20261006 (REVIEW.md) had already seen: all 4-method x 8-bank METRICS, category and contrast tables; supervised PRM and MTG within-AUC / top-k PRMScore on PRMBench; ProcessBench argmax hit rates for the 4 methods, MTG, Qwen2.5-Math-PRM-7B and the Qwen-72B critic by subset/position/length; and the step-0 / longest-step baselines. Every table built here is therefore post hoc with respect to those numbers.",
+  "omri_decisions_2026-10-06": {
+    "method_presentation": "Unlocked panel: the 4 registered methods are shown together with controls; no winner and no lock.",
+    "highlight": "Highlight the best relevant bank as the candidate configuration; show the other banks as well but less prominently.",
+    "external": "Separate protocol (not this file): label-free refit on target, full panel (4 methods x 8 banks + equal controls + step index)."
+  },
+  "highlight_rule": {
+    "rule": "Bank with the highest mean PRMBench within-answer AUC over the 4 registered methods (PRMBench is primary per the 2026-09-23 decision).",
+    "data": "Development METRICS.csv of run_20261006 (exposed).",
+    "result": "B16 (mean 0.7923; next B13 0.7833).",
+    "label": "Post hoc selection on development data. B16 includes the 3 digit channels approved on 2026-09-29; B13 is the best digit-free bank and is reported beside it.",
+    "use_for_external": "This highlight is fixed before any external result of the Monday methods is opened, so the external panel can test whether the development choice transfers."
+  },
+  "methods": ["HEM_MOM_cc", "MEAN_MOM_cc", "MEAN_MOM_ga", "TCI_ONLY_ga"],
+  "roster_note": "This 4-method roster comes from Codex's competitor extension (drops HEM_MOM_ga, adds TCI_ONLY_ga). No record shows Omri choosing it; HEM_MOM_ga is reported in Panel A from the candidate panel scores for completeness.",
+  "panels": {
+    "A_algorithm": {
+      "question": "Does the fusion algorithm add value over simple fusion of the SAME bank?",
+      "unit": "each of the 8 banks separately",
+      "scorers": ["HEM_MOM_cc", "MEAN_MOM_cc", "MEAN_MOM_ga", "HEM_MOM_ga", "TCI_ONLY_ga", "ALL_EQ", "DS_FILTER_EQ", "MEAN_EQ", "HEM_EQ"],
+      "primary_metric": "PRMBench within-answer AUC (threshold free)",
+      "secondary_metric": "ProcessBench argmax first-error hit (cell-equal mean over 8 cells)",
+      "contrasts": "each method minus DS_FILTER_EQ and minus ALL_EQ, per bank; paired source-group bootstrap",
+      "no_competitors": true
+    },
+    "B_detector": {
+      "question": "How does the method compare with competitors as an error localizer?",
+      "highlight": "B16 (all 4 methods shown); other banks in a secondary table",
+      "competitors": {
+        "supervised_PRM": "Qwen2.5-Math-PRM-7B (frozen PRMBench metadata rewards/labels; dataset_cache/four_localization/pb_prm_qwen25math7b_full for ProcessBench)",
+        "critic": "Qwen2.5-72B critic predictions on ProcessBench (dataset_cache/four_localization/pb_critic_qwen72b_full); no PRMBench run exists",
+        "mind_the_gap": "Frozen local teacher-forced reproduction (EVIDENCE_DROP.npz step_m5, EMA span 5, worst-5 mean, native argmax). Not the paper's code or numbers."
+      },
+      "baselines": ["step index (later step = riskier) for within-AUC", "step token length", "always step 0 (ProcessBench)", "longest step (ProcessBench)"],
+      "PRMBench_metrics": {
+        "threshold_free": "within-answer AUC; top-1 step is an annotated error",
+        "equal_budget": "PRMScore with top-1 flagged step per answer (fair to thresholds); top-2 reported and labelled post hoc",
+        "own_rule": "PRMScore at each scorer's own rule (ours ANSWER_Z_Q80; PRM native labels==0 at 0.5); different calibration access, labelled",
+        "decomposition": "F1 on correct steps and F1 on error steps",
+        "error_types": "the 9 PRMBench classifications and 3 categories (within-AUC and top-1 PRMScore)"
+      },
+      "ProcessBench_metrics": {
+        "gate_free": "argmax first-error hit on erroneous answers (the Mind the Gap protocol)",
+        "strata": "subset, error position, answer length, and a 'content-only' stratum: first error neither at step 0 nor in the longest step",
+        "own_rule": "official F1 under R2_COUNT and ENTROPY_GATE_Q80 for ours vs PRM native threshold 0.5 and the critic; different access, labelled"
+      },
+      "contrasts": "B16 methods minus MTG and minus PRM on: PRMBench within-AUC, top-1 PRMScore, top-1-on-error; ProcessBench argmax hit (all and content-only stratum). Paired source-group bootstrap."
+    }
+  },
+  "aggregation": {
+    "PRMBench": "per bank: mean over answers (AUC) / pooled step counts (PRMScore); multi-bank summaries are bank-equal means",
+    "ProcessBench": "headline = cell-equal mean over the 8 cells (each subset x telemetry model), matching the main table and the official per-subset convention; answer-pooled values are labelled when shown",
+    "duplication_note": "ProcessBench answers appear twice (q4 and q8 telemetry models) with the same source group."
+  },
+  "statistics": {"bootstrap_draws": 5000, "seed": 20261006, "unit": "source question group", "interval": "two-sided percentile 95%, descriptive, no multiplicity claim"},
+  "validation": [
+    "All inputs hashed in INPUT_MANIFEST.json before scoring.",
+    "Reconstructed MEAN_MOM/HEM_MOM scores equal the frozen candidate-panel score arrays (<=1e-12).",
+    "Per-bank method metrics equal run_20261006 METRICS.csv (<=1e-12); control metrics equal candidate panel CONTENT_METRICS.csv (<=1e-12).",
+    "PRM/critic ProcessBench caches align with the population (ids, step counts, labels).",
+    "Any mismatch stops the build."
+  ],
+  "claims_not_allowed": [
+    "superiority over supervised PRMs",
+    "a winner among the 4 methods",
+    "equivalence from intervals including zero",
+    "B16 as a pre-registered choice",
+    "Mind the Gap paper numbers as our comparator"
+  ]
+}

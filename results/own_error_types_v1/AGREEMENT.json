@@ -1,0 +1,447 @@
+{
+ "n": 120,
+ "primary_12way": {
+  "cohen_kappa": 0.8613703012529993,
+  "raw_agreement": 0.8916666666666667,
+  "confusion_pass1_rows_pass2_cols": {
+   "calculation_error": {
+    "calculation_error": 26,
+    "confidence": 0,
+    "counterfactual": 1,
+    "domain_inconsistency": 0,
+    "misread_problem": 0,
+    "missing_condition": 0,
+    "step_contradiction": 0,
+    "wrong_method": 0
+   },
+   "confidence": {
+    "calculation_error": 0,
+    "confidence": 2,
+    "counterfactual": 0,
+    "domain_inconsistency": 0,
+    "misread_problem": 0,
+    "missing_condition": 0,
+    "step_contradiction": 0,
+    "wrong_method": 0
+   },
+   "counterfactual": {
+    "calculation_error": 0,
+    "confidence": 0,
+    "counterfactual": 13,
+    "domain_inconsistency": 1,
+    "misread_problem": 0,
+    "missing_condition": 0,
+    "step_contradiction": 0,
+    "wrong_method": 0
+   },
+   "domain_inconsistency": {
+    "calculation_error": 0,
+    "confidence": 0,
+    "counterfactual": 0,
+    "domain_inconsistency": 0,
+    "misread_problem": 1,
+    "missing_condition": 0,
+    "step_contradiction": 0,
+    "wrong_method": 0
+   },
+   "misread_problem": {
+    "calculation_error": 0,
+    "confidence": 0,
+    "counterfactual": 0,
+    "domain_inconsistency": 0,
+    "misread_problem": 39,
+    "missing_condition": 1,
+    "step_contradiction": 0,
+    "wrong_method": 1
+   },
+   "missing_condition": {
+    "calculation_error": 0,
+    "confidence": 0,
+    "counterfactual": 0,
+    "domain_inconsistency": 0,
+    "misread_problem": 1,
+    "missing_condition": 7,
+    "step_contradiction": 0,
+    "wrong_method": 1
+   },
+   "step_contradiction": {
+    "calculation_error": 0,
+    "confidence": 0,
+    "counterfactual": 0,
+    "domain_inconsistency": 0,
+    "misread_problem": 2,
+    "missing_condition": 0,
+    "step_contradiction": 6,
+    "wrong_method": 0
+   },
+   "wrong_method": {
+    "calculation_error": 0,
+    "confidence": 0,
+    "counterfactual": 1,
+    "domain_inconsistency": 0,
+    "misread_problem": 1,
+    "missing_condition": 2,
+    "step_contradiction": 0,
+    "wrong_method": 14
+   }
+  }
+ },
+ "nearest_prmbench_8way": {
+  "cohen_kappa": 0.7057159026598754,
+  "raw_agreement": 0.7833333333333333,
+  "confusion_pass1_rows_pass2_cols": {
+   "confidence": {
+    "confidence": 2,
+    "counterfactual": 2,
+    "deception": 1,
+    "domain_inconsistency": 0,
+    "missing_condition": 0,
+    "step_contradiction": 0
+   },
+   "counterfactual": {
+    "confidence": 0,
+    "counterfactual": 37,
+    "deception": 6,
+    "domain_inconsistency": 2,
+    "missing_condition": 1,
+    "step_contradiction": 1
+   },
+   "deception": {
+    "confidence": 0,
+    "counterfactual": 5,
+    "deception": 10,
+    "domain_inconsistency": 0,
+    "missing_condition": 0,
+    "step_contradiction": 1
+   },
+   "domain_inconsistency": {
+    "confidence": 0,
+    "counterfactual": 1,
+    "deception": 0,
+    "domain_inconsistency": 4,
+    "missing_condition": 0,
+    "step_contradiction": 0
+   },
+   "missing_condition": {
+    "confidence": 0,
+    "counterfactual": 0,
+    "deception": 3,
+    "domain_inconsistency": 0,
+    "missing_condition": 31,
+    "step_contradiction": 0
+   },
+   "step_contradiction": {
+    "confidence": 0,
+    "counterfactual": 1,
+    "deception": 2,
+    "domain_inconsistency": 0,
+    "missing_condition": 0,
+    "step_contradiction": 10
+   }
+  }
+ },
+ "collapsed_4way": {
+  "cohen_kappa": 0.8622009569377991,
+  "raw_agreement": 0.9,
+  "confusion_pass1_rows_pass2_cols": {
+   "calculation_error": {
+    "calculation_error": 26,
+    "misread_problem": 0,
+    "prmbench_type": 1,
+    "wrong_method_or_other": 0
+   },
+   "misread_problem": {
+    "calculation_error": 0,
+    "misread_problem": 39,
+    "prmbench_type": 1,
+    "wrong_method_or_other": 1
+   },
+   "prmbench_type": {
+    "calculation_error": 0,
+    "misread_problem": 4,
+    "prmbench_type": 29,
+    "wrong_method_or_other": 1
+   },
+   "wrong_method_or_other": {
+    "calculation_error": 0,
+    "misread_problem": 1,
+    "prmbench_type": 3,
+    "wrong_method_or_other": 14
+   }
+  }
+ },
+ "primary_12way_both_high_confidence": {
+  "n": 39,
+  "cohen_kappa": 1.0,
+  "raw_agreement": 1.0
+ },
+ "disagreements": [
+  {
+   "item_id": "J0100",
+   "category_1": "missing_condition",
+   "category_2": "wrong_method",
+   "justification_1": "Total distance '2 + 2 = 4 miles' omits the final 4-mile walk from home to the store; total is 8 miles, i.e. 2 hours.",
+   "justification_2": "Total distance set as '2 + 2 = 4 miles', omitting the 4-mile walk from home to the store; total should be 2+2+4 = 8 miles (2 hours)."
+  },
+  {
+   "item_id": "J0314",
+   "category_1": "misread_problem",
+   "category_2": "wrong_method",
+   "justification_1": "Sets 'Shells brought by each girl = 600 + 4 x 60'; girls together brought 600 + 4 x 600 = 3000, so each girl 300.",
+   "justification_2": "Sets each girl's shells as '600 + 4 x 60 = 840', mixing the boys' total with one boy's count and not dividing among 10 girls; correct is (600 + 2400)/10 = 300."
+  },
+  {
+   "item_id": "J0415",
+   "category_1": "domain_inconsistency",
+   "category_2": "misread_problem",
+   "justification_1": "Interprets collinear as 'scalar multiples of each other: c = k a'; here a, b, c are points whose tips lie on one line, c = a + t(b - a).",
+   "justification_2": "Interprets 'collinear' as 'scalar multiples of each other' (c = k a); the problem/diagram means the vector tips lie on one line (c = a + t(b - a)); a and b are clearly not multiples."
+  },
+  {
+   "item_id": "J0442",
+   "category_1": "step_contradiction",
+   "category_2": "misread_problem",
+   "justification_1": "After labelling the four small squares A,B,C,D (step 3), it treats pairs 'A-B, C-D, A-C, B-D' as the squares, conflicting with that setup and misreading the figure; correct sum is 44/4 = 11.",
+   "justification_2": "Treats the four small squares as cell pairs 'A-B, C-D, A-C, B-D' of a 2x2 grid, misreading the figure (and its own step 3 where A-D were the squares each holding two triangles)."
+  },
+  {
+   "item_id": "J0549",
+   "category_1": "missing_condition",
+   "category_2": "misread_problem",
+   "justification_1": "Uses 'New price = Original price x 1.20' per period (compounding), ignoring that each increase is 20% of the ORIGINAL price ($4), giving 20 + 18*4 = 92.",
+   "justification_2": "Models each increase as multiplying the current price by 1.20 (compounding); the problem says each increase is 20% of the ORIGINAL price, i.e. +$4 each period."
+  },
+  {
+   "item_id": "J0692",
+   "category_1": "wrong_method",
+   "category_2": "missing_condition",
+   "justification_1": "Claims max of P is at AM-GM equality a=b=c=d, but bound ((a+2b+3c+4d)/10)^10 is not constant; need weighted terms a, b/2, c/3, d/4 summing to 10.",
+   "justification_2": "Claims max of P occurs when AM-GM equality holds, but the bound ((a+2b+3c+4d)/10)^10 is not constant; prerequisite of a fixed sum ignored (should split b/2, c/3, d/4 so sum is 10)."
+  },
+  {
+   "item_id": "J0696",
+   "category_1": "calculation_error",
+   "category_2": "counterfactual",
+   "justification_1": "Writes pi*(ed/(1-e^2))*(ed/sqrt(1-e^2)) = pi*(ed)^2/(1-e^2); correct product is (ed)^2/(1-e^2)^(3/2), giving 5*3*pi = 15pi.",
+   "justification_2": "Asserts area formula 'pi(ed)^2/(1-e^2)'; with a=ed/(1-e^2), b=ed/sqrt(1-e^2) the product is pi(ed)^2/(1-e^2)^(3/2), giving 15pi not 9pi."
+  },
+  {
+   "item_id": "J0883",
+   "category_1": "wrong_method",
+   "category_2": "misread_problem",
+   "justification_1": "Wrong set-up: treats the $11 win as 'no loss' and sums only losses (5 + 16.5); net loss must subtract the win.",
+   "justification_2": "Sums only losses ('Second race: won $11 (so no loss)'), ignoring the win; the average loss for the day is net (5+16.5-11)/3."
+  },
+  {
+   "item_id": "J0906",
+   "category_1": "counterfactual",
+   "category_2": "domain_inconsistency",
+   "justification_1": "Unfounded claim the minimum occurs when vectors are 'mutually orthogonal or at angles of 120 degrees'; for magnitudes 2,3,4 the optimum is z1+z2+z3 = 0 (triangle), giving 87.",
+   "justification_2": "Claims minimum occurs when vectors are 'mutually orthogonal or at angles of 120 degrees', valid for equal magnitudes/other dimension; with 2,3,4 the sum z1+z2+z3 can vanish, giving 87."
+  },
+  {
+   "item_id": "J0974",
+   "category_1": "step_contradiction",
+   "category_2": "misread_problem",
+   "justification_1": "Reports '29' (coins per bag x) as the total before, contradicting step 1 where total before = 7x; answer should be 7*29 = 203.",
+   "justification_2": "Boxes x = 29 (coins per bag) but the question asks total coins before finding the bag: 7*29 = 203."
+  },
+  {
+   "item_id": "J1005",
+   "category_1": "wrong_method",
+   "category_2": "counterfactual",
+   "justification_1": "Sets 'angle ACD = 45 - theta' with theta = angle ABD; angles B and C sum to 135 degrees. The 45-degree split is at A (BAD + CAD).",
+   "justification_2": "Asserts angle ACD = 45 - angle ABD; the 45 degrees splits as BAD + CAD at A, while angles B and C sum to 135 degrees."
+  },
+  {
+   "item_id": "J1055",
+   "category_1": "misread_problem",
+   "category_2": "missing_condition",
+   "justification_1": "Lawyer gives \"3 x 2000 = 6000\" based on neighbors plus online fund only; \"everyone else\" includes the friend's $200, so the base is 2200 and the answer 6600.",
+   "justification_2": "Lawyer = '3 x 2000 = 6000' omits the friend's $200 included in 'everyone else'; should be 3 x 2200 = 6600."
+  },
+  {
+   "item_id": "J1193",
+   "category_1": "wrong_method",
+   "category_2": "missing_condition",
+   "justification_1": "Condition stated as 'first lamp on, or if not, the first red lamp (which is the first lamp) is turned on' is incoherent; should require the leftmost lit lamp among others be red.",
+   "justification_2": "Favorable event misstated: 'if not turned on, then the first red lamp (the first lamp) is turned on' drops the case where lamp 1 is off and leftmost lit lamp is another red."
+  }
+ ],
+ "judge_type_crosstab_pass1": {
+  "n_same_step": 407,
+  "table": {
+   "calculation_error": {
+    "calculation": 66,
+    "concept": 2,
+    "final_answer": 0,
+    "incomplete": 1,
+    "logic": 3,
+    "misread_problem": 2,
+    "unjustified_claim": 1
+   },
+   "confidence": {
+    "calculation": 0,
+    "concept": 0,
+    "final_answer": 0,
+    "incomplete": 0,
+    "logic": 2,
+    "misread_problem": 0,
+    "unjustified_claim": 2
+   },
+   "counterfactual": {
+    "calculation": 3,
+    "concept": 31,
+    "final_answer": 0,
+    "incomplete": 0,
+    "logic": 3,
+    "misread_problem": 1,
+    "unjustified_claim": 9
+   },
+   "domain_inconsistency": {
+    "calculation": 0,
+    "concept": 4,
+    "final_answer": 0,
+    "incomplete": 1,
+    "logic": 0,
+    "misread_problem": 2,
+    "unjustified_claim": 2
+   },
+   "misread_problem": {
+    "calculation": 1,
+    "concept": 2,
+    "final_answer": 0,
+    "incomplete": 0,
+    "logic": 3,
+    "misread_problem": 137,
+    "unjustified_claim": 3
+   },
+   "missing_condition": {
+    "calculation": 2,
+    "concept": 0,
+    "final_answer": 1,
+    "incomplete": 10,
+    "logic": 9,
+    "misread_problem": 8,
+    "unjustified_claim": 3
+   },
+   "other": {
+    "calculation": 0,
+    "concept": 0,
+    "final_answer": 1,
+    "incomplete": 0,
+    "logic": 0,
+    "misread_problem": 0,
+    "unjustified_claim": 0
+   },
+   "step_contradiction": {
+    "calculation": 6,
+    "concept": 4,
+    "final_answer": 1,
+    "incomplete": 0,
+    "logic": 7,
+    "misread_problem": 9,
+    "unjustified_claim": 1
+   },
+   "wrong_method": {
+    "calculation": 4,
+    "concept": 17,
+    "final_answer": 0,
+    "incomplete": 0,
+    "logic": 32,
+    "misread_problem": 10,
+    "unjustified_claim": 1
+   }
+  }
+ },
+ "pass1_distribution": [
+  [
+   "misread_problem",
+   150
+  ],
+  [
+   "calculation_error",
+   77
+  ],
+  [
+   "wrong_method",
+   64
+  ],
+  [
+   "counterfactual",
+   47
+  ],
+  [
+   "missing_condition",
+   35
+  ],
+  [
+   "step_contradiction",
+   28
+  ],
+  [
+   "domain_inconsistency",
+   10
+  ],
+  [
+   "confidence",
+   5
+  ],
+  [
+   "other",
+   1
+  ]
+ ],
+ "pass1_nearest_prmbench_by_fit": {
+  "circular": {
+   "good": 0,
+   "none": 0,
+   "partial": 1
+  },
+  "confidence": {
+   "good": 1,
+   "none": 0,
+   "partial": 9
+  },
+  "counterfactual": {
+   "good": 33,
+   "none": 64,
+   "partial": 65
+  },
+  "deception": {
+   "good": 0,
+   "none": 24,
+   "partial": 38
+  },
+  "domain_inconsistency": {
+   "good": 4,
+   "none": 1,
+   "partial": 21
+  },
+  "missing_condition": {
+   "good": 17,
+   "none": 17,
+   "partial": 69
+  },
+  "step_contradiction": {
+   "good": 4,
+   "none": 1,
+   "partial": 48
+  }
+ },
+ "pass1_confidence": [
+  [
+   "medium",
+   230
+  ],
+  [
+   "high",
+   185
+  ],
+  [
+   "low",
+   2
+  ]
+ ],
+ "pass1_disagree_with_step": 1
+}

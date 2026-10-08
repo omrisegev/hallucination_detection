@@ -1,0 +1,83 @@
+{
+  "merged_tip_tested_by_claude": "c01d72c01",
+  "reviewed_tip": "54a2c2a8f463c1c48e8f943405cb1bb7f657c85b",
+  "merged_summary": "250 failed, 1654 passed, 44 skipped, 57 errors, 230 subtests passed",
+  "unique_bad_ids": 297,
+  "ids_without_same_failure_id_in_sources": {
+    "scripts/test_layer_views_reference.py": {},
+    "tests/test_fusion_reliability_regularization.py::ReliabilityContract::test_actual_cached_joint_graph_and_all_parent_replays": {},
+    "tests/test_fusion_graph_conditioning.py::GraphConditionTests::test_real_graph_replay_and_original_routes_without_joint_refitting": {},
+    "tests/test_fusion_native_conditioning.py::ConditioningTests::test_original_scores_and_all_three_routes_replay": {},
+    "tests/test_fusion_replication.py::ReplicationReplay::test_three_distinct_existing_routing_cases": {},
+    "tests/test_fusion_context_bank.py::ContextContracts::test_cached_joint_and_permuted_graph_replay": {},
+    "tests/test_fusion_window_sampling.py::SamplingContract::test_short_answer_is_exact_parent_peak_without_refitting": {},
+    "tests/test_fusion_pair_quality.py::PairQualityTests::test_real_replay_pair_refit_and_infeasible_pair_case": {}
+  },
+  "collection_file_with_passing_children_in_baselines": {
+    "file": "scripts/test_layer_views_reference.py",
+    "passing_children": [
+      "scripts/test_layer_views_reference.py::test_hooks_and_alignment",
+      "scripts/test_layer_views_reference.py::test_lens_and_final_identity",
+      "scripts/test_layer_views_reference.py::test_float16_agreement_and_corruption",
+      "scripts/test_layer_views_reference.py::test_fixture_report_and_cli"
+    ]
+  },
+  "focused_recheck": {
+    "isolated": "4 passed in 61.18s",
+    "pair_collect": "collection error after scripts/test_atomic_operator_premise.py; stub spectral_utils lacks load_model",
+    "both_test_files_identical_to_ssl": true,
+    "conclusion": "Test-order isolation defect, not demonstrated merge code regression. Whole-file collection failure cannot be compared only by exact child node ids."
+  },
+  "logs": [
+    {
+      "path": "C:\\Users\\DELL\\AppData\\Local\\Temp\\claude\\c--Users-omris-TAU-hallucination-detection\\ae2dd164-1ddb-4b21-9e3e-cb18f86482aa\\scratchpad\\merge\\pytest_merged2.txt",
+      "sha256": "bbe5c9a2cb15325cefa5c249b8224ff1b9b4ce44466f36a224182601b46670ac",
+      "bytes": 906404
+    },
+    {
+      "path": "C:\\Users\\DELL\\AppData\\Local\\Temp\\claude\\c--Users-omris-TAU-hallucination-detection\\ae2dd164-1ddb-4b21-9e3e-cb18f86482aa\\scratchpad\\merge\\baseline.sh",
+      "sha256": "53753934de46c7e008f472e54773c7dfefdc3b5b7a307332aa74d97585fd384c",
+      "bytes": 938
+    },
+    {
+      "path": "C:\\Users\\DELL\\AppData\\Local\\Temp\\claude\\c--Users-omris-TAU-hallucination-detection\\ae2dd164-1ddb-4b21-9e3e-cb18f86482aa\\scratchpad\\merge\\base_claude_decision-rule-v1.txt",
+      "sha256": "8ef8eb08740d8bd292b635c7d9005da354966bee1cec73eaae0869a88c1d5825",
+      "bytes": 790739
+    },
+    {
+      "path": "C:\\Users\\DELL\\AppData\\Local\\Temp\\claude\\c--Users-omris-TAU-hallucination-detection\\ae2dd164-1ddb-4b21-9e3e-cb18f86482aa\\scratchpad\\merge\\base_claude_readout-quickest-detection-v1.txt",
+      "sha256": "e1491d33702fb1d1201ba788d9aa7a7513e59cae3812c50760ccccb180af9f94",
+      "bytes": 910692
+    },
+    {
+      "path": "C:\\Users\\DELL\\AppData\\Local\\Temp\\claude\\c--Users-omris-TAU-hallucination-detection\\ae2dd164-1ddb-4b21-9e3e-cb18f86482aa\\scratchpad\\merge\\base_claude_self-generated-step-labels-v1.txt",
+      "sha256": "b673ed6eb824e764418dd3d07a2a6aba21fce98199ec58b9a5175f0561485e82",
+      "bytes": 790499
+    },
+    {
+      "path": "C:\\Users\\DELL\\AppData\\Local\\Temp\\claude\\c--Users-omris-TAU-hallucination-detection\\ae2dd164-1ddb-4b21-9e3e-cb18f86482aa\\scratchpad\\merge\\base_codex_family15-tail20-transfer-v1.txt",
+      "sha256": "927d27f769c6b73d43580dc43f45b644d24f5f39c05da21e639a78645129f5cf",
+      "bytes": 779944
+    },
+    {
+      "path": "C:\\Users\\DELL\\AppData\\Local\\Temp\\claude\\c--Users-omris-TAU-hallucination-detection\\ae2dd164-1ddb-4b21-9e3e-cb18f86482aa\\scratchpad\\merge\\base_lsml-ct7-levers-run.txt",
+      "sha256": "720da529875e09cf9585121906634acdbb3f161fa08db6b8b66775e549209d43",
+      "bytes": 910816
+    },
+    {
+      "path": "C:\\Users\\DELL\\AppData\\Local\\Temp\\claude\\c--Users-omris-TAU-hallucination-detection\\ae2dd164-1ddb-4b21-9e3e-cb18f86482aa\\scratchpad\\merge\\base_origin_claude_ssl-pseudolabel-residual-v1.txt",
+      "sha256": "87f211c05a6af9ca52a7ec57d0af8be56e02e607b659e6f8cd3d116d18664b46",
+      "bytes": 790739
+    },
+    {
+      "path": "C:\\Users\\DELL\\AppData\\Local\\Temp\\claude\\c--Users-omris-TAU-hallucination-detection\\ae2dd164-1ddb-4b21-9e3e-cb18f86482aa\\scratchpad\\merge\\base_rescue_main-checkout-loose-files-2026-10-01.txt",
+      "sha256": "b677c1a85c6f54aa79e824dd3fd454a0a2e2c19c8fee21cfc710f192292eda99",
+      "bytes": 807088
+    },
+    {
+      "path": "C:\\Users\\DELL\\AppData\\Local\\Temp\\claude\\c--Users-omris-TAU-hallucination-detection\\ae2dd164-1ddb-4b21-9e3e-cb18f86482aa\\scratchpad\\merge\\base_whitebox.txt",
+      "sha256": "cb9b5f2b215883154331fdf7b57185395a244f39350c7d44709dd23cb2cf26bb",
+      "bytes": 778095
+    }
+  ]
+}

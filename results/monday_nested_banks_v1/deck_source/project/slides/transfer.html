@@ -1,0 +1,12 @@
+<section id="transfer" data-transition="fade" style="background:#f7f6f2;color:#1b2430;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:24px">
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:64px;font-weight:600;line-height:1.1">Does the development ranking predict the external one?</h2>
+<img src="/_blob/c0bfec8fb84876f7ccc003385f334818" alt="Scatter of development PRMBench AUC against external AUC for 65 bank and scorer configurations in three cells; Spearman 0.23 on Hard2Verify, 0.77 and 0.67 on Socratic; the step-index line lies above all points" style="width:1664px;height:480px;object-fit:contain">
+<table style="font-size:24px;color:#1b2430">
+<tr style="background:#e8ecf3"><th style="width:34%;text-align:left">External cell</th><th style="width:22%;text-align:right">Spearman, 65 configs</th><th style="width:22%;text-align:right">Spearman, 8 banks</th><th style="width:22%;text-align:right">N16 method ranks</th></tr>
+<tr><td>Hard2Verify · Qwen3-8B</td><td style="text-align:right">0.23</td><td style="text-align:right">−0.10</td><td style="text-align:right">3 / 14 / 31 / 42</td></tr>
+<tr><td>Socratic · Qwen3-8B</td><td style="text-align:right">0.77</td><td style="text-align:right">0.69</td><td style="text-align:right">1 / 3 / 5 / 15</td></tr>
+<tr><td>Socratic · QwQ-32B</td><td style="text-align:right">0.67</td><td style="text-align:right">0.79</td><td style="text-align:right">2 / 3 / 11 / 40</td></tr>
+</table>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7a8394">20 · TRANSFER.csv · configurations share banks, so the 65-point correlation overstates independent evidence · vs oriented plain average: methods better in 8/32, 11/32, 27/32 configs</p>
+<aside>On Socratic the development ranking carries over and the realized-channel banks (N13/N16) transfer best; N13 and N16 are a wash with each other, so what transfers is the channel family, not the digits. On Hard2Verify (200 answers, 79 question groups) there is no relation at the bank level (−0.10). Every highlight rank is reported, not just the best one.</aside>
+</section>

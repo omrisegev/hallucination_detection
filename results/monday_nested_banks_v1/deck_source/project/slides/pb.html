@@ -1,0 +1,12 @@
+<section id="pb" data-transition="fade" style="background:#f7f6f2;color:#1b2430;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:24px">
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:64px;font-weight:600;line-height:1.1">ProcessBench: above Mind the Gap, far below the supervised PRM</h2>
+<img src="/_blob/0d614135de13b450cc3e20d4cadd5cac" alt="ProcessBench top-ranked step equals first error: ours N16 about 0.40, Mind the Gap 0.33, supervised PRM argmax 0.57; by stratum and subset" style="width:1664px;height:420px;object-fit:contain">
+<table style="font-size:24px;color:#1b2430">
+<tr style="background:#e8ecf3"><th style="width:40%;text-align:left">With the clean-answer decision (official F1)</th><th style="width:20%;text-align:right">F1</th><th style="width:20%;text-align:right">First error found</th><th style="width:20%;text-align:right">Clean left clean</th></tr>
+<tr><td>Ours N16, R2 count rule</td><td style="text-align:right">0.389–0.412</td><td style="text-align:right">0.30–0.33</td><td style="text-align:right">0.57</td></tr>
+<tr><td>Ours N16, q80 rule</td><td style="text-align:right">0.097–0.107</td><td style="text-align:right">0.35–0.40</td><td style="text-align:right">0.06</td></tr>
+<tr><td>Supervised PRM-7B (0.5) · 72B critic</td><td style="text-align:right">0.729 · 0.594</td><td style="text-align:right">0.619 · 0.447</td><td style="text-align:right">0.890 · 0.906</td></tr>
+</table>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7a8394">18 · Cell-equal mean of 8 cells · plain average ALL_EQ N16 reaches 0.414, above all 4 methods · the "not step 0, not longest" stratum is a diagnostic · PANEL_B_PROCESSBENCH*.csv</p>
+<aside>Without a gate (the Mind the Gap protocol) we are about 7 points above our reproduction of Mind the Gap, and the N16 channel-vote variants stay above it even when errors at step 0 and in the longest step are removed. But our top step is the token-longest step in 45% of erroneous answers (N16 HEM_MOM_cc; Mind the Gap 38%; LONGEST_STEP_SHARE.json), so part of the ProcessBench signal is a length prior. With the clean-answer decision, the q80 rule flags 94% of clean ProcessBench answers; the supervised PRM is far ahead.</aside>
+</section>

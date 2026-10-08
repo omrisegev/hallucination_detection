@@ -1,0 +1,25 @@
+<section id="mom" data-transition="fade" style="background:#f7f6f2;color:#1b2430;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:32px">
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:64px;font-weight:600;line-height:1.1">Tensor method of moments: closed-form accuracies, biased levels</h2>
+<div style="display:flex;gap:40px">
+<div style="flex:1.1;display:flex;flex-direction:column;gap:18px">
+<p style="font-size:24px;color:#2a78d6;font-weight:600;text-transform:uppercase;letter-spacing:1px">Formula</p>
+<p style="font-size:26px;line-height:1.4">E[z_i z_j] = t_i t_j and E[z_i z_j z_k] = α · t_i t_j t_k, with α = −2b / √(1 − b²) (b = class imbalance).</p>
+<p style="font-size:26px;line-height:1.4">α by least squares over distinct triples → b → ψ_i, η_i in closed form; no EM, no local optima.</p>
+<p style="font-size:24px;color:#2a78d6;font-weight:600;text-transform:uppercase;letter-spacing:1px">Origin</p>
+<p style="font-size:26px;line-height:1.4">Jaffe, Nadler, Kluger, "Estimating the Accuracies of Multiple Classifiers Without Labeled Data", AISTATS 2015 (Algorithm 1).</p>
+<p style="font-size:24px;color:#2a78d6;font-weight:600;text-transform:uppercase;letter-spacing:1px">How we use it</p>
+<p style="font-size:26px;line-height:1.4">Between-group weights w_g = log(ψη / ((1−ψ)(1−η))), clipped at 0, in every *_MOM recipe.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:18px;background:#ffffff;border-radius:16px;padding:32px">
+<p style="font-size:24px;color:#eb6834;font-weight:600;text-transform:uppercase;letter-spacing:1px">Estimate vs truth (PRMBench, 8 banks)</p>
+<table style="font-size:26px;color:#1b2430"><tr><th style="width:52%;text-align:left">Quantity</th><th style="width:24%;text-align:right">Channels</th><th style="width:24%;text-align:right">Groups</th></tr>
+<tr><td>Prevalence (true 0.140)</td><td style="text-align:right">0.244</td><td style="text-align:right">0.211</td></tr>
+<tr><td>ψ mean abs. error</td><td style="text-align:right">0.165</td><td style="text-align:right">0.159</td></tr>
+<tr><td>η mean abs. error</td><td style="text-align:right">0.076</td><td style="text-align:right">0.062</td></tr>
+<tr><td>Spearman reliability</td><td style="text-align:right">0.799</td><td style="text-align:right">0.738</td></tr></table>
+<p style="font-size:24px;color:#33404f;line-height:1.4"><b>Caveat:</b> the prevalence just echoes the marked share (0.231 vs quota 0.230), it is not measured. As a filter instead of DS it is worse (−0.0014 AUC) and keeps an anti-oriented channel.</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7a8394">8 · MoM · sources: ESTIMATOR_ACCURACY.csv, RESEARCH_NOTE_HE.md, er_stage_a.py</p>
+<aside>MoM ranks channels best of the three estimators (Spearman 0.80) and is the between-group weighting used by every method we compare. Its absolute ψ errors are larger than DS's (0.165 vs 0.101) because the same conditional-independence violation biases the third moments.</aside>
+</section>

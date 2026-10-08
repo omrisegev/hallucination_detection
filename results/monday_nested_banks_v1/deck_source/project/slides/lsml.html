@@ -1,0 +1,21 @@
+<section id="lsml" data-transition="fade" style="background:#f7f6f2;color:#1b2430;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:32px">
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:64px;font-weight:600;line-height:1.1">SML and L-SML: good at ranking channels, not at weighting them</h2>
+<div style="display:flex;gap:40px">
+<div style="flex:1.1;display:flex;flex-direction:column;gap:18px">
+<p style="font-size:24px;color:#2a78d6;font-weight:600;text-transform:uppercase;letter-spacing:1px">Idea and formula</p>
+<p style="font-size:26px;line-height:1.4">If channels are conditionally independent, the off-diagonal covariance of votes is rank one: q_ij = t_i·t_j with t_i ∝ (2π_i − 1). The leading eigenvector ranks reliability.</p>
+<p style="font-size:26px;line-height:1.4">L-SML: cluster dependent channels first (score s_ij = Σ|r_ij·r_kl − r_il·r_kj|), SML within groups, then SML across groups; sign set by the anchor q15_H1.</p>
+<p style="font-size:24px;color:#2a78d6;font-weight:600;text-transform:uppercase;letter-spacing:1px">Origin</p>
+<p style="font-size:26px;line-height:1.4">Parisi, Strino, Nadler, Kluger, PNAS 2014 (SML) · Jaffe, Fetaya, Nadler, Jiang, Kluger, 2016 (L-SML, dependent classifiers)</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:18px;background:#ffffff;border-radius:16px;padding:32px">
+<p style="font-size:24px;color:#eb6834;font-weight:600;text-transform:uppercase;letter-spacing:1px">Estimate vs truth and outcome</p>
+<p style="font-size:26px;line-height:1.4">Ranking only, no prevalence or ψ/η. Spearman with true reliability <b>0.799</b> (channel votes), <b>0.730</b> (group votes).</p>
+<p style="font-size:26px;line-height:1.4">Full L-SML fusion below the plain average on <b>8 of 8</b> banks (0.7532 vs 0.7656 AUC).</p>
+<p style="font-size:26px;line-height:1.4">Why: dependence between groups survives (class-conditional |r| 0.14–0.31, worst pairs 0.72–0.86); adding 21 weak channels dropped AUC 0.7645 → 0.6724.</p>
+<p style="font-size:24px;color:#33404f;line-height:1.4">Today L-SML is used only to form groups (next slide).</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7a8394">6 · SML / L-SML · sources: algorithm_decisions_v1, lsml_merge_step_v1, Step 439</p>
+<aside>SML and the method of moments share the same t vector, so their channel rankings are identical (same Spearman). The earlier bank11 L-SML edge turned out to be silencing three anti-oriented channels, not weighting.</aside>
+</section>

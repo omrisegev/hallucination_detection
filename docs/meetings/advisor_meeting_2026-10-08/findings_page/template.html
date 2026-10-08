@@ -1,0 +1,167 @@
+<title>Step-Error Localization Findings</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono&display=swap">
+<style>
+/* Layout: one reading column with a sticky section index; figures sit on white plates so light-theme PNGs read in both themes */
+:root{--bg:#f6f7f9;--fg:#1b2430;--muted:#5b6676;--line:#d8dde5;--plate:#ffffff;--accent:#2a78d6;--warn:#c4561f;--good:#e3eefb;--bad:#fbe9e1;
+--display:'Source Serif 4',Georgia,serif;--body:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12161d;--fg:#e6eaf0;--muted:#9aa5b5;--line:#2c3440;--plate:#f4f5f7;--accent:#6aa8f0;--warn:#f08a5a;--good:#1d3350;--bad:#43281c;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#12161d;--fg:#e6eaf0;--muted:#9aa5b5;--line:#2c3440;--plate:#f4f5f7;--accent:#6aa8f0;--warn:#f08a5a;--good:#1d3350;--bad:#43281c;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:24px 80px}
+nav{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);border-bottom:1px solid var(--line);padding-block:10px;z-index:2;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px}
+nav a{color:var(--accent);text-decoration:none}nav a:hover{text-decoration:underline}
+h1{font-family:var(--display);font-size:clamp(28px,4vw,40px);line-height:1.15;text-wrap:balance;margin:18px 0 6px}
+h2{font-family:var(--display);font-size:28px;margin:48px 0 8px;padding-top:12px;border-top:2px solid var(--fg);text-wrap:balance}
+h3{font-size:18px;margin:28px 0 6px}
+p,li{max-width:75ch}.lede{color:var(--muted);font-size:17px}
+a.dd{font-family:var(--body);font-size:14px;font-weight:400;color:var(--accent)}
+nav span{color:var(--muted)}
+.note{color:var(--muted);font-size:14px}
+.key{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:18px 0}
+.key div{border:1px solid var(--line);border-radius:8px;padding:14px 16px;min-width:0}
+.key b{display:block;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.tw{overflow-x:auto;margin:14px 0}
+table{border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums;min-width:100%}
+caption{text-align:left;font-weight:600;padding-bottom:6px}
+th,td{border-bottom:1px solid var(--line);padding:6px 9px;text-align:right;white-space:nowrap}
+tr th:first-child{text-align:left}
+table.wide td,table.wide th{text-align:left;white-space:normal;vertical-align:top}table.wide tr th:first-child{white-space:nowrap}
+ol li{margin-block:2px}
+td.best{font-weight:700;color:var(--accent)} td.lr{color:var(--muted);font-style:italic}
+tr.lead th,tr.lead td{background:var(--good)} tr.mrow th,tr.mrow td{border-top:2px solid var(--fg);font-weight:600} .mcol{border-left:2px solid var(--line);font-weight:600} td sup{font-weight:400;color:var(--muted);font-size:11px;margin-left:3px}
+tr.good td,tr.good th{background:var(--good)} tr.bad td,tr.bad th{background:var(--bad)} tr.refrow th,tr.refrow td{color:var(--muted)}
+figure{margin:18px 0}figure img{background:var(--plate);border-radius:6px;padding:8px;max-width:100%;display:block}
+figcaption{color:var(--muted);font-size:14px;margin-top:6px;max-width:90ch}
+.warn{border-left:4px solid var(--warn);padding:8px 14px;margin:14px 0}
+code{font-family:var(--mono);font-size:13px}
+</style>
+<div class="wrap">
+<nav><a href="#top">Summary</a><a href="#defs">Methods and metrics</a><a href="#signals">Signals</a><a href="#pb">ProcessBench</a><a href="#prmb">PRMBench</a><a href="#types">PRMBench error types</a><a href="#lit">Published competitors</a><a href="#transfer">Development vs transfer</a><a href="#own">Teacher forcing vs own answers</a><a href="#caveats">Caveats</a><span>Deep dives:</span><a href="deep_mtg.html">Mind the Gap</a><a href="deep_tf.html">Teacher forcing</a><a href="deep_pipeline.html">Tail pipeline</a></nav>
+<h1 id="top">Label-free step-error localization: findings for the advisor meeting</h1>
+<p class="lede">The task: find the wrong steps in a given answer, with no labels and no training. We do one teacher-forced pass with Qwen3-4B or Qwen3-8B. We read token-probability channels for each step. Then we fuse the channels without labels. PRMBench and ProcessBench are development data; Hard2Verify and Socratic are exploratory transfer. Banks: N11 &lt; N13 &lt; N22 &lt; N40 &lt; N53; digit twins N14 &lt; N16 &lt; N25 &lt; N43 &lt; N56.</p>
+<div class="key">
+<div><b>Q1 · Fusion vs plain average</b>Fusion saturates. On PRMBench, all label-free rules give almost the same score. Our pipeline ties the DS-signed average (15 better, 15 worse, of 36 method × bank pairs). On ProcessBench, the plain average (SLA 0.414, N16) is better than all four pipeline variants (0.396–0.408).</div>
+<div><b>Q2 · Competitors</b>PRMBench: our top step is an error more often than the top step of the supervised PRM-7B. But the PRM has a higher within-answer AUC (0.80 vs 0.79). ProcessBench: we are above our run of Mind the Gap in all 8 cells. Against the paper's numbers, the result is mixed. We are far below the PRM (SLA 0.57, its top step).</div>
+<div><b>Q3 · Practical value</b>The ranking works. It needs no labels and only one pass. On two error types, redundancy and circular logic, we rank errors better than the PRM. Our weak point: the decision that an answer is clean (ProcessBench F1 about 0.40; PRM 0.73).</div>
+<div><b>Headroom</b>A supervised LR on the same channels adds +0.03 to +0.07 AUC on PRMBench. On ProcessBench it adds almost nothing. Thus the channels (the representation) set the score, not the fusion rule.</div>
+</div>
+
+<h2 id="defs">Methods and metrics</h2>
+<p>All methods see the same z-scored step channels of one bank. Each method fits on one cell (one benchmark subset × one scoring model). No method uses labels, except the LR reference. The methods differ only in how they weight the channels.</p>
+<div class="tw"><table class="wide"><caption>Methods</caption><tr><th>Name</th><th>What it does</th><th>Origin</th></tr>
+<tr><th>Plain average</th><td>Mean of all channels. No filter. No sign flip.</td><td>Simplest reference</td></tr>
+<tr><th>DS-signed average</th><td>Dawid–Skene estimates the direction of each channel. Flip the channels that point the wrong way. Then average.</td><td>Sign control; DS is also the estimator of our filter</td></tr>
+<tr><th>IU-PCR</th><td>Estimate the covariance of each channel with the hidden error from the channel covariance. Weight by 2 principal components.</td><td>Dror et al. 2017, Tenzer et al. 2022; the earlier main method of the project</td></tr>
+<tr><th>Continuous L-SML</th><td>Find groups of dependent channels. Fuse each group by its leading eigenvector. Then fuse the groups the same way.</td><td>Jaffe et al. 2016</td></tr>
+<tr><th>Our pipeline (4 variants)</th><td>Each channel votes "error" on its top 20% of steps (binary tail votes). Dawid–Skene drops wrong-way channels. L-SML groups the channels, and a merge step fixes small groups. Inside a group: MEAN, HEM or TCI. Between groups: MoM weights.</td><td>New in the last 3 weeks. _cc: vote per channel, quota per cell. _ga: vote per group, quota per answer.</td></tr>
+<tr><th>LR (reference)</th><td>Logistic regression on the same channels, trained with step labels, source-group cross-fit.</td><td>Supervised headroom, not a competitor</td></tr>
+</table></div>
+<div class="tw"><table class="wide"><caption>Metrics</caption><tr><th>Metric</th><th>Definition</th><th>Benchmark</th><th>Needs a threshold?</th></tr>
+<tr><th>Within-answer AUC</th><td>In one answer: the chance that an error step scores above a correct step. Mean over answers.</td><td>PRMBench</td><td>No</td></tr>
+<tr><th>Top step is an error</th><td>Share of wrong answers whose top-ranked step is any error step.</td><td>PRMBench</td><td>No</td></tr>
+<tr><th>SLA</th><td>The metric of Mind the Gap. Share of wrong answers whose chosen step is exactly the first error. Clean answers are not scored. We choose the top-ranked step; Mind the Gap chooses the first step over a threshold.</td><td>ProcessBench</td><td>No</td></tr>
+<tr><th>PRMScore</th><td>½ · (F1 on correct steps + F1 on error steps).</td><td>PRMBench, Socratic</td><td>Yes</td></tr>
+<tr><th>ProcessBench F1</th><td>2·A·C/(A+C). A = exact first-error accuracy on wrong answers. C = accuracy on clean answers. Macro over 4 subsets.</td><td>ProcessBench</td><td>Yes</td></tr>
+<tr><th>Balanced F1</th><td>2·R1·R2/(R1+R2). R1, R2 = recall on correct steps and on error steps.</td><td>Hard2Verify</td><td>Yes</td></tr>
+</table></div>
+<p class="note">Benchmarks: ProcessBench (Dec 2024; find the first error, or −1 for a clean answer). PRMBench (Jan 2025; judge every step; an LLM inserted the errors). Socratic-PRMBench (May 2025). Hard2Verify (Oct 2025).</p>
+
+<h2 id="signals">Signals: teacher forcing, written-token surprise, varentropy</h2>
+<p><b>Teacher forcing</b> (<a href="deep_tf.html">deep dive</a>). The scoring model reads a given answer in one forward pass. It generates nothing. The input is the Qwen3 chat template: our math prompt, the question and " /no_think" in the user turn, then the answer steps (joined by blank lines) in the assistant turn. At each answer token we keep the top-50 log-probs and the log-prob of the written token. Mind the Gap scores ProcessBench in the same way, with the same Qwen3-4B and Qwen3-8B. The term comes from Williams &amp; Zipser (1989).</p>
+<div class="tw"><table class="wide"><caption>Written-token surprise (x<sub>t</sub> = written token; step values are z-scored per answer)</caption><tr><th>Channel</th><th>Formula per step</th><th>Question</th><th>PRMBench AUC</th><th>ProcessBench SLA</th></tr>
+<tr><th>Surprise</th><td>s<sub>t</sub> = −log p(x<sub>t</sub>); mean of the 10 largest s<sub>t</sub> in the step</td><td>How unlikely was the written token?</td><td>0.698</td><td>0.176</td></tr>
+<tr><th>Surprise z-test</th><td>Σ(s<sub>t</sub> − H<sub>t</sub>) / √(ΣV<sub>t</sub> + 0.01·n). H = entropy (the expected surprise). V = varentropy.</td><td>Is the step more surprising than the model predicted?</td><td>0.739</td><td>0.310</td></tr>
+<tr><th>Surprise rise</th><td>EMA e<sub>t</sub> (span 16); r<sub>t</sub> = max(e<sub>t</sub> − e<sub>t−1</sub>, 0); mean of the 3 largest r<sub>t</sub></td><td>Did the surprise jump above its recent past?</td><td>0.796</td><td>0.327</td></tr>
+<tr><th>Entropy (reference)</th><td>Top-15 entropy; does not use x<sub>t</sub></td><td>How unsure is the model?</td><td>0.730</td><td>0.336</td></tr>
+</table></div>
+<p class="note">Provenance: we did not invent these parts. Surprise: SelfCheckGPT (2023). Z-test: the Fast-DetectGPT statistic (2024), here per step; per token it is Min-K%++ (2025). Rise: the drop rule of Mind the Gap (2026); their Table 3 also has an "LN-S Drop" column on the written token. Our part: the step readouts and their use inside label-free fusion.</p>
+<div class="tw"><table class="wide"><caption>Varentropy: VE = Σ p·(−log p − H)². Prior work</caption><tr><th>Work</th><th>Use</th><th>Tested on step-error labels?</th></tr>
+<tr><th>Kontoyiannis &amp; Verdú 2014</th><td>Defines varentropy (compression theory)</td><td>No</td></tr>
+<tr><th>entropix 2024; Li et al. 2025</th><td>Steer sampling and branching</td><td>No benchmark</td></tr>
+<tr><th>Fast-DetectGPT 2024; Min-K%++ 2025</th><td>Same z-score, for machine-text and pretraining-data detection</td><td>No; answer or document level</td></tr>
+<tr><th>Katanemo 2025; LogitScope 2026</th><td>Flag possible hallucinations</td><td>No labelled evaluation</td></tr>
+</table></div>
+<p class="note">Narrow claim (about 80% confidence): the first label-based evaluation of varentropy for locating the wrong step on process benchmarks. Alone, varentropy channels reach 0.73–0.75 PRMBench AUC (best 0.753, above entropy 0.730). But they correlate 0.91–0.94 with the uncertainty level.</p>
+
+<h2 id="pb">ProcessBench</h2>
+<p>Find the first wrong step, or say the answer is clean. 3,400 answers × 2 scoring models (Qwen3-4B, Qwen3-8B), 4 subsets = 8 cells; 4,442 wrong traces.</p>
+{{T_PB}}
+{{REF_PB}}
+<figure><img src="fig/B3_processbench_light.png" alt="ProcessBench SLA by method"><figcaption>ProcessBench SLA, label-free methods vs references (monday_nested_banks_v2).</figcaption></figure>
+<h3>How Mind the Gap works <a class="dd" href="deep_mtg.html">deep dive →</a></h3>
+<ol><li>Evidence per token: Ê = −H(P̃). P̃ = the top-20 probabilities, renormalized.</li><li>Smooth Ê with an EMA (span 5).</li><li>Flux: Δ = Ẽ<sub>j</sub> − Ẽ<sub>j−1</sub>. A large negative Δ is a drop.</li><li>Answer score: mean of the 5 largest drops. Step level: the first step where Δ crosses a threshold. The paper does not define this threshold or the token-to-step map.</li></ol>
+<p class="note">Our reproduction: 572 settings × 8 cells. The closest setting gives 37.00 vs 39.27 in the paper, but only when answers where the detector never fires are left out. With all wrong answers, the same setting gives 23.92. The released code has no step-level code and uses another signal (18.42 points off). Our comparator: mean of the 5 largest drops in the step, top step, all wrong answers (SLA 0.332).</p>
+<figure><img src="fig/M2_mtg_per_cell_light.png" alt="SLA per cell vs Mind the Gap"><figcaption>Per cell: our pipeline (mean of 4 variants), our plain average, Mind the Gap as we run it, Mind the Gap paper (hatched, context only). Plain average beats our run of Mind the Gap in all 8 cells (+0.081, 95% CI +0.061 to +0.104); vs the paper: higher on GSM8K and MATH, lower on OlympiadBench and Omni-MATH.</figcaption></figure>
+<figure><img src="fig/A1_gain_processbench_light.png" alt="Gain over plain average on ProcessBench"><figcaption>Fusion gain over the plain average on ProcessBench, by bank.</figcaption></figure>
+<h3>Deciding that an answer is clean</h3>
+<figure><img src="fig/K1_clean_decision_light.png" alt="Clean decision"><figcaption>N16: the top-20% rule finds 0.38 of first errors but leaves only 6% of clean answers clean (F1 0.10); the count rule 0.31 / 57% (F1 0.40); PRM-7B 0.62 / 89% (F1 0.73); 72B judge 0.45 / 91% (F1 0.59).</figcaption></figure>
+{{F1T}}
+<p class="note">Strata caveat: always picking the longest step gives SLA 0.318, close to our run of Mind the Gap (0.332). Without step 0 and the longest step, our gain over Mind the Gap shrinks to +0.011…+0.056 and 2 of 4 intervals include 0 (PANEL_B_CONTRASTS.csv).</p>
+
+<h2 id="prmb">PRMBench</h2>
+<p>Judge every step. 6,969 answers, 94,203 steps, Qwen3-8B. Within-answer AUC needs no threshold; PRMScore needs a flag rule.</p>
+{{T_PRMB_AUC}}
+{{T_PRMB_TOP}}
+{{REF_PRMB}}
+<figure><img src="fig/C2_baselines_dssigned_light.png" alt="Baselines on PRMBench"><figcaption>All label-free candidates on the same banks (DS-signed average as the sign control), with LR as the supervised headroom.</figcaption></figure>
+<figure><img src="fig/B1_prmbench_headline_light.png" alt="PRMBench headline"><figcaption>PRMBench headline: within-answer AUC and top step on error, ours vs PRM-7B and Mind the Gap.</figcaption></figure>
+<h3>Bank size</h3>
+<figure><img src="fig/N2_nested_banks_dssigned_light.png" alt="Nested banks"><figcaption>Scores across nested banks: channel choice moves the score more than the fusion rule; the 18 rhythm channels (N40) cost −0.007 AUC even after DS signs.</figcaption></figure>
+<figure><img src="fig/G1_gain_prmbench_dssigned_light.png" alt="Gain over plain average PRMBench"><figcaption>Gain over the plain average on PRMBench: at most +0.018 AUC, mostly from sign flips.</figcaption></figure>
+<h3>Supervised headroom and LR weights</h3>
+<figure><img src="fig/L4_lr_vs_labelfree_dssigned_light.png" alt="LR vs label-free"><figcaption>LR (supervised, cross-fit) vs the best label-free method per bank.</figcaption></figure>
+<figure><img src="fig/W1_weights_N16_N56.png" alt="LR weights"><figcaption>LR weights, N16 and N56. Few weights are near zero (1–2 in small banks, 6–10 in large ones, mostly rhythm channels); dropping them costs nothing (±0.0004). The near-zero set is not unique (exact copies share weight). Stable core: energy level + written-token surprise rise (0.803 alone vs 0.822 full LR on N16). The digit pair's ±9 weights are collinearity, not two signals.</figcaption></figure>
+<h3>Single channels vs fusion</h3>
+<figure><img src="fig/S3_single_vs_fusion_dssigned_light.png" alt="Singles vs fusion"><figcaption>The best PRMBench channel (written-token surprise rise, 0.796 AUC) is weak on ProcessBench (0.327 SLA); the best ProcessBench channel (digit spread, 0.360) is not the best on PRMBench. Fusion is the only thing that works on both. Signs from DS.</figcaption></figure>
+<h3>What the tail-vote pipeline taught us (last three weeks) <a class="dd" href="deep_pipeline.html">deep dive →</a></h3>
+<ul>
+<li>Binary tail votes do not beat continuous fusion: vs IU-PCR on the same banks, the pipeline is clearly worse in 21 and clearly better in 9 of 40 PRMBench comparisons; vs continuous L-SML 26 worse, 11 better.</li>
+<li>L-SML groups are no better than random groups of the same sizes as stage-2 input (0.784 vs 0.787).</li>
+<li>Between-group weights are near the supervised optimum (0.782 vs 0.784); the loss is equal averaging inside groups (non-negative supervised weights recover 86–97% of it).</li>
+<li>DS top-3 pruning and the TCI triplet rule did not generalize across banks (group results on the September banks).</li>
+</ul>
+<h3>What the label-free estimators get right</h3>
+<p>The estimators (DS, MoM) rank the channels well: a channel with high true accuracy gets a high estimate (Spearman 0.73–0.80). We use this order to drop wrong-way channels and to weight groups. But they estimate the error rate 1.5–2.2 times too high (0.21–0.31 vs 0.14), because the channels share information beyond the truth. We do not use that rate.</p>
+
+<h2 id="types">PRMBench error types</h2>
+<p>We did not optimize for error types; the profile just appears. Redundancy and circular logic (PRMBench's "Simplicity") are where every published PRM is weakest.</p>
+{{TY}}
+<figure><img src="fig/T2_types_all_configs_dssigned_light.png" alt="Error types all configs"><figcaption>Every label-free configuration vs PRM-7B, per error type.</figcaption></figure>
+<figure><img src="fig/B2_error_types_light.png" alt="Error types"><figcaption>Per-type within-answer AUC, ours vs PRM-7B.</figcaption></figure>
+<p class="note">Literature: in about 40 PRMBench rows (paper, leaderboard, 5 later papers) every method above chance scores lower on redundancy and circular logic than on its soundness types, by 2 to 19 points; humans by 3.3. No method leads on both. Our numbers use another protocol (within-answer AUC), so the claim is "ranks these errors above Qwen2.5-Math-PRM-7B under the same protocol", not "best on the leaderboard". Official per-category PRMScore and leaderboard placement are being computed.</p>
+
+<h2 id="lit">Published competitors</h2>
+<div class="tw"><table><caption>Published numbers (context only: other protocols and thresholds)</caption><tr><th>Method (type)</th><th>ProcessBench</th><th>PRMBench</th><th>Hard2Verify</th><th>Socratic</th></tr>
+<tr><th>Ours, N16 (label-free, no training)</th><td>SLA 0.40 · F1 0.39–0.41</td><td>0.65*</td><td>0.39–0.40</td><td>0.62–0.65</td></tr>
+<tr><th>Mind the Gap (label-free)</th><td>SLA 39.3</td><td>–</td><td>–</td><td>–</td></tr>
+<tr><th>Untrained LLM judge, 14B (uPRM paper)</th><td>F1 37.2</td><td>–</td><td>–</td><td>–</td></tr>
+<tr><th>uPRM (no labels, about 44 GPU-h training)</th><td>F1 48.4</td><td>–</td><td>–</td><td>–</td></tr>
+<tr><th>7B PRMs trained on automatic labels</th><td>F1 31.3–53.0</td><td>–</td><td>–</td><td>–</td></tr>
+<tr><th>Qwen2.5-Math-PRM-7B (supervised)</th><td>F1 73.5</td><td>65.5</td><td>42.4</td><td>68.0</td></tr>
+<tr><th>Best trained verifier</th><td>78.3 (PRM-72B) · 84.4 (FARE-20B)</td><td>68.2 (PRM-72B)</td><td>–</td><td>–</td></tr>
+<tr><th>Best LLM judge</th><td>87.9 (o1-mini)</td><td>68.8 (Gemini-2.0-thinking)</td><td>85.8 (GPT-5)</td><td>75.7 (o3-mini)</td></tr>
+<tr><th>Humans</th><td>–</td><td>83.8</td><td>–</td><td>–</td></tr>
+</table></div>
+<p class="note">*PRMBench: one flag per error answer, not the official PRMScore. On ProcessBench F1 we are inside the range of 7B PRMs trained on automatic labels, and we need no training. On PRMBench, Hard2Verify and Socratic we found no published label-free method.</p>
+
+<h2 id="transfer">Development vs transfer benchmarks</h2>
+<p>Hard2Verify (200 olympiad proofs by frontier LLMs, expert step labels, Balanced F1) and Socratic-PRMBench (GPT-4o inserted errors, PRMScore). Exploratory: we scored their labels earlier in the project.</p>
+<figure><img src="fig/E1_dev_vs_external_light.png" alt="Development vs external"><figcaption>Bank ranking on development vs external sets: holds on Socratic, not on Hard2Verify.</figcaption></figure>
+<figure><img src="fig/X2_external_official_dssigned_light.png" alt="External official metrics"><figcaption>Official metrics on the external sets: the same saturation, label-free rules within about 0.02.</figcaption></figure>
+
+<h2 id="own">Teacher forcing vs the model's own answers <a class="dd" href="deep_tf.html">deep dive →</a></h2>
+<p>Teacher forcing scores text another model wrote (off-policy). To check, Qwen3 answered problems itself; two LLM judges (Claude and GPT) labelled the steps independently (κ = 0.95 on error vs no error, 958 answers).</p>
+<figure><img src="fig/P1_planted_natural_light.png" alt="Planted vs natural errors"><figcaption>70% of natural first errors are kinds PRMBench never plants (misread 36%, calculation 18%, wrong method 15%).</figcaption></figure>
+<ul>
+<li>Ranking holds: within-answer AUC 0.757 on 388 own answers vs 0.763 on ProcessBench GSM8K+MATH (difference interval −0.042 to +0.028; equivalence not shown).</li>
+<li>The exact first-error hit drops: 26% (417 answers) vs 44% (ProcessBench GSM8K+MATH).</li>
+</ul>
+
+<h2 id="caveats">Caveats</h2>
+<div class="warn"><b>Teacher-forcing prompt format (found while preparing this meeting).</b> Our teacher-forced input lacks Qwen3's empty think block (<code>&lt;think&gt;&lt;/think&gt;</code>) that the model writes in /no_think mode. The first answer token gets 34–36 nats of surprise and the raw step surprise peaks at step 0 in 90–93% of ProcessBench GSM8K/MATH answers (true first error at step 0: 18–19%). Effect on final metrics unknown. Check: CPU re-score with the first tokens masked; fix: GPU re-score with the block (needs approval). Own-answer telemetry is not affected, so the own-answers comparison crosses telemetry formats.</div>
+<ul>
+<li>Written-token surprise is built from published parts (SelfCheckGPT −log p; Fast-DetectGPT-style z; Mind the Gap's drop rule, which already has an "LN-S Drop" column). Ours: the step readouts and their use inside label-free fusion.</li>
+<li>N16 was chosen after seeing results; all PRMBench and ProcessBench numbers are development data.</li>
+</ul>
+<p class="note">Sources: results/monday_nested_banks_v2, monday_cont_baselines_v1, monday_ds_signed_v1, monday_lr_reference_v1, monday_lr_weights_v1, monday_types_singles_v1, own_error_types_v1, monday_deckA_figs_v1. Full slide decks: <a href="https://claude.ai/artifact/UffpaKxn8fE6dAMXZTvvjj">short deck</a> · <a href="https://claude.ai/artifact/XLtayiUQVQgC2CNHGH34Gt">full deck</a>.</p>
+</div>

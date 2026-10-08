@@ -1,0 +1,12 @@
+<section id="prmb" data-section="Competitors and external transfer" data-transition="fade" style="background:#f7f6f2;color:#1b2430;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:24px">
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:64px;font-weight:600;line-height:1.1">PRMBench: equal to a supervised PRM on the top step, 3 points lower on ranking</h2>
+<img src="/_blob/1e3a2f6d20c6614f8191ba39c6208225" alt="Four panels on PRMBench for bank N16: within-answer AUC 0.792 vs supervised PRM 0.801 and Mind the Gap 0.714; top-ranked step is an error 0.621 vs 0.578 and 0.477; PRMScore with one flag per answer 0.653 vs 0.638 and 0.602; own-rule PRMScore 0.665 vs 0.655" style="width:1664px;height:420px;object-fit:contain">
+<table style="font-size:24px;color:#1b2430">
+<tr style="background:#e8ecf3"><th style="width:31%;text-align:left">Configurations</th><th style="width:23%;text-align:right">Within-answer AUC</th><th style="width:23%;text-align:right">Top step is an error</th><th style="width:23%;text-align:right">PRMScore, 1 flag</th></tr>
+<tr><td>N16, 4 methods (post-hoc best)</td><td style="text-align:right">0.788–0.796</td><td style="text-align:right">0.617–0.625</td><td style="text-align:right">0.652–0.655</td></tr>
+<tr><td>All 28 complete configurations</td><td style="text-align:right">0.752–0.796</td><td style="text-align:right">0.512–0.625</td><td style="text-align:right">0.615–0.655</td></tr>
+<tr><td>Supervised PRM-7B · Mind the Gap</td><td style="text-align:right">0.801 · 0.714</td><td style="text-align:right">0.578 · 0.477</td><td style="text-align:right">0.638 · 0.602</td></tr>
+</table>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7a8394">16 · Development data · "1 flag" = localization on error-containing answers only; it removes the clean-answer decision where the PRM is strong · PANEL_B_PRMBENCH.csv</p>
+<aside>Allowed claim: on the post-hoc best bank, a label-free method matches a supervised PRM on top-step and equal-budget PRMScore and is within 0.01 AUC; over all configurations it is about 3 AUC points lower and matches on the top step in 21 of 28. Not allowed: superiority over the PRM, or an AUC tie (the intervals include zero for two methods only). Mind the Gap here is our teacher-forced step-level reproduction, not the paper's numbers. Banks, rules and q80 were designed on these labels, so "label-free" refers to the fitting only.</aside>
+</section>

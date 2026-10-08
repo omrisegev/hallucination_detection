@@ -1,0 +1,10 @@
+{
+  "PROGRESS.md": {
+    "placement": "prepend",
+    "text": "## 2026-10-02 Omri clarification: map algorithms before research synthesis\n\nThe next research stage should identify the algorithms/components tried, their matched experiments and comparator/failure analyses, then define a small set of complete recipes for evaluation across feature banks and against PRM/Mind the Gap. CT7, bank11, B13/B16, family15 and fam421 are not interchangeable method names. Start with [the sourced scope draft](docs/research_notes/RESEARCH_SYNTHESIS_SCOPE_20261002_HE.md). This turn maps evidence and proposes scope only; no candidate selection or new experiment has started. Existing user decisions and deferred directions remain in effect.\n\n"
+  },
+  "LESSONS.md": {
+    "placement": "append",
+    "text": "\n\n## 2026-10-02 - Distinguish feature-bank names from complete algorithm versions\nWhat happened: Omri pointed out that summaries switched between CT7, bank11 and family counts without explaining that experiments changed features, fusion, fitting and readout over time.\nWhy: historical aliases were treated like directly comparable methods, obscuring which component produced the gain and which candidate a comparator analysis actually tested.\nRule: identify each recipe by inputs, feature list, preprocessing, filtering, grouping, estimator/fusion, readout, decision and fitting contract. Compare a component against matched controls and rerun candidate-specific analyses only after selecting that candidate; do not transfer CT7 findings automatically.\nEnforced by: docs/research_notes/RESEARCH_SYNTHESIS_SCOPE_20261002_HE.md recipe schema, evidence-map requirements and comparison matrix.\n"
+  }
+}

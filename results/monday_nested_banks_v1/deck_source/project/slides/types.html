@@ -1,0 +1,10 @@
+<section id="types" data-transition="fade" style="background:#f7f6f2;color:#1b2430;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:24px">
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:64px;font-weight:600;line-height:1.1">A different error profile from the supervised PRM</h2>
+<img src="/_blob/0ae6a5a34f47115ba204a713bf0f7f12" alt="PRMBench within-answer AUC by error type for bank N16, the supervised PRM and Mind the Gap: ours higher on redundancy (+0.21), circular logic (+0.05) and domain inconsistency (+0.02); the PRM higher on confidence, counterfactual and deception (about −0.10 to −0.12)" style="width:1664px;height:500px;object-fit:contain">
+<div style="display:flex;gap:32px">
+<p style="flex:1;font-size:26px;color:#33404f;line-height:1.4"><b>Ours ahead:</b> redundancy, circular logic, domain inconsistency. Above Mind the Gap in all 8 types.</p>
+<p style="flex:1;font-size:26px;color:#33404f;line-height:1.4"><b>PRM ahead:</b> confidence, counterfactual, deception. Caution: step index alone scores 0.868 on confidence and 0.714 on deception, so part of this gap is where the errors sit, not what they say.</p>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7a8394">17 · Descriptive, no per-type intervals · errors are GPT-written perturbations scored by teacher forcing · PANEL_B_PRMBENCH_TYPES.csv</p>
+<aside>Do not present the PRM-strong types as a natural limit of label-free methods: the step-index baseline is strong exactly on those types, so the difference is partly positional. The redundancy advantage (+0.21 AUC) is large and is where a label-free uncertainty signal clearly adds something a supervised PRM misses.</aside>
+</section>

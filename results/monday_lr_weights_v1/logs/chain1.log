@@ -1,0 +1,47 @@
+N56 l2 path 39
+Traceback (most recent call last):
+  File "C:\Users\omris\TAU\hallucination_detection\results\monday_lr_weights_v1\run.py", line 353, in <module>
+    elif stage == 'bank': bank_stage(sys.argv[2])
+                          ~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\omris\TAU\hallucination_detection\results\monday_lr_weights_v1\run.py", line 178, in bank_stage
+    cols = np.array([k for k in range(P) if k != j]); o, Wd, okd = fit_fixed(V, y, folds, Cs, cols)
+                                                                   ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\omris\TAU\hallucination_detection\results\monday_lr_weights_v1\run.py", line 140, in fit_fixed
+    sc, m = ref.model_fit(V[tr][:, cols], y[tr], Cs[k])
+            ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\omris\TAU\hallucination_detection\results\monday_lr_reference_v1\run.py", line 102, in model_fit
+    scaler = StandardScaler().fit(x)
+  File "C:\Users\DELL\AppData\Local\Programs\Python\Python313\Lib\site-packages\sklearn\preprocessing\_data.py", line 924, in fit
+    return self.partial_fit(X, y, sample_weight)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\DELL\AppData\Local\Programs\Python\Python313\Lib\site-packages\sklearn\base.py", line 1336, in wrapper
+    return fit_method(estimator, *args, **kwargs)
+  File "C:\Users\DELL\AppData\Local\Programs\Python\Python313\Lib\site-packages\sklearn\preprocessing\_data.py", line 1047, in partial_fit
+    self.mean_, self.var_, self.n_samples_seen_ = _incremental_mean_and_var(
+                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        X,
+        ^^
+    ...<3 lines>...
+        sample_weight=sample_weight,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\DELL\AppData\Local\Programs\Python\Python313\Lib\site-packages\sklearn\utils\extmath.py", line 1202, in _incremental_mean_and_var
+    sum_op, xp.astype(X_nan_mask, X.dtype), axis=0
+            ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\DELL\AppData\Local\Programs\Python\Python313\Lib\site-packages\sklearn\externals\array_api_compat\numpy\_aliases.py", line 125, in astype
+    return x.astype(dtype=dtype, copy=copy)
+           ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+numpy._core._exceptions._ArrayMemoryError: Unable to allocate 31.5 MiB for an array with shape (75066, 55) and data type float64
+N11 l2 path 24
+Traceback (most recent call last):
+  File "C:\Users\omris\TAU\hallucination_detection\results\monday_lr_weights_v1\run.py", line 353, in <module>
+    elif stage == 'bank': bank_stage(sys.argv[2])
+                          ~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\omris\TAU\hallucination_detection\results\monday_lr_weights_v1\run.py", line 178, in bank_stage
+    cols = np.array([k for k in range(P) if k != j]); o, Wd, okd = fit_fixed(V, y, folds, Cs, cols)
+                                                                   ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\omris\TAU\hallucination_detection\results\monday_lr_weights_v1\run.py", line 140, in fit_fixed
+    sc, m = ref.model_fit(V[tr][:, cols], y[tr], Cs[k])
+                          ~~~~~^^^^^^^^^
+numpy._core._exceptions._ArrayMemoryError: Unable to allocate 5.72 MiB for an array with shape (10, 75038) and data type float64

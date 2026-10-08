@@ -1,0 +1,20 @@
+<section id="tci" data-transition="fade" style="background:#f7f6f2;color:#1b2430;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:32px">
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:64px;font-weight:600;line-height:1.1">TCI triplets (Prop. 2.4): detects dependence, does not transfer</h2>
+<div style="display:flex;gap:40px">
+<div style="flex:1.1;display:flex;flex-direction:column;gap:18px">
+<p style="font-size:24px;color:#2a78d6;font-weight:600;text-transform:uppercase;letter-spacing:1px">Rule</p>
+<p style="font-size:26px;line-height:1.4">Under conditional independence, T_ijk / C_ij = α·t_k for every pair (i, j). In each group with ≥ 4 members, test every triplet plus an anchor (mean of the other groups):</p>
+<p style="font-size:26px;line-height:1.4">V = mean_s [1 − (t·c)² / (|t|²|c|²)], t_pq = E[z_p z_q z_s], c_pq = C_pq. Keep the triplet with the smallest V; MoM between groups.</p>
+<p style="font-size:24px;color:#2a78d6;font-weight:600;text-transform:uppercase;letter-spacing:1px">Origin</p>
+<p style="font-size:26px;line-height:1.4">Proposition 2.4 of Lee et al., "FUSE: Ensembling Verifiers with Zero Labeled Data", 2026 (a diagnostic there). The selection rule is Omri's (5 Oct).</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:18px;background:#ffffff;border-radius:16px;padding:32px">
+<p style="font-size:24px;color:#eb6834;font-weight:600;text-transform:uppercase;letter-spacing:1px">What it detects and what it buys</p>
+<p style="font-size:26px;line-height:1.4">Marks violate conditional independence 2,080× (B13) and 3,228× (B32) relative to a CI null: the statistic sees our groups.</p>
+<p style="font-size:26px;line-height:1.4">PRMBench vs MEAN_MOM: +0.0026 AUC on 8 banks, but +0.0001 on the 6 banks not used to design it.</p>
+<p style="font-size:26px;line-height:1.4">ProcessBench: −0.010 [−0.014, −0.005]. Externally (B16), below the DS-filter average on both Socratic cells.</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7a8394">10 · TCI · sources: tci_wide_stage1.py, TCI_CALIBRATION.json, RESEARCH_NOTE_HE.md §2ז–2יט, monday_external_panel_v1</p>
+<aside>TCI is a good dependence detector but a poor selector: the gain appears only on the banks where it was developed and reverses on ProcessBench and Socratic. It also tends to keep near-duplicates together (q15_H1 with q15_VE1).</aside>
+</section>

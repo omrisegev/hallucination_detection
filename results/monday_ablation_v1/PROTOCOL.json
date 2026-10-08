@@ -1,0 +1,31 @@
+{
+  "schema": "monday-ablation-v1",
+  "status": "FROZEN",
+  "frozen_local_date": "2026-10-07",
+  "author": "Claude, at Omri's request (2026-10-07)",
+  "questions": {
+    "Q1_filter": "Is the Dawid-Skene filter needed, and do other estimators (MoM, SML) or label-free orientation do better as the channel filter? HEM and TCI are within-group rules, not channel filters; they are not filter candidates.",
+    "Q2_merge": "How much does the merge step after L-SML clustering matter: number of groups, failures, dependence between groups, and the final metric?",
+    "Q3_tails": "Why binary tails at 20%: what do other quotas (10/30/40%) and a continuous partition do to estimator accuracy and to the final metric?",
+    "Q4_between": "Between-group estimator (EQ, DS, SML, MoM) when everything else is fixed: final metric, number of groups, and how far the weights are from equal."
+  },
+  "data": "Development: 13,769 source answers (PRMBench + 8 ProcessBench cells), label-free fit per cell. Exposed development data; descriptive.",
+  "banks": "Nested digit chain N16 < N25 < N43 < N56 plus N13 (no digits). N43 = N22 + the 18 history-spectral channels that formed the old 32/35-channel bank (raw, un-flipped) + 3 digits; it is the old B35 family placed inside the nested chain (Omri: include it, do not drop it).",
+  "reference_recipe": "MEAN_<between>: mean within groups, group votes with per-answer quota (Monday '_ga' path), plus the filter-only average (FILTER_EQ).",
+  "factors": {
+    "filter": ["DS (default)", "MOM (tensor MoM pi > 0.5)", "SML (SML t > 0 after anchor orientation)", "NONE (keep all)", "ORIENT (keep all, label-free sign vs the 5-channel LEVEL mean)"],
+    "merge": ["on (default)", "off"],
+    "quota": [0.1, 0.2, 0.3, 0.4],
+    "partition_input": ["binary tie-aware tails (default)", "continuous answer-z values"],
+    "between": ["EQ", "DS", "SML (continuous group scores)", "MOM"]
+  },
+  "one_factor_at_a_time": "Each variant changes exactly one factor from the default (DS filter, merge on, quota 0.2, binary partition input).",
+  "parity_gate": "Default settings must reproduce the validated adapter's MEAN_MOM_ga, MEAN_EQ and DS_FILTER_EQ scores on N16 / PRMBench within 1e-12 before any variant is computed.",
+  "metrics": {
+    "final": "PRMBench within-answer AUC, top-1 on error, PRMScore with one flag per answer; ProcessBench top-step first-error hit (cell-equal mean of 8 cells). Paired source-group bootstrap (2,000 draws, seed 20261007) for each variant minus default.",
+    "estimator_vs_truth": "PRMBench only: on channel marks at the variant's quota, DS and MoM prevalence error, sensitivity MAE, specificity MAE, Spearman of estimated vs true channel reliability; SML Spearman.",
+    "groups": "number of groups before/after merge, failures (< 3 groups), between-group weights per estimator, effective number of groups 1/sum(p^2), max |w - 1/K|, SML equal-weight guard when K = 3.",
+    "dependence": "PRMBench descriptive (uses labels): mean |corr| between group scores within error steps and within correct steps, before vs after merge."
+  },
+  "failures": "A variant that yields < 3 groups in a cell is recorded as a failure for that bank x cell (no fallback); its aggregate metrics are reported only where complete."
+}

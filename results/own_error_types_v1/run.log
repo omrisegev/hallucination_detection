@@ -1,0 +1,46 @@
+{
+ "B16__BASE": {
+  "within_src": 0.7566244482541014,
+  "expected_within": 0.7566244482541014,
+  "n_within": 388,
+  "hit": 0.2637889688249401,
+  "expected_hit": 0.2637889688249401,
+  "n_hit": 417,
+  "pass": true
+ },
+ "B16__GRP": {
+  "within_src": 0.7386453060889738,
+  "expected_within": 0.7386453060889738,
+  "n_within": 388,
+  "hit": 0.26139088729016785,
+  "expected_hit": 0.26139088729016785,
+  "n_hit": 417,
+  "pass": true
+ },
+ "pass": true
+}
+                                 category  n_answers  n_within_src  B16__BASE__wsrc  B16__BASE__wall  B16__BASE__hit  STEP_INDEX__wall  STEP_LENGTH__wall  prmb_N16_within_mean5  prmb_supervised_prm_within
+0                              redundency          0             0              NaN              NaN             NaN               NaN                NaN                  0.860                       0.654
+1                                circular          0             0              NaN              NaN             NaN               NaN                NaN                  0.813                       0.763
+2                          counterfactual         47            46            0.877            0.844           0.234             0.380              0.752                  0.749                       0.857
+3                      step_contradiction         28            28            0.789            0.823           0.321             0.513              0.709                  0.845                       0.852
+4                    domain_inconsistency         10            10            0.862            0.843           0.300             0.368              0.608                  0.844                       0.828
+5                              confidence          5             5            0.762            0.771           0.200             0.887              0.580                  0.820                       0.923
+6                       missing_condition         35            35            0.679            0.719           0.257             0.596              0.585                  0.701                       0.720
+7                               deception          0             0              NaN              NaN             NaN               NaN                NaN                  0.695                       0.812
+8                       calculation_error         77            75            0.766            0.788           0.325             0.521              0.734                    NaN                         NaN
+9                         misread_problem        150           124            0.736            0.793           0.273             0.303              0.738                    NaN                         NaN
+10                           wrong_method         64            64            0.720            0.740           0.172             0.489              0.661                    NaN                         NaN
+11                                  other          1             1            0.143            0.250           0.000             0.875              0.250                    NaN                         NaN
+12                     ALL_PRMBENCH_TYPES        125           124            0.796            0.801           0.264             0.490              0.677                    NaN                         NaN
+13                    ALL_NATURAL_BUCKETS        292           264            0.738            0.778           0.264             0.403              0.718                    NaN                         NaN
+14                                    ALL        417           388            0.757            0.785           0.264             0.429              0.706                    NaN                         NaN
+15            nearest:redundency|fit=good          0             0              NaN              NaN             NaN               NaN                NaN                  0.860                       0.654
+16              nearest:circular|fit=good          0             0              NaN              NaN             NaN               NaN                NaN                  0.813                       0.763
+17        nearest:counterfactual|fit=good         33            32            0.864            0.829           0.212             0.367              0.811                  0.749                       0.857
+18    nearest:step_contradiction|fit=good          4             4            0.964            0.942           0.500             0.292              0.870                  0.845                       0.852
+19  nearest:domain_inconsistency|fit=good          4             4            0.938            0.860           0.500             0.470              0.495                  0.844                       0.828
+20            nearest:confidence|fit=good          1             1            1.000            1.000           1.000             0.964              0.286                  0.820                       0.923
+21     nearest:missing_condition|fit=good         17            17            0.723            0.737           0.176             0.567              0.561                  0.701                       0.720
+22             nearest:deception|fit=good          0             0              NaN              NaN             NaN               NaN                NaN                  0.695                       0.812
+{'primary_12way': (0.8613703012529993, 0.8916666666666667), 'nearest_prmbench_8way': (0.7057159026598754, 0.7833333333333333), 'collapsed_4way': (0.8622009569377991, 0.9), 'primary_12way_both_high_confidence': (1.0, 1.0)}

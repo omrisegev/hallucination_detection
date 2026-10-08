@@ -1,0 +1,21 @@
+<section id="hem" data-transition="fade" style="background:#f7f6f2;color:#1b2430;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:32px">
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:64px;font-weight:600;line-height:1.1">HEM: learned weights inside each group cost ProcessBench accuracy</h2>
+<div style="display:flex;gap:40px">
+<div style="flex:1.1;display:flex;flex-direction:column;gap:18px">
+<p style="font-size:24px;color:#2a78d6;font-weight:600;text-transform:uppercase;letter-spacing:1px">Model</p>
+<p style="font-size:26px;line-height:1.4">Each group g has its own binary latent state a_g, which depends on the true class Y: P(a_g | Y). Members vote given a_g: P(f_i | a_g) = e_i.</p>
+<p style="font-size:26px;line-height:1.4">Member weight w_i = max(0, log(e₁(1 − e₀) / (e₀(1 − e₁)))); groups under 3 members get equal weights.</p>
+<p style="font-size:24px;color:#2a78d6;font-weight:600;text-transform:uppercase;letter-spacing:1px">Origin</p>
+<p style="font-size:26px;line-height:1.4">The dependent-classifier model of Jaffe et al. 2016, estimated by full EM: our implementation (cvf_v2, Step 457); no paper uses this exact estimator.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:18px;background:#ffffff;border-radius:16px;padding:32px">
+<p style="font-size:24px;color:#eb6834;font-weight:600;text-transform:uppercase;letter-spacing:1px">Estimate vs truth and outcome</p>
+<p style="font-size:26px;line-height:1.4">Over channels (Step 450, 5 folds): prevalence error 0.144, ψ-MAE 0.110, η-MAE 0.072, Spearman 0.779; 0 of 5 folds pass the accuracy bar.</p>
+<p style="font-size:26px;line-height:1.4">Within groups it is equivalent to MoM-within (0.7682 vs 0.7683 AUC).</p>
+<p style="font-size:26px;line-height:1.4">ProcessBench: HEM_MOM 0.355 vs MEAN_MOM 0.366 top-step hit, about one point lost.</p>
+<p style="font-size:24px;color:#33404f;line-height:1.4">27 of 2,021 members receive weight 0 across the 72 original bank-cells.</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7a8394">9 · HEM · sources: ds_group_weights.py, RESEARCH_NOTE_HE.md §2ב, Step 450</p>
+<aside>HEM is the only learned within-group weighting we compare. It rarely zeroes a member and does not beat a plain within-group mean on ProcessBench.</aside>
+</section>

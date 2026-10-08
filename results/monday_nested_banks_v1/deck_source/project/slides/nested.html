@@ -1,0 +1,14 @@
+<section id="nested" data-section="Development results on nested banks with plain-average controls" data-transition="fade" style="background:#16213a;color:#f3f1ea;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:36px">
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:64px;font-weight:600;line-height:1.1;color:#f3f1ea">We rebuilt the banks so that each one contains the previous</h2>
+<p style="font-size:30px;color:#c9d3e3;line-height:1.4">The original 8 banks were sibling families: the large ones lacked realized_z / realized_drv (the strongest single channel), and B32/B35 were sign-flipped versions. Bank comparisons were confounded by composition.</p>
+<table style="font-size:28px;color:#f3f1ea">
+<tr style="background:#24345a"><th style="width:18%;text-align:left">Bank</th><th style="width:52%;text-align:left">Channels (raw, as they are)</th><th style="width:30%;text-align:left">With 3 digit channels</th></tr>
+<tr><td>N11</td><td>core 11 (historical bank11)</td><td>N14</td></tr>
+<tr><td>N13</td><td>+ realized_z, realized_drv</td><td>N16 (= old B16)</td></tr>
+<tr><td>N22</td><td>+ 9 ct7 / H1 / evidence-drop channels</td><td>N25</td></tr>
+<tr><td>N53</td><td>+ 31 history-spectral channels</td><td>N56</td></tr>
+</table>
+<p style="font-size:28px;color:#8fb8f0;line-height:1.4">Three references per bank: ALL_EQ (plain average) · oriented plain average (label-free sign per channel) · DS filter + average.</p>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#8a97ad">13 · Nested design · monday_nested_banks_v1 PROTOCOL.json, amendments A1–A2 · one fixed nesting order: read as "adding family X", not as bank size</p>
+<aside>Omri's two corrections drove this: compare against the plain average of all channels as they are, and make the banks nested. Reviewers added the oriented plain average, because N53/N56 contain 10 channels that point the wrong way, so most of a method's gain over ALL_EQ there is orientation. N13/N16 reproduce the frozen B13/B16 scores exactly on all 9 cells (0 mismatches).</aside>
+</section>

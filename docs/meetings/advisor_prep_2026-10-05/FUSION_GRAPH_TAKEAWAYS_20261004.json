@@ -1,0 +1,68 @@
+{
+  "updated_utc": "2026-10-04T07:45:55.363381+00:00",
+  "user_priority": "Omri explicitly requests highlighting and showing the HEM+MoM localization gain to the advisors. Preserve it as a key presentation finding.",
+  "population": {
+    "banks": 8,
+    "prm_auc_answers": 6030,
+    "pb_erroneous_answers": 4442
+  },
+  "comparison": "Original full banks, HEM within / MoM between: channel votes + cell quota versus group votes + answer quota. No LEVEL removal.",
+  "direct_contrasts": [
+    {
+      "experiment": "input",
+      "recipe": "HEM_MOM",
+      "variant": "channels_cell",
+      "reference_variant": "groups_answer",
+      "reference_recipe": "HEM_MOM",
+      "comparison": "both_changes",
+      "family_size": 40,
+      "benchmark": "prm",
+      "endpoint": "within_answer_auc",
+      "delta": 0.0006489323860669,
+      "lo95": -1.1667679251467573e-05,
+      "hi95": 0.0013052730298624,
+      "lo_bonferroni": -0.0004020391951326,
+      "hi_bonferroni": 0.0016847140965002,
+      "n_answers": 6030,
+      "n_source_groups": 707,
+      "n_cells": 1,
+      "n_banks": 8,
+      "draws": 20000,
+      "interpretation": "Exploratory reanalysis after review; never retroactively preregistered"
+    },
+    {
+      "experiment": "input",
+      "recipe": "HEM_MOM",
+      "variant": "channels_cell",
+      "reference_variant": "groups_answer",
+      "reference_recipe": "HEM_MOM",
+      "comparison": "both_changes",
+      "family_size": 40,
+      "benchmark": "pb",
+      "endpoint": "first_error_argmax_accuracy",
+      "delta": 0.0106204723986781,
+      "lo95": 0.0047533885987439,
+      "hi95": 0.0164425713273608,
+      "lo_bonferroni": 0.0011827396951702,
+      "hi_bonferroni": 0.0206145603870567,
+      "n_answers": 4442,
+      "n_source_groups": 2842,
+      "n_cells": 8,
+      "n_banks": 8,
+      "draws": 20000,
+      "interpretation": "Exploratory reanalysis after review; never retroactively preregistered"
+    }
+  ],
+  "pb_q80_point_differences": {
+    "pb_first_error": 0.010620472398678082,
+    "pb_f1": -0.0052907709848097895,
+    "pb_clean_flag": 0.0044131629310355525
+  },
+  "review_status": "Independent stored-outcome reaggregation and source-question bootstrap by Codex; this new contrast and intervals still need Claude review before final slide conclusions.",
+  "user_resume_authorization": "Omri reports freeing disk and explicitly authorizes continuing the approved plan on 2026-10-04.",
+  "sources": {
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\monday_fusion_review_response_20261004\\DIRECT_CONTRASTS.csv": "45a54d300607d8dfea45c3613289172445b33d26defa70bfb7041797ae903c88",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\monday_fusion_review_response_20261004\\ABSOLUTE_METRICS.csv": "e91635043e1c25ea532ae06652f8f74eb1a754dfb58368fe4ef799b9a1a2b508",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\monday_fusion_review_response_20261004\\ANCHOR_CLARIFICATION_20261004.json": "5ee7d3d1a6bca6bcd35c22801a3dcdffeb63eb6ee84c13fc22da9268b030dccc"
+  }
+}

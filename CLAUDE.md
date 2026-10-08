@@ -1,3 +1,16 @@
+## Omri decision update 2026-10-08: next advisor meeting focuses on PRMBench
+
+The advisor meeting was held on 2026-10-08; the next one is next week and must be more focused.
+Focus on PRMBench (within-AUC, official PRMScore with category breakdown, generalization,
+feature dependence, teacher forcing, analysis against supervised LR). ProcessBench is a
+low-priority secondary panel. Plan: [meeting record](docs/meetings/advisor_meeting_2026-10-08/README_HE.md).
+
+## Omri update 2026-10-02: Monday meeting preparation during consolidation
+
+Prepare the research summary and presentation for Monday 2026-10-05 in parallel with Claude's preservation/merge; do not wait for the merge or transfer proxy. The user authorized project documentation and waived an additional worktree when disk is limited. Plan and completion checklist: [PLAN_HE](docs/meetings/advisor_prep_2026-10-05/PLAN_HE.md); synthesis and sources: [PREPARATION_HE](docs/meetings/advisor_prep_2026-10-05/PREPARATION_HE.html).
+
+Use the dated source-specific findings: teacher-forced scoring versus generation-time telemetry; bank11's matched L-SML win versus newer-bank failures; actual DS-filtered averaging versus the requested future SML/MoM fusion. Do not convert proposals, the highest unadopted score, conditional correlation or an inconclusive difference into an achieved method, independence or equivalence. Current consolidation approvals and retained directions are preserved in the plan's source snapshots. No new experiment or deletion is authorized by writing this preparation.
+
 # CLAUDE.md — MV_EPR Spectral Hallucination Detection
 
 ## Omri execution update - 2026-09-24: external telemetry first
