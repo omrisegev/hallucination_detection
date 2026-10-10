@@ -47,8 +47,7 @@ except Exception:
 
 from backfill_views import forward_batch, candidate_quantities
 from spectral_utils import load_model, load_cache, save_cache_atomic, free_memory
-from spectral_utils.model_utils import fmt_prompt
-from spectral_utils.processbench import NO_THINK_SUFFIX
+from spectral_utils.processbench import NO_THINK_SUFFIX, THINK_PREFIXES, teacher_forced_prompt
 from spectral_utils.prmbench import (
     PRMBENCH_DATASET_ID, load_prmbench, prmbench_prompt,
     build_chain, step_token_spans, assert_alignment,
@@ -68,7 +67,7 @@ def _on_sigterm(signum, frame):
     print("[prmbench-tf] SIGTERM received — will checkpoint after the current batch", flush=True)
 
 
-def build_items(tok, meta, thinking_suffix=NO_THINK_SUFFIX):
+def build_items(tok, meta, thinking_suffix=NO_THINK_SUFFIX, think_prefix="empty_block"):
     """The ONLY function that differs from `run_teacher_forced.build_items`.
 
     PRMBench rows carry `question` + `steps` (already the official `modified_question` /
@@ -81,7 +80,8 @@ def build_items(tok, meta, thinking_suffix=NO_THINK_SUFFIX):
         text, char_spans = build_chain(row["steps"])
         gen_ids, spans = step_token_spans(tok, text, char_spans)
         diag = assert_alignment(gen_ids, spans, row["steps"], strict=False)
-        prompt = fmt_prompt(tok, prmbench_prompt(row, thinking_suffix))
+        prompt = teacher_forced_prompt(tok, prmbench_prompt(row, thinking_suffix),
+                                       thinking_suffix, think_prefix)
         items.append({
             "idx": i,
             "prompt_ids": tok(prompt).input_ids,
@@ -152,7 +152,15 @@ def cell_stats(cache):
     by_class = {}
     for e in cache.values():
         by_class[e["classification"]] = by_class.get(e["classification"], 0) + 1
+    # Think-block check: with the empty block in the prompt the first forced token should be
+    # ordinary (job 177824, without it: median 34.6 nats, `<think>` top-1 on every row).
+    first_surprisal = [e["token_spilled_energies"][0] for e in cache.values()
+                       if len(e["token_spilled_energies"])]
+    think_top1 = [int(e["top_k_logprobs"]["ids"][0][0]) == 151667 for e in cache.values()
+                  if len(e["gen_token_ids"])]
     return {
+        "first_token_surprisal_median": float(np.median(first_surprisal)) if first_surprisal else 0.0,
+        "frac_first_position_top1_think": float(np.mean(think_top1)) if think_top1 else 0.0,
         "n_rows": len(cache),
         "n_steps": int(np.sum(steps)) if steps else 0,
         "mean_steps": float(np.mean(steps)) if steps else 0.0,
@@ -179,6 +187,8 @@ def main():
     ap.add_argument("--max-batch-tokens", type=int, default=16384)
     ap.add_argument("--checkpoint-every", type=int, default=100)
     ap.add_argument("--prompt-suffix", default=NO_THINK_SUFFIX)
+    ap.add_argument("--think-prefix", choices=THINK_PREFIXES, default="empty_block",
+                    help="see run_teacher_forced.py; 'none' reproduces job 177824's prefix")
     ap.add_argument("--validate", action="store_true", help="run Gate B and exit")
     ap.add_argument("--validate-pkl", default=None)
     ap.add_argument("--validate-dataset", default="gsm8k")
@@ -201,7 +211,7 @@ def main():
                                dataset_id=cfg.dataset, revision=cfg.revision)
     print(f"[prmbench-tf] loaded {len(meta)} meta rows: {json.dumps(diag)}", flush=True)
 
-    items = build_items(tok, meta, cfg.prompt_suffix)
+    items = build_items(tok, meta, cfg.prompt_suffix, cfg.think_prefix)
     n_misaligned = sum(1 for it in items if it["align_diag"]["problems"])
     print(f"[prmbench-tf] built {len(items)} items, {n_misaligned} with alignment problems",
           flush=True)
@@ -223,7 +233,8 @@ def main():
         "dataset_diagnostics": diag,
         "protocol": "teacher-forced single forward pass over the fixed official trace; no "
                     "generation; conditioning prompt = spectral_utils.prmbench.prmbench_prompt "
-                    f"(math_prompt + {cfg.prompt_suffix!r})",
+                    f"(math_prompt + {cfg.prompt_suffix!r}), think_prefix={cfg.think_prefix!r}",
+        "think_prefix": cfg.think_prefix,
         "logprob_top_k": cfg.logprob_top_k,
         "gate_b_thresholds": {"median_max": GATE_B_MEDIAN_MAX, "min_corr": GATE_B_MIN_CORR},
         "cell_stats": stats,

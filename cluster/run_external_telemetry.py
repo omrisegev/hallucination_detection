@@ -27,15 +27,18 @@ def stop(*_):
     STOP = True
 
 
-def make_items(answers, tokenizer, max_context):
-    # Exact source telemetry conditioning: math_prompt + /no_think, followed by
-    # the tokenizer's default chat template. QwQ's template differs; pin/hash it.
+def make_items(answers, tokenizer, max_context, think_prefix="empty_block"):
+    # Source telemetry conditioning: math_prompt + /no_think, then the chat template with
+    # Qwen3's empty think block after the assistant header (think_prefix="empty_block"), the
+    # state a generated /no_think answer starts its content in. Templates without
+    # enable_thinking (QwQ) render unchanged; pin/hash them. think_prefix="none" reproduces
+    # the pre-2026-10-10 collections.
     from spectral_utils.data_loaders import math_prompt
+    from spectral_utils.processbench import teacher_forced_prompt
     items = []
     for a in answers:
         prompt = math_prompt({"problem": a.question}) + " /no_think"
-        rendered = tokenizer.apply_chat_template([{"role": "user", "content": prompt}],
-                                                 tokenize=False, add_generation_prompt=True)
+        rendered = teacher_forced_prompt(tokenizer, prompt, " /no_think", think_prefix)
         prompt_ids = tokenizer(rendered)["input_ids"]
         items.append(tokenize_answer(a, tokenizer, prompt_ids, max_context))
     return items
@@ -153,6 +156,7 @@ def main():
     p.add_argument("--max-context", type=int, default=32768)
     p.add_argument("--validate-pkl", type=Path)
     p.add_argument("--alignment-evidence", type=Path)
+    p.add_argument("--think-prefix", choices=["empty_block", "none"], default="empty_block")
     args = p.parse_args()
     signal.signal(signal.SIGTERM, stop)
     signal.signal(signal.SIGINT, stop)
@@ -170,13 +174,15 @@ def main():
     from transformers import AutoModelForCausalLM, AutoTokenizer
     answers = [Answer(**row) for row in json.loads(args.answers.read_text(encoding="utf8"))]
     tok = AutoTokenizer.from_pretrained(args.model, revision=args.revision, use_fast=True)
-    items = make_items(answers, tok, args.max_context)
+    items = make_items(answers, tok, args.max_context, args.think_prefix)
     lengths = [len(i["prompt_ids"])+len(i["gen_ids"]) for i in items]
     selected = smoke_indices(lengths, [a.uid for a in answers]) if args.mode == "smoke" else list(range(len(items)))
     identity = {"model": args.model, "revision": args.revision, "dtype": "bfloat16", "attn": "sdpa",
                 "answers_sha256": file_hash(args.answers), "protocol_sha256": file_hash(args.protocol),
                 "chat_template_sha256": digest(tok.chat_template), "prompt_suffix": " /no_think",
-                "thinking_mode": "tokenizer_default_with_source_no_think_suffix",
+                "thinking_mode": ("tokenizer_default_with_source_no_think_suffix"
+                                  if args.think_prefix == "none" else
+                                  "source_no_think_suffix_with_empty_think_block"),
                 "max_context": args.max_context, "schema": 1, "mode": args.mode,
                 "selected_uids": [items[i]["uid"] for i in selected], 'alignment_gate_version': 2,
                 'alignment_evidence_sha256': file_hash(args.alignment_evidence) if args.alignment_evidence else None}
@@ -196,6 +202,7 @@ def main():
         from run_teacher_forced import run_gate_b
         run_gate_b(model, tok, SimpleNamespace(validate_pkl=str(args.validate_pkl),
                    validate_dataset="gsm8k", validate_n=5, validate_prompt_suffix=" /no_think",
+                   think_prefix=args.think_prefix,
                    max_batch=1, logprob_top_k=50))
     atomic_json(args.out / "ALIGNMENT_GATE.json", gate)
     with RecordStore(args.out / "records", identity) as store:

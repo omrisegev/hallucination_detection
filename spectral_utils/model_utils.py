@@ -100,7 +100,7 @@ def load_model(model_id: str, quantize_4bit: bool = False, attn_impl: str = "eag
     return mdl, tok
 
 
-def fmt_prompt(tok, msg: str, system_message: str = None) -> str:
+def fmt_prompt(tok, msg: str, system_message: str = None, enable_thinking: bool = None) -> str:
     """
     Apply the model's chat template to a user message, with an optional system turn.
 
@@ -112,7 +112,13 @@ def fmt_prompt(tok, msg: str, system_message: str = None) -> str:
 
     Falls back to a plain <|user|>/<|assistant|> format (or <|system|>/<|user|>/
     <|assistant|> when system_message is set) if the tokenizer has no chat template.
+
+    enable_thinking is forwarded to the template only when not None. Qwen3's template uses
+    enable_thinking=False to put the empty `<think>\n\n</think>\n\n` block after the
+    assistant header; teacher forcing a non-thinking answer needs it (see
+    spectral_utils.processbench.teacher_forced_prompt). None keeps the old behavior.
     """
+    extra = {} if enable_thinking is None else {"enable_thinking": enable_thinking}
     # Try plain-string content (most models), then multimodal list-content (Gemma-3 /
     # Mistral-3 processors expect content as a list of typed parts), then a raw fallback.
     for content_msg in (msg, [{"type": "text", "text": msg}]):
@@ -124,6 +130,7 @@ def fmt_prompt(tok, msg: str, system_message: str = None) -> str:
                 content_messages,
                 tokenize=False,
                 add_generation_prompt=True,
+                **extra,
             )
         except Exception:
             continue

@@ -113,6 +113,54 @@ def validate_row(row: dict) -> None:
 # statistic at 0.09%, so the gap was conditioning, not numerics.
 NO_THINK_SUFFIX = " /no_think"
 
+# The empty think block Qwen3 writes at the start of every non-thinking answer. The ` /no_think`
+# suffix only asks the model to write it; in GENERATION it then appears as the first generated
+# tokens, but a teacher-forced pass over fixed text never supplies it, so the first forced token
+# sat where the model expects `<think>` (p ~ 0.99999) and drew ~35 nats of surprisal on every
+# row. Checked 2026-10-10 on the PRMBench telemetry (job 177824): see
+# docs/research_notes/QWEN3_TEACHER_FORCING_PREFIX_REVIEW_20261008_HE.md.
+EMPTY_THINK_BLOCK = "<think>\n\n</think>\n\n"
+THINK_PREFIXES = ("empty_block", "none")
+
+
+def teacher_forced_prompt(tok, msg: str, thinking_suffix: str = NO_THINK_SUFFIX,
+                          think_prefix: str = "empty_block") -> str:
+    """Chat-templated conditioning prompt for teacher forcing an answer after `msg`.
+
+    think_prefix="empty_block" (default): for a non-thinking suffix, render with
+    enable_thinking=False so a Qwen3 prompt ends with EMPTY_THINK_BLOCK, the same state the
+    model is in when it starts writing content in a generated /no_think answer.
+    think_prefix="none": the pre-2026-10-10 prefix (assistant header only); keep it only to
+    reproduce old cells.
+
+    Templates that do not know enable_thinking ignore it and render as before. A Qwen3-style
+    template that knows it but does not end with the block raises, so a template change can
+    never silently drop the block again.
+    """
+    from .model_utils import fmt_prompt
+    if think_prefix not in THINK_PREFIXES:
+        raise ValueError(f"think_prefix must be one of {THINK_PREFIXES}, got {think_prefix!r}")
+    non_thinking = (thinking_suffix or "").strip() == "/no_think"
+    if think_prefix == "none" or not non_thinking:
+        return fmt_prompt(tok, msg)
+    prompt = fmt_prompt(tok, msg, enable_thinking=False)
+    template = getattr(tok, "chat_template", None) or ""
+    if "enable_thinking" in template and not prompt.endswith(EMPTY_THINK_BLOCK):
+        raise ValueError("template knows enable_thinking but the prompt does not end with the "
+                         f"empty think block: {prompt[-80:]!r}")
+    return prompt
+
+
+def strip_generated_think_block(tok, gen_ids, values=None):
+    """Drop a leading generated EMPTY_THINK_BLOCK from a generated cell's token ids (and an
+    aligned per-token array). Returns (ids, values, n_stripped); n_stripped is 0 when the ids do
+    not start with the block. Used by Gate B when the prompt already carries the block."""
+    block = tok(EMPTY_THINK_BLOCK, add_special_tokens=False).input_ids
+    n = len(block)
+    if list(gen_ids[:n]) != list(block):
+        return list(gen_ids), values, 0
+    return list(gen_ids[n:]), (None if values is None else values[n:]), n
+
 
 def processbench_prompt(row: dict, thinking_suffix: str = NO_THINK_SUFFIX) -> str:
     """The conditioning prompt for the teacher-forced pass. See the module docstring.

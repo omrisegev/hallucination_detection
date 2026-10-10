@@ -66,8 +66,9 @@ from backfill_views import forward_batch, candidate_quantities
 from spectral_utils import load_model, load_cache, save_cache_atomic, free_memory
 from spectral_utils.model_utils import fmt_prompt
 from spectral_utils.processbench import (
-    SUBSETS, NO_ERROR, NO_THINK_SUFFIX, load_processbench, processbench_prompt,
-    build_chain, step_token_spans, assert_alignment,
+    SUBSETS, NO_ERROR, NO_THINK_SUFFIX, THINK_PREFIXES, load_processbench, processbench_prompt,
+    build_chain, step_token_spans, assert_alignment, teacher_forced_prompt,
+    strip_generated_think_block,
 )
 
 EXIT_INCOMPLETE = 85
@@ -84,7 +85,7 @@ def _on_sigterm(signum, frame):
     print("[teacher-forced] SIGTERM received — will checkpoint after the current batch", flush=True)
 
 
-def build_items(tok, rows, thinking_suffix=NO_THINK_SUFFIX):
+def build_items(tok, rows, thinking_suffix=NO_THINK_SUFFIX, think_prefix="empty_block"):
     """One work item per row: prompt ids, chain token ids, and the step spans over those ids."""
     items = []
     for i, row in enumerate(rows):
@@ -93,7 +94,8 @@ def build_items(tok, rows, thinking_suffix=NO_THINK_SUFFIX):
         # The alignment gate runs per row, at build time, BEFORE any GPU work — a misaligned
         # row is a data problem and should not consume a forward pass.
         diag = assert_alignment(gen_ids, spans, row["steps"], strict=False)
-        prompt = fmt_prompt(tok, processbench_prompt(row, thinking_suffix))
+        prompt = teacher_forced_prompt(tok, processbench_prompt(row, thinking_suffix),
+                                       thinking_suffix, think_prefix)
         items.append({
             "idx": i,
             "prompt_ids": tok(prompt).input_ids,
@@ -217,7 +219,12 @@ def run_gate_b(mdl, tok, cfg):
     from run_inference import DATASETS
     _, prompt_fn, _ = DATASETS[cfg.validate_dataset]
 
+    # With the empty think block in the prompt, the generated cell's own leading block is
+    # dropped from both the ids and the saved entropies, so Gate B checks exactly the prefix
+    # the benchmark items are forced under: content tokens after the block.
+    think_prefix = getattr(cfg, "think_prefix", "empty_block")
     items, saved = [], []
+    n_stripped = n_no_block = 0
     for idx in sorted(cache)[: cfg.validate_n]:
         entry = cache[idx]
         for cand in entry["candidates"][:1]:
@@ -228,9 +235,18 @@ def run_gate_b(mdl, tok, cfg):
             msg = prompt_fn(entry["gold_row"])
             if cfg.validate_prompt_suffix:
                 msg = f"{msg}{cfg.validate_prompt_suffix}"
-            items.append({"prompt_ids": tok(fmt_prompt(tok, msg)).input_ids,
-                          "gen_ids": list(ids)})
-            saved.append(np.asarray(ents, dtype=np.float64))
+            prompt = teacher_forced_prompt(tok, msg, cfg.validate_prompt_suffix or "", think_prefix)
+            ents = np.asarray(ents, dtype=np.float64)
+            if prompt != fmt_prompt(tok, msg):
+                ids, ents, k = strip_generated_think_block(tok, ids, ents)
+                if not k:
+                    n_no_block += 1
+                    continue
+                n_stripped += 1
+            items.append({"prompt_ids": tok(prompt).input_ids, "gen_ids": list(ids)})
+            saved.append(ents)
+    print(f"[gate-b] think_prefix={think_prefix}: stripped the generated empty think block from "
+          f"{n_stripped} trace(s); skipped {n_no_block} without one", flush=True)
     if not items:
         raise SystemExit("[gate-b] no usable candidates (need gen_token_ids + token_entropies)")
 
@@ -356,6 +372,10 @@ def main():
                     help="conditioning suffix appended to the solve prompt; the "
                          "default matches every answer-level cell. Pass '' for a "
                          "thinking-mode control arm.")
+    ap.add_argument("--think-prefix", choices=THINK_PREFIXES, default="empty_block",
+                    help="empty_block: put Qwen3's empty think block after the assistant header "
+                         "(the state a generated /no_think answer is in). none: the old prefix, "
+                         "only to reproduce pre-2026-10-10 cells.")
     ap.add_argument("--validate", action="store_true", help="run Gate B and exit")
     ap.add_argument("--validate-pkl", default=None)
     ap.add_argument("--validate-dataset", default="gsm8k")
@@ -392,7 +412,7 @@ def main():
     for subset in [s.strip() for s in cfg.subsets.split(",") if s.strip()]:
         out_path = os.path.join(out_dir, f"processbench_{subset}.pkl")
         rows = load_processbench(subset, cfg.n_samples)
-        items = build_items(tok, rows, cfg.prompt_suffix)
+        items = build_items(tok, rows, cfg.prompt_suffix, cfg.think_prefix)
 
         bad = [it["idx"] for it in items if it["align_diag"]["problems"]]
         if bad:
@@ -419,6 +439,7 @@ def main():
         "prompt": "data_loaders.math_prompt on the problem (OUR choice — the paper states none)",
         "prompt_suffix": cfg.prompt_suffix,
         "thinking_mode": "off" if cfg.prompt_suffix.strip() == "/no_think" else "on",
+        "think_prefix": cfg.think_prefix,
         "step_separator": "\\n\\n",
         "logprob_top_k": cfg.logprob_top_k,
         "n_samples_per_subset": cfg.n_samples,
