@@ -1,3 +1,12 @@
+## 2026-10-10: handoff for the Thursday meeting and the unfinished consolidation (Claude)
+
+**START HERE:** [docs/HANDOFF_prmbench_meeting_and_consolidation_2026-10-10.md](docs/HANDOFF_prmbench_meeting_and_consolidation_2026-10-10.md).
+
+- Next advisor meeting: Thursday 2026-10-15, PRMBench focus (plan in the 2026-10-08 meeting record).
+- Consolidation is NOT complete: `claude/consolidation-2026-10-01` (local, unpushed) still misses 14 commits of `codex/monday-fusion-analysis-20261003`, 5 of `codex/lsml-external-generalization-v1`, 1 of `codex/consolidation-completion-review-2026-10-03` and 3 of `origin/main`; the 2026-10-03 completion review's three gaps (8 missing HISTORY blocks, own-generation equivalence wording, test-regression proof) are open.
+- Disk: Omri removed 5 clean worktrees (branches kept); 6.5 GB free. Eight worktrees remain (six with uncommitted files); `.git/lfs` is 40.5 GB, `git lfs prune --verify-remote` awaits approval.
+- GLOSSARY gained the meeting terms (banks, tail vote, `_cc`/`_ga`, DS filter, MoM, HEM, SLA).
+
 ## 2026-10-08 Advisor meeting held; next meeting next week, PRMBench focus (Claude)
 
 **START HERE for the next meeting:** [meeting record and plan](docs/meetings/advisor_meeting_2026-10-08/README_HE.md).
