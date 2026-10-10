@@ -2,7 +2,9 @@
 
 **START HERE:** [docs/HANDOFF_prmbench_meeting_and_consolidation_2026-10-10.md](docs/HANDOFF_prmbench_meeting_and_consolidation_2026-10-10.md).
 
-- Next advisor meeting: Thursday 2026-10-15, PRMBench focus (plan in the 2026-10-08 meeting record).
+- Next advisor meeting: Thursday 2026-10-15. Focus is PRMBench ONLY, not ProcessBench: on ProcessBench we have no gain over the plain average and supervised LR adds almost nothing (N16: 0.402 vs plain 0.414), so there is little room; on PRMBench LR adds +0.03 to +0.07 AUC.
+- FIRST, before any new number: check the teacher-forcing template (missing empty `<think></think>` block; first answer token 34-36 nats, step-0 surprise peak in 90-93% of ProcessBench GSM8K/MATH answers) and measure its effect on PRMBench; CPU masking check first, GPU re-score only with approval.
+- In parallel: study PRMBench itself (paper, dataset construction, category goals, how redundancy/circular errors are defined, and whether strong models fail there by design), since the redundancy/circular advantage may be the core claim.
 - Consolidation is NOT complete: `claude/consolidation-2026-10-01` (local, unpushed) still misses 14 commits of `codex/monday-fusion-analysis-20261003`, 5 of `codex/lsml-external-generalization-v1`, 1 of `codex/consolidation-completion-review-2026-10-03` and 3 of `origin/main`; the 2026-10-03 completion review's three gaps (8 missing HISTORY blocks, own-generation equivalence wording, test-regression proof) are open.
 - Disk: Omri removed 5 clean worktrees (branches kept); 6.5 GB free. Eight worktrees remain (six with uncommitted files); `.git/lfs` is 40.5 GB, `git lfs prune --verify-remote` awaits approval.
 - GLOSSARY gained the meeting terms (banks, tail vote, `_cc`/`_ga`, DS filter, MoM, HEM, SLA).

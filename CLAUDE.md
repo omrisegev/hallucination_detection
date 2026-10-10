@@ -3,7 +3,10 @@
 The advisor meeting was held on 2026-10-08; the next one is next week and must be more focused.
 Focus on PRMBench (within-AUC, official PRMScore with category breakdown, generalization,
 feature dependence, teacher forcing, analysis against supervised LR). ProcessBench is a
-low-priority secondary panel. Plan: [meeting record](docs/meetings/advisor_meeting_2026-10-08/README_HE.md).
+low-priority secondary panel (no gain over the plain average and little LR headroom there). First tasks:
+(1) check the Qwen3 teacher-forcing template (missing empty think block) and its effect on PRMBench;
+(2) study PRMBench itself, including whether redundancy/circular errors are hard for strong models by design.
+Next meeting: Thursday 2026-10-15. Plan: [meeting record](docs/meetings/advisor_meeting_2026-10-08/README_HE.md).
 
 ## Omri update 2026-10-02: Monday meeting preparation during consolidation
 
