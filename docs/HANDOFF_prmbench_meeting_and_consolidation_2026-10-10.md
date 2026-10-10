@@ -45,7 +45,7 @@
 |---|---|
 | דף הממצאים: מבנה, שורות ועמודות ממוצע, הדגשת N16, שלושה דפי deep dive | HISTORY Step 451; README הפגישה; הקוד ב-`findings_page/` |
 | מה הוצג, מה הוחלט, תוכנית לחמישי | README הפגישה; PROGRESS (2026-10-08, 2026-10-10); CLAUDE.md (החלטה 2026-10-08); Research_Directions (2026-10-08) |
-| הסברים: `_cc`/`_ga`, סינון DS, MoM, HEM, SLA, הבנקים | GLOSSARY, הסעיף "Step-level fusion terms used in the 2026-10-08 advisor meeting" |
+| הסברים: `_cc`/`_ga`, סינון DS, MoM, HEM, SLA, הבנקים | GLOSSARY, הסעיף "Step-level fusion terms (2026-10-08 advisor meeting)" (נוצר מ-`spectral_utils/glossary.py` דרך `scripts/build_glossary.py --allow-gaps`; לא לערוך את GLOSSARY.md ידנית) |
 | סיכום הממצאים מול המתחרים ומול הממוצע | README הפגישה, הסעיף "סיכום הממצאים" |
 | ניקוי worktrees ומצב הדיסק | PROGRESS 2026-10-10; ה-handoff הזה |
 | תיעוד ההכנה של Codex ושלי שעוד לא היה ב-commit (prep, handoffs, reviews, `results/monday_*`) | commit `52bf3f2ee` |

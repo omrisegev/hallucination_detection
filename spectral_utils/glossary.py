@@ -896,3 +896,52 @@ LOCALIZATION_BENCHMARK_NOTES = {
         "silently inverts the whole panel.",
         "Step 242"),
 }
+
+# Step-level fusion terms introduced for the 2026-10-08 advisor meeting
+# (findings page in docs/meetings/advisor_meeting_2026-10-08/).
+STEP_FUSION_TERM_NOTES = {
+    "bank (N11 ... N56)": (
+        "A nested set of z-scored step channels. N11 < N13 < N22 < N40 < N53; each has a "
+        "digit twin with three digit channels added (N14, N16, N25, N43, N56; e.g. N16 = "
+        "N13 + digits). N16 leads every method x bank table by its bank mean, but it was "
+        "chosen after seeing results. Older panels call the banks B13 etc.; check the "
+        "mapping before comparing.",
+        "Step 451"),
+    "tail vote": (
+        "A channel (or group) votes 'error' on its top 20% of steps and 'correct' on the "
+        "rest; the tail pipeline fuses these binary votes instead of continuous scores.",
+        "Steps 450-457"),
+    "`_cc` / `_ga` (pipeline suffix)": (
+        "`_cc`: each channel votes on its own, with the 20% quota counted over the whole "
+        "cell (benchmark subset x scoring model), so a suspicious answer can get many marks. "
+        "`_ga`: channels are averaged within a group, the group votes, and the quota is "
+        "counted within each answer. Taken from the findings-page definition; not "
+        "re-checked against code.",
+        "Step 451"),
+    "DS filter / DS-signed average": (
+        "Dawid-Skene EM estimates each channel's sensitivity and specificity from the binary "
+        "votes without labels. Filter: drop channels with estimated sens + spec < 1 "
+        "(anti-oriented; against labels it removes exactly those). DS-signed average: flip "
+        "them instead, then average. The frozen candidate is DS filter + plain average. "
+        "Estimates rank channels well (Spearman 0.73-0.80) but overestimate prevalence "
+        "1.5-2.2x (0.21-0.31 vs 0.14), so only sign and order are used.",
+        "Steps 450-457"),
+    "MoM (method of moments)": (
+        "Closed-form accuracy estimates from vote moments under conditional independence: "
+        "the off-diagonal covariance is rank one (second moment gives the ranking); the "
+        "third moment gives prevalence, hence sens/spec and log-odds weights (Parisi et al. "
+        "2014; Jaffe et al. 2015). Used for between-group weights (0.782 vs supervised "
+        "0.784). As a filter it lost to DS; within a group it equals HEM in practice.",
+        "2026-10-04/05 group-fusion work"),
+    "HEM (hierarchical / latent-group EM)": (
+        "Dawid-Skene extended to the hierarchical model of Jaffe et al. 2016: each channel "
+        "group depends on its own latent variable, which depends on the truth. EM fits all "
+        "layers; within-group weight = clipped log-odds of each channel vs its group latent. "
+        "One within-group option (MEAN, HEM, TCI); not consistent across banks; prevalence "
+        "about 0.28 vs 0.14.",
+        "2026-10-04/05 group-fusion work"),
+    "SLA": (
+        "Mind the Gap's ProcessBench metric: share of wrong answers whose chosen step is "
+        "exactly the first error; clean answers are not scored.",
+        "Step 449 [Mind the Gap reproduction]"),
+}

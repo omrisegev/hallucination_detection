@@ -36,6 +36,7 @@ from spectral_utils.glossary import (   # noqa: E402
     METHOD_TERM_NOTES,
     GROUPING_TERM_NOTES,
     LOCALIZATION_BENCHMARK_NOTES,
+    STEP_FUSION_TERM_NOTES,
     OUT_OF_SCOPE_DERIVED_VIEWS_NOTE, resolve, role_of)
 from spectral_utils.selectors import registered  # noqa: E402
 from spectral_utils.selectors.reference_macros import MACROS  # noqa: E402
@@ -210,6 +211,12 @@ def render():
     lines.append("| Term | Meaning | HISTORY |")
     lines.append("|---|---|---|")
     for term, (note, step) in LOCALIZATION_BENCHMARK_NOTES.items():
+        lines.append(f"| **{term}** | {note} | {step} |")
+
+    lines.append("\n## Step-level fusion terms (2026-10-08 advisor meeting)\n")
+    lines.append("| Term | Meaning | HISTORY |")
+    lines.append("|---|---|---|")
+    for term, (note, step) in STEP_FUSION_TERM_NOTES.items():
         lines.append(f"| **{term}** | {note} | {step} |")
 
     return "\n".join(lines) + "\n"
