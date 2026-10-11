@@ -19,6 +19,20 @@ ProcessBench transfer hit goes 0.4018 -> 0.3727. The old replay reproduces the f
 exactly (0.8223662; the lr_weights gate is enforced for `old`). The replay differs from frozen
 only in N53/N56, by at most 8.3e-4.
 
+**External, locked L-SML evaluation (step 3 part 1)** (`external/`, `EXTERNAL_LSML_COMPARISON.csv`).
+The unchanged METHOD_FREEZE/BUNDLE scorer was run on the think-fix Hard2Verify and Socratic Qwen3-8B
+records. QwQ is not re-collected. The new analysis freeze was written before labels, with
+amendment A2 for Windows path separators.
+- mask1 frozen L-SML metric: Hard2Verify 0.4367 -> 0.4210, Socratic 0.6322 -> 0.6278.
+- Frozen L-SML vs CT7 on Socratic: +0.061 [0.053, 0.070] (Bonferroni).
+- The BUNDLE was fitted on pre-fix source telemetry; its inputs are gone, so it was not refit.
+
+**Mask rule fix (2026-10-11).** The first mask1 build rejected 3 Socratic records whose source
+already had empty steps; external records keep empty steps as (k, k). An already-empty step now
+stays empty. The rebuilt cell has 2995/2995 records. The first build is kept as
+`*_mask1_superseded_emptystep` (MASK.json in `mask1_cells/`). The PRMBench, ProcessBench and
+Hard2Verify mask1 cells contain no already-empty spans, so they are unchanged.
+
 ## Variants
 
 | dir | input telemetry | notes |

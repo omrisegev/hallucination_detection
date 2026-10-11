@@ -57,6 +57,13 @@ class TestMask1(unittest.TestCase):
         self.assertEqual(failures[0]["key"], "x")
         self.assertIn("step 0", failures[0]["error"])
 
+    def test_already_empty_step_stays_empty(self):
+        # external records keep empty steps as (k, k); they are not mask failures
+        e = entry(spans=((0, 3), (3, 3), (3, 6)))
+        m = mask_first_token(e)
+        self.assertEqual(m["step_token_spans"], [(0, 2), (2, 2), (2, 5)])
+        self.assertEqual(m["align_diag"]["step_token_lengths"], [2, 0, 3])
+
     def test_length_mismatch_raises(self):
         e = entry()
         e["token_entropies"] = e["token_entropies"][:-1]

@@ -11,7 +11,8 @@ The rule, applied identically to every cell:
     leading length equals the trace length, which must be declared by the caller);
   * every half-open step span [lo, hi) becomes [max(lo - 1, 0), hi - 1);
   * a step that becomes empty (hi - 1 <= its new lo) is an explicit failure: `MaskError`,
-    never a silent drop.
+    never a silent drop. A step that was ALREADY empty in the source (hi <= lo; the external
+    records keep empty steps as (k, k)) stays empty: (k, k) -> (max(k-1, 0), max(k-1, 0)).
 The scoring prefix is NOT recomputed: the telemetry of tokens 1..T-1 is unchanged, it simply no
 longer includes token 0.
 """
@@ -54,6 +55,12 @@ def shift_spans(spans):
             out.append(None)
             continue
         lo, hi = int(sp[0]), int(sp[1])
+        if hi <= lo:
+            # Already empty in the source (external records keep empty steps as (k, k)): it stays empty,
+            # shifted with its neighbours. Only a step that BECOMES empty is a failure.
+            k = max(lo - 1, 0)
+            out.append((k, k) if isinstance(sp, tuple) else type(sp)((k, k)))
+            continue
         nlo, nhi = max(lo - 1, 0), hi - 1
         if nhi <= nlo:
             raise MaskError(f"step {i} span ({lo}, {hi}) becomes empty after dropping token 0")

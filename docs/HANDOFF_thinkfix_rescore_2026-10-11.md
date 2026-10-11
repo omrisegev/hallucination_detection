@@ -48,7 +48,11 @@ Full method notes are in `results/thinkfix_rescore_v1/README.md`.
 - **Drive verification** of every `_thinkfix`/`_mask1` dir plus `thinkfix_rescore_v1`: rclone copy +
   check loop started 2026-10-11 (`$SHARED/drive_verify.sh`). Results are in
   `$SHARED/logs/drive_verify_20261011.tsv`.
-- **External re-evaluation (step 3)**: not started. Every script in the chain hardcodes the three
+- **External step 3, part 1: DONE.** Locked L-SML evaluation. Working copies are
+  `$SHARED/thinkfix_ext_{thinkfix,thinkfix_mask1}`; scoring jobs 280815/280817, evaluation jobs
+  280820/280821. Results are in `results/thinkfix_rescore_v1/external/`. The Socratic mask1 cell was
+  rebuilt after a mask-rule fix (job 280814); see README.
+- **External step 3, part 2 (Monday panel methods on external data)**: not started. Every script in the chain hardcodes the three
   cells, including QwQ, and its freeze hashes cover the scripts themselves. The re-run needs patched
   copies under a new freeze written before the labels are opened. Chain:
   1. `scripts/run_external_local_cpu.py`
