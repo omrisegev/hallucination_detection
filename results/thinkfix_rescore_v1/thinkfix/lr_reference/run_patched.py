@@ -268,13 +268,13 @@ def panel_values():
     for src in (V2, V1):
         p = src / 'PANEL_A_ABSOLUTE.csv'
         if p.exists():
-            d = pd.read_csv(p); d['source'] = str(p.relative_to(MAIN)); rows.append(d)
+            d = pd.read_csv(p); d['source'] = str(p); rows.append(d)
     pa = pd.concat(rows).drop_duplicates(['bank', 'scorer'], keep='first') if rows else pd.DataFrame()
     orows = []
     for src in (V2, V1):
         p = src / 'ORIENTED_CONTROL.csv'
         if p.exists():
-            d = pd.read_csv(p); d['source'] = str(p.relative_to(MAIN)); orows.append(d)
+            d = pd.read_csv(p); d['source'] = str(p); orows.append(d)
     oc = pd.concat(orows).drop_duplicates(['bank'], keep='first')
     return pa, oc
 

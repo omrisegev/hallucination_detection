@@ -40,13 +40,14 @@ Full method notes are in `results/thinkfix_rescore_v1/README.md`.
 
 ## Not finished
 
-- **Supervised LR** (jobs 280534-280536) FAILED in the aggregate stage. `panel_values()` calls
-  `p.relative_to(MAIN)` on the variant's nested_banks path, which lies outside the mirror. The fit
-  stage caches exist on AIRCC under
-  `$SHARED/results/thinkfix_rescore_v1/<variant>/lr_reference/cache/`.
-  - Fix: in `run_lr_rescore.py`, also patch `str(p.relative_to(MAIN))` -> `str(p)`.
-  - Then delete the empty/partial lr_weights output dirs only after checking them, and rerun.
-    `fit_stage` skips cached banks.
+- **Supervised LR: DONE** (follow-up commit). The first attempt (jobs 280534-280536) failed in
+  aggregate on `relative_to(MAIN)`. After the fix, jobs 280724-280726 completed.
+  - N16 LR within-AUC: 0.8224 -> 0.8015 (mask1).
+  - The old replay hits the frozen 0.822366 exactly.
+  - The LR's lead over the best label-free method narrows from 0.026 to 0.023.
+- **Drive verification** of every `_thinkfix`/`_mask1` dir plus `thinkfix_rescore_v1`: rclone copy +
+  check loop started 2026-10-11 (`$SHARED/drive_verify.sh`). Results are in
+  `$SHARED/logs/drive_verify_20261011.tsv`.
 - **External re-evaluation (step 3)**: not started. Every script in the chain hardcodes the three
   cells, including QwQ, and its freeze hashes cover the scripts themselves. The re-run needs patched
   copies under a new freeze written before the labels are opened. Chain:

@@ -50,12 +50,19 @@ def main():
         (nested / 'ORIENTED_CONTROL.README.txt').write_text('Derived by run_lr_rescore.py from ../cont_baselines/ABSOLUTE.csv '
             '(ALL_EQ_ORIENTED rows) for monday_lr_reference_v1.panel_values(); the frozen one came from supplement_a2.py.\n')
     out_r = vroot / 'lr_reference'; out_w = vroot / 'lr_weights'
-    out_r.mkdir(parents=True, exist_ok=False); out_w.mkdir(parents=True, exist_ok=False)
+    # Resume is allowed (the frozen fit/scores stages skip cached banks), but finished outputs are never overwritten.
+    for done in (out_r / 'LR_SCORES.csv', out_w / 'GATE.json', out_w / 'ZERO_WEIGHTS.csv'):
+        if done.exists(): raise SystemExit('outputs exist: ' + str(done))
+    out_r.mkdir(parents=True, exist_ok=True); out_w.mkdir(parents=True, exist_ok=True)
     for src, dst in ((LRR / 'PROTOCOL.json', out_r / 'PROTOCOL.json'), (LRW / 'PROTOCOL.json', out_w / 'PROTOCOL.json')):
         dst.write_bytes(src.read_bytes())
     s = (LRR / 'run.py').read_text(encoding='utf8')
     s = patch(s, "V1 = MAIN / 'results/monday_nested_banks_v1'; V2 = MAIN / 'results/monday_nested_banks_v2'",
               f"V1 = Path(r'{nested}'); V2 = Path(r'{nested}')")
+    # panel_values() records each source path relative to MAIN; the variant dirs live outside the mirror.
+    rel = "d['source'] = str(p.relative_to(MAIN))"
+    if s.count(rel) != 2: raise SystemExit('relative_to anchor count')
+    s = s.replace(rel, "d['source'] = str(p)")
     write(LRR / 'run.py', out_r / 'run_patched.py', s,
           f'# PATCHED COPY of results/monday_lr_reference_v1/run.py (thinkfix_rescore_v1, variant={a.variant}): '
           'V1/V2 -> this variant\'s nested_banks; ext.FE set by the wrapper.\n')

@@ -12,6 +12,13 @@ the 10 banks x 5 headline scorers: **-0.0088** (range -0.023 to +0.009, n = 50).
 bank N16, MEAN_MOM_ga goes 0.7909 -> 0.7767 and HEM_MOM_cc goes 0.7961 -> 0.7773. N16 remains the
 highlight bank in all three variants. Source: `PRMBENCH_COMPARISON.csv`, table `panel_a`.
 
+**Supervised LR** (monday_lr_reference_v1 rerun; table `lr_reference` / `lr_gaps`). On N16 the
+nested-CV LR within-answer AUC goes 0.8224 -> 0.8015 (mask1). Its lead over the best label-free
+scorer narrows from 0.0263 to 0.0226; over MEAN_MOM_ga it narrows from 0.0315 to 0.0248. The LR
+ProcessBench transfer hit goes 0.4018 -> 0.3727. The old replay reproduces the frozen N16 LR AUC
+exactly (0.8223662; the lr_weights gate is enforced for `old`). The replay differs from frozen
+only in N53/N56, by at most 8.3e-4.
+
 ## Variants
 
 | dir | input telemetry | notes |
