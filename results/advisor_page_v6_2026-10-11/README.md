@@ -2,7 +2,7 @@
 
 This folder holds the official PRMScore run and the generator for version 6 of the advisor results page
 (https://claude.ai/artifact/NQNTYpFqVyx6xRnRS4NENV, meeting 2026-10-15). All inputs come from
-`results/thinkfix_rescore_v1` on this branch (base commit 8cc6498), column / variant `thinkfix_mask1`.
+`results/thinkfix_rescore_v1` on this branch (LR from commit 8810e49), column / variant `thinkfix_mask1`.
 
 ## Files
 
@@ -56,4 +56,4 @@ By category, MEAN_MOM_ga with R0 against PRM-7B:
 - R1F is not run, because the export has no `G__<method>` arrays.
 - redundency and circular use the validity fallback.
 - multi_solutions is not in the Sensitivity mean.
-- Supervised LR is pending in this re-score, so the page shows "pending" for it.
+- The page includes the supervised LR re-score (8810e49). The external benchmarks are not re-scored yet.

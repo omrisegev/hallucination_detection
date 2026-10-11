@@ -1,6 +1,6 @@
 """Build the PRMBench-first advisor page from the think-block re-score (thinkfix_mask1).
 Usage: python3 gen_prmb_v2.py <repo_root> <official_prmscore_dir> <out_html>
-  repo_root: checkout of omrisegev/hallucination_detection at claude/thinkfix-rescore-v1 (8cc6498)
+  repo_root: checkout of omrisegev/hallucination_detection at claude/thinkfix-rescore-v1 (8810e49 or later)
   official_prmscore_dir: OFFICIAL_PRMSCORE_<bank>.csv from official_prmscore_v1.py on prmscore_inputs/"""
 import sys, json
 import numpy as np, pandas as pd
@@ -18,7 +18,11 @@ NEW, OLD = 'thinkfix_mask1', 'old_replay'
 
 pb = pd.read_csv(REPO / F_PB); pbb = pd.read_csv(REPO / F_PBB)
 pnl = pb[pb.table == 'prmbench_panel_b']; cb = pb[pb.table == 'cont_baselines']; cat = pb[pb.table == 'prmbench_by_category']
-gaps = pb[pb.table == 'lr_gaps']
+gaps = pb[pb.table == 'lr_gaps']; lrr = pb[(pb.table == 'lr_reference') & (pb.scorer == 'LR')]
+F_GAP = f'{D}/thinkfix_mask1/lr_reference/GAPS.csv'
+gap = pd.read_csv(REPO / F_GAP).set_index('bank')
+def lrv(bank, metric, col=NEW):
+    r = lrr[(lrr.bank == bank) & (lrr.metric == 'prmb_' + metric)]; return float(r[col].iloc[0])
 off = pd.concat([pd.read_csv(OFF / f'OFFICIAL_PRMSCORE_{b}.csv') for b in BANKS])
 
 def v(bank, m, metric, col=NEW):  # metric: within_auc | prmscore_top1 | top1_on_error
@@ -41,18 +45,18 @@ SRC = (f'Source: <code>{F_PB}</code>, column <code>{NEW}</code>; table <code>prm
 
 def bank_table(metric, caption):
     head = '<tr><th>Bank</th>' + ''.join(f'<th>{NAME[m]}</th>' for m in METH) + '<th class="mcol">Mean, label-free</th><th class="lrc">LR (supervised)</th></tr>'
-    rows, allv = [], []
+    rows, allv, lv = [], [], []
     for b in BANKS:
-        x = np.array([v(b, m, metric) for m in METH]); allv.append(x); bx = np.nanmax(x)
+        x = np.array([v(b, m, metric) for m in METH]); allv.append(x); bx = np.nanmax(x); lv.append(lrv(b, metric))
         lead = b == 'N16'
         rows.append(f'<tr{" class=lead" if lead else ""}><th>{"N16 (leading bank)" if lead else b}</th>'
                     + ''.join(f'<td{" class=best" if y == bx else ""}>{f3(y)}</td>' for y in x)
-                    + f'<td class="mcol">{f3(np.nanmean(x))}</td><td class="lr">pending</td></tr>')
+                    + f'<td class="mcol">{f3(np.nanmean(x))}</td><td class="lr">{f3(lv[-1])}</td></tr>')
     M = np.nanmean(allv, axis=0); bm = M.max()
     rows.append('<tr class="mrow"><th>Mean, 10 banks</th>' + ''.join(f'<td{" class=best" if y == bm else ""}>{y:.3f}</td>' for y in M)
-                + f'<td class="mcol">{M.mean():.3f}</td><td class="lr">pending</td></tr>')
+                + f'<td class="mcol">{M.mean():.3f}</td><td class="lr">{np.mean(lv):.3f}</td></tr>')
     note = ('Bold = best label-free method in the row. "Mean, label-free" does not include LR. '
-            'LR is pending: the supervised re-score on the fixed input is still running. ' + SRC)
+            'LR = supervised reference (source-group cross-fit), table <code>lr_reference</code>. ' + SRC)
     return wrap(caption, head, rows, note), np.array(allv), M
 
 T_AUC, AUC, M_AUC = bank_table('within_auc', 'PRMBench · within-answer AUC (higher is better)')
@@ -134,7 +138,7 @@ T_OFFB = wrap('Official PRMScore on all banks', BH, BR, 'Source: <code>/mnt/proj
 RH = '<tr><th></th><th>Within AUC</th><th>PRMScore, one flag</th><th>Top step is an error</th></tr>'
 RR = [f'<tr class="lead"><th>Ours, N16, mean of 8 label-free methods</th><td>{AUC[i16].mean():.3f}</td><td>{PS[i16].mean():.3f}</td>'
       f'<td>{np.mean([v("N16", m, "top1_on_error") for m in METH]):.3f}</td></tr>',
-      '<tr><th>LR on N16 (supervised headroom)</th><td colspan="3" style="text-align:left">pending</td></tr>']
+      f'<tr><th>LR on N16 (supervised headroom)</th><td>{lrv("N16", "within_auc"):.3f}</td><td>{lrv("N16", "prmscore_top1"):.3f}</td><td>{lrv("N16", "top1_on_error"):.3f}</td></tr>']
 for s in [PRM, 'Step index (later = riskier)', 'Step token length']:
     RR.append(f'<tr class="refrow"><th>{s}</th><td>{ref(s, "within_auc"):.3f}</td><td>{ref(s, "prmscore_top1"):.3f}</td><td>{ref(s, "top1_on_error"):.3f}</td></tr>')
 T_REF = wrap('PRMBench references, same protocol', RH, RR,
@@ -165,14 +169,25 @@ def pv(m, col=NEW):
 def pref(s):
     r = pbb[(pbb.table == 'processbench_strata') & (pbb.stratum == 'ALL') & (pbb.scorer == s)]; return float(r[NEW].iloc[0])
 pn, po = [pv(m) for m in METH], [pv(m, OLD) for m in METH]
+_pl = pbb[(pbb.table == 'lr_reference') & (pbb.bank == 'N16') & (pbb.scorer == 'LR')]; pb_lr, pb_lr_old = float(_pl[NEW].iloc[0]), float(_pl['frozen'].iloc[0])
 PH = '<tr><th></th>' + ''.join(f'<th>{NAME[m]}</th>' for m in METH) + '<th class="lrc">LR</th><th class="lrc">PRM-7B, its top step</th></tr>'
-PR = [f'<tr class="lead"><th>After fix</th>' + ''.join(f'<td>{y:.3f}</td>' for y in pn) + f'<td class="lr">pending</td><td class="lr">{pref("Qwen2.5-Math-PRM-7B argmax"):.3f}</td></tr>',
-      '<tr class="refrow"><th>Before fix</th>' + ''.join(f'<td>{y:.3f}</td>' for y in po) + '<td class="lr"></td><td class="lr"></td></tr>']
+PR = [f'<tr class="lead"><th>After fix</th>' + ''.join(f'<td>{y:.3f}</td>' for y in pn) + f'<td class="lr">{pb_lr:.3f}</td><td class="lr">{pref("Qwen2.5-Math-PRM-7B argmax"):.3f}</td></tr>',
+      '<tr class="refrow"><th>Before fix</th>' + ''.join(f'<td>{y:.3f}</td>' for y in po) + f'<td class="lr">{pb_lr_old:.3f}</td><td class="lr"></td></tr>']
 T_PB = wrap('ProcessBench, N16 only · top step = first error (wrong answers, 8-cell mean)', PH, PR,
             f'Source: <code>{F_PBB}</code>, tables <code>panel_a</code>, <code>cont_baselines</code>, <code>processbench_strata</code> (PRM-7B, stratum ALL).')
 
-# ---- LR before the fix (for the pending note)
+# ---- LR headroom (paired gaps, after the fix)
 gf = gaps[gaps.metric == 'gap_vs_best'].frozen
+G = ['<tr><th>Bank</th><th>Channels</th><th>LR</th><th>Best pipeline variant</th><th>LR minus best</th><th>95% interval</th><th>LR minus best, before fix</th></tr>']
+for b in BANKS:
+    r = gap.loc[b]; old = gaps[(gaps.bank == b) & (gaps.metric == 'gap_vs_best')].frozen
+    G.append(f'<tr{" class=lead" if b == "N16" else ""}><th>{b}</th><td>{int(r.n_channels)}</td><td>{r.lr_within_auc:.3f}</td>'
+             f'<td>{r.best_within_auc:.3f} <span class="note">{r.best_method}</span></td><td class="gain">{r.gap_vs_best:+.3f}</td>'
+             f'<td>{r.gap_vs_best_lo95:+.3f} to {r.gap_vs_best_hi95:+.3f}</td><td>{sg(float(old.iloc[0])) if len(old) else "–"}</td></tr>')
+T_GAP = wrap('LR headroom on PRMBench (within-answer AUC)', '', G,
+             'Paired source-group bootstrap. "Best" is the best of the 4 pipeline variants, picked after we saw the scores, so each gap is a lower bound. '
+             f'Source: <code>{F_GAP}</code>; "before fix" from <code>{F_PB}</code>, table <code>lr_gaps</code>, column <code>frozen</code>.')
+small, large = gap[gap.n_channels <= 16].gap_vs_best, gap[gap.n_channels >= 40].gap_vs_best
 
 S = dict(
     n16_auc=AUC[i16].mean(), n16_auc_lo=AUC[i16].min(), n16_auc_hi=AUC[i16].max(),
@@ -190,7 +205,11 @@ S = dict(
     r1_ctrl=float(o16[(o16.method == 'MEAN_MOM_ga') & (o16.rule == 'R1')].controls_with_flag.iloc[0]),
     r0_ctrl=float(q0.controls_with_flag),
     red_ours=red['redundency'][0], red_prm=red['redundency'][1], circ_ours=red['circular'][0], circ_prm=red['circular'][1],
-    lr_old_lo=float(gf.min()), lr_old_hi=float(gf.max()),
+    lr_old_lo=float(gf.min()), lr_old_hi=float(gf.max()), lr_lo=float(gap.gap_vs_best.min()), lr_hi=float(gap.gap_vs_best.max()),
+    small_lo=float(small.min()), small_hi=float(small.max()), large_lo=float(large.min()), large_hi=float(large.max()),
+    lr16=lrv('N16', 'within_auc'), lr16_old=lrv('N16', 'within_auc', 'frozen'), lr16_ps=lrv('N16', 'prmscore_top1'), lr16_ps_old=lrv('N16', 'prmscore_top1', 'frozen'),
+    gap16=float(gap.loc['N16'].gap_vs_best), gap16_ga=float(gap.loc['N16'].gap_vs_MEAN_MOM_ga), gap16_ga_old=float(gaps[(gaps.bank == 'N16') & (gaps.metric == 'gap_vs_MEAN_MOM_ga')].frozen.iloc[0]),
+    lr_ci_min=float(gap.gap_vs_best_lo95.min()), pb_lr=pb_lr, pb_lr_old=pb_lr_old,
     pb_plain=pn[0], pb_pipe_lo=min(pn[4:]), pb_pipe_hi=max(pn[4:]), pb_plain_old=po[0],
     pb_ga=pn[METH.index('MEAN_MOM_ga')], pb_ga_old=po[METH.index('MEAN_MOM_ga')],
 )
@@ -198,7 +217,7 @@ assert S['best_bank'] == 'N16' == S['old_best_bank'], (S['best_bank'], S['old_be
 json.dump(S, open(OUT.with_suffix('.numbers.json'), 'w'), indent=1, default=float)
 
 tpl = Path(__file__).with_name('template_prmb_v2.html').read_text(encoding='utf8')
-for k, val in dict(T_AUC=T_AUC, T_PS=T_PS, T_BA=T_BA, T_OFF=T_OFF, T_FLAG=T_FLAG, T_CAT=T_CAT, T_OFFB=T_OFFB, T_REF=T_REF, T_TY=T_TY, T_PB=T_PB).items():
+for k, val in dict(T_AUC=T_AUC, T_PS=T_PS, T_BA=T_BA, T_OFF=T_OFF, T_FLAG=T_FLAG, T_CAT=T_CAT, T_OFFB=T_OFFB, T_REF=T_REF, T_TY=T_TY, T_PB=T_PB, T_GAP=T_GAP).items():
     tpl = tpl.replace('{{' + k + '}}', val)
 for k, val in S.items():
     if isinstance(val, float): tpl = tpl.replace('{{' + k + '}}', f'{val:.3f}').replace('{{+' + k + '}}', f'{val:+.3f}').replace('{{%' + k + '}}', f'{val:.0%}')
