@@ -1,0 +1,21 @@
+# thinkfix_rescore_v1 step 3: socratic_qwq32b removed (not re-collected: QwQ template has no non-thinking mode)
+--- scripts/run_external_local_cpu.py (frozen)
++++ scripts/run_external_local_cpu.py (thinkfix)
+@@ -23,7 +23,7 @@
+     source=ROOT/'scratch/external_generalization_private/evaluation_archives'
+     bundle=json.loads((out/'source/BUNDLE.json').read_text());code=ROOT/'spectral_utils/external_generalization'
+     identity={'bundle':file_hash(out/'source/BUNDLE.json'),'code':{str(f.relative_to(code)):file_hash(f) for f in sorted(code.rglob('*.py'))},'executor':'local_cpu'}
+-    cells=('hard2verify_qwen3_8b','socratic_qwen3_8b','socratic_qwq32b')
++    cells=('hard2verify_qwen3_8b','socratic_qwen3_8b')  # thinkfix: QwQ not re-collected
+     stores={};jobs=[];started=time.perf_counter()
+     try:
+         for cell in cells:
+@@ -38,7 +38,7 @@
+             for n,(cell,uid,payload) in enumerate(pool.map(one,jobs,chunksize=1)):
+                 stores[cell].put(uid,payload)
+                 if n%25==0:print(n+1,'/',len(jobs),cell,'elapsed',round(time.perf_counter()-started),flush=True)
+-        atomic_json(out/'CPU_EXECUTION.json',{'workers':a.workers,'answers_this_run':len(jobs),'elapsed':time.perf_counter()-started,'limit':a.limit,'identity':identity,'location':'local CPU fallback after SSH timeouts'})
++        atomic_json(out/'CPU_EXECUTION.json',{'workers':a.workers,'answers_this_run':len(jobs),'elapsed':time.perf_counter()-started,'limit':a.limit,'identity':identity,'location':'AIRCC CPU node (native python), thinkfix_rescore_v1 step 3'})
+     finally:
+         for store in stores.values():store.__exit__(None,None,None)
+ 

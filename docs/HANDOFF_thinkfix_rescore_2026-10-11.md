@@ -48,7 +48,15 @@ Full method notes are in `results/thinkfix_rescore_v1/README.md`.
 - **Drive verification** of every `_thinkfix`/`_mask1` dir plus `thinkfix_rescore_v1`: rclone copy +
   check loop started 2026-10-11 (`$SHARED/drive_verify.sh`). Results are in
   `$SHARED/logs/drive_verify_20261011.tsv`.
-- **External re-evaluation (step 3)**: not started. Every script in the chain hardcodes the three
+- **External step 3, part 1: DONE.** Locked L-SML evaluation. Working copies are
+  `$SHARED/thinkfix_ext_{thinkfix,thinkfix_mask1}`; scoring jobs 280815/280817, evaluation jobs
+  280820/280821. Results are in `results/thinkfix_rescore_v1/external/`. The Socratic mask1 cell was
+  rebuilt after a mask-rule fix (job 280814); see README.
+- **External step 3, part 2: DONE.** Jobs: thinkfix 280824/280825/280847-280854, mask1
+  280828/280829/280855-280862. Outputs are in `results/thinkfix_rescore_v1/external/<variant>/panel_chain/`
+  and `EXTERNAL_PANEL_COMPARISON.csv`.
+- **Self-generated step 4: DONE.** The ProcessBench B16 reference was refit (job 280870) and
+  `selfgen/run_b16_eval_thinkfix.py` was run locally. Results are in `results/thinkfix_rescore_v1/selfgen/`. Every script in the chain hardcodes the three
   cells, including QwQ, and its freeze hashes cover the scripts themselves. The re-run needs patched
   copies under a new freeze written before the labels are opened. Chain:
   1. `scripts/run_external_local_cpu.py`
@@ -60,7 +68,7 @@ Full method notes are in `results/thinkfix_rescore_v1/README.md`.
 
   The mask1 records are at
   `$SHARED/results/lsml_external_generalization_v1/{hard2verify,socratic}_qwen3_8b_full_thinkfix_153589e_mask1/records`.
-- **Self-generated check (step 4)**: not started. The generated `evdrop_*` traces themselves are
+- **Self-generated check (step 4)**: done; see above. The original note follows. The generated `evdrop_*` traces themselves are
   clean. Their teacher-forced reference side reads the old PB cells and still needs a re-run:
   `scripts/self_generated_labels/evaluate_selfgen.py` and `b16_fit.py`/`b16_eval.py` on
   `claude/self-generated-step-labels-v1`, with `HD_MAIN_CHECKOUT` pointing at a tree that has the

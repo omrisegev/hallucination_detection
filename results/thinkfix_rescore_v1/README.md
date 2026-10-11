@@ -19,6 +19,43 @@ ProcessBench transfer hit goes 0.4018 -> 0.3727. The old replay reproduces the f
 exactly (0.8223662; the lr_weights gate is enforced for `old`). The replay differs from frozen
 only in N53/N56, by at most 8.3e-4.
 
+**External, locked L-SML evaluation (step 3 part 1)** (`external/`, `EXTERNAL_LSML_COMPARISON.csv`).
+The unchanged METHOD_FREEZE/BUNDLE scorer was run on the think-fix Hard2Verify and Socratic Qwen3-8B
+records. QwQ is not re-collected. The new analysis freeze was written before labels, with
+amendment A2 for Windows path separators.
+- mask1 frozen L-SML metric: Hard2Verify 0.4367 -> 0.4210, Socratic 0.6322 -> 0.6278.
+- Frozen L-SML vs CT7 on Socratic: +0.061 [0.053, 0.070] (Bonferroni).
+- The BUNDLE was fitted on pre-fix source telemetry; its inputs are gone, so it was not refit.
+
+**External, Monday panel methods (step 3 part 2)** (`external/<variant>/panel_chain/`,
+`EXTERNAL_PANEL_COMPARISON.csv`).
+- Pipeline: family features -> v4 external banks -> label-free panel / cont / nested scoring and
+  sealing -> evaluation. QwQ is removed from the cell lists. The tokenizer check also searches the
+  AIRCC HF cache. The family freeze was re-hashed before scoring.
+- The panel adapter's dev parity gate passes to about 1e-15. The official-evaluator replays pass.
+- N16, ANSWER_Z_Q80, official metric, old -> mask1:
+  - Socratic MEAN_MOM_ga 0.633 -> 0.616; ALL_EQ 0.627 -> 0.611.
+  - Hard2Verify (200 answers) moves both ways: MEAN_MOM_ga 0.404 -> 0.418, TCI_ONLY_ga 0.391 -> 0.433.
+- Nested-bank within-AUC, mean change -0.006.
+
+**Self-generated experiment (step 4)** (`selfgen/`). B16 BASE pooled within-AUC, self-generated vs
+teacher-forced ProcessBench (FINAL890 labels):
+- Old 0.7566 vs 0.7630; mask1 0.7566 vs 0.7415. The difference is +0.015, CI [-0.021, 0.052], so
+  still equivalent at the 0.03 margin.
+- GRP reference falls from 0.720 to 0.606 (MATH cells), so GRP is no longer equivalent.
+- The ProcessBench reference was refitted per dataset with the unchanged b16_fit code on the
+  rebuilt banks. Its replay of Step 462 is within 2.7e-9.
+- Not re-run: evaluate_selfgen's teacher-forced panel, which needs the frozen bundle's
+  VALIDATION.npz (cannot be refit).
+- The Mind the Gap answer-level evdrop scores include the 4 generated think tokens. The expected
+  effect is small, and they were not re-scored.
+
+**Mask rule fix (2026-10-11).** The first mask1 build rejected 3 Socratic records whose source
+already had empty steps; external records keep empty steps as (k, k). An already-empty step now
+stays empty. The rebuilt cell has 2995/2995 records. The first build is kept as
+`*_mask1_superseded_emptystep` (MASK.json in `mask1_cells/`). The PRMBench, ProcessBench and
+Hard2Verify mask1 cells contain no already-empty spans, so they are unchanged.
+
 ## Variants
 
 | dir | input telemetry | notes |
