@@ -57,3 +57,11 @@ By category, MEAN_MOM_ga with R0 against PRM-7B:
 - redundency and circular use the validity fallback.
 - multi_solutions is not in the Sensitivity mean.
 - The page includes the supervised LR re-score (8810e49) and the external benchmarks (080877e). External L-SML uses weights fit on pre-fix data.
+
+## Version 10 (2026-10-11)
+
+The page is now Omri's Codex presentation (`docs/reviews/thinkfix_rescore_review_20261011/advisor_review_claude.html` on `claude/thinkfix-rescore-v1` @ f05f10b), patched by `add_advisor_views.py`:
+
+    python3 add_advisor_views.py <repo_root> official_prmscore_thinkfix_mask1 advisor_review_claude.html advisor_review_v10.html
+
+The patch adds the bank x method tables (with means), the PRMBench radar and the paper Table 3-style leaderboard. `advisor_review_v10.html` is the published source. `CODEX_NOTES_2026-10-11.md` lists open items for the next Codex build.
