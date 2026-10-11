@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PRMBench Step-Error Results</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono&display=swap">
+<style>
+/* One reading column with a sticky section index; figures sit on white plates so light-theme PNGs read in both themes */
+:root{--bg:#f6f7f9;--fg:#1b2430;--muted:#5b6676;--line:#d8dde5;--plate:#ffffff;--accent:#2a78d6;--warn:#c4561f;--good:#e3eefb;--bad:#fbe9e1;
+--display:'Source Serif 4',Georgia,serif;--body:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12161d;--fg:#e6eaf0;--muted:#9aa5b5;--line:#2c3440;--plate:#f4f5f7;--accent:#6aa8f0;--warn:#f08a5a;--good:#1d3350;--bad:#43281c;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#12161d;--fg:#e6eaf0;--muted:#9aa5b5;--line:#2c3440;--plate:#f4f5f7;--accent:#6aa8f0;--warn:#f08a5a;--good:#1d3350;--bad:#43281c;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 80px}
+nav{position:sticky;top:0;background:var(--bg);border-bottom:1px solid var(--line);padding-block:10px;z-index:2;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px}
+nav a{color:var(--accent);text-decoration:none}nav a:hover{text-decoration:underline}nav span{color:var(--muted)}
+h1{font-family:var(--display);font-size:clamp(28px,4vw,40px);line-height:1.15;text-wrap:balance;margin:18px 0 6px}
+h2{font-family:var(--display);font-size:28px;margin:48px 0 8px;padding-top:12px;border-top:2px solid var(--fg);text-wrap:balance}
+h3{font-size:18px;margin:28px 0 6px}
+p,li{max-width:75ch}.lede{color:var(--muted);font-size:17px}
+.note{color:var(--muted);font-size:14px}
+.key{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:18px 0}
+.key div{border:1px solid var(--line);border-radius:8px;padding:14px 16px;min-width:0}
+.key b{display:block;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.tw{overflow-x:auto;margin:14px 0}
+table{border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums;min-width:100%}
+caption{text-align:left;font-weight:600;padding-bottom:6px}
+th,td{border-bottom:1px solid var(--line);padding:6px 9px;text-align:right;white-space:nowrap}
+tr th:first-child{text-align:left}
+table.wide td,table.wide th{text-align:left;white-space:normal;vertical-align:top}table.wide tr th:first-child{white-space:nowrap}
+td.best{font-weight:700;color:var(--accent)} td.lr,th.lrc{color:var(--muted);font-style:italic;border-left:2px solid var(--line)} td.gain{font-weight:600}
+tr.lead th,tr.lead td{background:var(--good)} tr.mrow th,tr.mrow td{border-top:2px solid var(--fg);font-weight:600} .mcol{border-left:2px solid var(--line);font-weight:600}
+td sup{font-weight:400;color:var(--muted);font-size:11px;margin-left:3px}
+tr.good td,tr.good th{background:var(--good)} tr.bad td,tr.bad th{background:var(--bad)} tr.refrow th,tr.refrow td{color:var(--muted)}
+figure{margin:18px 0}figure img{background:var(--plate);border-radius:6px;padding:8px;max-width:100%;display:block}
+figcaption{color:var(--muted);font-size:14px;margin-top:6px;max-width:90ch}
+.warn{border-left:4px solid var(--warn);padding:8px 14px;margin:14px 0}
+code{font-family:var(--mono);font-size:13px;overflow-wrap:anywhere}
+a{color:var(--accent)}
+</style></head><body>
+<div class="wrap">
+<nav><a href="#top">Summary</a><a href="#fix">Think-block fix</a><a href="#setup">Setup</a><a href="#auc">Within-AUC</a><a href="#prmscore">PRMScore, one flag</a><a href="#official">Official PRMScore</a><a href="#types">Error types</a><a href="#refs">References</a><a href="#lr">LR (pending)</a><a href="#pb">ProcessBench (context)</a><a href="#caveats">Caveats</a><a href="#src">Sources</a></nav>
+
+<h1 id="top">Label-free step-error localization on PRMBench</h1>
+<p class="lede">For the advisor meeting on Thursday 2026-10-15. This page shows PRMBench results first. ProcessBench is context only. The task: find the wrong steps in a given answer, with no labels and no training. Qwen3-8B reads each answer in one teacher-forced pass. We compute token-probability channels for each step. Then we fuse the channels without labels.</p>
+
+<div class="warn"><b>All numbers are from the corrected input.</b> The earlier version of this page used a teacher-forcing input without the empty think block. We fixed the input, masked the first forced token, and re-scored everything. The fix made our numbers slightly <i>lower</i>: the bug inflated the earlier results by about 0.01 AUC. <a href="#fix">Details</a>. The supervised LR reference is not re-scored yet, so it shows "pending".</div>
+<div class="key">
+<div><b>Result</b>On N16, the 8 label-free methods give a within-answer AUC of {{n16_auc_lo}} to {{n16_auc_hi}} (mean {{n16_auc}}). The supervised Qwen2.5-Math-PRM-7B gives {{prm_auc}}.</div>
+<div><b>Official PRMScore</b>With a label-free flag rule (top 20% of steps), our N16 methods give {{r0_lo}} to {{r0_hi}}. PRM-7B with its own 0.5 threshold gives {{prm_off}}. On Simplicity we are much better ({{ga_simp}} vs {{prm_simp}}). On Soundness and Sensitivity, PRM-7B is better.</div>
+<div><b>Fusion rule</b>The fusion rule changes little. Over 10 banks, the method means differ by {{spread}} AUC. {{mean_best}} is highest ({{mean_best_v}}). The plain average is lowest ({{mean_worst_v}}).</div>
+<div><b>Think-block fix</b>Mean change over all banks and methods: {{+d_all}} AUC. On N16: {{+d16}}. N16 is still the best bank. The conclusions do not change.</div>
+</div>
+
+<h2 id="fix">What changed: the think-block fix</h2>
+<p>Qwen3 in /no_think mode writes an empty think block (<code>&lt;think&gt;&lt;/think&gt;</code>) before the answer. Our teacher-forcing input did not have this block. Thus the model saw the answer steps in an unexpected place, and the surprise channels were wrong on the first tokens. We re-generated the PRMBench and ProcessBench telemetry with the block. We also removed the first forced token of each answer from the channels, because Qwen3 expects a fixed opening word there.</p>
+<p>Then we re-ran the frozen scorers on the new input with no other change. A replay on the old input gives the old numbers again (max difference 3.3e-4), so the chain is correct.</p>
+{{T_BA}}
+<p>The change is small and mostly negative: {{+d_lo}} to {{+d_hi}} per bank and method, mean {{+d_all}}. Thus the bug slightly inflated the numbers that we showed before. The order of the banks and methods stays almost the same.</p>
+
+<h2 id="setup">Setup</h2>
+<p>PRMBench: 6,969 answers, 94,203 steps. An LLM inserted the errors. Scoring model: Qwen3-8B. Each method fits on one cell (one benchmark subset × one scoring model). Only the LR reference uses labels.</p>
+<p><b>Feature banks.</b> A bank is a set of step channels. Nested banks: N11 ⊂ N13 ⊂ N22 ⊂ N40 ⊂ N53. Each has a "digit twin" with digit channels added: N14, N16, N25, N43, N56. N16 is the leading bank. We chose N16 after we saw the results.</p>
+<div class="tw"><table class="wide"><caption>Methods (all see the same z-scored channels of one bank)</caption><tr><th>Name</th><th>What it does</th></tr>
+<tr><th>Plain average</th><td>Mean of all channels. No filter. No sign flip.</td></tr>
+<tr><th>DS-filter average</th><td>Dawid–Skene finds the channels that point the wrong way. Remove them. Then average the rest.</td></tr>
+<tr><th>Continuous L-SML</th><td>Find groups of dependent channels. Fuse each group by its leading eigenvector. Then fuse the groups (Jaffe et al. 2016).</td></tr>
+<tr><th>IU-PCR</th><td>Estimate the covariance of each channel with the hidden error. Weight by 2 principal components (Dror et al. 2017; Tenzer et al. 2022).</td></tr>
+<tr><th>Tail-vote pipeline (4 variants)</th><td>Each channel votes "error" on its top 20% of steps. Dawid–Skene drops wrong-way channels. L-SML groups the channels. Inside a group: MEAN, HEM or TCI. Between groups: MoM weights. _cc = vote per channel, quota per cell. _ga = vote per group, quota per answer.</td></tr>
+<tr><th>LR (reference)</th><td>Logistic regression on the same channels. It uses step labels. Source-group cross-fit. It shows the headroom. It is not a competitor.</td></tr>
+</table></div>
+<div class="tw"><table class="wide"><caption>Metrics</caption><tr><th>Metric</th><th>Definition</th><th>Threshold?</th></tr>
+<tr><th>Within-answer AUC</th><td>In one answer: the probability that an error step scores above a correct step. Mean over answers with both classes.</td><td>No</td></tr>
+<tr><th>PRMScore, one flag per answer</th><td>½ · (F1 on correct steps + F1 on error steps), pooled over the steps of non-control answers. Each method flags exactly one step per answer: its top step.</td><td>Fixed: 1 flag</td></tr>
+<tr><th>Official PRMScore</th><td>The same formula, computed by the PRMBench evaluator. Each method flags steps with a label-free rule (<a href="#official">R0, R1, R2</a>). Also per category: Simplicity, Soundness, Sensitivity.</td><td>Label-free rule</td></tr>
+<tr><th>Top step is an error</th><td>Share of answers with an error whose top-ranked step is an error step.</td><td>No</td></tr>
+</table></div>
+
+<h2 id="auc">PRMBench · within-answer AUC</h2>
+<p>N16 has the highest label-free mean ({{n16_auc}}). The best single method on N16 is {{n16_best}} ({{n16_best_v}}). In each row, the label-free methods are close together.</p>
+{{T_AUC}}
+
+<h2 id="prmscore">PRMBench · PRMScore, one flag per answer</h2>
+<p>With one flag per answer, the N16 methods give {{n16_ps_lo}} to {{n16_ps_hi}}. PRM-7B gives {{prm_ps}} with the same rule. One flag per answer limits PRMScore, because most answers have more than one error step. The official PRMScore in the next section removes this limit.</p>
+{{T_PS}}
+
+<h2 id="official">PRMBench · official PRMScore</h2>
+<p>The official PRMScore needs a yes/no decision for each step. Our methods give a score, not a decision. Thus we need a flag rule. All rules below are label-free: each threshold is a quantile over all scored steps.</p>
+<div class="tw"><table class="wide"><caption>Flag rules</caption><tr><th>Rule</th><th>What it flags</th></tr>
+<tr><th>R0</th><td>A step whose method score (z-scored inside its answer) is in the top 20% of all steps. Because the score is relative to the answer, about 20% of the steps of <i>every</i> answer get a flag.</td></tr>
+<tr><th>R1</th><td>A step whose global score is in the top 20%. Global score = equal mean of the DS-surviving channels, each z-scored once over all steps (not inside the answer). Thus some answers get many flags and some get none. R1 does not depend on the fusion method.</td></tr>
+<tr><th>R2</th><td>The number of flags per answer comes from R1. The method score picks which steps get them.</td></tr>
+<tr><th>TOP1, TOP2</th><td>Exactly 1 or 2 flags per answer. TOP2 is a control, not a method: PRMBench inserts about 2 errors per answer, so TOP2 uses knowledge of how the benchmark was built.</td></tr>
+</table></div>
+{{T_OFF}}
+<p>R0 on N16 gives {{r0_lo}} to {{r0_hi}}, about equal to PRM-7B ({{prm_off}}). R1 gives {{r1}}. R2 ({{r2_ga}} for MEAN_MOM_ga) gives no gain over R0. TOP2 gives {{top2_lo}} to {{top2_hi}}, but it uses the benchmark's construction, so it is only a reference.</p>
+{{T_FLAG}}
+<p>R0 flags at least one step in {{%r0_ctrl}} of the error-free control answers. R1 reduces this to {{%r1_ctrl}}, because it compares steps across answers. This is the main difference between the rules. The pooled PRMScore does not show it, because controls are not in the pooled score.</p>
+{{T_CAT}}
+<p>By category, we lead on Simplicity (redundancy and circular logic). PRM-7B leads on Soundness and Sensitivity. Overall, the two are about equal.</p>
+{{T_OFFB}}
+
+<h2 id="types">PRMBench error types</h2>
+<p>We did not tune for error types. On redundancy, our best N16 method gives {{red_ours}} and PRM-7B gives {{red_prm}}. On circular logic: {{circ_ours}} vs {{circ_prm}}. These two types form PRMBench's "Simplicity" category. In published PRMBench results, they are the weakest types for every method. PRM-7B is much better on deception, counterfactual and confidence errors.</p>
+{{T_TY}}
+
+<h2 id="refs">References on PRMBench</h2>
+<p>Same protocol for all rows. Our N16 mean is below PRM-7B on within-answer AUC. With one flag per answer, it is above PRM-7B on PRMScore and on "top step is an error".</p>
+{{T_REF}}
+
+<h2 id="lr">LR headroom (pending)</h2>
+<p>The supervised LR on the fixed input is still running. We add it here when it is done. Before the fix, LR was better than the best pipeline variant on every bank, by +{{lr_old_lo}} to +{{lr_old_hi}} AUC (paired 95% intervals above 0; <code>results/monday_lr_reference_v1/GAPS.csv</code>). Those numbers used the old input, so we do not show them as current.</p>
+
+<h2 id="pb">ProcessBench (context only)</h2>
+<p>Task: find the first wrong step. 3,400 answers × 2 scoring models, 8 cells. On N16, the plain average ({{pb_plain}}) is about equal to the best pipeline variant ({{pb_pipe_hi}}). The other variants are lower, down to {{pb_pipe_lo}}. The fix also lowered the ProcessBench numbers: the plain average went from {{pb_plain_old}} to {{pb_plain}}, MEAN_MOM_ga from {{pb_ga_old}} to {{pb_ga}}. Fusion adds nothing here. We do not plan new ProcessBench analyses.</p>
+{{T_PB}}
+
+<h2 id="caveats">Caveats</h2>
+<ul>
+<li>All PRMBench numbers are development data. We chose N16 after we saw the results.</li>
+<li>The official PRMScore uses the PRMBench evaluator port in the repository. Two adaptations: we have no redundancy head, so redundency and circular use the validity fallback; multi_solutions has no error steps, so it is not in the Sensitivity mean.</li>
+<li>R1 uses a global score that we re-built from its written definition. The original R1 inputs are gone, so R1 and R2 are not a replay of the earlier decision-rule study.</li>
+<li>The Mind the Gap reference is not on this page. Its input file is gone, so we could not re-score it.</li>
+<li>Supervised LR and the external benchmarks are not re-scored yet.</li>
+</ul>
+
+<h2 id="src">Sources</h2>
+<p>All numbers come from <a href="https://github.com/omrisegev/hallucination_detection/tree/claude/thinkfix-rescore-v1">omrisegev/hallucination_detection</a>, branch <code>claude/thinkfix-rescore-v1</code>, commit <code>8cc6498</code>, column <code>thinkfix_mask1</code> unless stated:</p>
+<ul class="note">
+<li><code>results/thinkfix_rescore_v1/PRMBENCH_COMPARISON.csv</code>: all PRMBench tables, error types, references, before/after (<code>old_replay</code>)</li>
+<li><code>results/thinkfix_rescore_v1/PROCESSBENCH_COMPARISON.csv</code>: ProcessBench context</li>
+<li><code>results/thinkfix_rescore_v1/prmscore_inputs/bank_&lt;bank&gt;.npz</code> + <code>prmbench_meta.json</code>: inputs to the official PRMScore</li>
+<li><code>results/thinkfix_rescore_v1/README.md</code>: how the re-score was run and checked</li>
+<li>Official PRMScore: script <code>official_prmscore_v1.py</code> and outputs <code>official_prmscore_thinkfix_mask1/</code> in the project's <code>advisor_page</code> folder (not yet in the repository)</li>
+<li>PRM-7B official by-category reference: <code>dataset_cache/four_localization/prmbench_qwen25math7b_full/manifest.json</code></li>
+</ul>
+<p class="note">Earlier versions of this page (pre-fix numbers, 2026-10-10; all benchmarks, 2026-10-08) are in the version history of this artifact.</p>
+</div>
+</body></html>
