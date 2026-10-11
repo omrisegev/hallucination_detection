@@ -25,7 +25,7 @@ Original URL: https://claude.ai/artifact/NQNTYpFqVyx6xRnRS4NENV
 
 Use `advisor_review_claude.html` as the revised source in the original artifact's authoring conversation. Review it against this handoff and the evidence files before replacing the source. Preserve the corrected numbers, method emphasis, metric definitions and claim boundaries. Do not treat an unchanged viewer page or a new duplicate as a verified update of the original URL.
 
-At publication time the currently connected Claude account exposed viewing and duplication, with Rename and Version history disabled. Updating the original therefore still requires access to its authoring conversation/account. Git publication does not by itself update claude.ai.
+Published to GitHub in commit `f05f10b808a533ed776b34f17a08cc52f7e6ee16`. The school-profile Claude account had viewer access; the personal Chrome profile held the author account. From the original authoring session, Claude published the exact committed import copy as **version 9 at the original URL**, retaining version 8 in history. Codex independently reloaded the public URL and verified the revised title, method emphasis, figures and displayed values. Claude reported that its downloaded live HTML matched the committed file byte for byte. See [publication record](PUBLICATION.json).
 
 ## Rebuild locally
 
