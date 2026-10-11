@@ -189,6 +189,42 @@ T_GAP = wrap('LR headroom on PRMBench (within-answer AUC)', '', G,
              f'Source: <code>{F_GAP}</code>; "before fix" from <code>{F_PB}</code>, table <code>lr_gaps</code>, column <code>frozen</code>.')
 small, large = gap[gap.n_channels <= 16].gap_vs_best, gap[gap.n_channels >= 40].gap_vs_best
 
+
+# ---- external benchmarks (transfer, no refit)
+F_EL, F_EP = f'{D}/external/EXTERNAL_LSML_COMPARISON.csv', f'{D}/external/EXTERNAL_PANEL_COMPARISON.csv'
+F_EC = f'{D}/external/thinkfix_mask1/lsml_locked/CONTRASTS.json'
+el = pd.read_csv(REPO / F_EL); ep = pd.read_csv(REPO / F_EP)
+ec = json.load(open(REPO / F_EC))
+CELLS = [('hard2verify_qwen3_8b', 'Hard2Verify'), ('socratic_qwen3_8b', 'Socratic')]
+EXH = ('<tr><th></th>' + ''.join(f'<th>{n}, before</th><th>{n}, after</th>' for _, n in CELLS) + '</tr>')
+def elv(cell, arm, col): return float(el[(el.cell == cell) & (el.arm == arm) & (el.group == 'ALL') & (el.measure == 'metric')][col].iloc[0])
+ER = []
+for arm, lab in [('frozen_lsml', 'Bank11 L-SML, frozen weights'), ('frozen_equal', 'Bank11 equal average'), ('ct7', 'CT7 reference')]:
+    ER.append(f'<tr{" class=lead" if arm == "frozen_lsml" else (" class=refrow" if arm == "ct7" else "")}><th>{lab}</th>'
+              + ''.join(f'<td>{elv(c, arm, "old"):.3f}</td><td>{elv(c, arm, NEW):.3f}</td>' for c, _ in CELLS) + '</tr>')
+def con(cell, right):
+    r = [x for x in ec if x['cell'] == cell and x['left'] == 'frozen_lsml' and x['right'] == right][0]
+    return f'{r["delta"]:+.3f} [{r["ci_bonferroni"][0]:+.3f}, {r["ci_bonferroni"][1]:+.3f}]'
+ER.append('<tr class="mrow"><th>L-SML minus CT7, after (95% CI, Bonferroni)</th>' + ''.join(f'<td colspan="2">{con(c, "ct7")}</td>' for c, _ in CELLS) + '</tr>')
+ER.append('<tr><th>L-SML minus equal average, after</th>' + ''.join(f'<td colspan="2">{con(c, "frozen_equal")}</td>' for c, _ in CELLS) + '</tr>')
+T_EXT = wrap('External benchmarks · locked L-SML transfer (official metric)', EXH, ER,
+             'Hard2Verify metric: Balanced F1 (harmonic mean of correct and error recall), 200 answers. Socratic metric: PRMScore (mean of correct and error F1), Qwen3-8B, 2,995 answers. '
+             'Do not average the two metrics. "Before" = old input, "after" = fixed input with the first token masked. '
+             f'Source: <code>{F_EL}</code> (group ALL, measure metric) and <code>{F_EC}</code> (100,000 paired source-question bootstrap draws).')
+def epv(cell, sc, col):
+    t = ep[(ep.cell == cell) & (ep.scorer == sc) & (ep.rule == 'ANSWER_Z_Q80') & (ep.measure == 'official_metric') & ((ep.bank == 'N16') | (sc == 'STEP_INDEX'))]
+    return float(t[col].iloc[0])
+PR2 = []
+for m in METH:
+    PR2.append(f'<tr><th>{NAME[m]}</th>' + ''.join(f'<td>{epv(c, m, "old"):.3f}</td><td>{epv(c, m, NEW):.3f}</td>' for c, _ in CELLS) + '</tr>')
+PR2.append('<tr class="mrow"><th>Mean, 8 methods</th>' + ''.join(f'<td>{np.mean([epv(c, m, "old") for m in METH]):.3f}</td><td>{np.mean([epv(c, m, NEW) for m in METH]):.3f}</td>' for c, _ in CELLS) + '</tr>')
+PR2.append('<tr class="refrow"><th>Step index (later = riskier), same rule</th>' + ''.join(f'<td>{epv(c, "STEP_INDEX", "old"):.3f}</td><td>{epv(c, "STEP_INDEX", NEW):.3f}</td>' for c, _ in CELLS) + '</tr>')
+T_EXTP = wrap('External benchmarks · PRMBench methods on N16, rule R0 (official metric)', EXH, PR2,
+              'Label-free methods, no labels used. Rule R0 = answer-z score in the top 20% (ANSWER_Z_Q80). '
+              f'Source: <code>{F_EP}</code> (bank N16, rule ANSWER_Z_Q80, measure official_metric).')
+ext_ga = {c: (epv(c, 'MEAN_MOM_ga', 'old'), epv(c, 'MEAN_MOM_ga', NEW)) for c, _ in CELLS}
+ext_si = {c: epv(c, 'STEP_INDEX', NEW) for c, _ in CELLS}
+
 S = dict(
     n16_auc=AUC[i16].mean(), n16_auc_lo=AUC[i16].min(), n16_auc_hi=AUC[i16].max(),
     n16_ps_lo=PS[i16].min(), n16_ps_hi=PS[i16].max(), n16_ps=PS[i16].mean(),
@@ -209,6 +245,10 @@ S = dict(
     small_lo=float(small.min()), small_hi=float(small.max()), large_lo=float(large.min()), large_hi=float(large.max()),
     lr16=lrv('N16', 'within_auc'), lr16_old=lrv('N16', 'within_auc', 'frozen'), lr16_ps=lrv('N16', 'prmscore_top1'), lr16_ps_old=lrv('N16', 'prmscore_top1', 'frozen'),
     gap16=float(gap.loc['N16'].gap_vs_best), gap16_ga=float(gap.loc['N16'].gap_vs_MEAN_MOM_ga), gap16_ga_old=float(gaps[(gaps.bank == 'N16') & (gaps.metric == 'gap_vs_MEAN_MOM_ga')].frozen.iloc[0]),
+    h_lsml_o=elv('hard2verify_qwen3_8b', 'frozen_lsml', 'old'), h_lsml=elv('hard2verify_qwen3_8b', 'frozen_lsml', NEW), s_lsml_o=elv('socratic_qwen3_8b', 'frozen_lsml', 'old'), s_lsml=elv('socratic_qwen3_8b', 'frozen_lsml', NEW),
+    h_ct7=elv('hard2verify_qwen3_8b', 'ct7', NEW), s_ct7=elv('socratic_qwen3_8b', 'ct7', NEW),
+    s_ga_o=ext_ga['socratic_qwen3_8b'][0], s_ga=ext_ga['socratic_qwen3_8b'][1], h_ga_o=ext_ga['hard2verify_qwen3_8b'][0], h_ga=ext_ga['hard2verify_qwen3_8b'][1],
+    h_si=ext_si['hard2verify_qwen3_8b'], s_si=ext_si['socratic_qwen3_8b'],
     lr_ci_min=float(gap.gap_vs_best_lo95.min()), pb_lr=pb_lr, pb_lr_old=pb_lr_old,
     pb_plain=pn[0], pb_pipe_lo=min(pn[4:]), pb_pipe_hi=max(pn[4:]), pb_plain_old=po[0],
     pb_ga=pn[METH.index('MEAN_MOM_ga')], pb_ga_old=po[METH.index('MEAN_MOM_ga')],
@@ -217,7 +257,7 @@ assert S['best_bank'] == 'N16' == S['old_best_bank'], (S['best_bank'], S['old_be
 json.dump(S, open(OUT.with_suffix('.numbers.json'), 'w'), indent=1, default=float)
 
 tpl = Path(__file__).with_name('template_prmb_v2.html').read_text(encoding='utf8')
-for k, val in dict(T_AUC=T_AUC, T_PS=T_PS, T_BA=T_BA, T_OFF=T_OFF, T_FLAG=T_FLAG, T_CAT=T_CAT, T_OFFB=T_OFFB, T_REF=T_REF, T_TY=T_TY, T_PB=T_PB, T_GAP=T_GAP).items():
+for k, val in dict(T_AUC=T_AUC, T_PS=T_PS, T_BA=T_BA, T_OFF=T_OFF, T_FLAG=T_FLAG, T_CAT=T_CAT, T_OFFB=T_OFFB, T_REF=T_REF, T_TY=T_TY, T_PB=T_PB, T_GAP=T_GAP, T_EXT=T_EXT, T_EXTP=T_EXTP).items():
     tpl = tpl.replace('{{' + k + '}}', val)
 for k, val in S.items():
     if isinstance(val, float): tpl = tpl.replace('{{' + k + '}}', f'{val:.3f}').replace('{{+' + k + '}}', f'{val:+.3f}').replace('{{%' + k + '}}', f'{val:.0%}')

@@ -56,4 +56,4 @@ By category, MEAN_MOM_ga with R0 against PRM-7B:
 - R1F is not run, because the export has no `G__<method>` arrays.
 - redundency and circular use the validity fallback.
 - multi_solutions is not in the Sensitivity mean.
-- The page includes the supervised LR re-score (8810e49). The external benchmarks are not re-scored yet.
+- The page includes the supervised LR re-score (8810e49) and the external benchmarks (080877e). External L-SML uses weights fit on pre-fix data.

@@ -38,12 +38,12 @@ code{font-family:var(--mono);font-size:13px;overflow-wrap:anywhere}
 a{color:var(--accent)}
 </style></head><body>
 <div class="wrap">
-<nav><a href="#top">Summary</a><a href="#fix">Think-block fix</a><a href="#setup">Setup</a><a href="#auc">Within-AUC</a><a href="#prmscore">PRMScore, one flag</a><a href="#official">Official PRMScore</a><a href="#types">Error types</a><a href="#refs">References</a><a href="#lr">LR headroom</a><a href="#pb">ProcessBench (context)</a><a href="#caveats">Caveats</a><a href="#src">Sources</a></nav>
+<nav><a href="#top">Summary</a><a href="#fix">Think-block fix</a><a href="#setup">Setup</a><a href="#auc">Within-AUC</a><a href="#prmscore">PRMScore, one flag</a><a href="#official">Official PRMScore</a><a href="#types">Error types</a><a href="#refs">References</a><a href="#lr">LR headroom</a><a href="#ext">External</a><a href="#pb">ProcessBench (context)</a><a href="#caveats">Caveats</a><a href="#src">Sources</a></nav>
 
 <h1 id="top">Label-free step-error localization on PRMBench</h1>
 <p class="lede">For the advisor meeting on Thursday 2026-10-15. This page shows PRMBench results first. ProcessBench is context only. The task: find the wrong steps in a given answer, with no labels and no training. Qwen3-8B reads each answer in one teacher-forced pass. We compute token-probability channels for each step. Then we fuse the channels without labels.</p>
 
-<div class="warn"><b>All numbers are from the corrected input.</b> The earlier version of this page used a teacher-forcing input without the empty think block. We fixed the input, masked the first forced token, and re-scored everything. The fix made our numbers slightly <i>lower</i>: the bug inflated the earlier results by about 0.01 AUC. <a href="#fix">Details</a>. The supervised LR reference is re-scored too. The external benchmarks are not re-scored yet.</div>
+<div class="warn"><b>All numbers are from the corrected input.</b> The earlier version of this page used a teacher-forcing input without the empty think block. We fixed the input, masked the first forced token, and re-scored everything. The fix made our numbers slightly <i>lower</i>: the bug inflated the earlier results by about 0.01 AUC. <a href="#fix">Details</a>. The supervised LR reference is re-scored too. The external benchmarks are re-scored too.</div>
 <div class="key">
 <div><b>Result</b>On N16, the 8 label-free methods give a within-answer AUC of {{n16_auc_lo}} to {{n16_auc_hi}} (mean {{n16_auc}}). The supervised Qwen2.5-Math-PRM-7B gives {{prm_auc}}.</div>
 <div><b>Official PRMScore</b>With a label-free flag rule (top 20% of steps), our N16 methods give {{r0_lo}} to {{r0_hi}}. PRM-7B with its own 0.5 threshold gives {{prm_off}}. On Simplicity we are much better ({{ga_simp}} vs {{prm_simp}}). On Soundness and Sensitivity, PRM-7B is better.</div>
@@ -113,6 +113,13 @@ a{color:var(--accent)}
 <p>The fix lowered LR more than our label-free methods. On N16, LR went from {{lr16_old}} to {{lr16}}, and its lead over MEAN_MOM_ga went from {{+gap16_ga_old}} to {{+gap16_ga}}. With one flag per answer, LR on N16 gives {{lr16_ps}} (before: {{lr16_ps_old}}). This is below the label-free mean on N16 ({{n16_ps}}).</p>
 {{T_GAP}}
 
+<h2 id="ext">External benchmarks (transfer)</h2>
+<p>Two benchmarks that we did not develop on: Hard2Verify (200 answers) and Socratic-PRMBench (Qwen3-8B). The fix lowered the main result a little on both. The frozen Bank11 L-SML went from {{h_lsml_o}} to {{h_lsml}} on Hard2Verify and from {{s_lsml_o}} to {{s_lsml}} on Socratic. It is still clearly better than the CT7 reference on both ({{h_ct7}} and {{s_ct7}}).</p>
+<div class="warn"><b>L-SML weights are from the old input.</b> The frozen L-SML weights were fit on the development telemetry without the think block. Their inputs are gone, so we could not re-fit them. Only the scored telemetry is new.</div>
+{{T_EXT}}
+<p>The PRMBench methods, run label-free on each external cell, give a similar picture. On Socratic, MEAN_MOM_ga went from {{s_ga_o}} to {{s_ga}}. On Hard2Verify the changes go in both directions (MEAN_MOM_ga {{h_ga_o}} to {{h_ga}}). With only 200 answers, this estimate is noisy. On Hard2Verify, step index alone ({{h_si}}) is better than every method with this rule. On Socratic, our methods are better than step index ({{s_si}}).</p>
+{{T_EXTP}}
+
 <h2 id="pb">ProcessBench (context only)</h2>
 <p>Task: find the first wrong step. 3,400 answers × 2 scoring models, 8 cells. On N16, the plain average ({{pb_plain}}) is about equal to the best pipeline variant ({{pb_pipe_hi}}). The other variants are lower, down to {{pb_pipe_lo}}. The fix also lowered the ProcessBench numbers: the plain average went from {{pb_plain_old}} to {{pb_plain}}, MEAN_MOM_ga from {{pb_ga_old}} to {{pb_ga}}. LR, trained on PRMBench, went from {{pb_lr_old}} to {{pb_lr}}. Fusion and supervision add nothing here. We do not plan new ProcessBench analyses.</p>
 {{T_PB}}
@@ -123,17 +130,18 @@ a{color:var(--accent)}
 <li>The official PRMScore uses the PRMBench evaluator port in the repository. Two adaptations: we have no redundancy head, so redundency and circular use the validity fallback; multi_solutions has no error steps, so it is not in the Sensitivity mean.</li>
 <li>R1 uses a global score that we re-built from its written definition. The original R1 inputs are gone, so R1 and R2 are not a replay of the earlier decision-rule study.</li>
 <li>The Mind the Gap reference is not on this page. Its input file is gone, so we could not re-score it.</li>
-<li>The external benchmarks are not re-scored yet.</li>
+<li>External L-SML uses weights fit on the old input (see <a href="#ext">External</a>). QwQ-32B Socratic is not re-scored: QwQ has no non-thinking mode.</li>
 <li>"LR minus best" uses the best pipeline variant after we saw the scores. Thus each gap is a lower bound.</li>
 </ul>
 
 <h2 id="src">Sources</h2>
-<p>All numbers come from <a href="https://github.com/omrisegev/hallucination_detection/tree/claude/thinkfix-rescore-v1">omrisegev/hallucination_detection</a>, branch <code>claude/thinkfix-rescore-v1</code>, commit <code>8810e49</code>, column <code>thinkfix_mask1</code> unless stated:</p>
+<p>All numbers come from <a href="https://github.com/omrisegev/hallucination_detection/tree/claude/thinkfix-rescore-v1">omrisegev/hallucination_detection</a>, branch <code>claude/thinkfix-rescore-v1</code>, commit <code>080877e</code>, column <code>thinkfix_mask1</code> unless stated:</p>
 <ul class="note">
 <li><code>results/thinkfix_rescore_v1/PRMBENCH_COMPARISON.csv</code>: all PRMBench tables, error types, references, before/after (<code>old_replay</code>)</li>
 <li><code>results/thinkfix_rescore_v1/PROCESSBENCH_COMPARISON.csv</code>: ProcessBench context</li>
 <li><code>results/thinkfix_rescore_v1/prmscore_inputs/bank_&lt;bank&gt;.npz</code> + <code>prmbench_meta.json</code>: inputs to the official PRMScore</li>
 <li><code>results/thinkfix_rescore_v1/thinkfix_mask1/lr_reference/GAPS.csv</code>: LR headroom with paired intervals</li>
+<li><code>results/thinkfix_rescore_v1/external/EXTERNAL_LSML_COMPARISON.csv</code>, <code>EXTERNAL_PANEL_COMPARISON.csv</code>, <code>thinkfix_mask1/lsml_locked/CONTRASTS.json</code>: external benchmarks</li>
 <li><code>results/thinkfix_rescore_v1/README.md</code>: how the re-score was run and checked</li>
 <li>Official PRMScore: script <code>official_prmscore_v1.py</code> and outputs <code>official_prmscore_thinkfix_mask1/</code> in the project's <code>advisor_page</code> folder (not yet in the repository)</li>
 <li>PRM-7B official by-category reference: <code>dataset_cache/four_localization/prmbench_qwen25math7b_full/manifest.json</code></li>
