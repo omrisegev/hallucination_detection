@@ -1,5 +1,31 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+**Advisor CPU completion addendum (2026-10-11/12 — Codex; Step 291 [advisor CPU completion]):**
+Completed the sixteen Claude assignment rows against frozen v10 `53ef62e3` and
+research `080877eb`, preserving the older experiment handoff and existing dirty
+checkout. The dedicated package is `results/advisor_completion_2026-10-11/`;
+start with `advisor_review_v11.html`, `TASK_STATUS.csv`, `FINDINGS_HE.md` and
+`README.md`. It contains source/input hashes, canonical population/group joins,
+all-bank AUC/top1/PRMScore, exact corrected decision rules, matched nuisance
+controls, 56-channel/conditional-correlation analyses, DS/MoM estimates,
+posterior-count diagnostic, nested LR feature-selection/weighting and omission
+experiments, and source-disjoint half/type-out validation.
+
+Main conclusions: the prefix correction drives most of the decline; mask-only
+changes are small with zero-crossing intervals. NR survives position/length/
+repetition controls; controlled NCL advantage is unresolved. LR's advantage
+depends on selection and weighting, with a stable near-collinear digit contrast
+in N16; large coefficients are not causal importance. The corrected entropy
+gate improves clean-answer abstention at an overall score cost, and group-MoM
+posterior counts do not improve Q80. Both ranking and per-answer allocation
+limit performance. All new splits are internal development validation.
+N11 L-SML on the LR half-mask fails one fold at K=2 and remains undefined.
+Independent arithmetic, telemetry, nested-selection and presentation audits
+are in `review/`. This v11 package is local/uncommitted/unpublished; it does not
+replace the earlier publication record below. No GPU, cluster run or install
+was performed. Future work and the unverified Claude access item remain visible.
+
+
 **Branch addendum (2026-08-26 — Step 290, CIW-DEEM):** The revised B3 input
 line is complete and documented. **CIW-DEEM (Cross-fitted
 Innovation-Weighted DEEM)** keeps continuous B3 but transforms the duplicated
@@ -3808,3 +3834,5 @@ Canonical artifacts:
 - Verbalized confidence on 7B+ — parser is ready; needs one inference run with Qwen2.5-Math-7B on GSM8K
 - Phase 10 RAG re-run with variant=4 prompt — low priority
 - LapEigvals integration into spectral_utils — potential Group D feature for M=12, low priority
+
+**Git publication follow-up (2026-10-12):** The reading delivery and next-agent prompt are published on `codex/advisor-v11-completion`. The full binary bundle remains outside Git; see its RAW_DATA_CATALOG. This is not a Claude Artifact update or a new numerical experiment.

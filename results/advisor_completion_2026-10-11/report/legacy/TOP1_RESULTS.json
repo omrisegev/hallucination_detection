@@ -1,0 +1,176 @@
+{
+  "branch_v10_commit": "53ef62e36e80b90de30b83d3fee33e1fb85b82c3",
+  "research_commit": "080877eb9a8369341d647f4115a3b475c040b46e",
+  "inputs_sha256": {
+    "docs/reviews/thinkfix_rescore_review_20261011/sources/prmscore_inputs/bank_N16.npz": "0798f94f6b0aacd550f4c7e7b743d24171757bf6ecb89b2dffff32a1553d79c4",
+    "docs/reviews/thinkfix_rescore_review_20261011/sources/prmscore_inputs/prmbench_meta.json": "eb569f07ce0de61c1344411ecd475af6699e493f3b14f3f417cd3d1618802f51",
+    "docs/reviews/thinkfix_rescore_review_20261011/sources/PRMBENCH_COMPARISON.csv": "8e562c129a3c9aab75d78a36a064c01392d743333d45c5b1f49d60e873b607dd"
+  },
+  "script_sha256": "046410e63a930b2f9b2fa975f7cc03f9b857ec3f16df23bc6305940e789f51d1",
+  "canonical_step_index_run": "/private/tmp/thinkfix-review-080877eb/results/thinkfix_rescore_v1/thinkfix_mask1/nested_banks/dev_run_patched.py",
+  "canonical_run_sha256": "bb1d8f89051a00003d2c13fe9150af96f4c7ea919130370642515f5ee8676e99",
+  "bank": "N16",
+  "variant": "prefix-corrected + mask1",
+  "score_orientation": "higher = riskier; immutable exports",
+  "n_answers": 6969,
+  "n_steps": 94203,
+  "annotation_policy": "Use original 1-based membership on existing steps; out-of-range annotations label no existing step and are counted, never repaired.",
+  "out_of_range_annotation_rows": 100,
+  "out_of_range_annotations": 151,
+  "top1_contract": "Exact maximum risk; ties choose earlier step. Canonical 8*eps tolerance checked separately and no selections differed.",
+  "within_auc_contract": "Half credit for ties; equal-weight mean across answers containing both error and correct steps.",
+  "position_contract": {
+    "bin_definition": "floor(5*(position+0.5)/n_steps), 0-based position; 5 fixed bins",
+    "primary": "Within each answer, pool only same-bin error/correct pairs, calculate AUC, then average equally over eligible answers.",
+    "secondary": "Per-bin equal-answer AUC and pooled-pair AUC reported separately; weights differ.",
+    "warning": "Diagnostic on development data. Coarse bins retain within-bin position differences; eligibility and pair weighting change. Not proof of confound removal.",
+    "no_tuning": true
+  },
+  "source_group_ci": "NOT_RUN: authentic group IDs absent from exported metadata. idx not treated as group mapping.",
+  "unavailable_controls": [
+    "step token lengths",
+    "text repetition",
+    "authentic source-group holdout",
+    "PRM/LR raw arrays"
+  ],
+  "checks": {
+    "max_pair_vs_rank_auc_abs_difference": 0.0,
+    "exact_vs_epsilon_top1_selection_differences": 0,
+    "historical_top1_mask1_parity": "PASS for all four exported methods",
+    "historical_step_index_auc_parity": "PASS",
+    "input_hashes_unchanged": true
+  },
+  "summary": {
+    "LSML_CONT": {
+      "n_answers": 6969,
+      "n_error_answers": 6035,
+      "top1_hits": 3612,
+      "top1_on_error": 0.5985086992543496,
+      "n_auc_eligible": 6030,
+      "within_auc": 0.779192910085869,
+      "n_same_bin_eligible": 4691,
+      "same_bin_auc": 0.7461664791666484,
+      "unrestricted_auc_on_same_bin_eligible": 0.7736325472436201,
+      "n_same_bin_pairs": 17885,
+      "same_bin_pair_pooled_auc": 0.6927033827229522,
+      "n_top1_step0": 126,
+      "top1_step0_proportion": 0.018080068876452863
+    },
+    "IU_PCR": {
+      "n_answers": 6969,
+      "n_error_answers": 6035,
+      "top1_hits": 3592,
+      "top1_on_error": 0.5951946975973488,
+      "n_auc_eligible": 6030,
+      "within_auc": 0.7804586557462,
+      "n_same_bin_eligible": 4691,
+      "same_bin_auc": 0.744826438361406,
+      "unrestricted_auc_on_same_bin_eligible": 0.7739802359998249,
+      "n_same_bin_pairs": 17885,
+      "same_bin_pair_pooled_auc": 0.6925915571708136,
+      "n_top1_step0": 116,
+      "top1_step0_proportion": 0.01664514277514708
+    },
+    "ALL_EQ": {
+      "n_answers": 6969,
+      "n_error_answers": 6035,
+      "top1_hits": 3550,
+      "top1_on_error": 0.5882352941176471,
+      "n_auc_eligible": 6030,
+      "within_auc": 0.7707968307622146,
+      "n_same_bin_eligible": 4691,
+      "same_bin_auc": 0.7491825038035754,
+      "unrestricted_auc_on_same_bin_eligible": 0.7659871871215432,
+      "n_same_bin_pairs": 17885,
+      "same_bin_pair_pooled_auc": 0.6944366787811015,
+      "n_top1_step0": 136,
+      "top1_step0_proportion": 0.019514994977758646
+    },
+    "DS_FILTER_EQ": {
+      "n_answers": 6969,
+      "n_error_answers": 6035,
+      "top1_hits": 3621,
+      "top1_on_error": 0.6,
+      "n_auc_eligible": 6030,
+      "within_auc": 0.7800796949617781,
+      "n_same_bin_eligible": 4691,
+      "same_bin_auc": 0.7489435899823813,
+      "unrestricted_auc_on_same_bin_eligible": 0.7745047231273966,
+      "n_same_bin_pairs": 17885,
+      "same_bin_pair_pooled_auc": 0.6948280682135868,
+      "n_top1_step0": 110,
+      "top1_step0_proportion": 0.01578418711436361
+    },
+    "STEP_INDEX": {
+      "n_answers": 6969,
+      "n_error_answers": 6035,
+      "top1_hits": 1141,
+      "top1_on_error": 0.18906379453189726,
+      "n_auc_eligible": 6030,
+      "within_auc": 0.6617314631377309,
+      "n_same_bin_eligible": 4691,
+      "same_bin_auc": 0.5339600839126595,
+      "unrestricted_auc_on_same_bin_eligible": 0.6557992274427564,
+      "n_same_bin_pairs": 17885,
+      "same_bin_pair_pooled_auc": 0.5410120212468549,
+      "n_top1_step0": 1,
+      "top1_step0_proportion": 0.00014349261013057828
+    }
+  },
+  "references": [
+    {
+      "method": "LSML_CONT",
+      "evidence": "independently recomputed saved scores",
+      "old": 0.6220381110190555,
+      "prefix_corrected": 0.59983429991715,
+      "corrected_mask1": 0.5985086992543496,
+      "recomputed": 0.5985086992543496,
+      "delta_vs_old": -0.02352941176470591
+    },
+    {
+      "method": "IU_PCR",
+      "evidence": "independently recomputed saved scores",
+      "old": 0.6092792046396023,
+      "prefix_corrected": 0.5930405965202983,
+      "corrected_mask1": 0.5951946975973488,
+      "recomputed": 0.5951946975973488,
+      "delta_vs_old": -0.014084507042253502
+    },
+    {
+      "method": "ALL_EQ",
+      "evidence": "independently recomputed saved scores",
+      "old": 0.6112676056338028,
+      "prefix_corrected": 0.5902236951118476,
+      "corrected_mask1": 0.5882352941176471,
+      "recomputed": 0.5882352941176471,
+      "delta_vs_old": -0.0230323115161557
+    },
+    {
+      "method": "DS_FILTER_EQ",
+      "evidence": "independently recomputed saved scores",
+      "old": 0.6112676056338028,
+      "prefix_corrected": 0.6001657000828501,
+      "corrected_mask1": 0.6,
+      "recomputed": 0.6,
+      "delta_vs_old": -0.011267605633802802
+    },
+    {
+      "method": "Qwen2.5-Math-PRM-7B (supervised)",
+      "evidence": "reported reference; no raw scores exported",
+      "old": 0.5777961888980945,
+      "prefix_corrected": 0.5777961888980945,
+      "corrected_mask1": 0.5777961888980945,
+      "recomputed": null,
+      "delta_vs_old": null
+    },
+    {
+      "method": "LR",
+      "evidence": "reported reference; no raw scores exported",
+      "old": 0.6268434134217067,
+      "prefix_corrected": 0.5874067937033969,
+      "corrected_mask1": 0.5789560894780448,
+      "recomputed": null,
+      "delta_vs_old": null
+    }
+  ]
+}

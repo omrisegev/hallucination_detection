@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="Deformable Neural Radiance Fields creates free-viewpoint portraits (nerfies) from casually captured videos.">
+  <meta name="keywords" content="Nerfies, D-NeRF, NeRF">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PRMBench: A Fine-grained and Challenging Benchmark for Process-Level Reward Models</title>
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PYVRSFMDRL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+
+    gtag('config', 'G-PYVRSFMDRL');
+  </script>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href= "https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+<!--  <link rel="stylesheet"-->
+<!--        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">-->
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="stylesheet" href="./static/css/leaderboard.css">
+  <link rel="icon" href="./static/images/reward2.png">
+
+  <script type="text/javascript" src="static/js/sort-table.js" defer></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+  <script src="./static/js/explorer-index.js"></script>
+  <script src="./static/js/question_card.js"></script>
+
+  <script src="./static/js/leaderboard_testmini.js"></script>
+  <script src="./visualizer/data/data_public.js" defer></script>
+  <link rel="stylesheet" href="./static/css/prmbench_leaderboard.css">
+  <script src="./static/js/prmbench_leaderboard.js"></script>
+  <link rel="stylesheet" href="./static/css/image_carousel.css">
+  <script src="./static/js/image_carousel.js"></script>
+</head>
+<body>
+
+<nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </a>
+  </div>
+  <div class="navbar-menu">
+    <div class="navbar-start" style="flex-grow: 1; justify-content: center;">
+      <a class="navbar-item" href="https://github.com/ssmisya">
+      <span class="icon">
+          <i class="fas fa-home"></i>
+      </span>
+      </a>
+
+      <div class="navbar-item has-dropdown is-hoverable">
+        <a class="navbar-link">
+          More Research
+        </a>
+        <div class="navbar-dropdown">
+          <a class="navbar-item" href="https://github.com/ssmisya/MHR">
+            MHR
+          </a>
+          <a class="navbar-item" href="https://vlmlt.github.io/">
+            VLM-LT
+          </a>
+          <a class="navbar-item" href="https://github.com/OpenThinkIMG/OpenThinkIMG">
+            OpenThinkImG
+          </a>
+          <a class="navbar-item" href="https://adareasoner.github.io/">
+            AdaReasoner
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</nav>
+
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">PRMBench: A Fine-grained and Challenging Benchmark for Process-Level Reward Models</h1>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <a href="https://github.com/ssmisya">Mingyang Song</a><sup>1,3</sup>,</span>
+            <span class="author-block">
+              <a href="https://zhaochen0110.github.io/">Zhaochen Su</a><sup>2</sup>,</span>
+            <span class="author-block">
+              <a href="https://scholar.google.com/citations?user=rT3hqdcAAAAJ&hl=zh-CN">Xiaoye Qu</a><sup>3</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://sites.harvard.edu/jzhou/">Jiawei Zhou</a><sup>4</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://ych133.github.io/">Yu Cheng</a><sup>5</sup>,
+            </span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block"><sup>1</sup>Fudan University,</span>
+            <span class="author-block"><sup>2</sup>Soochow University,</span>
+            <span class="author-block"><sup>3</sup>Shanghai AI Laboratory,</span>
+            <span class="author-block"><sup>4</sup>Stony Brook University,</span>
+            <span class="author-block"><sup>5</sup>The Chinese University of Hong Kong</span>
+          </div>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block" style="color: red;">ACL 2025 Main</span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- PDF Link. -->
+              <span class="link-block">
+                <a href="https://huggingface.co/papers/2501.03124"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="https://arxiv.org/abs/2501.03124"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+
+              <!-- Code Link. -->
+              <span class="link-block">
+                <a href="https://github.com/ssmisya/PRMBench"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code</span>
+                  </a>
+              </span>
+              <!-- Dataset Link. -->
+              <span class="link-block">
+                <a href="https://huggingface.co/datasets/hitsmy/PRMBench_Preview"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                    <img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg"
+                         alt="Hugging Face" style="height: 1em; vertical-align: middle;">
+                  </span>
+                  <span>Dataset</span>
+                </a>
+              </span>
+              <!-- Document Link. -->
+              <span class="link-block">
+              <a href="https://github.com/ssmisya/PRMBench/blob/main/docs/document.md"
+                 class="external-link button is-normal is-rounded is-dark">
+                <span class="icon">
+                  <i class="fas fa-file-alt"></i> <!-- 替换为文档图标 -->
+                </span>
+                <span>Documentation</span>
+              </a>
+            </span>
+              <span class="link-block">
+              <a href="https://www.bilibili.com/video/BV1kgu8z8E6D/?vd_source=dcfbf753dddd7667382364a1a5c63128"
+                 class="external-link button is-normal is-rounded is-dark">
+                <span class="icon">
+                  <i class="fab fa-youtube"></i>
+                </span>
+                <span>Bilibili</span>
+              </a>
+            </span>
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+      <figure class="image is-fullwidth">
+        <img src="./static/images/main_fig.svg" alt="Teaser Image">
+      </figure>
+      <h2 class="subtitle has-text-centered">
+
+          An overview of our <span class="dnerf"><strong>PRMBench</strong></span>. The left part illustrates our data curation procedure. In the right part of the figure, we showcase demonstrations of our evaluation subjects and the relative performance of tested models, with
+          <span style="background-color: rgb(201, 229, 221); padding: 0.1em;">green</span>,
+          <span style="background-color: rgb(255, 243, 213); padding: 0.1em;">yellow</span>, and
+          <span style="background-color: rgb(211, 209, 209); padding: 0.1em;">gray</span> boxes indicating <em>simplicity</em>, <em>soundness</em>, and <em>sensitivity</em> respectively, where
+          <span style="background-color: rgb(224, 146, 124); padding: 0.1em;">red</span> circles represent erroneous steps and
+          <span style="background-color: rgb(126, 176, 149); padding: 0.1em;">green</span> circles indicate correct regular steps.
+
+      </h2>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="video-section"> <!-- CHANGED: Renamed ID for clarity -->
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Tutorial Video</h2>
+
+    <!-- NEW: Responsive video wrapper -->
+    <div class="responsive-video-wrapper">
+      <iframe src="https://www.youtube.com/embed/h53kWZCOfSs?si=dx47zyostJwt8FhT"
+              title="YouTube video player"
+              frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerpolicy="strict-origin-when-cross-origin"
+              allowfullscreen>
+      </iframe>
+    </div>
+  </div>
+</section>
+
+
+
+
+
+    <section class="section">
+      <div class="container">
+        <div class="columns is-centered">
+          <div class="column is-full has-text-centered content">
+            <h2 class="title is-3" id="leaderboard_test">Leaderboard on PRMBench</h2>
+            <div class="leaderboard-description">
+              PRM scores on PRMBench. Click on Simplicity, Soundness, or Sensitivity to expand detailed results for each category.
+            </div>
+            <br>
+            <div class="model-labels-container">
+              <span class="leaderboard-label prm">PRMs</span>
+              <span class="leaderboard-label lm_c">Proprietary LLMs</span>
+              <span class="leaderboard-label lm_o">Open LLMs</span>
+            </div>
+            <br>
+
+            <div class="leaderboard-container">
+              <div class="table-wrapper">
+                <table id="prmbench-table">
+                  <thead>
+                  <tr>
+                    <!-- Reset spans Model column -->
+                    <th colspan="1" class="reset-cell clickable" style="text-align: center;">Reset</th>
+                    <!-- Overall (top) spans Ov... and Cl... -->
+                    <th colspan="1">Overall</th>
+                    <!-- S1, S2, S3 (top) are clickable, initially span 1 column -->
+                    <th class="prm-s1-top-cell clickable" colspan="1">Simplicity</th>
+                    <th class="prm-s2-top-cell clickable" colspan="1">Soundness</th>
+                    <th class="prm-s3-top-cell clickable" colspan="1">Sensitivity</th>
+                  </tr>
+                  <tr>
+                    <!-- Model column -->
+                    <th class="sortable clickable" data-sort="string" data-key="Model">Model</th>
+                    <!-- Overall score column -->
+                    <th class="sortable clickable" data-sort="number" data-key="Overall">Overall</th>
+                    <!-- Class column (initially visible, but concise) -->
+                    <!--                    <th class="sortable clickable" data-sort="string" data-key="Class">Class</th>-->
+
+                    <!-- S1 Group -->
+                    <!-- S1 Overall column (initially visible) -->
+                    <th class="sortable clickable prm-s1-overall-col" data-sort="number" data-key="S1">Overall</th>
+                    <!-- S1 Detail columns (initially hidden) -->
+                    <th class="hidden prm-s1-details sortable clickable" data-sort="number" data-key="S1">Overall</th>
+                    <th class="hidden prm-s1-details sortable clickable" data-sort="number" data-key="NR">NR.</th>
+                    <th class="hidden prm-s1-details sortable clickable" data-sort="number" data-key="NCL">NCL.</th>
+
+                    <!-- S2 Group -->
+                    <!-- S2 Overall column (initially visible) -->
+                    <th class="sortable clickable prm-s2-overall-col" data-sort="number" data-key="S2">Overall</th>
+                    <!-- S2 Detail columns (initially hidden) -->
+                    <th class="hidden prm-s2-details sortable clickable" data-sort="number" data-key="S2">Overall.</th>
+                    <th class="hidden prm-s2-details sortable clickable" data-sort="number" data-key="ES">ES.</th>
+                    <th class="hidden prm-s2-details sortable clickable" data-sort="number" data-key="SC">SC.</th>
+                    <th class="hidden prm-s2-details sortable clickable" data-sort="number" data-key="DC">DC.</th>
+                    <th class="hidden prm-s2-details sortable clickable" data-sort="number" data-key="CI">CI.</th>
+
+                    <!-- S3 Group -->
+                    <!-- S3 Overall column (initially visible) -->
+                    <th class="sortable clickable prm-s3-overall-col" data-sort="number" data-key="S3">Overall</th>
+                    <!-- S3 Detail columns (initially hidden) -->
+                    <th class="hidden prm-s3-details sortable clickable" data-sort="number" data-key="S3">Overall.</th>
+                    <th class="hidden prm-s3-details sortable clickable" data-sort="number" data-key="PS">PS.</th>
+                    <th class="hidden prm-s3-details sortable clickable" data-sort="number" data-key="DR">DR.</th>
+                    <th class="hidden prm-s3-details sortable clickable" data-sort="number" data-key="MS">MS.</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <!-- Table data will be inserted here by JavaScript -->
+                  </tbody>
+                </table>
+                <p class="test-desc">Overall results of different models on the PRMBench leaderboard.
+                  The best-performing model in each category is <span style="color: red">in-red</span>, and the second best is <u>underlined</u>.</p>
+               <br>
+                <b>Task types:</b> <b>NR:</b> Non-Redundancy,
+                <b>NCL:</b> Non-Circular Logic,
+                <b>ES:</b> Empirically Soundness,
+                <b>SC:</b> Step Consistency,
+                <b>DC:</b> Domain Consistency.
+                <b>CI:</b> Confidence Invariance.
+                <b>PS:</b> Prerequisite Sensitivity.
+                <b>DR:</b> Deception Resistance.
+                <b>MS:</b> Multi-Solution Consistency.
+                <br>
+<!--                <b>Evaluation Subjects:</b>-->
+<!--                <b>S1:</b> Average PRMScore for Simplicity evaluation subjects, including NR. and NCL.<br>-->
+<!--                <b>S2:</b> Average PRMScore for Soundness evaluation subjects, including ES., SC., DC., and CI.<br>-->
+<!--                <b>S3:</b> Average PRMScore for Sensitivity evaluation subjects, including PS., DR., and MS. <br>-->
+<!--                <br>-->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+<section class="section" id="image-carousel-section">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Leaderboard on PRMBench-STEM</h2>
+    <div class="leaderboard-description">
+      We extend our benchmark by collecting additional data from various scientific domains, including physics, chemistry, and biology, and construct PRMBENCH-STEM using a similar data curation methodology.
+    </div>
+    <div class="image-carousel-container">
+      <!-- Left Arrow -->
+      <a class="carousel-arrow left-arrow" id="image-carousel-prev"><i class="fas fa-chevron-left"></i></a>
+
+      <!-- Carousel Image Display Area -->
+      <div class="carousel-image-display" id="carousel-image-display">
+        <!-- Images will be dynamically loaded here by JavaScript -->
+        <!-- Example: <img src="./static/images/image1.jpg" alt="Description 1" class="carousel-image active"> -->
+      </div>
+
+      <!-- Right Arrow -->
+      <a class="carousel-arrow right-arrow" id="image-carousel-next"><i class="fas fa-chevron-right"></i></a>
+    </div>
+
+    <!-- Optional: Image Counter/Dots (can be added later if needed) -->
+    <div class="image-carousel-dots" id="image-carousel-dots">
+      <!-- Dots will be dynamically generated here -->
+    </div>
+  </div>
+</section>
+
+    <section class="section" id="takeaways-section">
+      <div class="container is-max-desktop">
+        <h2 class="title is-3 has-text-centered">Analysis and Takeaways</h2> <!-- CHANGED: Updated title to be more descriptive for a static image -->
+        <div class="leaderboard-description">
+          We conducted an in-depth analysis of PRMBench, and here we present what we consider to be the most important findings and takeaways.
+        </div>
+        <!-- NEW: Container specifically for a single static image -->
+        <div class="single-image-display-wrapper">
+          <img src="./static/images/takeaways.jpg" alt="PRMBench-STEM Overview" class="static-display-image">
+        </div>
+      </div>
+    </section>
+
+<section class="section" id="detail_classification-section">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Detailed Classifications</h2> <!-- CHANGED: Updated title to be more descriptive for a static image -->
+    <div class="leaderboard-description">
+
+      The detailed classification of PRMBench.
+      Here we display the hierarchical categories, corresponding descriptions, and illustrations of PRMBench classification design.
+    </div>
+    <!-- NEW: Container specifically for a single static image -->
+    <div class="single-image-display-wrapper">
+      <img src="./static/images/detail_classification.jpg" alt="PRMBench-STEM Overview" class="static-display-image">
+    </div>
+  </div>
+</section>
+
+<section class="section" id="example-case">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Examples</h2> <!-- CHANGED: Updated title to be more descriptive for a static image -->
+    <div class="leaderboard-description">
+
+      An example of a data instance and error cases from PRMBENCH. The numbers reported are step-level
+      validity scores generated by models. Scores and labels in <span style="color: red">red</span> indicate negative samples, while those in green
+      indicate positive samples. “GT” represents ground truth, while “ReasonE,” “MathS,” and “Gemini” correspond to
+      ReasonEval-7B, Math-Shepherd-7B, and Gemini-2.0-flash-thinkin
+    </div>
+    <!-- NEW: Container specifically for a single static image -->
+    <div class="single-image-display-wrapper">
+      <img src="./static/images/example.jpg" alt="PRMBench-STEM Overview" class="static-display-image">
+    </div>
+  </div>
+</section>
+
+
+
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            Process-level Reward Models (PRMs) are crucial for complex reasoning and decision-making tasks,
+            where each intermediate step plays an important role in the reasoning process.
+            Since language models are prone to various types of errors during the reasoning process,
+            PRMs are required to possess nuanced capabilities for detecting various implicit error types in real-world scenarios.
+            However, current benchmarks primarily focus on step correctness, failing to evaluate PRMs' performance systematically.
+            To address this gap, we introduce <span class="dnerf">PRMBench</span>, a process-level benchmark specifically designed to assess the fine-grained error detection capabilities of PRMs.
+            <span class="dnerf">PRMBench</span> comprises 6,216 carefully designed problems and 83,456 step-level labels, evaluating models across multiple dimensions,
+            including simplicity, soundness, and sensitivity. In our experiments on 15 models,
+            spanning both open-source PRMs and closed-source large language models prompted as critic models,
+            we uncover significant weaknesses in current PRMs. These findings underscore the challenges inherent in
+            process-level evaluation and highlight key directions for future research. We hope <span class="dnerf">PRMBench</span> can be a robust bench for advancing
+            research on PRM evaluation and development.
+          </p>
+
+        </div>
+      </div>
+    </div>
+    <!--/ Abstract. -->
+  </div>
+</section>
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX</h2>
+    <pre><code>@article{song2025prmbench,
+  title={PRMBench: A Fine-grained and Challenging Benchmark for Process-Level Reward Models},
+  author={Mingyang Song and Zhaochen Su and Xiaoye Qu and Jiawei Zhou and Yu Cheng},
+  journal={arXiv preprint arXiv:2501.03124},
+  year={2025},
+  url={https://arxiv.org/pdf/2501.03124}
+}</code></pre>
+  </div>
+</section>
+<div id="visitor-map" style="width: 300px; height: 300px; overflow: hidden; margin: 0 auto;">
+  <script type='text/javascript' id='clustrmaps' src='//cdn.clustrmaps.com/map_v2.js?cl=ffffff&w=300&t=tt&d=uXX9ttEyvwWpg_VNSd3nV7rjj5YP5PAPRwBbVV8VIs8'></script>
+</div>
+<footer class="footer">
+  <div class="container">
+
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            This website is adapted from <a href="https://nerfies.github.io/">Nerfies</a> and <a href="https://mathvista.github.io/">Mathvista</a>, licensed under a <a rel="license"
+                                                                                                                       href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+            Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

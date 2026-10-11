@@ -1,0 +1,32 @@
+--- /shared/cycle2_tau_averbuch_prj/omrisegev1/thinkfix_downstream/C:\Users\omris\TAU\hallucination_detection/results/monday_lr_reference_v1/run.py
++++ /shared/cycle2_tau_averbuch_prj/omrisegev1/results/thinkfix_rescore_v1/old/lr_reference/run_patched.py
+@@ -1,3 +1,4 @@
++# PATCHED COPY of results/monday_lr_reference_v1/run.py (thinkfix_rescore_v1, variant=old): V1/V2 -> this variant's nested_banks; ext.FE set by the wrapper.
+ """monday_lr_reference_v1: SUPERVISED logistic-regression reference per nested bank (labelled reference, not a method).
+ 
+ Stage 'fit'      : per bank -> cache/<bank>.pkl (LR nested OOF on PRMBench, all-fold LR applied to ProcessBench,
+@@ -17,7 +18,7 @@
+ from scipy.stats import rankdata, spearmanr
+ 
+ MAIN = Path(r'C:\Users\omris\TAU\hallucination_detection'); OUT = Path(__file__).resolve().parent; CACHE = OUT / 'cache'
+-EXT = MAIN / 'results/monday_external_panel_v1'; V1 = MAIN / 'results/monday_nested_banks_v1'; V2 = MAIN / 'results/monday_nested_banks_v2'
++EXT = MAIN / 'results/monday_external_panel_v1'; V1 = Path(r'/shared/cycle2_tau_averbuch_prj/omrisegev1/results/thinkfix_rescore_v1/old/nested_banks'); V2 = Path(r'/shared/cycle2_tau_averbuch_prj/omrisegev1/results/thinkfix_rescore_v1/old/nested_banks')
+ SE = MAIN / '.worktrees/readout-quickest-detection-v1/results/step_evidence_v1'
+ spec = importlib.util.spec_from_file_location('ext_score', EXT / 'score.py'); ext = importlib.util.module_from_spec(spec); spec.loader.exec_module(ext)
+ from sklearn.exceptions import ConvergenceWarning  # noqa: E402
+@@ -267,13 +268,13 @@
+     for src in (V2, V1):
+         p = src / 'PANEL_A_ABSOLUTE.csv'
+         if p.exists():
+-            d = pd.read_csv(p); d['source'] = str(p.relative_to(MAIN)); rows.append(d)
++            d = pd.read_csv(p); d['source'] = str(p); rows.append(d)
+     pa = pd.concat(rows).drop_duplicates(['bank', 'scorer'], keep='first') if rows else pd.DataFrame()
+     orows = []
+     for src in (V2, V1):
+         p = src / 'ORIENTED_CONTROL.csv'
+         if p.exists():
+-            d = pd.read_csv(p); d['source'] = str(p.relative_to(MAIN)); orows.append(d)
++            d = pd.read_csv(p); d['source'] = str(p); orows.append(d)
+     oc = pd.concat(orows).drop_duplicates(['bank'], keep='first')
+     return pa, oc
+ 

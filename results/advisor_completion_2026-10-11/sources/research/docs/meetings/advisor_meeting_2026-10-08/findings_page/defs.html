@@ -1,0 +1,37 @@
+
+<h2 id="defs">Methods and metrics</h2>
+<p>All methods see the same z-scored step channels of one bank. Each method fits on one cell (one benchmark subset × one scoring model). No method uses labels, except the LR reference. The methods differ only in how they weight the channels.</p>
+<div class="tw"><table class="wide"><caption>Methods</caption><tr><th>Name</th><th>What it does</th><th>Origin</th></tr>
+<tr><th>Plain average</th><td>Mean of all channels. No filter. No sign flip.</td><td>Simplest reference</td></tr>
+<tr><th>DS-signed average</th><td>Dawid–Skene estimates the direction of each channel. Flip the channels that point the wrong way. Then average.</td><td>Sign control; DS is also the estimator of our filter</td></tr>
+<tr><th>IU-PCR</th><td>Estimate the covariance of each channel with the hidden error from the channel covariance. Weight by 2 principal components.</td><td>Dror et al. 2017, Tenzer et al. 2022; the earlier main method of the project</td></tr>
+<tr><th>Continuous L-SML</th><td>Find groups of dependent channels. Fuse each group by its leading eigenvector. Then fuse the groups the same way.</td><td>Jaffe et al. 2016</td></tr>
+<tr><th>Our pipeline (4 variants)</th><td>Each channel votes "error" on its top 20% of steps (binary tail votes). Dawid–Skene drops wrong-way channels. L-SML groups the channels, and a merge step fixes small groups. Inside a group: MEAN, HEM or TCI. Between groups: MoM weights.</td><td>New in the last 3 weeks. _cc: vote per channel, quota per cell. _ga: vote per group, quota per answer.</td></tr>
+<tr><th>LR (reference)</th><td>Logistic regression on the same channels, trained with step labels, source-group cross-fit.</td><td>Supervised headroom, not a competitor</td></tr>
+</table></div>
+<div class="tw"><table class="wide"><caption>Metrics</caption><tr><th>Metric</th><th>Definition</th><th>Benchmark</th><th>Needs a threshold?</th></tr>
+<tr><th>Within-answer AUC</th><td>In one answer: the chance that an error step scores above a correct step. Mean over answers.</td><td>PRMBench</td><td>No</td></tr>
+<tr><th>Top step is an error</th><td>Share of wrong answers whose top-ranked step is any error step.</td><td>PRMBench</td><td>No</td></tr>
+<tr><th>SLA</th><td>The metric of Mind the Gap. Share of wrong answers whose chosen step is exactly the first error. Clean answers are not scored. We choose the top-ranked step; Mind the Gap chooses the first step over a threshold.</td><td>ProcessBench</td><td>No</td></tr>
+<tr><th>PRMScore</th><td>½ · (F1 on correct steps + F1 on error steps).</td><td>PRMBench, Socratic</td><td>Yes</td></tr>
+<tr><th>ProcessBench F1</th><td>2·A·C/(A+C). A = exact first-error accuracy on wrong answers. C = accuracy on clean answers. Macro over 4 subsets.</td><td>ProcessBench</td><td>Yes</td></tr>
+<tr><th>Balanced F1</th><td>2·R1·R2/(R1+R2). R1, R2 = recall on correct steps and on error steps.</td><td>Hard2Verify</td><td>Yes</td></tr>
+</table></div>
+<p class="note">Benchmarks: ProcessBench (Dec 2024; find the first error, or −1 for a clean answer). PRMBench (Jan 2025; judge every step; an LLM inserted the errors). Socratic-PRMBench (May 2025). Hard2Verify (Oct 2025).</p>
+
+<h2 id="signals">Signals: teacher forcing, written-token surprise, varentropy</h2>
+<p><b>Teacher forcing.</b> The scoring model reads a given answer in one forward pass. It generates nothing. The input is the Qwen3 chat template: our math prompt, the question and " /no_think" in the user turn, then the answer steps (joined by blank lines) in the assistant turn. At each answer token we keep the top-50 log-probs and the log-prob of the written token. Mind the Gap scores ProcessBench in the same way, with the same Qwen3-4B and Qwen3-8B. The term comes from Williams &amp; Zipser (1989).</p>
+<div class="tw"><table class="wide"><caption>Written-token surprise (x<sub>t</sub> = written token; step values are z-scored per answer)</caption><tr><th>Channel</th><th>Formula per step</th><th>Question</th><th>PRMBench AUC</th><th>ProcessBench SLA</th></tr>
+<tr><th>Surprise</th><td>s<sub>t</sub> = −log p(x<sub>t</sub>); mean of the 10 largest s<sub>t</sub> in the step</td><td>How unlikely was the written token?</td><td>0.698</td><td>0.176</td></tr>
+<tr><th>Surprise z-test</th><td>Σ(s<sub>t</sub> − H<sub>t</sub>) / √(ΣV<sub>t</sub> + 0.01·n). H = entropy (the expected surprise). V = varentropy.</td><td>Is the step more surprising than the model predicted?</td><td>0.739</td><td>0.310</td></tr>
+<tr><th>Surprise rise</th><td>EMA e<sub>t</sub> (span 16); r<sub>t</sub> = max(e<sub>t</sub> − e<sub>t−1</sub>, 0); mean of the 3 largest r<sub>t</sub></td><td>Did the surprise jump above its recent past?</td><td>0.796</td><td>0.327</td></tr>
+<tr><th>Entropy (reference)</th><td>Top-15 entropy; does not use x<sub>t</sub></td><td>How unsure is the model?</td><td>0.730</td><td>0.336</td></tr>
+</table></div>
+<p class="note">Provenance: we did not invent these parts. Surprise: SelfCheckGPT (2023). Z-test: the Fast-DetectGPT statistic (2024), here per step; per token it is Min-K%++ (2025). Rise: the drop rule of Mind the Gap (2026); their Table 3 also has an "LN-S Drop" column on the written token. Our part: the step readouts and their use inside label-free fusion.</p>
+<div class="tw"><table class="wide"><caption>Varentropy: VE = Σ p·(−log p − H)². Prior work</caption><tr><th>Work</th><th>Use</th><th>Tested on step-error labels?</th></tr>
+<tr><th>Kontoyiannis &amp; Verdú 2014</th><td>Defines varentropy (compression theory)</td><td>No</td></tr>
+<tr><th>entropix 2024; Li et al. 2025</th><td>Steer sampling and branching</td><td>No benchmark</td></tr>
+<tr><th>Fast-DetectGPT 2024; Min-K%++ 2025</th><td>Same z-score, for machine-text and pretraining-data detection</td><td>No; answer or document level</td></tr>
+<tr><th>Katanemo 2025; LogitScope 2026</th><td>Flag possible hallucinations</td><td>No labelled evaluation</td></tr>
+</table></div>
+<p class="note">Narrow claim (about 80% confidence): the first label-based evaluation of varentropy for locating the wrong step on process benchmarks. Alone, varentropy channels reach 0.73–0.75 PRMBench AUC (best 0.753, above entropy 0.730). But they correlate 0.91–0.94 with the uncertainty level.</p>

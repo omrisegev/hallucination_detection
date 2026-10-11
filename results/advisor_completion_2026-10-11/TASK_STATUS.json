@@ -1,0 +1,238 @@
+[
+  {
+    "id": "1",
+    "requirement": "Explain old, prefix-only and prefix-plus-mask1 results; preserve v10 views and distinguish DS controls.",
+    "previous_state": "v10 showed corrected headline values; the old meeting used a different input and DS-signed control.",
+    "action": "Replayed all three N16 inputs, separated the two changes, restored comparison and bank matrices, and documented the distinct DS definitions.",
+    "status": "completed",
+    "finding": "Most of the AUC decline follows prefix correction. Mask-only differences are small and paired intervals include zero. DS-signed flips channels; the current export's DS-filter drops channels before averaging. No signed export was invented.",
+    "evidence": [
+      "controls/PREFIX_MASK_ATTRIBUTION.csv",
+      "controls/PREFIX_MASK_CONTRASTS.csv",
+      "controls/ALL_BANK_TOP1_AUC.csv",
+      "controls/README.md"
+    ]
+  },
+  {
+    "id": "2",
+    "requirement": "Test step-0 selection, relative position and early-step attribution of the decline.",
+    "previous_state": "First-token surprise as a position cue was a hypothesis, without a controlled test.",
+    "action": "Computed top1 step-0 rates, position baseline, position-matched AUC, exclusion of step 0 and pair contributions by earliest position.",
+    "status": "completed",
+    "finding": "The prefix decline remains after position matching and excluding step 0. A first-step artifact alone does not explain it. Feature-distribution changes remain an explanation to investigate, rather than a demonstrated causal mechanism.",
+    "evidence": [
+      "controls/PREFIX_MASK_ATTRIBUTION.csv",
+      "controls/PREFIX_MASK_CONTRASTS.csv",
+      "controls/PREFIX_PER_ANSWER.npz",
+      "controls/prefix_mask_ablation.svg"
+    ]
+  },
+  {
+    "id": "3",
+    "requirement": "Restore top1-on-error for all ten banks and every defined scorer against PRM on the same answers.",
+    "previous_state": "The v10 main page had lost this threshold-free metric; N16 points were available but intervals were missing.",
+    "action": "Recomputed all ten banks × fourteen defined exports and native PRM, checked tie policies and saved per-answer outcomes and paired intervals.",
+    "status": "completed",
+    "finding": "N16 L-SML and IU-PCR top1 remain above native PRM; the gap is smaller after correction. All comparisons use 6,035 error-containing answers; within-answer AUC uses a different 6,030-answer denominator.",
+    "evidence": [
+      "controls/ALL_BANK_TOP1_AUC.csv",
+      "controls/ALL_BANK_PER_ANSWER.npz",
+      "lr/TOP1_PAIRED_CONTRASTS.csv",
+      "review/ARITHMETIC_RECEIPT.json"
+    ]
+  },
+  {
+    "id": "4",
+    "requirement": "Control Simplicity and all error types for position, token length and prior-text repetition.",
+    "previous_state": "The Simplicity advantage had not been tested against the stated nuisances.",
+    "action": "Locked maximum prior word-3-gram Jaccard, five position bins and three token-length bins; compared valid/error pairs within each answer and reported coverage, matched baselines and supplementary repetition matching.",
+    "status": "completed",
+    "finding": "NR retains an advantage over PRM after both primary and supplementary controls. NCL intervals include zero, so a controlled NCL advantage is not established. Overall controlled comparisons also do not establish an advantage.",
+    "evidence": [
+      "controls/CONTROL_PROTOCOL.json",
+      "controls/NUISANCE_CONTROLS.csv",
+      "controls/PAIRED_AUC_CONTRASTS.csv",
+      "controls/CONTROL_PER_ANSWER.npz",
+      "controls/nuisance_controls.svg"
+    ]
+  },
+  {
+    "id": "5",
+    "requirement": "Establish the origin and chronology of Q80 and disclose retrospective choices.",
+    "previous_state": "The protocol directory named 3 October, but registration versus viewing results had not been independently established.",
+    "action": "Archived the protocol and pinned Git history; separated the directory date, earliest versioned protocol-commit date and corrected-result export-commit date; documented TOP2 as post hoc.",
+    "status": "completed",
+    "finding": "Earliest currently public protocol commit is dated 8 October 08:58 UTC (committer time), before the 11 October corrected-export commit. This verifies versioned chronology, not original public push time, private registration or absence of selection after older results. Q80 remains a historical operating point, not a freshly preregistered result.",
+    "evidence": [
+      "report/Q80_PROVENANCE.json",
+      "report/audit_provenance.py",
+      "sources/research/results/monday_combined_recipe_v1/run_20261003/PROTOCOL.json"
+    ]
+  },
+  {
+    "id": "5א",
+    "requirement": "Run exact ANSWER_Z_Q80, R2_COUNT and ENTROPY_GATE_Q80 for both methods and the simple mean; retain native PRM 0.5.",
+    "previous_state": "Only Q80 was shown; the old gate used stale telemetry, and historical R2 names were ambiguous.",
+    "action": "Executed the pinned canonical rules, reconstructed oriented raw-survivor mean to 8.88e-16, read corrected token entropy, and saved all flags, counts, nine types, overall score and clean-answer rates.",
+    "status": "completed",
+    "finding": "The corrected gate reduces synthetic-control false flags from about 99% to about 58–59%, but lowers pooled PRMScore. R2 also does not improve the pooled score. TOP1/2/3 are diagnostic only; MS is valid-step F1 and Sensitivity includes PS, DR and MS.",
+    "evidence": [
+      "controls/EXACT_DECISION_RULES.csv",
+      "controls/EXACT_RULE_DIAGNOSTICS.json",
+      "controls/DECISION_FLAGS.npz",
+      "controls/PER_ANSWER_COUNTS.csv",
+      "controls/PAIRED_PRMSCORE_CONTRASTS.csv"
+    ]
+  },
+  {
+    "id": "6",
+    "requirement": "Fix version/footer/history links and report publication and advisor access honestly.",
+    "previous_state": "v10 footer could contradict the live Artifact, and public access had not been checked.",
+    "action": "Added pinned source versions, historical October-8 link and explicit local/unpublished footer; verified the GitHub repository is public.",
+    "status": "local completed; Claude access unverified",
+    "finding": "The HTML is local and has not been pushed or published to Claude during this run. Public GitHub links need no private membership. Live Claude Artifact access and replacement remain unverified; external publication is outside this implementation's scope.",
+    "evidence": [
+      "report/Q80_PROVENANCE.json",
+      "report/BUILD_RECEIPT.json",
+      "sources/v10/results/advisor_page_v6_2026-10-11/advisor_review_v10.html",
+      "PUBLICATION_STATUS.json"
+    ]
+  },
+  {
+    "id": "7",
+    "requirement": "Understand LR versus label-free feature dependence; fix restricted-LR leakage; perform the locked selection/weighting crossover.",
+    "previous_state": "Only the gap size was visible; restricted LR masks used globally selected supervised coefficients.",
+    "action": "Ran nested group OOF scalers, selectors and C tuning; crossed half-feature masks with fusers in all banks; validated affine L-SML/IU replay; exported weights, stability, family mass, four-way errors and N16/N56 omission probes.",
+    "status": "completed; one experimental arm undefined",
+    "finding": "LR benefits from both supervised selection and weighting, with bank-dependent interaction. N16 LR has a stable opposing near-collinear digit contrast; its large coefficient mass is not predictive importance. LR selection helps L-SML on N16 but is not a universal label-free improvement. N11 outer-fold-4 L-SML on the LR half-mask yields only two groups and fails explicitly; no full-population score or substitute is reported.",
+    "evidence": [
+      "lr/FINDINGS.md",
+      "lr/METRICS.csv",
+      "lr/CROSSOVER_FACTORS.csv",
+      "lr/WEIGHTS.csv",
+      "lr/WEIGHT_STABILITY.csv",
+      "lr/CORRELATED_CONTRAST_PAIRS.csv",
+      "lr/ABLATIONS.csv",
+      "lr/FOURWAY_SUMMARY.csv",
+      "lr/ACCEPTANCE.json",
+      "lr/NATIVE_WEIGHT_REPLAY.json"
+    ]
+  },
+  {
+    "id": "8",
+    "requirement": "Check conditional feature relationships and DS/MoM accuracy and prevalence estimates, including L-SML groups.",
+    "previous_state": "Conditional independence had not been directly diagnosed; channel prevalence was inflated on old inputs.",
+    "action": "Computed answer-centered N16 correlations separately in valid/error steps and their difference; evaluated channel/group votes, true versus estimated accuracy and prevalence.",
+    "status": "completed",
+    "finding": "Grouping does not remove prevalence inflation: group MoM estimates 0.229 and group DS 0.246 versus truth 0.140. Accuracy order is correlated with truth, but low conditional correlation is not proof of conditional independence.",
+    "evidence": [
+      "statistics/CONDITIONAL_CORRELATIONS.npz",
+      "statistics/conditional_correlations.svg",
+      "statistics/ESTIMATORS.json",
+      "statistics/ESTIMATOR_ACCURACY.csv",
+      "statistics/groups_VOTE_CONDITIONAL.npz"
+    ]
+  },
+  {
+    "id": "9",
+    "requirement": "Explain PRMBench construction, show real NR/NCL examples, and verify the literature claim.",
+    "previous_state": "Dataset construction was partial and the universal claim about roughly forty literature rows was unverified.",
+    "action": "Read and archived the primary paper and official leaderboard; counted qualifying rows and counterexamples; saved three actual examples of each type chosen by immutable order.",
+    "status": "completed",
+    "finding": "The universal claim is withdrawn. Paper Table 3 has 15 model rows, 10 with Simplicity below both other category means; the live leaderboard has 26 nonhuman rows, 23 qualifying. The paper motivates challenging Simplicity, but does not establish a causal explanation of every model's weakness.",
+    "evidence": [
+      "report/LITERATURE.json",
+      "report/audit_literature.py",
+      "controls/DATASET_EXAMPLES.json",
+      "report/paper_table3.csv"
+    ]
+  },
+  {
+    "id": "9א",
+    "requirement": "Recompute all 56 channels by type with fixed label-free signs, source-group intervals and N16 membership.",
+    "previous_state": "The available channel-by-type analysis used the old prefix input.",
+    "action": "Applied the pinned five-LEVEL label-free orientation rule to corrected FEATURES, added source-group intervals and position-controlled values, and built a heatmap with N16 markers and step-index baseline.",
+    "status": "completed",
+    "finding": "Channel strengths remain type-dependent, and some frozen label-free signs are wrong on particular channels. The table preserves those failures rather than flipping signs using labels. Corrected evidence is linked to the LR weight analysis; a heatmap alone does not replace matched controls.",
+    "evidence": [
+      "statistics/CHANNEL_BY_TYPE.csv",
+      "statistics/CHANNEL_PER_ANSWER.npz",
+      "statistics/channel_by_type.svg",
+      "sources/types_singles_run.py"
+    ]
+  },
+  {
+    "id": "9ב",
+    "requirement": "Make all nine PRMBench categories understandable beside the leaderboard.",
+    "previous_state": "Category definitions were confined to small captions.",
+    "action": "Added readable NR/NCL/MS definitions, a nine-category legend, original concept diagrams and a zero-based radar of the three main methods on a common metric.",
+    "status": "completed",
+    "finding": "The radar uses Q80 for L-SML/IU-PCR and native 0.5 for PRM, with category N recorded. MS uses valid F1, and the full Sensitivity definition is uniform throughout.",
+    "evidence": [
+      "report/prmbench_overview.svg",
+      "controls/ALL_BANK_Q80_PRMSCORE.csv",
+      "report/HTML_VALIDATION.json"
+    ]
+  },
+  {
+    "id": "10",
+    "requirement": "Add paired source-group intervals for the specified method and NR/NCL comparisons.",
+    "previous_state": "Most displayed comparisons were point estimates without paired uncertainty.",
+    "action": "Used 5,000 paired whole-source-group bootstrap draws, seed 20261011, for AUC, top1 and PRMScore contrasts; saved intervals and independently replayed selected intervals.",
+    "status": "completed",
+    "finding": "The page reports intervals and does not call zero-crossing differences improvements. These are pointwise descriptive intervals conditional on fitted predictions, without correction for historical selection or multiple comparisons.",
+    "evidence": [
+      "controls/PAIRED_AUC_CONTRASTS.csv",
+      "controls/PAIRED_PRMSCORE_CONTRASTS.csv",
+      "lr/PAIRED_CONTRASTS.csv",
+      "lr/TOP1_PAIRED_CONTRASTS.csv",
+      "review/ARITHMETIC_RECEIPT.json"
+    ]
+  },
+  {
+    "id": "11",
+    "requirement": "Complete group-disjoint half-selection/half-test and leave-one-error-type-out validation.",
+    "previous_state": "Both designs were proposed but not run.",
+    "action": "Selected bank/method by donor-only five-fold AUC on 353 groups, refit on donors and tested 354 groups; also ran fixed-N16 type-out × source-fold exclusion with saved split and checkpoint manifests.",
+    "status": "completed",
+    "finding": "Donors selected N16 IU-PCR: held-half AUC 0.7860, top1 0.6013. Fixed L-SML: AUC 0.7835, top1 0.6046. All sixteen type-out rows pass and source overlap is zero. These are internal validation on already inspected data, not untouched external confirmation.",
+    "evidence": [
+      "validation/HALF_SUMMARY.json",
+      "validation/HALF_DONOR_CANDIDATES.csv",
+      "validation/HALF_TEST.csv",
+      "validation/LEAVE_ONE_TYPE_OUT.csv",
+      "validation/SPLIT.npz",
+      "review/ARITHMETIC_RECEIPT.json"
+    ]
+  },
+  {
+    "id": "12",
+    "requirement": "Test group-MoM posterior counts with the fixed fused ranking, and compare to Q80 and oracle ceilings.",
+    "previous_state": "The proposed order-from-fusion/count-from-estimation direction had no corrected-input result.",
+    "action": "Fit MoM on native N16 group votes, summed error posteriors per answer, rounded by the locked rule, placed flags using frozen L-SML/IU order and computed budget/count/ranking ceilings.",
+    "status": "completed; hypothesis not supported by this diagnostic",
+    "finding": "Posterior-count PRMScore is 0.6423/0.6432, below Q80 0.6538/0.6536, with about 99.87% synthetic controls flagged. A label-oracle global cutoff adds only 0.31/0.19 score points. Both ranking and per-answer error allocation constrain performance; the decision-only bottleneck claim is rejected.",
+    "evidence": [
+      "statistics/MOM_QUOTA.csv",
+      "statistics/MOM_POSTERIOR_QUOTA.npz",
+      "statistics/ESTIMATORS.json",
+      "controls/DIAGNOSTIC_CEILINGS.json",
+      "controls/BUDGET_CURVES.csv",
+      "controls/budget_curves.svg"
+    ]
+  },
+  {
+    "id": "13",
+    "requirement": "Keep the main presentation focused on Continuous L-SML and IU-PCR; retain v10 matrices and leaderboard in the integrated builder.",
+    "previous_state": "Pipeline variants occupied the main narrative, and rebuilding risked dropping Claude's patched v10 views.",
+    "action": "Integrated all views into one deterministic builder, prioritized corrected headline results and visual comparisons, moved full bank/method matrices and pipelines into collapsible appendices, and linked each assignment to persisted evidence.",
+    "status": "completed",
+    "finding": "The self-contained v11 HTML embeds original SVG and saved scientific figures and rebuilds from machine-readable outputs. The complete evidence remains available in the package; the main narrative no longer presents unvalidated pipelines as the main contribution.",
+    "evidence": [
+      "report/build_v11.py",
+      "report/BUILD_RECEIPT.json",
+      "report/HTML_VALIDATION.json",
+      "report/README.md"
+    ]
+  }
+]

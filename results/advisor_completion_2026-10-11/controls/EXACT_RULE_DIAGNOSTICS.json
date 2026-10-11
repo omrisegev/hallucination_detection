@@ -1,0 +1,65 @@
+{
+  "canonical_rule_module_sha256": "00f4620ed05d345768709c5a7a20970b51a9e81af1a718c94b67ec740e68d321",
+  "canonical_metrics_module_sha256": "67e7414abd3cfd195c05444c0efd4367c7bcd364c55a09fbde1de3db6be12a5d",
+  "adapter": "AST extraction executes pinned rules/answer_z/top_flags verbatim; excludes unrelated legacy filesystem imports",
+  "raw_survivors": [
+    "q15_H1",
+    "q15_VE1",
+    "chosen_surprisal",
+    "logprob_margin",
+    "true_tail50",
+    "energy_level",
+    "top15_turnover",
+    "dominant_freq16",
+    "bocpd_p0",
+    "realized_z",
+    "realized_drv",
+    "digit_alternative",
+    "digit_spread",
+    "digit_alternative_innovation"
+  ],
+  "raw_survivor_G_parity": 8.881784197001252e-16,
+  "corrected_entropy": true,
+  "rules": {
+    "LSML_CONT": {
+      "q80": 0.8417738275267853,
+      "q80_raw_global": 0.4117349920752292,
+      "entropy_offset_zero_fraction": 0.24092409240924093,
+      "entropy_closed_count": 1679,
+      "entropy_closed_fraction": 0.24092409240924093,
+      "actual_final_zero_fraction": 0.24278949634093844,
+      "adaptation": "pure entropy gate; target close rate from entropy OFFSET; raw-score maxima/mean-G/entropy are continuous answer detectors"
+    },
+    "IU_PCR": {
+      "q80": 0.8373737627351762,
+      "q80_raw_global": 0.4117349920752292,
+      "entropy_offset_zero_fraction": 0.2346104175634955,
+      "entropy_closed_count": 1635,
+      "entropy_closed_fraction": 0.2346104175634955,
+      "actual_final_zero_fraction": 0.236475821495193,
+      "adaptation": "pure entropy gate; target close rate from entropy OFFSET; raw-score maxima/mean-G/entropy are continuous answer detectors"
+    },
+    "ALL_EQ": {
+      "q80": 0.835145225428365,
+      "q80_raw_global": 0.4117349920752292,
+      "entropy_offset_zero_fraction": 0.24063710718897977,
+      "entropy_closed_count": 1677,
+      "entropy_closed_fraction": 0.24063710718897977,
+      "actual_final_zero_fraction": 0.24250251112067728,
+      "adaptation": "pure entropy gate; target close rate from entropy OFFSET; raw-score maxima/mean-G/entropy are continuous answer detectors"
+    },
+    "DS_FILTER_EQ": {
+      "q80": 0.8309156261070714,
+      "q80_raw_global": 0.4117349920752292,
+      "entropy_offset_zero_fraction": 0.2318840579710145,
+      "entropy_closed_count": 1616,
+      "entropy_closed_fraction": 0.2318840579710145,
+      "actual_final_zero_fraction": 0.23403644712297317,
+      "adaptation": "pure entropy gate; target close rate from entropy OFFSET; raw-score maxima/mean-G/entropy are continuous answer detectors"
+    },
+    "PRM_NATIVE": {
+      "valid_tie_0_5": "valid"
+    }
+  },
+  "warning": "Development replay of registered rules; R2 thresholds global raw survivor z; entropy reads corrected mask1 telemetry"
+}

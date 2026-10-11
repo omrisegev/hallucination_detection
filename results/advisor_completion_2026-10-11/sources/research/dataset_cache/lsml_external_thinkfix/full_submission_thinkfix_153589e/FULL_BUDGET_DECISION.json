@@ -1,0 +1,27 @@
+{
+  "approved_by": "user",
+  "user_instruction": "you have my permission to do it. ... 3. the external benchmarks? (hard to verify, socratic) if so, they also need to run.",
+  "user_message_utc": "2026-10-10T18:35:39Z",
+  "recorded_utc": "2026-10-10T19:15:01.131028+00:00",
+  "protocol_hash": "d0e2c985bddb8dd4e4b228368656d2bfbe9fa68b5c82aa7f0511e068574d47b6",
+  "estimate_hash": "0f657139e490acb86c3f50f062d1378f0762da8aa92ebb3f7c352d4b1c4d3324",
+  "max_gpu_hours": 2,
+  "cells": [
+    {
+      "dataset": "hard2verify",
+      "model": "Qwen/Qwen3-8B",
+      "answers": 200,
+      "gpus": 1,
+      "wall_limit_minutes": 30
+    },
+    {
+      "dataset": "socratic",
+      "model": "Qwen/Qwen3-8B",
+      "answers": 2995,
+      "gpus": 1,
+      "wall_limit_minutes": 30
+    }
+  ],
+  "scope": "Full teacher-forced telemetry only; no answer regeneration, training, comparator generation or external quality evaluation; think-fix rerun of the two Qwen3-8B cells only",
+  "retries": "No automatic requeue. Any retry must fit remaining total allocation budget."
+}

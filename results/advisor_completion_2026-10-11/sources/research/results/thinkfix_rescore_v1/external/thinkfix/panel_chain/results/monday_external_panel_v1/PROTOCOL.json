@@ -1,0 +1,50 @@
+{
+  "schema": "monday-external-panel-v1",
+  "status": "FROZEN",
+  "frozen_local_date": "2026-10-06",
+  "author": "Claude, at Omri's request (2026-10-06): external generalization of the Monday candidate methods",
+  "omri_decisions": {
+    "access": "Label-free refit on each external target cell (same per-cell transductive fitting as the Monday development protocol).",
+    "scope": "Full panel: 4 registered methods (+HEM_MOM_ga) x 8 banks + equal-weight controls + step-index reference; all results reported.",
+    "highlight": "B16, fixed from development data before any external result of these methods is opened (results/monday_presentation_panels_v1/run_20261006/PROTOCOL.json)."
+  },
+  "exposure": "Hard2Verify and Socratic-PRMBench labels were opened in earlier rounds (Steps 433, 444-446, 459). This run is an EXPLORATORY transfer test of methods developed on PRMBench/ProcessBench; it is not untouched confirmation. MedPRMBench stays reserved and is not touched.",
+  "cells": {"hard2verify_qwen3_8b": "hard2verify", "socratic_qwen3_8b": "socratic", "socratic_qwq32b": "socratic"},
+  "features": ".worktrees/ssl-pseudolabel-residual-v1/results/external_banks_v4/<cell>/FEATURES.npz (56 channels; source parity gate PASS); empty steps are excluded from fitting and predicted 'error' (0) as in algorithm_external_v1.",
+  "bank_construction": "algorithm_external_v1 build_bank (answer z-score; digits masked answer z; lf__ sign from POOL_STRUCTURE r_level_marginal), then the Monday variant_bank per-cell lf__ re-orientation against the 5-channel LEVEL mean.",
+  "fitting": {
+    "code": "Codex's frozen functions: monday_fusion_core.fit_content (DS filter, L-SML partition + merge, MEAN/HEM within, EQ/MOM between on group votes with per-answer quota = '_ga'); channel votes with per-cell quota via quota_marks(..., True) + between_weights('MOM', channel_votes=...) = '_cc'; TCI_ONLY_ga per tci_wide_stage1 (Prop 2.4 triplets in groups with >= 4 members, MoM between).",
+    "tie_keys": "New external keys with the development seeds: per-bank channel keys rng(20260928).random((S_cell, m)); group keys rng(20260929).random((S_cell, 13)); TCI anchor keys rng(1000*bank_index + cell_index) with cell_index 0,1,2 in the order above.",
+    "labels": "Never read by the scoring script. Labels live only in scratch/external_generalization_private/inputs/evaluator_only and are opened by the evaluation script after predictions are sealed."
+  },
+  "source_parity_gate": "Before external scoring, the same adapter applied to the SOURCE PRMBench cell (source FEATURES.npz) must reproduce the frozen development MEAN_MOM_ga / HEM_MOM_ga / DS_FILTER_EQ step scores for every bank within 1e-6, and the channels_cell and TCI scores within 1e-6; otherwise stop.",
+  "scorers": {
+    "methods": ["HEM_MOM_cc", "MEAN_MOM_cc", "MEAN_MOM_ga", "TCI_ONLY_ga", "HEM_MOM_ga"],
+    "controls": ["ALL_EQ", "DS_FILTER_EQ", "MEAN_EQ", "HEM_EQ"],
+    "reference": ["STEP_INDEX (later = riskier)", "earlier sealed external references ct7, frozen_lsml, frozen_equal copied by uid (continuity rows)"]
+  },
+  "decision_rules": {
+    "ANSWER_Z_Q80": "primary threshold rule: flag iff answer-z >= 0.8 quantile of the cell's own answer-z scores (no labels)",
+    "R2_COUNT": "Monday R2 count rule with raw survivor values from FEATURES",
+    "TOP_1": "equal-budget control (one flagged step per answer)",
+    "ENTROPY_GATE_Q80": "NOT RUN: requires answer-level mean top-15 token entropy, not extracted for the external cells in this stage (declared limitation)"
+  },
+  "metrics": {
+    "hard2verify": "official step Balanced F1 (official evaluator replay)",
+    "socratic": "official PRMScore (official evaluator replay incl. categories)",
+    "both": "within-answer AUC; top-1 step is an annotated error; F1 on correct / error steps",
+    "never": "average Hard2Verify and Socratic official metrics"
+  },
+  "dev_vs_external": {
+    "table": "for every method/control x bank: development PRMBench within-AUC and PRMScore (ANSWER_Z_Q80) vs each external cell",
+    "rank_transfer": "Spearman correlation across the 72 (bank x scorer) configurations between development PRMBench within-AUC and each external cell's within-AUC; also for 'method minus DS_FILTER_EQ' gains (sign agreement count)",
+    "highlight_transfer": "rank of the pre-declared B16 configurations among all external configurations"
+  },
+  "statistics": {"unit": "question group (contracts.question_key)", "bootstrap_draws": 5000, "seed": 20261006,
+                 "contrasts": "B16 methods minus DS_FILTER_EQ, minus STEP_INDEX (within-AUC only), minus frozen_lsml; descriptive 95% percentile, no winner selection"},
+  "comparators_published_only": {
+    "hard2verify_balanced_f1": {"Qwen3-8B critic": 53.51, "Qwen2.5-Math-PRM-7B": 42.37, "UniversalPRM-7B": 60.27, "note": "paper numbers; PRM thresholds tuned on target responses"},
+    "socratic_prmscore": {"Qwen2.5-Math-PRM-7B": 68.0, "QwQ-32B critic": 73.8, "note": "paper numbers"}
+  },
+  "seal": "Scoring writes PREDICTIONS_UNSEALED.json per cell and SCORING_STATUS.json with external_labels_opened=false and the hashes of this protocol and the scoring script; evaluation refuses to run if either changed."
+}

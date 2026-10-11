@@ -1,0 +1,14 @@
+
+<h2 id="lit">Published competitors</h2>
+<div class="tw"><table><caption>Published numbers (context only: other protocols and thresholds)</caption><tr><th>Method (type)</th><th>ProcessBench</th><th>PRMBench</th><th>Hard2Verify</th><th>Socratic</th></tr>
+<tr><th>Ours, N16 (label-free, no training)</th><td>SLA 0.40 · F1 0.39–0.41</td><td>0.65*</td><td>0.39–0.40</td><td>0.62–0.65</td></tr>
+<tr><th>Mind the Gap (label-free)</th><td>SLA 39.3</td><td>–</td><td>–</td><td>–</td></tr>
+<tr><th>Untrained LLM judge, 14B (uPRM paper)</th><td>F1 37.2</td><td>–</td><td>–</td><td>–</td></tr>
+<tr><th>uPRM (no labels, about 44 GPU-h training)</th><td>F1 48.4</td><td>–</td><td>–</td><td>–</td></tr>
+<tr><th>7B PRMs trained on automatic labels</th><td>F1 31.3–53.0</td><td>–</td><td>–</td><td>–</td></tr>
+<tr><th>Qwen2.5-Math-PRM-7B (supervised)</th><td>F1 73.5</td><td>65.5</td><td>42.4</td><td>68.0</td></tr>
+<tr><th>Best trained verifier</th><td>78.3 (PRM-72B) · 84.4 (FARE-20B)</td><td>68.2 (PRM-72B)</td><td>–</td><td>–</td></tr>
+<tr><th>Best LLM judge</th><td>87.9 (o1-mini)</td><td>68.8 (Gemini-2.0-thinking)</td><td>85.8 (GPT-5)</td><td>75.7 (o3-mini)</td></tr>
+<tr><th>Humans</th><td>–</td><td>83.8</td><td>–</td><td>–</td></tr>
+</table></div>
+<p class="note">*PRMBench: one flag per error answer, not the official PRMScore. On ProcessBench F1 we are inside the range of 7B PRMs trained on automatic labels, and we need no training. On PRMBench, Hard2Verify and Socratic we found no published label-free method.</p>

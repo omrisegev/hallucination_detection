@@ -1,0 +1,193 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Teacher Forcing Deep Dive</title><style>
+/* Layout: one reading column with a sticky section index; figures sit on white plates so light-theme PNGs read in both themes */
+:root{--bg:#f6f7f9;--fg:#1b2430;--muted:#5b6676;--line:#d8dde5;--plate:#ffffff;--accent:#2a78d6;--warn:#c4561f;--good:#e3eefb;--bad:#fbe9e1;
+--display:'Source Serif 4',Georgia,serif;--body:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12161d;--fg:#e6eaf0;--muted:#9aa5b5;--line:#2c3440;--plate:#f4f5f7;--accent:#6aa8f0;--warn:#f08a5a;--good:#1d3350;--bad:#43281c;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#12161d;--fg:#e6eaf0;--muted:#9aa5b5;--line:#2c3440;--plate:#f4f5f7;--accent:#6aa8f0;--warn:#f08a5a;--good:#1d3350;--bad:#43281c;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:24px 80px}
+nav{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);border-bottom:1px solid var(--line);padding-block:10px;z-index:2;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px}
+nav a{color:var(--accent);text-decoration:none}nav a:hover{text-decoration:underline}
+h1{font-family:var(--display);font-size:clamp(28px,4vw,40px);line-height:1.15;text-wrap:balance;margin:18px 0 6px}
+h2{font-family:var(--display);font-size:28px;margin:48px 0 8px;padding-top:12px;border-top:2px solid var(--fg);text-wrap:balance}
+h3{font-size:18px;margin:28px 0 6px}
+p,li{max-width:75ch}.lede{color:var(--muted);font-size:17px}
+.note{color:var(--muted);font-size:14px}
+.key{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:18px 0}
+.key div{border:1px solid var(--line);border-radius:8px;padding:14px 16px;min-width:0}
+.key b{display:block;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.tw{overflow-x:auto;margin:14px 0}
+table{border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums;min-width:100%}
+caption{text-align:left;font-weight:600;padding-bottom:6px}
+th,td{border-bottom:1px solid var(--line);padding:6px 9px;text-align:right;white-space:nowrap}
+tr th:first-child{text-align:left}
+table.wide td,table.wide th{text-align:left;white-space:normal;vertical-align:top}table.wide tr th:first-child{white-space:nowrap}
+ol li{margin-block:2px}
+td.best{font-weight:700;color:var(--accent)} td.lr{color:var(--muted);font-style:italic}
+tr.good td,tr.good th{background:var(--good)} tr.bad td,tr.bad th{background:var(--bad)} tr.refrow th,tr.refrow td{color:var(--muted)}
+figure{margin:18px 0}figure img{background:var(--plate);border-radius:6px;padding:8px;max-width:100%;display:block}
+figcaption{color:var(--muted);font-size:14px;margin-top:6px;max-width:90ch}
+.warn{border-left:4px solid var(--warn);padding:8px 14px;margin:14px 0}
+code{font-family:var(--mono);font-size:13px}
+</style><style>
+.slide{border-top:2px solid var(--fg);margin-top:40px;padding-top:6px}
+.slide div{display:block;min-width:0}.slide p,.slide li{margin:6px 0}
+.slide img{background:var(--plate);border-radius:6px;padding:8px;max-width:100%;height:auto!important;width:auto!important}
+.slide table{margin:10px 0}.slide td,.slide th{white-space:normal;text-align:left;vertical-align:top}
+.slide svg{max-width:100%;height:auto;background:var(--plate);border-radius:6px}
+.src{color:var(--muted);font-size:13px}
+details{margin-top:10px;border:1px solid var(--line);border-radius:6px;padding:8px 12px}
+details div{white-space:pre-line;direction:rtl;text-align:right;font-size:15px}
+x-shape,x-icon,x-connector{display:none}
+</style></head>
+<body><div class="wrap"><nav><a href="https://claude.ai/artifact/NQNTYpFqVyx6xRnRS4NENV">← Findings page</a><a href="deep_mtg.html">Mind the Gap</a><a href="deep_tf.html">Teacher forcing</a><a href="deep_pipeline.html">Tail pipeline</a><span>Slides: <a href="#teacherforcing">1</a><a href="#tfconfig">2</a><a href="#written">3</a><a href="#ownanswers">4</a><a href="#planted">5</a></span></nav>
+<h1>Teacher Forcing Deep Dive</h1><p class="lede">What teacher forcing is, how we run it, the open prompt-format issue, and the check on answers the model wrote itself. Collected from the full slide deck; figures are light-theme images.</p>
+<section class="slide" id="teacherforcing"><h2>1. Teacher forcing: the model reads a given answer once</h2>
+
+<div>
+<div><p>1 · Input text</p><p>User: "Solve … step by step" + question</p><p>Assistant: the benchmark answer, step 1, step 2, …</p></div>
+<p>→</p>
+<div><p>2 · Frozen model</p><p>Qwen3-4B or Qwen3-8B. One forward pass. Nothing is generated.</p></div>
+<p>→</p>
+<div><p>3 · Each answer token</p><p>Top-50 log-probs, and the probability of the written token</p></div>
+<p>→</p>
+<div><p>4 · Step scores</p><p>Token values are summarized for each step</p></div>
+</div>
+<div>
+<div>
+<span>question …</span>
+<span>3</span>
+<span>×</span>
+<span>4</span>
+<span>=</span>
+<span>→</span>
+<span>12</span>
+<span>At one position, the model sees only the text on the left and predicts the next token. We read the probability of the written "12" and the top 50 alternatives.</span>
+</div>
+</div>
+<div>
+<div>
+<p>Standard, not new</p>
+<p>Named in RNN training (Williams and Zipser, 1989). It is the same pass that computes perplexity.</p>
+<p>Mind the Gap scores ProcessBench answers the same way.</p>
+</div>
+<div>
+<p>Limits</p>
+<p><b>Off-policy:</b> another model wrote the answer. Surprise can mean "I would write it differently".</p>
+<p><b>Gray-box and offline:</b> needs log-probs; scores use the whole answer.</p>
+</div>
+</div>
+
+
+<p class="src">Source: Teacher forcing · source: cluster/run_teacher_forced.py, run_prmbench_teacher_forced.py, backfill_views.py; Mind the Gap §4; Williams and Zipser 1989</p><details><summary>Speaker notes (Hebrew)</summary><div>• מה זה: מריצים מודל קפוא על טקסט נתון (שאלה + תשובה), forward pass אחד. בכל מיקום ה-causal mask מאפשר לראות רק את הטוקנים שמשמאל, והמודל נותן התפלגות על הטוקן הבא. במקום לדגום ממנה, "כופים" את הטוקן שכתוב בפועל וממשיכים. שום דבר לא נוצר, שום משקל לא משתנה, אין sampling ואין temperature.
+• מה מזינים למודל: chat template של Qwen3 עם user turn אחד, בלי system prompt. ה-user turn הוא math_prompt ("Solve the following competition math problem. Show all your work step by step, then give your final answer in \boxed{}." + השאלה) ועוד הסיומת " /no_think". מיד אחרי תגית ה-assistant מגיעה התשובה של הבנצ'מרק: הצעדים מחוברים ב-"\n\n". כן: שאלה + תשובה, בדיוק כמו שהמודל היה רואה אם היה כותב את התשובה בעצמו.
+• בפועל (קוד): prompt_ids = tokenizer של ה-chat template עם add_generation_prompt=True; gen_ids = tokenizer של שרשרת הצעדים, קריאה אחת עם offset mapping. מחברים, forward אחד ב-bf16 עם torch.no_grad ו-use_cache=False, batch של עד 8 עם right padding. ה-logits במיקום prompt_len-1+j חוזים את טוקן התשובה j. נשמרים רק מיקומי התשובה.
+• מה נשמר לכל טוקן: top-50 log-probs (ids + values), ה-log-prob של הטוקן הכתוב (spilled energy = -log p), logsumexp על כל ה-vocabulary, ו-entropy של top-15 מנורמל. מכאן נגזרים כל ה-channels.
+• מיפוי לצעדים: לכל צעד יש טווח תווים; טוקן שייך לצעד אם הטווח שלו חופף. alignment gate רץ לפני ה-GPU. ב-PRMBench יש 3 שורות עם בעיית alignment מתוך 6,969.
+• קונפיגורציה: כן, מעט, וזה חשוב. (1) ה-prompt הוא הבחירה שלנו; Mind the Gap לא מציינים prompt. (2) מצב thinking: בלי /no_think ההתפלגות זזה (מעל 0.1 nat ב-4.3% מהטוקנים לפי ההערה בקוד). (3) ה-separator קבוע כי הוא משנה tokenization. (4) top-K=50, dtype bf16. (5) Gate B: משחזרים trace של cell שנוצר ב-generation ודורשים median|dH| עד 0.05 ו-r לפחות 0.999.
+• אימות: ב-Llama-3.1-8B, teacher forcing שחזר את ה-telemetry של generation (median|dH| 0.00022, r 0.9996, HISTORY Step 238). לא מצאתי תיעוד של Gate B על ה-cells של Qwen3 עצמם.
+• הנתונים: PRMBench עם Qwen3-8B, 6,969 תשובות (job 177824). ProcessBench עם Qwen3-4B ו-Qwen3-8B, 3,400 תשובות כל אחד (jobs 157578, 157576). את תשובות ProcessBench כתבו מודלים אחרים; ב-PRMBench שגיאות נשתלו על ידי LLM אחר.
+• מקור: המונח מ-Williams and Zipser 1989 (Neural Computation 1(2):270-280), לאימון RNN: מזינים את הפלט הנכון כקלט לצעד הבא במקום את פלט הרשת. היום זה האימון הסטנדרטי של כל LLM (כל המיקומים במקביל). בהערכה זה אותו חישוב של log-likelihood / perplexity של טקסט נתון.
+• Mind the Gap: §4 Implementation Details כותבים במפורש "teacher-forcing (or forced decoding)... single forward pass" על ProcessBench, עם Qwen3-4B ו-8B, כמונו. הקוד שפרסמו לא כולל קוד step-level ל-ProcessBench. הסקריפט שלנו נכתב כשחזור של הפרוטוקול הזה.
+• שימושים נוספים (אומתו בטקסט המאמרים): HALT עושה teacher force לשיחה עם vLLM ושומר top-20 log-probs; DoLa משתמש ב-teacher forcing לניתוח critical layer ומציין את אותה בעיית off-policy; Frequency-Aware Attention מחלץ attention ב-teacher forcing. PRM מפוקח (Qwen2.5-Math-PRM-7B) גם קורא פתרון נתון ב-forward אחד, אבל עם reward head מאומן שנקרא בטוקני ההפרדה extra_0.
+• מגבלות: off-policy, למשל מדרגים "2+2=5" והמודל היה כותב 4: surprise גבוה הוא אי-הסכמה עם הכותב ולא בהכרח שגיאה. ה-written-token channels הכי חשופים לזה. Gray-box: צריך log-probs, ושומרים רק top-50. Offline: נרמול על כל התשובה, לא detector בזמן אמת.
+• הסתייגות בפורמט: ב-Qwen3 במצב /no_think המודל כותב קודם בלוק think ריק, והקלט הכפוי שלנו מתחיל בלעדיו. בכל התשובות המודל ציפה ל-think בטוקן הראשון, וזה מנפח את step 0. פרטים בשקף הנספח.</div></details></section><section class="slide" id="tfconfig"><h2>2. Appendix: a possible prompt-format issue in our teacher forcing</h2>
+
+<div>
+<p>Qwen3 writes (/no_think)</p>
+<p>assistant⏎ <span>&lt;think&gt;⏎⏎&lt;/think&gt;⏎⏎</span> Step 1 …</p>
+<p>Our forced input</p>
+<p>assistant⏎ <span>missing</span> Step 1 …</p>
+</div>
+<div>
+<div>
+<p>Evidence</p>
+<p>At the first answer token, the model predicts &lt;think&gt; in every answer (p ≈ 0.99999).</p>
+<p>So the first written token gets about 35 nats of surprise. A typical token gets about 1.</p>
+<p>Raw step surprise peaks at step 0 in 90–93% of ProcessBench answers. The first error is at step 0 in 18–19%.</p>
+</div>
+<div>
+<p>What it can bias</p>
+<p>The first tokens and step 0. Errors at step 0 are the most exposed.</p>
+<p>Our z-test channel already replaces step 0 with the answer mean. That hid the symptom.</p>
+<p>Unknown: any effect on later tokens.</p>
+</div>
+<div>
+<p>How we check and fix</p>
+<p><b>CPU now:</b> drop the first tokens and re-score the frozen methods.</p>
+<p><b>GPU fix:</b> re-score every answer with the think block. One pass per answer. Needs approval.</p>
+</div>
+</div>
+<p>I found this while preparing this deck. Our own-answer telemetry is not affected: it was saved during generation, with the block.</p>
+
+
+<p class="src">Source: Appendix: think block · source: results/monday_deckA_figs_v1/tfconfig_evidence/ (CPU, cached telemetry); HISTORY Steps 416–417</p><details><summary>Speaker notes (Hebrew)</summary><div>• מה עלול להיות לא נכון: ב-Qwen3 במצב /no_think המודל כותב קודם בלוק think ריק: "[think]", "\n\n", "[/think]", "\n\n" (4 טוקנים), ורק אחר כך את התשובה. ה-chat template עם enable_thinking=False מכניס את אותו בלוק. בקוד שלנו (cluster/run_teacher_forced.py, run_prmbench_teacher_forced.py, וגם run_external_telemetry.py) התשובה הכפויה מתחילה מיד אחרי "assistant\n", בלי הבלוק. אימתתי זאת על CPU עם ה-tokenizer של Qwen3-4B ו-8B: ה-prompt שלנו שונה מה-template עם enable_thinking=False בדיוק בבלוק הזה (tf_template_check.txt).
+• ראיה ישירה מה-telemetry של הקלאסטר: במיקום הראשון של התשובה, ה-top-1 של המודל הוא [think] ב-100% מהתשובות. PRMBench: 6,969 מתוך 6,969. ProcessBench GSM8K: 400 מתוך 400; MATH: 1,000 מתוך 1,000; בשני המודלים. median p בין 0.99997 ל-0.99999. כלומר המודל שרץ בפועל ציפה לבלוק, בלי קשר לגרסת ה-template.
+• גודל: surprisal של הטוקן הכתוב הראשון הוא 34 עד 36 nats בממוצע. טוקנים 2 ו-3 עדיין גבוהים (1.7 עד 7 nats). טוקן טיפוסי מאוחר: 0.6 עד 1.3. ה-entropy במיקום 0 כמעט 0, כי המודל בטוח ב-[think].
+• השפעה על צעדים: קריאת Top10 גולמית של surprisal מגיעה לשיא ב-step 0 ב-366 עד 369 מתוך 400 (GSM8K) וב-900 עד 929 מתוך 1,000 (MATH). השגיאה הראשונה ב-step 0 רק ב-37 מתוך 207 וב-115 מתוך 594. בלי 3 הטוקנים הראשונים השיא ב-step 0 יורד לכ-48 עד 52%, כך שחלק מהעודף בתחילת התשובה כנראה אמיתי.
+• קשר לממצאים קודמים: ב-Step 416 ראינו spike של +2.08 answer-SD ב-step 0 בערוץ ה-z-test (+2.48 ב-PRMBench), והוא היה השיא ב-96% מתשובות השגיאה ב-ProcessBench. ב-Step 417 נטרלנו את step 0 (הוחלף בממוצע התשובה), וזה נכנס ל-CT7. לא זיהינו אז את המנגנון; זה מועמד חזק. Step 430 מצא עודף בתחילת התשובה בכל הערוצים (+0.67 SD ב-step 0) שמסביר החטאות מוקדמות.
+• למה לא נתפס: Gate B משווה teacher forcing לטקסט שהמודל יצר בעצמו, ושם ה-gen_ids כוללים את הבלוק. כך הבדיקה עוברת ולא בודקת את הפורמט של תשובות הבנצ'מרק.
+• מה זה יכול להטות: בעיקר הטוקנים הראשונים ו-step 0, ולכן תשובות עם שגיאה ראשונה מוקדמת. ה-written-token channels הכי חשופים. ה-z-test המנוטרל לא רואה שגיאות ב-step 0. ה-within-answer z-scoring מפזר את ה-spike על שאר הצעדים. השפעה על טוקנים מאוחרים לא ידועה. ה-telemetry של התשובות של המודל עצמו (self-generated) נשמר בזמן generation עם הבלוק, ולכן לא מושפע.
+• בדיקה ותיקון: (1) CPU, בלי אישור: למסך את 3 עד 4 הטוקנים הראשונים ולהריץ מחדש את השיטות הקפואות, ולדווח את ההפרש בנפרד לשגיאות ב-step 0. (2) GPU: להריץ מחדש teacher forcing עם הבלוק אחרי "assistant\n" (או enable_thinking=False), forward אחד לתשובה, באותו גודל של ה-jobs הקודמים. צריך אישור. אחר כך Gate B חדש על הפורמט הזה.
+• שקיפות: גיליתי את זה רק בזמן הכנת המצגת. כל המספרים על הדאטה הקיים הם development data. אין עדיין מספר של השפעה על התוצאות.</div></details></section><section class="slide" id="written"><h2>3. Written-token surprise: strong, built from published parts</h2>
+
+<p><i>x<sub>t</sub></i> = the written token. <i>p<sub>t</sub></i> = the scoring model's next-token probabilities (one teacher-forced pass). Step values are z-scored per answer.</p>
+<table>
+<tr><th>Channel</th><th>Formula (per step)</th><th>Question it asks</th><th>PRMBench AUC / PB SLA</th></tr>
+<tr><td><b>Surprise</b></td><td><i>s<sub>t</sub></i> = −log <i>p<sub>t</sub></i>(<i>x<sub>t</sub></i>); step = mean of its 10 largest <i>s<sub>t</sub></i></td><td>How unlikely was the written token?</td><td>0.698 / 0.176</td></tr>
+<tr><td><b>Surprise z-test</b></td><td><span><span>Σ<sub>t∈step</sub> (<i>s<sub>t</sub></i> − <i>H<sub>t</sub></i>)</span><span>√( Σ<sub>t∈step</sub> <i>V<sub>t</sub></i> + 0.01·<i>n</i> )</span></span><br><span><i>H<sub>t</sub></i> = Σ<i>q</i>·(−log <i>q</i>): expected surprise. <i>V<sub>t</sub></i> = Σ<i>q</i>·(−log <i>q</i> − <i>H<sub>t</sub></i>)²: its variance (varentropy). <i>q</i> = top-50, renormalized.</span></td><td>Is the step more surprising than the model itself predicted?</td><td>0.739 / 0.310</td></tr>
+<tr><td><b>Surprise rise</b></td><td><i>e<sub>t</sub></i> = <i>e</i><sub><i>t</i>−1</sub> + <sup>2</sup>⁄<sub>17</sub>(<i>s<sub>t</sub></i> − <i>e</i><sub><i>t</i>−1</sub>) &nbsp;(EMA, span 16)<br><i>r<sub>t</sub></i> = max(<i>e<sub>t</sub></i> − <i>e</i><sub><i>t</i>−1</sub>, 0); step = mean of its 3 largest <i>r<sub>t</sub></i></td><td>Did the surprise jump above its recent past?</td><td><b>0.796</b> / 0.327</td></tr>
+<tr><td>Entropy (reference)</td><td>top-15 entropy; does not look at <i>x<sub>t</sub></i></td><td>How unsure is the model?</td><td>0.730 / 0.336</td></tr>
+</table>
+<div>
+<p><b>Not our invention.</b> Surprise: SelfCheckGPT (2023). Z-test: Fast-DetectGPT's statistic (2024), here per step; per token, Min-K%++ (2025). Rise: Mind the Gap's drop rule (2026), also run there on the written token. <b>Ours:</b> the step readouts; no earlier step-localization test of the z-test found.</p>
+</div>
+
+
+<p class="src">Source: Written-token surprise · source: monday_ds_signed_v1/singles SINGLE_CHANNELS_DS.csv (signs from Dawid–Skene); code derivative_step_channel_v1.py, chosen_token_calibration.py, frozen_locator_ct7.py; papers arXiv 2303.08896, 2310.05130, 2404.02936, Mind the Gap ICML 2026 · best channel picked with labels</p><details><summary>Speaker notes (Hebrew)</summary><div>• מה מחושב: מעבר teacher-forced אחד של מודל ה-scoring על התשובה הנתונה, temperature 1, בלי warpers. x_t הוא ה-token שכתוב בתשובה, p_t ההתפלגות של המודל לפני שהוא רואה אותו.
+• Surprise: s_t = -log p_t(x_t) על כל ה-vocabulary (token_spilled_energies, cluster/backfill_views.py). ערך צעד = ממוצע 10 הערכים הגבוהים בצעד (Top10), לא ממוצע כל הצעד. למה: token לא צפוי הוא סימן לטקסט שהמודל לא היה כותב.
+• z-test: H_t = entropy של top-50 אחרי renormalization, כלומר ה-surprise הצפוי. V_t = varentropy, השונות של ה-surprise תחת אותה התפלגות. גם s בתוך ה-z מחושב על אותו q. ערך צעד = Σ(s_t - H_t) / sqrt(Σ V_t + 0.01·n), כלומר z pooled על כל ה-tokens בצעד. למה: בהתפלגות שטוחה כל token מפתיע, אז משווים את ה-surprise לציפייה של המודל עצמו. תחת H0 (המודל עצמו כתב את ה-token) הממוצע 0 והשונות כ-1.
+• בצעד 0 ה-z גבוה תמיד (spike), ולכן מחליפים אותו בממוצע שאר הצעדים בתשובה (frozen_locator_ct7.despiked_chosen_token_z). זה ה-view השביעי של CT7.
+• Rise: EMA סיבתי עם alpha = 2/17 (span 16) על s_t, הפרש ראשון, משאירים רק עליות, וערך הצעד הוא ממוצע 3 העליות הגדולות בצעד (spectral_utils/derivative_step_channel_v1.py). למה: עלייה פתאומית ב-surprise ביחס לעבר הקרוב מסמנת את המקום שבו הטקסט מפסיק להתאים למודל. 16 ו-3 הם בחירות שלנו, לא כוונו על labels.
+• כל ערך צעד עובר z-score בתוך התשובה לפני ה-fusion. ל-within-answer AUC של channel בודד זה לא משנה.
+• מקור (בדקתי בעצמי): ה-surprise כאות ל-hallucination הוא SelfCheckGPT (Manakul, Liusie, Gales, EMNLP 2023): Avg(-log p) ו-Max(-log p) ברמת משפט. גם Guerreiro et al. EACL 2023 (Seq-Logprob ב-MT) ו-Varshney et al. 2023 (low-confidence tokens).
+• ה-z: זו בדיוק הסטטיסטיקה של Fast-DetectGPT (Bao et al., ICLR 2024), בסימן הפוך: (Σ log p - Σ mean) / sqrt(Σ var), כשה-reference הוא אותו מודל. אצלם על קטע שלם לזיהוי טקסט של מכונה, אצלנו לכל צעד. ברמת token זה Min-K%++ (Zhang et al., ICLR 2025). המונה (s - H) הוא locally typical sampling (Meister et al., TACL 2023). Hao Ai (arXiv 2608.05152, מאי 2026) משתמש ב-z per token על CoT של מודל אחר, למציאת clue tokens, לא שגיאות. varentropy עצמו: Kontoyiannis ו-Verdu 2014.
+• ה-rise: Mind the Gap (Chen et al., ICML 2026): EMA (span 5) על evidence = minus top-20 entropy, וממוצע M=5 הירידות הגדולות. בטבלה 3 שלהם (SLA ב-ProcessBench) יש גם LN-S Drop, כלומר אותו כלל על ה-log-prob של ה-token שנוצר. הם לא מגדירים איך זה עובר מ-token לצעד, ולא את הכיוון. אצלנו: span 16, M=3, בתוך כל צעד.
+• לכן לא נכון לומר שהמצאנו את ה-feature. מה שכן שלנו: ה-readouts ברמת צעד, ובדיקה ראשונה (לפי מה שמצאנו) של ה-z המנורמל ב-varentropy לאיתור הצעד השגוי ב-PRMBench וב-ProcessBench. ה-rise כבר נבדק ב-ProcessBench אצל Mind the Gap.
+• בדיקות ל-rise (Step 450): tokens מעורבבים 0.566, אחרי הסרת אורך הצעד 0.771, step index לבד 0.662, קורלציה עם אורך +0.58.
+• הסתייגויות: teacher forcing על טקסט של מודל אחר, אז surprise גבוה יכול לומר לא הייתי כותב את זה ולא רק זה שגוי. ה-channel הטוב נבחר עם labels של PRMBench. development data.
+• סימן: לכל channel ולכל cell לפי Dawid-Skene (label-free). לארבעת ה-channels בטבלה הסימן זהה לכלל הקודם (correlation עם ממוצע ה-level), אז המספרים לא השתנו.</div></details></section><section class="slide" id="ownanswers"><h2>4. Own answers: ranking holds; exact first-error hit drops</h2>
+
+<div>
+<div>
+<p>Side study: real generation</p>
+<p><b>Data:</b> 5,638 answers of Qwen3-4B and Qwen3-8B on GSM8K and MATH. 825 graded wrong. Token probabilities saved during generation.</p>
+<p><b>Round 1 judges:</b> Claude Opus 5.5 and GPT-6 SOL, blind. On 240 hidden human-labelled ProcessBench items: F1 88.67 and 86.20.</p>
+<p><b>Agreement:</b> exact first error 0.8935; κ 0.950 for error vs no error.</p>
+<p><b>Final, after a second judge round:</b> 890 labels (417 with an error, 473 clean). 68 stay unresolved.</p>
+<p><b>Side finding:</b> both judges call 85 to 87 grader-"wrong" answers correct. Our MATH grader has a bug.</p>
+</div>
+<div>
+<p>N16 bank, plain average of the kept channels, no labels</p>
+<table>
+<tr><th>Metric</th><th>Own</th><th>ProcessBench</th><th>Difference [95% CI]</th></tr>
+<tr><td>Error ranking (AUC)</td><td><b>0.7566</b></td><td>0.7630</td><td>−0.0064 [−0.042, +0.028]</td></tr>
+<tr><td>Exact first-error hit</td><td><b>26.4%</b></td><td>43.9%</td><td>−17.50 pts [−22.08, −12.47]</td></tr>
+</table>
+<p><b>Equivalence is not shown.</b> The interval allows a drop larger than 0.03.</p>
+<p><b>The populations differ:</b> other answers, own MATH answers about 3× longer, labels from LLM judges. So we cannot blame the gap on teacher forcing.</p>
+<p><b>Not run yet:</b> the paired test, with the same answers scored by the writer model and by another model.</p>
+</div>
+</div>
+
+
+<p class="src">Source: Own answers · development side study, LLM-judge labels · source: results/self_generated_step_labels_v1 (see notes)</p><details><summary>Speaker notes (Hebrew)</summary><div>פירוט לשאלות. המסר: על התשובות של המודלים עצמם דירוג השגיאות נשאר קרוב, אבל equivalence לא הוכחה. הדאטה: 5,638 תשובות greedy של Qwen3-4B ו-Qwen3-8B על GSM8K ו-MATH, מ-generation caches קיימים ובלי inference חדש; 825 נבדקו כשגויות. שני שופטי LLM עיוורים, Claude Opus 5.5 ו-GPT-6 SOL, קיבלו F1 88.67 ו-86.20 על 240 פריטי ProcessBench מוסתרים עם labels אנושיים. מחלוקות עברו סבב שני עם שופטים נוספים, ובסוף יש 890 labels: 417 עם שגיאה, 473 נקיות, ו-68 לא נפתרו. השיטה: N16 עם DS filter ו-plain average. יש שתי הגדרות AUC. כאן, כמו במקור, צעד השגיאה מול הצעדים שלפניו: 0.7566 מול 0.7630 ב-ProcessBench, על 388 תשובות, כי ל-29 שגיאות בצעד 0 אין צעדים קודמים. בשקף השגיאות הטבעיות, צעד השגיאה מול כל שאר הצעדים נותן 0.785. ה-interval של ההפרש, −0.042 עד +0.028, מאפשר ירידה של יותר מ-0.03, אז אין equivalence. ה-hit: 26.4% מול 43.9% על 1,602 תשובות ProcessBench. האוכלוסיות שונות, אז אי אפשר לייחס את הפער ל-teacher forcing; המבחן ה-paired עוד לא רץ. ממצא צדדי: שני השופטים קוראים ל-85 עד 87 תשובות "שגויות" נכונות, כלומר יש באג ב-MATH grader.</div></details></section><section class="slide" id="planted"><h2>5. Natural errors: 70% are kinds PRMBench never plants</h2>
+
+<img src="fig/P1_planted_natural_light.png" alt="Natural first errors in Qwen3 own answers by kind. Kinds PRMBench also plants (30%): counterfactual 0.84, step contradiction 0.82, domain inconsistency 0.84, missing condition 0.72, close to the PRMBench planted values. Kinds PRMBench never plants (70%): calculation error 0.79, misread problem 0.79, wrong method 0.74. All own errors 0.785. Step index alone is 0.30 to 0.60.">
+<div>
+<p><b>Different kinds:</b> 70% of the models' own first errors are misreadings, arithmetic slips and wrong methods. PRMBench never plants these.</p>
+<p><b>Ranking holds, exact step drops:</b> AUC 0.74 to 0.79 on those kinds, and similar to or above PRMBench where kinds overlap. But the top step is the first error in only 26% of answers (same score on ProcessBench GSM8K and MATH: 44%).</p>
+</div>
+
+
+<p class="src">Source: 417 own answers with an error, labels by LLM judges · error kinds by two blind Claude passes, kappa 0.86 on 120, no human check yet · results/own_error_types_v1</p><details><summary>Speaker notes (Hebrew)</summary><div>על שגיאות טבעיות האות עדיין מדרג את צעד השגיאה, אבל מוצא את הצעד המדויק פחות. זה עונה לחשש שהשיטה מוצאת רק את התפרים של העריכה בשגיאות שתולות. על 417 תשובות של המודלים עצמם עם שגיאה, עם probabilities מזמן ה-generation, בלי עריכות ועם labels מ-LLM judges, ציון ה-N16 ה-label-free מדרג היטב את צעד השגיאה הראשונה בכל kind עם מספיק תשובות, כולל kinds ש-PRMBench לא שותל. מיקום לא מסביר את זה: step index לבד 0.30 עד 0.60, כי שגיאות ראשונות טבעיות מוקדמות. ה-AUC כאן, 0.785 בסך הכול, משווה את צעד השגיאה לכל שאר הצעדים; לפי ההגדרה של המקור, צעד השגיאה מול הצעדים שלפניו, יוצא 0.757 (שקף הגיבוי). מה שיורד הוא ה-exact first-error hit: 26%, מול 44% לאותו ציון על 1,602 תשובות ProcessBench של GSM8K ו-MATH. זה לא ממוצע 8 התאים, כ-0.40, וזו לא השוואה paired: תשובות ואורכים שונים. ה-kinds החלשים: missing condition (0.72), שהוא גם אחד מה-planted kinds החלשים, ו-deception חלש ממנו שם; ו-wrong method (hit 17%). ה-kind labels באים רק משני מעברים עיוורים של Claude (kappa 0.86 על 120), ואני צריך לבדוק ידנית כ-40 פריטים לפני שמצטטים את החלוקה.</div></details></section></div></body></html>

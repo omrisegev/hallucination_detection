@@ -1,0 +1,43 @@
+{
+  "frozen": true,
+  "purpose": "single diagnostic selection-versus-weighting experiment, not a new label-free method",
+  "bank_order": [
+    "N11",
+    "N13",
+    "N22",
+    "N40",
+    "N53",
+    "N14",
+    "N16",
+    "N25",
+    "N43",
+    "N56"
+  ],
+  "outer_split": "FOLDS_V2 prmbench.outer",
+  "inner_split": "FOLDS_V2 prmbench.inner[outer]",
+  "C_GRID": [
+    0.001,
+    0.01,
+    0.1,
+    1.0,
+    10.0,
+    100.0,
+    1000.0
+  ],
+  "selector_C": 1.0,
+  "selector_C_note": "fixed before run; fitted fresh in every inner/outer training partition",
+  "half_count": "ceil(n_channels/2); stable tie by bank column order",
+  "selection_scale": "effective weights on V multiplied by common training SD",
+  "ranking_metric": "per-answer within-answer AUC averaged; no concatenated-global OOF AUC",
+  "R1_R2_R3": "historical definitions, training-only C1 selector inside each validation partition",
+  "drop_one_family": "N16/N56 only, fixed full-LR inner-selected C per outer",
+  "LSML_failure": "K<3 explicit failed arm, no fallback; grouping degeneracy recorded",
+  "bootstrap": {
+    "draws": 5000,
+    "seed": 20261011,
+    "unit": "canonical source group"
+  },
+  "interpretation": "internal validation on previously inspected data; supervised-selected LF arms are supervised diagnostics",
+  "script_sha256": "037f0a98484008542e650a3b88e219e4c7b80b444b1954b730d5a31714c7fa43",
+  "helper_sha256": "6f6eb8072cf6befcacc806fa29c874733318389da83a0270ba0ecdbfee8a6642"
+}

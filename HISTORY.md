@@ -14601,3 +14601,55 @@ default IU/DUFS contract. Canonical documentation and compact evidence are in
 `docs/experiments/CIW_DEEM_V1.md` and `results/ciw_deem_v1/`.
 
 ---
+
+### Step 291 [advisor CPU completion] — corrected PRMBench evidence, feature diagnostics and advisor v11 (2026-10-11/12)
+
+**What**: Executed all CPU analyses in the accepted sixteen-row Claude/Codex
+completion plan against pinned v10 `53ef62e36e80b90de30b83d3fee33e1fb85b82c3`
+and research `080877eb9a8369341d647f4115a3b475c040b46e`. Acquired and hashed
+the three feature variants, ten scorer exports and corrected 1.118GB telemetry;
+verified 6,969 answers / 94,203 steps / 707 canonical groups. Saved exact
+decisions, scores, models, group splits, intervals, real examples, scientific
+SVG/PNG plots and an integrated self-contained HTML with an original
+PRMBench-style nine-category radar. The assignment inventory includes prior
+state, action, finding and evidence for every row.
+
+**Why**: Resolve the masking/prefix and Simplicity questions, understand the
+widening supervised LR gap without feature-selection leakage, and test rather
+than assume the proposed count-estimation bottleneck. Preserve Claude's v10
+matrices/leaderboard while focusing on Continuous L-SML and IU-PCR.
+
+**Result**: Prefix correction lowers L-SML/IU AUC by 0.015857/0.011772;
+mask-only changes −0.000749/−0.000135 have zero-crossing paired intervals.
+The prefix loss survives position matching and removal of step 0. NR retains
+its advantage over PRM after position/length/repetition matching; controlled
+NCL and overall advantages are unresolved. Nested group OOF N16 LR AUC is
+0.801739 versus L-SML/IU 0.778901/0.780467, while label-free top1 is higher;
+N56 LR leads both. The fixed selection/weighting crossover shows interaction,
+not a universally transferable label-free mask. N11 L-SML on the LR half-mask
+fails outer fold 4 at K=2 and remains undefined. Group MoM prevalence is 0.229
+versus truth 0.140; posterior-count PRMScore 0.642320/0.643165 loses to Q80
+0.653809/0.653590. Entropy gating reduces clean-control false flags but lowers
+pooled score. Internal donor selection chooses N16 IU-PCR with held-half AUC
+0.786037; all type-out/source-fold designs have no source overlap.
+
+**Validation and limits**: Reference scorer replay is within 1e-9; native
+affine replay is ≤6.34e-14. An independent agent reconstructed all 1,069 saved
+fitted-model held-out scores exactly and audited arithmetic, telemetry,
+inner/outer selection, posterior counts, matched populations and final HTML.
+The reproduction wrapper rejects changed saved outputs/checkpoints as well as
+inputs and code before replay. All splits remain internal validation on
+previously inspected data; pointwise bootstrap intervals do not correct
+historical selection or multiplicity. The universal literature claim was
+withdrawn, and MS/Sensitivity definitions were unified.
+
+**State and handoff**: `results/advisor_completion_2026-10-11/README.md`,
+`FINDINGS_HE.md`, `TASK_STATUS.csv`, `advisor_review_v11.html` and `review/`
+are the canonical local completion record. No commit/push, Claude replacement,
+GPU/cluster inference or install occurred in this run. Claude access remains
+unverified; GPU feature extraction from a PRM backbone and untouched external
+confirmation remain outside this completion. Existing dirty work was preserved.
+
+---
+
+**Git publication follow-up (2026-10-12):** The reading delivery and next-agent prompt are published on `codex/advisor-v11-completion`. The full binary bundle remains outside Git; see its RAW_DATA_CATALOG. This is not a Claude Artifact update or a new numerical experiment.

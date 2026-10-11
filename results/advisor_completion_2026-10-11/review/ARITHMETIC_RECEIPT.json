@@ -1,0 +1,3012 @@
+{
+  "status": "PASS",
+  "n_checks": 436,
+  "checks": [
+    {
+      "check": "canonical_labels_and_identity",
+      "status": "PASS"
+    },
+    {
+      "check": "canonical_population_counts",
+      "status": "PASS",
+      "counts": {
+        "circular": 758,
+        "confidence": 757,
+        "correct": 758,
+        "counterfactual": 757,
+        "deception": 750,
+        "domain_inconsistency": 757,
+        "missing_condition": 756,
+        "multi_solutions": 160,
+        "redundency": 758,
+        "step_contradiction": 758
+      }
+    },
+    {
+      "check": "canonical_group_fold_mapping",
+      "status": "PASS"
+    },
+    {
+      "check": "fold_group_disjointness",
+      "status": "PASS"
+    },
+    {
+      "check": "true_error_prevalence",
+      "status": "PASS",
+      "prevalence": 0.13958154198910863
+    },
+    {
+      "check": "PRM_identity",
+      "status": "PASS"
+    },
+    {
+      "check": "direct_pair_AUC_top1_LSML_CONT",
+      "status": "PASS",
+      "auc": 0.779192910085869,
+      "top1": 0.5985086992543496,
+      "n_auc": 6030,
+      "n_top1": 6035
+    },
+    {
+      "check": "direct_pair_AUC_top1_IU_PCR",
+      "status": "PASS",
+      "auc": 0.7804586557462,
+      "top1": 0.5951946975973488,
+      "n_auc": 6030,
+      "n_top1": 6035
+    },
+    {
+      "check": "direct_pair_AUC_top1_ALL_EQ",
+      "status": "PASS",
+      "auc": 0.7707968307622146,
+      "top1": 0.5882352941176471,
+      "n_auc": 6030,
+      "n_top1": 6035
+    },
+    {
+      "check": "direct_pair_AUC_top1_DS_FILTER_EQ",
+      "status": "PASS",
+      "auc": 0.7800796949617781,
+      "top1": 0.6,
+      "n_auc": 6030,
+      "n_top1": 6035
+    },
+    {
+      "check": "direct_pair_AUC_top1_PRM_NATIVE",
+      "status": "PASS",
+      "auc": 0.8011803689223951,
+      "top1": 0.5777961888980945,
+      "n_auc": 6030,
+      "n_top1": 6035
+    },
+    {
+      "check": "raw_survivor_G_parity",
+      "status": "PASS",
+      "max_abs": 8.881784197001252e-16
+    },
+    {
+      "check": "exact_flags_LSML_CONT_ANSWER_Z_Q80",
+      "status": "PASS"
+    },
+    {
+      "check": "confusion_LSML_CONT_ANSWER_Z_Q80_ALL_NONCONTROL",
+      "status": "PASS",
+      "score": 0.6538088144924219,
+      "confusion": [
+        6412,
+        10184,
+        6737,
+        60038
+      ],
+      "n_steps": 83371
+    },
+    {
+      "check": "confusion_LSML_CONT_ANSWER_Z_Q80_circular",
+      "status": "PASS",
+      "score": 0.6797160687420898,
+      "confusion": [
+        991,
+        710,
+        1144,
+        4968
+      ],
+      "n_steps": 7813
+    },
+    {
+      "check": "confusion_LSML_CONT_ANSWER_Z_Q80_confidence",
+      "status": "PASS",
+      "score": 0.6856580899612802,
+      "confusion": [
+        766,
+        1209,
+        538,
+        8235
+      ],
+      "n_steps": 10748
+    },
+    {
+      "check": "confusion_LSML_CONT_ANSWER_Z_Q80_correct",
+      "status": "PASS",
+      "score": 0.44219578763067097,
+      "confusion": [
+        0,
+        2245,
+        0,
+        8587
+      ],
+      "n_steps": 10832
+    },
+    {
+      "check": "confusion_LSML_CONT_ANSWER_Z_Q80_counterfactual",
+      "status": "PASS",
+      "score": 0.6396154964679835,
+      "confusion": [
+        868,
+        1181,
+        1206,
+        7222
+      ],
+      "n_steps": 10477
+    },
+    {
+      "check": "confusion_LSML_CONT_ANSWER_Z_Q80_deception",
+      "status": "PASS",
+      "score": 0.592186866439598,
+      "confusion": [
+        640,
+        1449,
+        1060,
+        6921
+      ],
+      "n_steps": 10070
+    },
+    {
+      "check": "confusion_LSML_CONT_ANSWER_Z_Q80_domain_inconsistency",
+      "status": "PASS",
+      "score": 0.6755263563663102,
+      "confusion": [
+        763,
+        1226,
+        575,
+        7467
+      ],
+      "n_steps": 10031
+    },
+    {
+      "check": "confusion_LSML_CONT_ANSWER_Z_Q80_missing_condition",
+      "status": "PASS",
+      "score": 0.6039954127236586,
+      "confusion": [
+        707,
+        1279,
+        1162,
+        6465
+      ],
+      "n_steps": 9613
+    },
+    {
+      "check": "confusion_LSML_CONT_ANSWER_Z_Q80_multi_solutions",
+      "status": "PASS",
+      "score": 0.8839641434262948,
+      "confusion": [
+        0,
+        466,
+        0,
+        1775
+      ],
+      "n_steps": 2241
+    },
+    {
+      "check": "confusion_LSML_CONT_ANSWER_Z_Q80_redundency",
+      "status": "PASS",
+      "score": 0.6995072587108834,
+      "confusion": [
+        953,
+        1337,
+        584,
+        8739
+      ],
+      "n_steps": 11613
+    },
+    {
+      "check": "confusion_LSML_CONT_ANSWER_Z_Q80_step_contradiction",
+      "status": "PASS",
+      "score": 0.6741714966768002,
+      "confusion": [
+        724,
+        1327,
+        468,
+        8246
+      ],
+      "n_steps": 10765
+    },
+    {
+      "check": "PS_DR_MS_sensitivity_LSML_CONT_ANSWER_Z_Q80",
+      "status": "PASS"
+    },
+    {
+      "check": "exact_flags_LSML_CONT_R2_COUNT",
+      "status": "PASS"
+    },
+    {
+      "check": "confusion_LSML_CONT_R2_COUNT_ALL_NONCONTROL",
+      "status": "PASS",
+      "score": 0.6533204528042518,
+      "confusion": [
+        6698,
+        10965,
+        6451,
+        59257
+      ],
+      "n_steps": 83371
+    },
+    {
+      "check": "confusion_LSML_CONT_R2_COUNT_circular",
+      "status": "PASS",
+      "score": 0.6898972158029547,
+      "confusion": [
+        1234,
+        1070,
+        901,
+        4608
+      ],
+      "n_steps": 7813
+    },
+    {
+      "check": "confusion_LSML_CONT_R2_COUNT_confidence",
+      "status": "PASS",
+      "score": 0.6682308379500841,
+      "confusion": [
+        730,
+        1291,
+        574,
+        8153
+      ],
+      "n_steps": 10748
+    },
+    {
+      "check": "confusion_LSML_CONT_R2_COUNT_correct",
+      "status": "PASS",
+      "score": 0.4712486576198379,
+      "confusion": [
+        0,
+        1178,
+        0,
+        9654
+      ],
+      "n_steps": 10832
+    },
+    {
+      "check": "confusion_LSML_CONT_R2_COUNT_counterfactual",
+      "status": "PASS",
+      "score": 0.6443803365454279,
+      "confusion": [
+        873,
+        1138,
+        1201,
+        7265
+      ],
+      "n_steps": 10477
+    },
+    {
+      "check": "confusion_LSML_CONT_R2_COUNT_deception",
+      "status": "PASS",
+      "score": 0.5976876905735932,
+      "confusion": [
+        584,
+        1205,
+        1116,
+        7165
+      ],
+      "n_steps": 10070
+    },
+    {
+      "check": "confusion_LSML_CONT_R2_COUNT_domain_inconsistency",
+      "status": "PASS",
+      "score": 0.6674589355826275,
+      "confusion": [
+        891,
+        1623,
+        447,
+        7070
+      ],
+      "n_steps": 10031
+    },
+    {
+      "check": "confusion_LSML_CONT_R2_COUNT_missing_condition",
+      "status": "PASS",
+      "score": 0.6103682521552214,
+      "confusion": [
+        857,
+        1601,
+        1012,
+        6143
+      ],
+      "n_steps": 9613
+    },
+    {
+      "check": "confusion_LSML_CONT_R2_COUNT_multi_solutions",
+      "status": "PASS",
+      "score": 0.9003925417075564,
+      "confusion": [
+        0,
+        406,
+        0,
+        1835
+      ],
+      "n_steps": 2241
+    },
+    {
+      "check": "confusion_LSML_CONT_R2_COUNT_redundency",
+      "status": "PASS",
+      "score": 0.6765642982495409,
+      "confusion": [
+        815,
+        1244,
+        722,
+        8832
+      ],
+      "n_steps": 11613
+    },
+    {
+      "check": "confusion_LSML_CONT_R2_COUNT_step_contradiction",
+      "status": "PASS",
+      "score": 0.6656912517094281,
+      "confusion": [
+        714,
+        1387,
+        478,
+        8186
+      ],
+      "n_steps": 10765
+    },
+    {
+      "check": "PS_DR_MS_sensitivity_LSML_CONT_R2_COUNT",
+      "status": "PASS"
+    },
+    {
+      "check": "exact_flags_LSML_CONT_ENTROPY_GATE_Q80",
+      "status": "PASS"
+    },
+    {
+      "check": "confusion_LSML_CONT_ENTROPY_GATE_Q80_ALL_NONCONTROL",
+      "status": "PASS",
+      "score": 0.6487008000293523,
+      "confusion": [
+        5315,
+        7631,
+        7834,
+        62591
+      ],
+      "n_steps": 83371
+    },
+    {
+      "check": "confusion_LSML_CONT_ENTROPY_GATE_Q80_circular",
+      "status": "PASS",
+      "score": 0.6691197434413416,
+      "confusion": [
+        914,
+        646,
+        1221,
+        5032
+      ],
+      "n_steps": 7813
+    },
+    {
+      "check": "confusion_LSML_CONT_ENTROPY_GATE_Q80_confidence",
+      "status": "PASS",
+      "score": 0.6712647827320826,
+      "confusion": [
+        592,
+        875,
+        712,
+        8569
+      ],
+      "n_steps": 10748
+    },
+    {
+      "check": "confusion_LSML_CONT_ENTROPY_GATE_Q80_correct",
+      "status": "PASS",
+      "score": 0.4664039408866995,
+      "confusion": [
+        0,
+        1364,
+        0,
+        9468
+      ],
+      "n_steps": 10832
+    },
+    {
+      "check": "confusion_LSML_CONT_ENTROPY_GATE_Q80_counterfactual",
+      "status": "PASS",
+      "score": 0.6271144593078695,
+      "confusion": [
+        708,
+        895,
+        1366,
+        7508
+      ],
+      "n_steps": 10477
+    },
+    {
+      "check": "confusion_LSML_CONT_ENTROPY_GATE_Q80_deception",
+      "status": "PASS",
+      "score": 0.5762552761737059,
+      "confusion": [
+        462,
+        1050,
+        1238,
+        7320
+      ],
+      "n_steps": 10070
+    },
+    {
+      "check": "confusion_LSML_CONT_ENTROPY_GATE_Q80_domain_inconsistency",
+      "status": "PASS",
+      "score": 0.6703456634031126,
+      "confusion": [
+        680,
+        1060,
+        658,
+        7633
+      ],
+      "n_steps": 10031
+    },
+    {
+      "check": "confusion_LSML_CONT_ENTROPY_GATE_Q80_missing_condition",
+      "status": "PASS",
+      "score": 0.6015394281243972,
+      "confusion": [
+        587,
+        953,
+        1282,
+        6791
+      ],
+      "n_steps": 9613
+    },
+    {
+      "check": "confusion_LSML_CONT_ENTROPY_GATE_Q80_multi_solutions",
+      "status": "PASS",
+      "score": 0.9757769652650823,
+      "confusion": [
+        0,
+        106,
+        0,
+        2135
+      ],
+      "n_steps": 2241
+    },
+    {
+      "check": "confusion_LSML_CONT_ENTROPY_GATE_Q80_redundency",
+      "status": "PASS",
+      "score": 0.68604007689675,
+      "confusion": [
+        773,
+        1033,
+        764,
+        9043
+      ],
+      "n_steps": 11613
+    },
+    {
+      "check": "confusion_LSML_CONT_ENTROPY_GATE_Q80_step_contradiction",
+      "status": "PASS",
+      "score": 0.6707418400926461,
+      "confusion": [
+        599,
+        1013,
+        593,
+        8560
+      ],
+      "n_steps": 10765
+    },
+    {
+      "check": "PS_DR_MS_sensitivity_LSML_CONT_ENTROPY_GATE_Q80",
+      "status": "PASS"
+    },
+    {
+      "check": "exact_flags_IU_PCR_ANSWER_Z_Q80",
+      "status": "PASS"
+    },
+    {
+      "check": "confusion_IU_PCR_ANSWER_Z_Q80_ALL_NONCONTROL",
+      "status": "PASS",
+      "score": 0.6535904330258006,
+      "confusion": [
+        6405,
+        10185,
+        6744,
+        60037
+      ],
+      "n_steps": 83371
+    },
+    {
+      "check": "confusion_IU_PCR_ANSWER_Z_Q80_circular",
+      "status": "PASS",
+      "score": 0.678474542677284,
+      "confusion": [
+        977,
+        693,
+        1158,
+        4985
+      ],
+      "n_steps": 7813
+    },
+    {
+      "check": "confusion_IU_PCR_ANSWER_Z_Q80_confidence",
+      "status": "PASS",
+      "score": 0.6851407257876287,
+      "confusion": [
+        764,
+        1209,
+        540,
+        8235
+      ],
+      "n_steps": 10748
+    },
+    {
+      "check": "confusion_IU_PCR_ANSWER_Z_Q80_correct",
+      "status": "PASS",
+      "score": 0.44202338639056304,
+      "confusion": [
+        0,
+        2251,
+        0,
+        8581
+      ],
+      "n_steps": 10832
+    },
+    {
+      "check": "confusion_IU_PCR_ANSWER_Z_Q80_counterfactual",
+      "status": "PASS",
+      "score": 0.6431166226541886,
+      "confusion": [
+        883,
+        1178,
+        1191,
+        7225
+      ],
+      "n_steps": 10477
+    },
+    {
+      "check": "confusion_IU_PCR_ANSWER_Z_Q80_deception",
+      "status": "PASS",
+      "score": 0.597548461517291,
+      "confusion": [
+        655,
+        1428,
+        1045,
+        6942
+      ],
+      "n_steps": 10070
+    },
+    {
+      "check": "confusion_IU_PCR_ANSWER_Z_Q80_domain_inconsistency",
+      "status": "PASS",
+      "score": 0.6718342867186602,
+      "confusion": [
+        755,
+        1242,
+        583,
+        7451
+      ],
+      "n_steps": 10031
+    },
+    {
+      "check": "confusion_IU_PCR_ANSWER_Z_Q80_missing_condition",
+      "status": "PASS",
+      "score": 0.6028198796148206,
+      "confusion": [
+        706,
+        1290,
+        1163,
+        6454
+      ],
+      "n_steps": 9613
+    },
+    {
+      "check": "confusion_IU_PCR_ANSWER_Z_Q80_multi_solutions",
+      "status": "PASS",
+      "score": 0.8859060402684564,
+      "confusion": [
+        0,
+        459,
+        0,
+        1782
+      ],
+      "n_steps": 2241
+    },
+    {
+      "check": "confusion_IU_PCR_ANSWER_Z_Q80_redundency",
+      "status": "PASS",
+      "score": 0.69701386747465,
+      "confusion": [
+        948,
+        1352,
+        589,
+        8724
+      ],
+      "n_steps": 11613
+    },
+    {
+      "check": "confusion_IU_PCR_ANSWER_Z_Q80_step_contradiction",
+      "status": "PASS",
+      "score": 0.6716302158709369,
+      "confusion": [
+        717,
+        1334,
+        475,
+        8239
+      ],
+      "n_steps": 10765
+    },
+    {
+      "check": "PS_DR_MS_sensitivity_IU_PCR_ANSWER_Z_Q80",
+      "status": "PASS"
+    },
+    {
+      "check": "exact_flags_IU_PCR_R2_COUNT",
+      "status": "PASS"
+    },
+    {
+      "check": "confusion_IU_PCR_R2_COUNT_ALL_NONCONTROL",
+      "status": "PASS",
+      "score": 0.6529621482653494,
+      "confusion": [
+        6689,
+        10974,
+        6460,
+        59248
+      ],
+      "n_steps": 83371
+    },
+    {
+      "check": "confusion_IU_PCR_R2_COUNT_circular",
+      "status": "PASS",
+      "score": 0.6917852084008058,
+      "confusion": [
+        1240,
+        1064,
+        895,
+        4614
+      ],
+      "n_steps": 7813
+    },
+    {
+      "check": "confusion_IU_PCR_R2_COUNT_confidence",
+      "status": "PASS",
+      "score": 0.671432899567724,
+      "confusion": [
+        739,
+        1282,
+        565,
+        8162
+      ],
+      "n_steps": 10748
+    },
+    {
+      "check": "confusion_IU_PCR_R2_COUNT_correct",
+      "status": "PASS",
+      "score": 0.4712486576198379,
+      "confusion": [
+        0,
+        1178,
+        0,
+        9654
+      ],
+      "n_steps": 10832
+    },
+    {
+      "check": "confusion_IU_PCR_R2_COUNT_counterfactual",
+      "status": "PASS",
+      "score": 0.6459007284370677,
+      "confusion": [
+        878,
+        1133,
+        1196,
+        7270
+      ],
+      "n_steps": 10477
+    },
+    {
+      "check": "confusion_IU_PCR_R2_COUNT_deception",
+      "status": "PASS",
+      "score": 0.6004610628057442,
+      "confusion": [
+        592,
+        1197,
+        1108,
+        7173
+      ],
+      "n_steps": 10070
+    },
+    {
+      "check": "confusion_IU_PCR_R2_COUNT_domain_inconsistency",
+      "status": "PASS",
+      "score": 0.6645672741529113,
+      "confusion": [
+        882,
+        1632,
+        456,
+        7061
+      ],
+      "n_steps": 10031
+    },
+    {
+      "check": "confusion_IU_PCR_R2_COUNT_missing_condition",
+      "status": "PASS",
+      "score": 0.6082806729474804,
+      "confusion": [
+        850,
+        1608,
+        1019,
+        6136
+      ],
+      "n_steps": 9613
+    },
+    {
+      "check": "confusion_IU_PCR_R2_COUNT_multi_solutions",
+      "status": "PASS",
+      "score": 0.9003925417075564,
+      "confusion": [
+        0,
+        406,
+        0,
+        1835
+      ],
+      "n_steps": 2241
+    },
+    {
+      "check": "confusion_IU_PCR_R2_COUNT_redundency",
+      "status": "PASS",
+      "score": 0.6716288602777638,
+      "confusion": [
+        800,
+        1259,
+        737,
+        8817
+      ],
+      "n_steps": 11613
+    },
+    {
+      "check": "confusion_IU_PCR_R2_COUNT_step_contradiction",
+      "status": "PASS",
+      "score": 0.6635402034630544,
+      "confusion": [
+        708,
+        1393,
+        484,
+        8180
+      ],
+      "n_steps": 10765
+    },
+    {
+      "check": "PS_DR_MS_sensitivity_IU_PCR_R2_COUNT",
+      "status": "PASS"
+    },
+    {
+      "check": "exact_flags_IU_PCR_ENTROPY_GATE_Q80",
+      "status": "PASS"
+    },
+    {
+      "check": "confusion_IU_PCR_ENTROPY_GATE_Q80_ALL_NONCONTROL",
+      "status": "PASS",
+      "score": 0.6483153538970301,
+      "confusion": [
+        5336,
+        7724,
+        7813,
+        62498
+      ],
+      "n_steps": 83371
+    },
+    {
+      "check": "confusion_IU_PCR_ENTROPY_GATE_Q80_circular",
+      "status": "PASS",
+      "score": 0.6678951988245501,
+      "confusion": [
+        906,
+        640,
+        1229,
+        5038
+      ],
+      "n_steps": 7813
+    },
+    {
+      "check": "confusion_IU_PCR_ENTROPY_GATE_Q80_confidence",
+      "status": "PASS",
+      "score": 0.6721055517742565,
+      "confusion": [
+        602,
+        896,
+        702,
+        8548
+      ],
+      "n_steps": 10748
+    },
+    {
+      "check": "confusion_IU_PCR_ENTROPY_GATE_Q80_correct",
+      "status": "PASS",
+      "score": 0.4651656544709426,
+      "confusion": [
+        0,
+        1411,
+        0,
+        9421
+      ],
+      "n_steps": 10832
+    },
+    {
+      "check": "confusion_IU_PCR_ENTROPY_GATE_Q80_counterfactual",
+      "status": "PASS",
+      "score": 0.6307582304511266,
+      "confusion": [
+        724,
+        898,
+        1350,
+        7505
+      ],
+      "n_steps": 10477
+    },
+    {
+      "check": "confusion_IU_PCR_ENTROPY_GATE_Q80_deception",
+      "status": "PASS",
+      "score": 0.5809591715913962,
+      "confusion": [
+        479,
+        1053,
+        1221,
+        7317
+      ],
+      "n_steps": 10070
+    },
+    {
+      "check": "confusion_IU_PCR_ENTROPY_GATE_Q80_domain_inconsistency",
+      "status": "PASS",
+      "score": 0.6671857016353606,
+      "confusion": [
+        675,
+        1077,
+        663,
+        7616
+      ],
+      "n_steps": 10031
+    },
+    {
+      "check": "confusion_IU_PCR_ENTROPY_GATE_Q80_missing_condition",
+      "status": "PASS",
+      "score": 0.599113837486286,
+      "confusion": [
+        586,
+        978,
+        1283,
+        6766
+      ],
+      "n_steps": 9613
+    },
+    {
+      "check": "confusion_IU_PCR_ENTROPY_GATE_Q80_multi_solutions",
+      "status": "PASS",
+      "score": 0.9769459027619265,
+      "confusion": [
+        0,
+        101,
+        0,
+        2140
+      ],
+      "n_steps": 2241
+    },
+    {
+      "check": "confusion_IU_PCR_ENTROPY_GATE_Q80_redundency",
+      "status": "PASS",
+      "score": 0.6830728941060717,
+      "confusion": [
+        770,
+        1056,
+        767,
+        9020
+      ],
+      "n_steps": 11613
+    },
+    {
+      "check": "confusion_IU_PCR_ENTROPY_GATE_Q80_step_contradiction",
+      "status": "PASS",
+      "score": 0.6679610253377722,
+      "confusion": [
+        594,
+        1025,
+        598,
+        8548
+      ],
+      "n_steps": 10765
+    },
+    {
+      "check": "PS_DR_MS_sensitivity_IU_PCR_ENTROPY_GATE_Q80",
+      "status": "PASS"
+    },
+    {
+      "check": "exact_flags_ALL_EQ_ANSWER_Z_Q80",
+      "status": "PASS"
+    },
+    {
+      "check": "confusion_ALL_EQ_ANSWER_Z_Q80_ALL_NONCONTROL",
+      "status": "PASS",
+      "score": 0.6474141157800689,
+      "confusion": [
+        6259,
+        10349,
+        6890,
+        59873
+      ],
+      "n_steps": 83371
+    },
+    {
+      "check": "confusion_ALL_EQ_ANSWER_Z_Q80_circular",
+      "status": "PASS",
+      "score": 0.6745373594058099,
+      "confusion": [
+        970,
+        713,
+        1165,
+        4965
+      ],
+      "n_steps": 7813
+    },
+    {
+      "check": "confusion_ALL_EQ_ANSWER_Z_Q80_confidence",
+      "status": "PASS",
+      "score": 0.6728639013860851,
+      "confusion": [
+        737,
+        1262,
+        567,
+        8182
+      ],
+      "n_steps": 10748
+    },
+    {
+      "check": "confusion_ALL_EQ_ANSWER_Z_Q80_correct",
+      "status": "PASS",
+      "score": 0.44254027070145646,
+      "confusion": [
+        0,
+        2233,
+        0,
+        8599
+      ],
+      "n_steps": 10832
+    },
+    {
+      "check": "confusion_ALL_EQ_ANSWER_Z_Q80_counterfactual",
+      "status": "PASS",
+      "score": 0.6333367837996451,
+      "confusion": [
+        840,
+        1183,
+        1234,
+        7220
+      ],
+      "n_steps": 10477
+    },
+    {
+      "check": "confusion_ALL_EQ_ANSWER_Z_Q80_deception",
+      "status": "PASS",
+      "score": 0.5957290431766382,
+      "confusion": [
+        642,
+        1411,
+        1058,
+        6959
+      ],
+      "n_steps": 10070
+    },
+    {
+      "check": "confusion_ALL_EQ_ANSWER_Z_Q80_domain_inconsistency",
+      "status": "PASS",
+      "score": 0.6687566009228414,
+      "confusion": [
+        747,
+        1252,
+        591,
+        7441
+      ],
+      "n_steps": 10031
+    },
+    {
+      "check": "confusion_ALL_EQ_ANSWER_Z_Q80_missing_condition",
+      "status": "PASS",
+      "score": 0.6026280563495354,
+      "confusion": [
+        702,
+        1281,
+        1167,
+        6463
+      ],
+      "n_steps": 9613
+    },
+    {
+      "check": "confusion_ALL_EQ_ANSWER_Z_Q80_multi_solutions",
+      "status": "PASS",
+      "score": 0.8820154652032925,
+      "confusion": [
+        0,
+        473,
+        0,
+        1768
+      ],
+      "n_steps": 2241
+    },
+    {
+      "check": "confusion_ALL_EQ_ANSWER_Z_Q80_redundency",
+      "status": "PASS",
+      "score": 0.6829080415648006,
+      "confusion": [
+        908,
+        1410,
+        629,
+        8666
+      ],
+      "n_steps": 11613
+    },
+    {
+      "check": "confusion_ALL_EQ_ANSWER_Z_Q80_step_contradiction",
+      "status": "PASS",
+      "score": 0.667646778822736,
+      "confusion": [
+        713,
+        1364,
+        479,
+        8209
+      ],
+      "n_steps": 10765
+    },
+    {
+      "check": "PS_DR_MS_sensitivity_ALL_EQ_ANSWER_Z_Q80",
+      "status": "PASS"
+    },
+    {
+      "check": "exact_flags_ALL_EQ_R2_COUNT",
+      "status": "PASS"
+    },
+    {
+      "check": "confusion_ALL_EQ_R2_COUNT_ALL_NONCONTROL",
+      "status": "PASS",
+      "score": 0.648582870567654,
+      "confusion": [
+        6579,
+        11084,
+        6570,
+        59138
+      ],
+      "n_steps": 83371
+    },
+    {
+      "check": "confusion_ALL_EQ_R2_COUNT_circular",
+      "status": "PASS",
+      "score": 0.6820305799785751,
+      "confusion": [
+        1209,
+        1095,
+        926,
+        4583
+      ],
+      "n_steps": 7813
+    },
+    {
+      "check": "confusion_ALL_EQ_R2_COUNT_confidence",
+      "status": "PASS",
+      "score": 0.6632498532115331,
+      "confusion": [
+        716,
+        1305,
+        588,
+        8139
+      ],
+      "n_steps": 10748
+    },
+    {
+      "check": "confusion_ALL_EQ_R2_COUNT_correct",
+      "status": "PASS",
+      "score": 0.4712486576198379,
+      "confusion": [
+        0,
+        1178,
+        0,
+        9654
+      ],
+      "n_steps": 10832
+    },
+    {
+      "check": "confusion_ALL_EQ_R2_COUNT_counterfactual",
+      "status": "PASS",
+      "score": 0.6376906122222123,
+      "confusion": [
+        851,
+        1160,
+        1223,
+        7243
+      ],
+      "n_steps": 10477
+    },
+    {
+      "check": "confusion_ALL_EQ_R2_COUNT_deception",
+      "status": "PASS",
+      "score": 0.5994210482186876,
+      "confusion": [
+        589,
+        1200,
+        1111,
+        7170
+      ],
+      "n_steps": 10070
+    },
+    {
+      "check": "confusion_ALL_EQ_R2_COUNT_domain_inconsistency",
+      "status": "PASS",
+      "score": 0.661675612723195,
+      "confusion": [
+        873,
+        1641,
+        465,
+        7052
+      ],
+      "n_steps": 10031
+    },
+    {
+      "check": "confusion_ALL_EQ_R2_COUNT_missing_condition",
+      "status": "PASS",
+      "score": 0.6088771241496922,
+      "confusion": [
+        852,
+        1606,
+        1017,
+        6138
+      ],
+      "n_steps": 9613
+    },
+    {
+      "check": "confusion_ALL_EQ_R2_COUNT_multi_solutions",
+      "status": "PASS",
+      "score": 0.9003925417075564,
+      "confusion": [
+        0,
+        406,
+        0,
+        1835
+      ],
+      "n_steps": 2241
+    },
+    {
+      "check": "confusion_ALL_EQ_R2_COUNT_redundency",
+      "status": "PASS",
+      "score": 0.6640611887210389,
+      "confusion": [
+        777,
+        1282,
+        760,
+        8794
+      ],
+      "n_steps": 11613
+    },
+    {
+      "check": "confusion_ALL_EQ_R2_COUNT_step_contradiction",
+      "status": "PASS",
+      "score": 0.6649742356273036,
+      "confusion": [
+        712,
+        1389,
+        480,
+        8184
+      ],
+      "n_steps": 10765
+    },
+    {
+      "check": "PS_DR_MS_sensitivity_ALL_EQ_R2_COUNT",
+      "status": "PASS"
+    },
+    {
+      "check": "exact_flags_ALL_EQ_ENTROPY_GATE_Q80",
+      "status": "PASS"
+    },
+    {
+      "check": "confusion_ALL_EQ_ENTROPY_GATE_Q80_ALL_NONCONTROL",
+      "status": "PASS",
+      "score": 0.6423810579650794,
+      "confusion": [
+        5182,
+        7788,
+        7967,
+        62434
+      ],
+      "n_steps": 83371
+    },
+    {
+      "check": "confusion_ALL_EQ_ENTROPY_GATE_Q80_circular",
+      "status": "PASS",
+      "score": 0.6646967577217368,
+      "confusion": [
+        897,
+        649,
+        1238,
+        5029
+      ],
+      "n_steps": 7813
+    },
+    {
+      "check": "confusion_ALL_EQ_ENTROPY_GATE_Q80_confidence",
+      "status": "PASS",
+      "score": 0.6608144376353774,
+      "confusion": [
+        571,
+        913,
+        733,
+        8531
+      ],
+      "n_steps": 10748
+    },
+    {
+      "check": "confusion_ALL_EQ_ENTROPY_GATE_Q80_correct",
+      "status": "PASS",
+      "score": 0.46656160740667785,
+      "confusion": [
+        0,
+        1358,
+        0,
+        9474
+      ],
+      "n_steps": 10832
+    },
+    {
+      "check": "confusion_ALL_EQ_ENTROPY_GATE_Q80_counterfactual",
+      "status": "PASS",
+      "score": 0.6191311959796657,
+      "confusion": [
+        679,
+        905,
+        1395,
+        7498
+      ],
+      "n_steps": 10477
+    },
+    {
+      "check": "confusion_ALL_EQ_ENTROPY_GATE_Q80_deception",
+      "status": "PASS",
+      "score": 0.579870254024528,
+      "confusion": [
+        466,
+        1019,
+        1234,
+        7351
+      ],
+      "n_steps": 10070
+    },
+    {
+      "check": "confusion_ALL_EQ_ENTROPY_GATE_Q80_domain_inconsistency",
+      "status": "PASS",
+      "score": 0.6638715799018388,
+      "confusion": [
+        665,
+        1082,
+        673,
+        7611
+      ],
+      "n_steps": 10031
+    },
+    {
+      "check": "confusion_ALL_EQ_ENTROPY_GATE_Q80_missing_condition",
+      "status": "PASS",
+      "score": 0.599854499945216,
+      "confusion": [
+        583,
+        960,
+        1286,
+        6784
+      ],
+      "n_steps": 9613
+    },
+    {
+      "check": "confusion_ALL_EQ_ENTROPY_GATE_Q80_multi_solutions",
+      "status": "PASS",
+      "score": 0.976478648093172,
+      "confusion": [
+        0,
+        103,
+        0,
+        2138
+      ],
+      "n_steps": 2241
+    },
+    {
+      "check": "confusion_ALL_EQ_ENTROPY_GATE_Q80_redundency",
+      "status": "PASS",
+      "score": 0.6686128167241727,
+      "confusion": [
+        730,
+        1102,
+        807,
+        8974
+      ],
+      "n_steps": 11613
+    },
+    {
+      "check": "confusion_ALL_EQ_ENTROPY_GATE_Q80_step_contradiction",
+      "status": "PASS",
+      "score": 0.6639482176635243,
+      "confusion": [
+        591,
+        1055,
+        601,
+        8518
+      ],
+      "n_steps": 10765
+    },
+    {
+      "check": "PS_DR_MS_sensitivity_ALL_EQ_ENTROPY_GATE_Q80",
+      "status": "PASS"
+    },
+    {
+      "check": "exact_flags_DS_FILTER_EQ_ANSWER_Z_Q80",
+      "status": "PASS"
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_ANSWER_Z_Q80_ALL_NONCONTROL",
+      "status": "PASS",
+      "score": 0.6525167436564956,
+      "confusion": [
+        6376,
+        10204,
+        6773,
+        60018
+      ],
+      "n_steps": 83371
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_ANSWER_Z_Q80_circular",
+      "status": "PASS",
+      "score": 0.682420601911584,
+      "confusion": [
+        986,
+        677,
+        1149,
+        5001
+      ],
+      "n_steps": 7813
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_ANSWER_Z_Q80_confidence",
+      "status": "PASS",
+      "score": 0.6821920756070061,
+      "confusion": [
+        760,
+        1228,
+        544,
+        8216
+      ],
+      "n_steps": 10748
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_ANSWER_Z_Q80_correct",
+      "status": "PASS",
+      "score": 0.4417358140493738,
+      "confusion": [
+        0,
+        2261,
+        0,
+        8571
+      ],
+      "n_steps": 10832
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_ANSWER_Z_Q80_counterfactual",
+      "status": "PASS",
+      "score": 0.6416832669897146,
+      "confusion": [
+        874,
+        1172,
+        1200,
+        7231
+      ],
+      "n_steps": 10477
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_ANSWER_Z_Q80_deception",
+      "status": "PASS",
+      "score": 0.5996571774070303,
+      "confusion": [
+        653,
+        1396,
+        1047,
+        6974
+      ],
+      "n_steps": 10070
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_ANSWER_Z_Q80_domain_inconsistency",
+      "status": "PASS",
+      "score": 0.671711222358176,
+      "confusion": [
+        760,
+        1256,
+        578,
+        7437
+      ],
+      "n_steps": 10031
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_ANSWER_Z_Q80_missing_condition",
+      "status": "PASS",
+      "score": 0.5989338939282147,
+      "confusion": [
+        694,
+        1302,
+        1175,
+        6442
+      ],
+      "n_steps": 9613
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_ANSWER_Z_Q80_multi_solutions",
+      "status": "PASS",
+      "score": 0.8831298280588089,
+      "confusion": [
+        0,
+        469,
+        0,
+        1772
+      ],
+      "n_steps": 2241
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_ANSWER_Z_Q80_redundency",
+      "status": "PASS",
+      "score": 0.6919563354859779,
+      "confusion": [
+        923,
+        1347,
+        614,
+        8729
+      ],
+      "n_steps": 11613
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_ANSWER_Z_Q80_step_contradiction",
+      "status": "PASS",
+      "score": 0.671747863703555,
+      "confusion": [
+        726,
+        1357,
+        466,
+        8216
+      ],
+      "n_steps": 10765
+    },
+    {
+      "check": "PS_DR_MS_sensitivity_DS_FILTER_EQ_ANSWER_Z_Q80",
+      "status": "PASS"
+    },
+    {
+      "check": "exact_flags_DS_FILTER_EQ_R2_COUNT",
+      "status": "PASS"
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_R2_COUNT_ALL_NONCONTROL",
+      "status": "PASS",
+      "score": 0.6526834669573143,
+      "confusion": [
+        6682,
+        10981,
+        6467,
+        59241
+      ],
+      "n_steps": 83371
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_R2_COUNT_circular",
+      "status": "PASS",
+      "score": 0.6917852084008058,
+      "confusion": [
+        1240,
+        1064,
+        895,
+        4614
+      ],
+      "n_steps": 7813
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_R2_COUNT_confidence",
+      "status": "PASS",
+      "score": 0.6717886841919063,
+      "confusion": [
+        740,
+        1281,
+        564,
+        8163
+      ],
+      "n_steps": 10748
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_R2_COUNT_correct",
+      "status": "PASS",
+      "score": 0.4712486576198379,
+      "confusion": [
+        0,
+        1178,
+        0,
+        9654
+      ],
+      "n_steps": 10832
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_R2_COUNT_counterfactual",
+      "status": "PASS",
+      "score": 0.64255586627546,
+      "confusion": [
+        867,
+        1144,
+        1207,
+        7259
+      ],
+      "n_steps": 10477
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_R2_COUNT_deception",
+      "status": "PASS",
+      "score": 0.5997677197477065,
+      "confusion": [
+        590,
+        1199,
+        1110,
+        7171
+      ],
+      "n_steps": 10070
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_R2_COUNT_domain_inconsistency",
+      "status": "PASS",
+      "score": 0.6652098655817371,
+      "confusion": [
+        884,
+        1630,
+        454,
+        7063
+      ],
+      "n_steps": 10031
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_R2_COUNT_missing_condition",
+      "status": "PASS",
+      "score": 0.6088771241496922,
+      "confusion": [
+        852,
+        1606,
+        1017,
+        6138
+      ],
+      "n_steps": 9613
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_R2_COUNT_multi_solutions",
+      "status": "PASS",
+      "score": 0.9003925417075564,
+      "confusion": [
+        0,
+        406,
+        0,
+        1835
+      ],
+      "n_steps": 2241
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_R2_COUNT_redundency",
+      "status": "PASS",
+      "score": 0.6696546850890529,
+      "confusion": [
+        794,
+        1265,
+        743,
+        8811
+      ],
+      "n_steps": 11613
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_R2_COUNT_step_contradiction",
+      "status": "PASS",
+      "score": 0.6660497597504904,
+      "confusion": [
+        715,
+        1386,
+        477,
+        8187
+      ],
+      "n_steps": 10765
+    },
+    {
+      "check": "PS_DR_MS_sensitivity_DS_FILTER_EQ_R2_COUNT",
+      "status": "PASS"
+    },
+    {
+      "check": "exact_flags_DS_FILTER_EQ_ENTROPY_GATE_Q80",
+      "status": "PASS"
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_ENTROPY_GATE_Q80_ALL_NONCONTROL",
+      "status": "PASS",
+      "score": 0.6476434118570498,
+      "confusion": [
+        5324,
+        7747,
+        7825,
+        62475
+      ],
+      "n_steps": 83371
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_ENTROPY_GATE_Q80_circular",
+      "status": "PASS",
+      "score": 0.6720138692006932,
+      "confusion": [
+        914,
+        621,
+        1221,
+        5057
+      ],
+      "n_steps": 7813
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_ENTROPY_GATE_Q80_confidence",
+      "status": "PASS",
+      "score": 0.6691005945098805,
+      "confusion": [
+        598,
+        913,
+        706,
+        8531
+      ],
+      "n_steps": 10748
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_ENTROPY_GATE_Q80_correct",
+      "status": "PASS",
+      "score": 0.46490144741392087,
+      "confusion": [
+        0,
+        1421,
+        0,
+        9411
+      ],
+      "n_steps": 10832
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_ENTROPY_GATE_Q80_counterfactual",
+      "status": "PASS",
+      "score": 0.6280690937286885,
+      "confusion": [
+        714,
+        901,
+        1360,
+        7502
+      ],
+      "n_steps": 10477
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_ENTROPY_GATE_Q80_deception",
+      "status": "PASS",
+      "score": 0.5826937024862348,
+      "confusion": [
+        474,
+        1013,
+        1226,
+        7357
+      ],
+      "n_steps": 10070
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_ENTROPY_GATE_Q80_domain_inconsistency",
+      "status": "PASS",
+      "score": 0.6681035782918813,
+      "confusion": [
+        682,
+        1087,
+        656,
+        7606
+      ],
+      "n_steps": 10031
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_ENTROPY_GATE_Q80_missing_condition",
+      "status": "PASS",
+      "score": 0.5966574787975261,
+      "confusion": [
+        581,
+        991,
+        1288,
+        6753
+      ],
+      "n_steps": 9613
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_ENTROPY_GATE_Q80_multi_solutions",
+      "status": "PASS",
+      "score": 0.9755428571428572,
+      "confusion": [
+        0,
+        107,
+        0,
+        2134
+      ],
+      "n_steps": 2241
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_ENTROPY_GATE_Q80_redundency",
+      "status": "PASS",
+      "score": 0.6789309072045386,
+      "confusion": [
+        757,
+        1065,
+        780,
+        9011
+      ],
+      "n_steps": 11613
+    },
+    {
+      "check": "confusion_DS_FILTER_EQ_ENTROPY_GATE_Q80_step_contradiction",
+      "status": "PASS",
+      "score": 0.6684970933800738,
+      "confusion": [
+        604,
+        1049,
+        588,
+        8524
+      ],
+      "n_steps": 10765
+    },
+    {
+      "check": "PS_DR_MS_sensitivity_DS_FILTER_EQ_ENTROPY_GATE_Q80",
+      "status": "PASS"
+    },
+    {
+      "check": "exact_flags_PRM_NATIVE_NATIVE_0_5",
+      "status": "PASS"
+    },
+    {
+      "check": "confusion_PRM_NATIVE_NATIVE_0_5_ALL_NONCONTROL",
+      "status": "PASS",
+      "score": 0.6545676654529491,
+      "confusion": [
+        4006,
+        3206,
+        9143,
+        67016
+      ],
+      "n_steps": 83371
+    },
+    {
+      "check": "confusion_PRM_NATIVE_NATIVE_0_5_circular",
+      "status": "PASS",
+      "score": 0.5495911867886193,
+      "confusion": [
+        343,
+        217,
+        1792,
+        5461
+      ],
+      "n_steps": 7813
+    },
+    {
+      "check": "confusion_PRM_NATIVE_NATIVE_0_5_confidence",
+      "status": "PASS",
+      "score": 0.7849620319716755,
+      "confusion": [
+        787,
+        445,
+        517,
+        8999
+      ],
+      "n_steps": 10748
+    },
+    {
+      "check": "confusion_PRM_NATIVE_NATIVE_0_5_correct",
+      "status": "PASS",
+      "score": 0.49519992543573493,
+      "confusion": [
+        0,
+        206,
+        0,
+        10626
+      ],
+      "n_steps": 10832
+    },
+    {
+      "check": "confusion_PRM_NATIVE_NATIVE_0_5_counterfactual",
+      "status": "PASS",
+      "score": 0.716783003428304,
+      "confusion": [
+        893,
+        432,
+        1181,
+        7971
+      ],
+      "n_steps": 10477
+    },
+    {
+      "check": "confusion_PRM_NATIVE_NATIVE_0_5_deception",
+      "status": "PASS",
+      "score": 0.6901812753681882,
+      "confusion": [
+        627,
+        378,
+        1073,
+        7992
+      ],
+      "n_steps": 10070
+    },
+    {
+      "check": "confusion_PRM_NATIVE_NATIVE_0_5_domain_inconsistency",
+      "status": "PASS",
+      "score": 0.6639444620294545,
+      "confusion": [
+        522,
+        670,
+        816,
+        8023
+      ],
+      "n_steps": 10031
+    },
+    {
+      "check": "confusion_PRM_NATIVE_NATIVE_0_5_missing_condition",
+      "status": "PASS",
+      "score": 0.5763938141194407,
+      "confusion": [
+        336,
+        334,
+        1533,
+        7410
+      ],
+      "n_steps": 9613
+    },
+    {
+      "check": "confusion_PRM_NATIVE_NATIVE_0_5_multi_solutions",
+      "status": "PASS",
+      "score": 0.9986595174262735,
+      "confusion": [
+        0,
+        6,
+        0,
+        2235
+      ],
+      "n_steps": 2241
+    },
+    {
+      "check": "confusion_PRM_NATIVE_NATIVE_0_5_redundency",
+      "status": "PASS",
+      "score": 0.49041265243740184,
+      "confusion": [
+        53,
+        198,
+        1484,
+        9878
+      ],
+      "n_steps": 11613
+    },
+    {
+      "check": "confusion_PRM_NATIVE_NATIVE_0_5_step_contradiction",
+      "status": "PASS",
+      "score": 0.6728675955049914,
+      "confusion": [
+        445,
+        526,
+        747,
+        9047
+      ],
+      "n_steps": 10765
+    },
+    {
+      "check": "PS_DR_MS_sensitivity_PRM_NATIVE_NATIVE_0_5",
+      "status": "PASS"
+    },
+    {
+      "check": "matched_position_length_LSML_CONT_ALL_NONCONTROL",
+      "status": "PASS",
+      "auc": 0.706397829840488,
+      "n_answers": 3021,
+      "n_pairs": 7028
+    },
+    {
+      "check": "matched_position_length_LSML_CONT_redundency",
+      "status": "PASS",
+      "auc": 0.817086268076257,
+      "n_answers": 465,
+      "n_pairs": 1292
+    },
+    {
+      "check": "matched_position_length_LSML_CONT_circular",
+      "status": "PASS",
+      "auc": 0.7193768753292562,
+      "n_answers": 315,
+      "n_pairs": 618
+    },
+    {
+      "check": "matched_position_length_LSML_CONT_counterfactual",
+      "status": "PASS",
+      "auc": 0.6816413031886178,
+      "n_answers": 391,
+      "n_pairs": 1013
+    },
+    {
+      "check": "matched_position_length_LSML_CONT_step_contradiction",
+      "status": "PASS",
+      "auc": 0.752302756543824,
+      "n_answers": 381,
+      "n_pairs": 861
+    },
+    {
+      "check": "matched_position_length_IU_PCR_ALL_NONCONTROL",
+      "status": "PASS",
+      "auc": 0.7033419854096851,
+      "n_answers": 3021,
+      "n_pairs": 7028
+    },
+    {
+      "check": "matched_position_length_IU_PCR_redundency",
+      "status": "PASS",
+      "auc": 0.7945133615920602,
+      "n_answers": 465,
+      "n_pairs": 1292
+    },
+    {
+      "check": "matched_position_length_IU_PCR_circular",
+      "status": "PASS",
+      "auc": 0.723536498774594,
+      "n_answers": 315,
+      "n_pairs": 618
+    },
+    {
+      "check": "matched_position_length_IU_PCR_counterfactual",
+      "status": "PASS",
+      "auc": 0.6906497618134447,
+      "n_answers": 391,
+      "n_pairs": 1013
+    },
+    {
+      "check": "matched_position_length_IU_PCR_step_contradiction",
+      "status": "PASS",
+      "auc": 0.7551024065875684,
+      "n_answers": 381,
+      "n_pairs": 861
+    },
+    {
+      "check": "matched_position_length_ALL_EQ_ALL_NONCONTROL",
+      "status": "PASS",
+      "auc": 0.7102066893333806,
+      "n_answers": 3021,
+      "n_pairs": 7028
+    },
+    {
+      "check": "matched_position_length_ALL_EQ_redundency",
+      "status": "PASS",
+      "auc": 0.7912944342046121,
+      "n_answers": 465,
+      "n_pairs": 1292
+    },
+    {
+      "check": "matched_position_length_ALL_EQ_circular",
+      "status": "PASS",
+      "auc": 0.7224053459767746,
+      "n_answers": 315,
+      "n_pairs": 618
+    },
+    {
+      "check": "matched_position_length_ALL_EQ_counterfactual",
+      "status": "PASS",
+      "auc": 0.6834596870402498,
+      "n_answers": 391,
+      "n_pairs": 1013
+    },
+    {
+      "check": "matched_position_length_ALL_EQ_step_contradiction",
+      "status": "PASS",
+      "auc": 0.7673909479243809,
+      "n_answers": 381,
+      "n_pairs": 861
+    },
+    {
+      "check": "matched_position_length_DS_FILTER_EQ_ALL_NONCONTROL",
+      "status": "PASS",
+      "auc": 0.7094442316244407,
+      "n_answers": 3021,
+      "n_pairs": 7028
+    },
+    {
+      "check": "matched_position_length_DS_FILTER_EQ_redundency",
+      "status": "PASS",
+      "auc": 0.8021312395325187,
+      "n_answers": 465,
+      "n_pairs": 1292
+    },
+    {
+      "check": "matched_position_length_DS_FILTER_EQ_circular",
+      "status": "PASS",
+      "auc": 0.7261619597333883,
+      "n_answers": 315,
+      "n_pairs": 618
+    },
+    {
+      "check": "matched_position_length_DS_FILTER_EQ_counterfactual",
+      "status": "PASS",
+      "auc": 0.6907082758105776,
+      "n_answers": 391,
+      "n_pairs": 1013
+    },
+    {
+      "check": "matched_position_length_DS_FILTER_EQ_step_contradiction",
+      "status": "PASS",
+      "auc": 0.7613845017604546,
+      "n_answers": 381,
+      "n_pairs": 861
+    },
+    {
+      "check": "matched_position_length_PRM_NATIVE_ALL_NONCONTROL",
+      "status": "PASS",
+      "auc": 0.7087024663662256,
+      "n_answers": 3021,
+      "n_pairs": 7028
+    },
+    {
+      "check": "matched_position_length_PRM_NATIVE_redundency",
+      "status": "PASS",
+      "auc": 0.6196593937722971,
+      "n_answers": 465,
+      "n_pairs": 1292
+    },
+    {
+      "check": "matched_position_length_PRM_NATIVE_circular",
+      "status": "PASS",
+      "auc": 0.6767632103346389,
+      "n_answers": 315,
+      "n_pairs": 618
+    },
+    {
+      "check": "matched_position_length_PRM_NATIVE_counterfactual",
+      "status": "PASS",
+      "auc": 0.7536979041135052,
+      "n_answers": 391,
+      "n_pairs": 1013
+    },
+    {
+      "check": "matched_position_length_PRM_NATIVE_step_contradiction",
+      "status": "PASS",
+      "auc": 0.7240996428520078,
+      "n_answers": 381,
+      "n_pairs": 861
+    },
+    {
+      "check": "MoM_posterior_Bayes_and_quota",
+      "status": "PASS",
+      "posterior_max_abs": 6.661338147750939e-16
+    },
+    {
+      "check": "half_group_disjoint_353_354",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_missing_condition_LSML_CONT_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_missing_condition_LSML_CONT_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_missing_condition_LSML_CONT_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_missing_condition_LSML_CONT_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_missing_condition_LSML_CONT_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_step_contradiction_IU_PCR_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_step_contradiction_IU_PCR_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_step_contradiction_IU_PCR_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_step_contradiction_IU_PCR_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_step_contradiction_IU_PCR_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_confidence_LSML_CONT_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_confidence_LSML_CONT_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_confidence_LSML_CONT_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_confidence_LSML_CONT_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_confidence_LSML_CONT_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_missing_condition_IU_PCR_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_missing_condition_IU_PCR_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_missing_condition_IU_PCR_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_missing_condition_IU_PCR_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_missing_condition_IU_PCR_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_confidence_IU_PCR_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_confidence_IU_PCR_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_confidence_IU_PCR_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_confidence_IU_PCR_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_confidence_IU_PCR_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_circular_LSML_CONT_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_circular_LSML_CONT_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_circular_LSML_CONT_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_circular_LSML_CONT_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_circular_LSML_CONT_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_domain_inconsistency_IU_PCR_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_domain_inconsistency_IU_PCR_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_domain_inconsistency_IU_PCR_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_domain_inconsistency_IU_PCR_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_domain_inconsistency_IU_PCR_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_step_contradiction_LSML_CONT_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_step_contradiction_LSML_CONT_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_step_contradiction_LSML_CONT_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_step_contradiction_LSML_CONT_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_step_contradiction_LSML_CONT_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_domain_inconsistency_LSML_CONT_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_domain_inconsistency_LSML_CONT_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_domain_inconsistency_LSML_CONT_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_domain_inconsistency_LSML_CONT_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_domain_inconsistency_LSML_CONT_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_redundency_LSML_CONT_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_redundency_LSML_CONT_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_redundency_LSML_CONT_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_redundency_LSML_CONT_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_redundency_LSML_CONT_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_redundency_IU_PCR_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_redundency_IU_PCR_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_redundency_IU_PCR_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_redundency_IU_PCR_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_redundency_IU_PCR_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_deception_LSML_CONT_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_deception_LSML_CONT_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_deception_LSML_CONT_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_deception_LSML_CONT_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_deception_LSML_CONT_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_circular_IU_PCR_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_circular_IU_PCR_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_circular_IU_PCR_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_circular_IU_PCR_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_circular_IU_PCR_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_counterfactual_IU_PCR_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_counterfactual_IU_PCR_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_counterfactual_IU_PCR_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_counterfactual_IU_PCR_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_counterfactual_IU_PCR_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_deception_IU_PCR_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_deception_IU_PCR_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_deception_IU_PCR_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_deception_IU_PCR_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_deception_IU_PCR_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_counterfactual_LSML_CONT_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_counterfactual_LSML_CONT_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_counterfactual_LSML_CONT_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_counterfactual_LSML_CONT_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LOTO_disjoint_counterfactual_LSML_CONT_4",
+      "status": "PASS"
+    },
+    {
+      "check": "independent_outer0_N16_LR_refit",
+      "status": "PASS",
+      "C": 10.0,
+      "max_abs": 1.4774848011711583e-12
+    },
+    {
+      "check": "LR_saved_group_partitions_N14_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N14_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N14_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N14_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N14_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N14_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N14_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N14_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N14_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N14_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N14_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N14_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N14_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N14_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N14_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N13_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N13_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N13_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N13_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N13_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N13_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N13_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N13_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N13_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N13_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N13_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N13_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N13_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N13_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N13_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N25_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N25_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N25_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N25_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N25_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N25_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N25_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N25_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N25_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N25_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N25_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N25_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N25_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N25_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N25_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N22_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N22_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N22_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N22_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N22_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N22_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N22_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N22_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N22_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N22_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N22_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N22_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N22_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N22_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N22_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N40_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N40_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N40_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N40_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N40_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N40_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N40_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N40_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N40_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N40_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N40_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N40_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N40_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N40_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N40_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N53_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N53_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N53_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N53_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N53_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N53_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N53_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N53_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N53_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N53_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N53_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N53_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N53_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N53_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N53_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N16_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N16_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N16_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N16_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N16_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N16_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N16_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N16_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N16_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N16_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N16_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N16_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N16_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N16_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N16_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N11_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N11_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N11_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N11_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N11_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N11_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N11_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N11_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N11_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N11_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N11_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N11_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N11_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N11_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N11_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N43_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N43_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N43_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N43_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N43_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N43_4",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N43_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N43_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N43_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N43_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N43_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N43_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N43_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N43_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N43_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N56_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N56_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N56_3",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N56_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N56_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N56_2",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N56_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N56_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N56_0",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_saved_group_partitions_N56_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_inner_disjoint_N56_1",
+      "status": "PASS"
+    },
+    {
+      "check": "LR_affine_precision_N56_1",
+      "status": "PASS"
+    }
+  ],
+  "scope": "Independent direct pair/contingency/decision/control/Bayes replay; one LR fit; all saved group partitions",
+  "not_rerun": [
+    "Every nested LR C/selector fit",
+    "all raw entropy values",
+    "full final HTML pending"
+  ]
+}

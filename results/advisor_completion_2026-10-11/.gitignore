@@ -1,0 +1,14 @@
+# Keep readable archive evidence despite the root's generic output ignores.
+!**/*.svg
+!**/*.png
+!**/*.txt
+!**/*_SUMMARY.json
+!**/*_summary.json
+!sources/research/.claude/
+!sources/research/.claude/**
+# Large raw/derived payloads and runtime caches always stay outside Git.
+*.npz
+*.pkl
+__pycache__/
+mpl_cache/
+.pytest_cache/
