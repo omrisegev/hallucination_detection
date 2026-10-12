@@ -1,0 +1,203 @@
+"""Freeze and evaluate graph/conditioning interaction on saved original Joint fits."""
+import os
+for key in ('OMP_NUM_THREADS','MKL_NUM_THREADS','OPENBLAS_NUM_THREADS','NUMEXPR_NUM_THREADS'):os.environ[key]='1'
+import argparse
+from concurrent.futures import ProcessPoolExecutor,wait,FIRST_COMPLETED
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+import sys
+import time
+import numpy as np
+ROOT=Path(__file__).resolve().parents[1];OUT=ROOT/'results/fusion_graph_conditioning_v1'
+PARENT=ROOT/'results/fusion_native_conditioning_v1';ORIGINAL=ROOT/'results/fusion_replication_v1';SOURCE=ROOT/'results/localization_source_group_audit_v1'
+sys.path.insert(0,str(ROOT/'local_cache/short_cycle01_code'))
+import spectral_utils
+spectral_utils.__path__.append(str(ROOT/'spectral_utils'))
+from spectral_utils.fusion_graph_conditioning import ARMS,PARENT_ARMS,CONDITIONS,FAMILIES,GRAPHS,score_graph_conditioning
+from spectral_utils.fusion_benchmark_bootstrap import paired_source_group_intervals
+
+
+def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+def load(p):return json.loads(Path(p).read_text(encoding='utf-8'))
+def safe(x):
+    if isinstance(x,dict):return {str(k):safe(v) for k,v in x.items()}
+    if isinstance(x,(list,tuple,np.ndarray)):return [safe(v) for v in x]
+    if isinstance(x,(bool,np.bool_)):return bool(x)
+    if isinstance(x,np.integer):return int(x)
+    if isinstance(x,(float,np.floating)):return float(x) if np.isfinite(x) else None
+    return x
+def save(p,x):
+    p=Path(p);p.parent.mkdir(parents=True,exist_ok=True);temp=p.with_suffix(p.suffix+'.tmp')
+    temp.write_text(json.dumps(safe(x),indent=2,allow_nan=False),encoding='utf-8')
+    for attempt in range(7):
+        try:temp.replace(p);return
+        except PermissionError:
+            if attempt==6:raise
+            time.sleep(.025*2**attempt)
+def module(p,name):
+    spec=importlib.util.spec_from_file_location(name,p);obj=importlib.util.module_from_spec(spec);spec.loader.exec_module(obj);return obj
+
+
+def registered_pairs():
+    pairs=[]
+    for family in FAMILIES:
+        simple='moment' if family=='single' else family
+        for condition in CONDITIONS:
+            real=f'{family}__cond{condition}_graph010';perm=f'{family}__cond{condition}_graph_perm'
+            pairs += [(real,f'{family}__cond{condition}'),(real,perm),(real,family+'__graph010'),
+                      (real,simple+'__iu'),(real,simple+'__equal'),(real,family+'__equal_graph010'),
+                      (perm,family+'__equal_graph_perm')]
+        pairs += [(family+'__equal_graph010',simple+'__equal'),
+                  (family+'__equal_graph010',family+'__equal_graph_perm')]
+    for condition in CONDITIONS:
+        pairs += [(f'dual__cond{condition}_graph010','context__equal'),
+                  (f'dual__cond{condition}_graph010',f'single__cond{condition}_graph010'),
+                  (f'context__cond{condition}_graph010',f'moment__cond{condition}_graph010')]
+    assert len(pairs)==len(set(pairs))==101
+    assert all(a in ARMS and b in ARMS for a,b in pairs)
+    return pairs
+
+
+def prepare():
+    if (OUT/'MANIFEST.json').exists():verify();print('Existing manifest verified.');return
+    p=load(PARENT/'MANIFEST.json');prior_review=load(PARENT/'REVIEW.json')
+    assert p['scoring_namespace']=='localization-cached-v1-20260907'
+    assert prior_review['status']=='PASS'
+    for path,h in {**prior_review['hashes'],**prior_review['review_dependencies']}.items():assert sha(path)==h,path
+    assert sha(ROOT/'scripts/review_fusion_native_conditioning_v1.py')==prior_review['review_script_sha256']
+    test=load(OUT/'TEST_EXECUTION.json');assert test['exit_code']==0 and test['test_count']==3
+    for path,h in test['source_hashes'].items():assert sha(path)==h,path
+    assert sha(OUT/'TESTS.txt')==test['output_sha256']
+    paths=[Path(__file__),ROOT/'spectral_utils/fusion_graph_conditioning.py',ROOT/'tests/test_fusion_graph_conditioning.py',
+        OUT/'TESTS.txt',OUT/'TEST_EXECUTION.json',ROOT/'scripts/run_answer_localization_v2.py',
+        ROOT/'docs/experiments/FUSION_GRAPH_CONDITIONING_V1.md',SOURCE/'RELEASE_V2.json',
+        PARENT/'MANIFEST.json',PARENT/'SCORES_FROZEN.json',PARENT/'EVALUATION.json',PARENT/'REVIEW.json',
+        ORIGINAL/'MANIFEST.json',ORIGINAL/'SCORES_FROZEN.json',ORIGINAL/'EVALUATION.json',ORIGINAL/'REVIEW.json']
+    paths += [Path(obj.__file__).resolve() for name,obj in sys.modules.copy().items() if name.startswith('spectral_utils') and getattr(obj,'__file__',None)]
+    hashes={str(path):sha(path) for path in paths}
+    for directory in (PARENT,ORIGINAL):
+        for path,h in load(directory/'SCORES_FROZEN.json')['files'].items():assert sha(path)==h,path;hashes[path]=h
+    for rec in p['selected']:
+        path=ORIGINAL/'inputs'/(rec['uid']+'.npz');assert sha(path)==rec['input_sha256'];hashes[str(path)]=sha(path)
+    release=load(SOURCE/'RELEASE_V2.json')
+    for cell in {r['cell'] for r in p['selected']}:
+        info=release['cells'][cell];assert sha(info['label_path'])==info['label_opaque_sha256'];hashes[info['label_path']]=info['label_opaque_sha256']
+    save(OUT/'MANIFEST.json',{'release_id':p['release_id'],'scoring_namespace':p['scoring_namespace'],'selected':p['selected'],
+        'arms':ARMS,'contrasts':registered_pairs(),'conditions':CONDITIONS,'hashes':hashes,
+        'status':'FROZEN_DEVELOPMENT_GRAPH_CONDITIONING_COMPARISON','labels_decoded':False,'worker_cap':3,'seconds_cap':600,'created_unix':time.time()})
+    print('Frozen 110 answers, 77 arms, 101 comparisons.',flush=True)
+
+
+def verify():
+    m=load(OUT/'MANIFEST.json')
+    for path,h in m['hashes'].items():assert sha(path)==h,path
+    return m
+
+
+def process_one(rec,digest):
+    started=time.monotonic();uid=rec['uid'];path=OUT/'scores'/(uid+'.json')
+    if path.exists():
+        row=load(path);assert row['manifest_sha256']==digest and row['array_sha256']==sha(path.with_suffix('.npz'));return row
+    parent=load(PARENT/'scores'/(uid+'.json'));original=load(ORIGINAL/'scores'/(uid+'.json'))
+    with np.load(PARENT/'scores'/(uid+'.npz'),allow_pickle=False) as source:pa={k:source[k] for k in source.files}
+    arrays,methods,routing,diagnostics=score_graph_conditioning(pa,parent,original,rec['tokens'])
+    assert routing==original['routing']
+    path.parent.mkdir(parents=True,exist_ok=True);np.savez_compressed(path.with_suffix('.npz'),**arrays)
+    row={**rec,'methods':methods,'routing':routing,'diagnostics':diagnostics,'labels_decoded':False,
+         'manifest_sha256':digest,'array_sha256':sha(path.with_suffix('.npz')),'seconds':time.monotonic()-started}
+    save(path,row);return row
+
+
+def scores():
+    m=verify();digest=sha(OUT/'MANIFEST.json');started=time.monotonic();done=0;remaining=[]
+    if (OUT/'SCORES_FROZEN.json').exists():
+        f=load(OUT/'SCORES_FROZEN.json');assert f['manifest_sha256']==digest
+        for p,h in f['files'].items():assert sha(p)==h,p
+        print('Existing scores verified.');return
+    for rec in m['selected']:
+        path=OUT/'scores'/(rec['uid']+'.json')
+        if path.exists():
+            row=load(path);assert row['manifest_sha256']==digest and row['array_sha256']==sha(path.with_suffix('.npz'));done+=1
+        else:remaining.append(rec)
+    def state(status):save(OUT/'RUN_STATE.json',{'state':status,'pid':os.getpid(),'completed':done,'total':len(m['selected']),
+        'seconds_this_invocation':time.monotonic()-started})
+    state('RUNNING');index=0
+    with ProcessPoolExecutor(max_workers=m['worker_cap']) as pool:
+        active={}
+        while active or index<len(remaining):
+            while len(active)<m['worker_cap'] and index<len(remaining) and time.monotonic()-started<m['seconds_cap']:
+                rec=remaining[index];index+=1;active[pool.submit(process_one,rec,digest)]=rec['uid']
+            if not active:break
+            ready,_=wait(active,return_when=FIRST_COMPLETED)
+            for future in ready:
+                future.result();del active[future];done+=1
+                if done%10==0 or done==len(m['selected']):print(done,'/',len(m['selected']),flush=True)
+            state('RUNNING')
+    if done!=len(m['selected']):state('PAUSED_AT_CAP');return
+    verify();files=sorted((OUT/'scores').glob('*'));assert len(files)==2*done
+    save(OUT/'SCORES_FROZEN.json',{'manifest_sha256':digest,'files':{str(p):sha(p) for p in files},
+        'labels_decoded':False,'seconds_this_invocation':time.monotonic()-started,'workers':m['worker_cap']})
+    state('COMPLETE');print('All predictions frozen before evaluation.',flush=True)
+
+
+def metric_module():return module(ROOT/'scripts/run_answer_localization_v2.py','conditioning_metrics')
+def fixed_rows(rows):return [{**r,'decision_valid':r['fixed_iu_valid'],'predictions':r['fixed_iu_predictions']} for r in rows]
+
+
+def evaluate():
+    m=verify();f=load(OUT/'SCORES_FROZEN.json');assert f['manifest_sha256']==sha(OUT/'MANIFEST.json') and not f['labels_decoded']
+    for p,h in f['files'].items():assert sha(p)==h,p
+    release=load(SOURCE/'RELEASE_V2.json');rows=[]
+    for cell in sorted({r['cell'] for r in m['selected']}):
+        with np.load(release['cells'][cell]['label_path'],allow_pickle=False) as labels:
+            positions={str(v):i for i,v in enumerate(labels['row_ids'])};assert len(positions)==len(labels['row_ids'])
+            for rec in (r for r in m['selected'] if r['cell']==cell):
+                i=positions[rec['row_id']]
+                if cell.startswith('prm'):
+                    a,b=labels['step_flag_offsets'][i:i+2];target=labels['step_error_flags'][a:b]
+                else:target=int(labels['first_error'][i])
+                meta=load(OUT/'scores'/(rec['uid']+'.json'));row={**rec,'target':target,'scores':{},'valid':{},'decision_valid':{},
+                    'fixed_iu_valid':{},'predictions':{},'fixed_iu_predictions':{},'peaks':{},'sources':{},'routing':meta['routing']}
+                with np.load(OUT/'scores'/(rec['uid']+'.npz'),allow_pickle=False) as arrays:
+                    for arm,d in meta['methods'].items():
+                        for key in ('valid','decision_valid','fixed_iu_valid'):row[key][arm]=d[key]
+                        row['predictions'][arm]=d.get('prediction');row['fixed_iu_predictions'][arm]=d.get('fixed_iu_prediction')
+                        row['peaks'][arm]=d.get('peak');row['sources'][arm]=d['source_arm']
+                        if d['valid']:
+                            x=arrays[arm+'__risk'];assert len(x)==rec['steps'] and np.isfinite(x).all()
+                            if cell.startswith('prm'):assert len(x)==len(target)
+                            row['scores'][arm]=x
+                rows.append(row)
+    mm=metric_module();fixed=fixed_rows(rows)
+    metrics={arm:{'prm':mm.prm_metric(rows,arm),'pb':mm.pb_metric(rows,arm),'pb_common_iu_gate':mm.pb_metric(fixed,arm)} for arm in ARMS}
+    previous=load(PARENT/'EVALUATION.json')
+    for arm in PARENT_ARMS:assert metrics[arm]==previous['metrics'][arm],arm
+    save(OUT/'EVALUATION.json',{'release_id':m['release_id'],'status':'DEVELOPMENT_GRAPH_CONDITIONING_COMPARISON',
+        'scores_sha256':sha(OUT/'SCORES_FROZEN.json'),'rows':rows,'metrics':metrics,'parent_metrics':previous['metrics'],
+        'older_58_answer_metrics':previous['older_58_answer_metrics'],'labels_decoded':True})
+    for arm in ARMS:
+        if arm not in PARENT_ARMS:print(arm,'PRM',metrics[arm]['prm']['auroc'],'PB',metrics[arm]['pb']['macro_f1'],flush=True)
+
+
+def contrasts():
+    m=verify();e=load(OUT/'EVALUATION.json');path=OUT/'CONTRASTS.json';digest=sha(OUT/'EVALUATION.json');started=time.monotonic()
+    state=load(path) if path.exists() else {'evaluation_sha256':digest,'pairs':{}};assert state['evaluation_sha256']==digest
+    mm=metric_module();fixed=fixed_rows(e['rows'])
+    for left,right in m['contrasts']:
+        key=left+' minus '+right
+        if key in state['pairs']:continue
+        common=[r for r in e['rows'] if r['valid'][left] and r['valid'][right]]
+        state['pairs'][key]={'left':left,'right':right,'left_prm':mm.prm_metric(common,left),'right_prm':mm.prm_metric(common,right),
+            'left_pb':mm.pb_metric(e['rows'],left),'right_pb':mm.pb_metric(e['rows'],right),
+            'left_pb_common_iu_gate':mm.pb_metric(fixed,left),'right_pb_common_iu_gate':mm.pb_metric(fixed,right),
+            'uncertainty':paired_source_group_intervals(e['rows'],left,right)}
+        save(path,state)
+    assert len(state['pairs'])==101;state.update(status='COMPLETE',seconds_this_invocation=time.monotonic()-started);save(path,state)
+    print('All 101 paired comparisons complete.',flush=True)
+
+
+if __name__=='__main__':
+    p=argparse.ArgumentParser();p.add_argument('--phase',required=True,choices=('prepare','scores','evaluate','contrasts'));args=p.parse_args()
+    {'prepare':prepare,'scores':scores,'evaluate':evaluate,'contrasts':contrasts}[args.phase]()
