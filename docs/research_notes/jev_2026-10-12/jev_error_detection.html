@@ -1,0 +1,196 @@
+<title>Error Detection in Jev</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column (~72ch); evidence tables in scroll boxes; a fit table maps our method onto Jev-type models. Same family as "Step Scoring Beyond Text", indigo accent. */
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --fg:#1c2130; --muted:#5a6175; --line:#d8dbe3;
+  --accent:#3b4f9a; --accent-soft:#e4e8f5; --warn:#8a5a12; --warn-soft:#f6ecd9; --ok:#2f6b4f;
+  --display:"Fraunces", Georgia, "Times New Roman", serif;
+  --body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#13161e; --surface:#1a1e28; --fg:#e3e6ee; --muted:#9aa1b4; --line:#2e3342;
+  --accent:#9fb0ee; --accent-soft:#232a40; --warn:#e2b56a; --warn-soft:#33291a; --ok:#7cc39c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#13161e; --surface:#1a1e28; --fg:#e3e6ee; --muted:#9aa1b4; --line:#2e3342;
+  --accent:#9fb0ee; --accent-soft:#232a40; --warn:#e2b56a; --warn-soft:#33291a; --ok:#7cc39c; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:15.5px/1.6 var(--body)}
+.wrap{max-width:1060px;margin:0 auto;padding-inline:20px;padding-block:40px 64px;display:flex;flex-direction:column;gap:40px}
+.col{max-width:72ch}
+h1,h2,h3{font-family:var(--display);font-weight:650;line-height:1.2;text-wrap:balance;margin:0}
+h1{font-size:clamp(28px,4.4vw,42px)}
+h2{font-size:24px;margin-bottom:12px}
+h3{font-size:18px;font-weight:500;margin:18px 0 6px}
+p{margin:0 0 10px}
+ul,ol{margin:0 0 10px;padding-left:22px}
+li{margin-bottom:6px}
+.eyebrow{font:500 12px/1.4 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.lede{font-size:17px;color:var(--muted);margin-top:10px}
+a{color:var(--accent);text-underline-offset:2px}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.answer{background:var(--accent-soft);border-radius:6px;padding:18px 20px}
+.answer ol{margin:0}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:720px;font-size:14px}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--line)}
+th{font:600 12px/1.4 var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);background:var(--bg)}
+tr:last-child td{border-bottom:0}
+tr.ours td{background:var(--accent-soft)}
+td.k{font-weight:600}
+.num{font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:13px;white-space:nowrap}
+.tag{display:inline-block;font:500 11px/1.6 var(--mono);padding:0 6px;border-radius:4px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.tag.yes{border-color:var(--ok);color:var(--ok)}
+.tag.no{border-color:var(--warn);color:var(--warn)}
+.tag.part{border-color:var(--accent);color:var(--accent)}
+.note{background:var(--warn-soft);border-radius:6px;padding:14px 18px}
+.note strong{color:var(--warn)}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.fact{border:1px solid var(--line);border-radius:6px;background:var(--surface);padding:12px 14px;min-width:0}
+.fact .eyebrow{margin-bottom:4px}
+.refs{font-size:14px}
+.refs li{margin-bottom:4px}
+.small{font-size:13px;color:var(--muted)}
+</style>
+
+<div class="wrap">
+
+<header class="col">
+  <div class="eyebrow">Literature scan · 2026-10-12 · no experiments (freeze until 2026-10-15)</div>
+  <h1>Error detection in Jev and other typed decision models</h1>
+  <p class="lede">What Jev is, what work exists on its errors, and whether our label-free step scoring from teacher-forced internals can apply to it.</p>
+</header>
+
+<section class="col">
+  <h2>Short answer</h2>
+  <div class="answer">
+    <ol>
+      <li><strong>Jev is not a text generator.</strong> It is a closed "typed decision model" from TypeSafe AI (released 2026-09-15). You give it a text state and typed questions (Choice, Score, yes/no "Noul"). It returns a probability distribution over the options you defined, in one parallel pass. It writes no reasoning steps.<sup><a href="#r1">1</a>,<a href="#r2">2</a></sup></li>
+      <li><strong>"No hallucination" means "no out-of-schema output", not "no errors".</strong> TypeSafe says so itself: its 0% hallucination number "is not empirical. Schema matching is guaranteed".<sup><a href="#r2">2</a></sup> Jev can still choose a valid but wrong option with high probability.</li>
+      <li><strong>Error detection work on Jev exists, and it is all black-box.</strong> About four weeks of preprints and audits measure calibration (ECE), confidence-threshold routing, probability coherence and robustness. Nobody reads internal states, because Jev exposes none. A survey list of the field states that no paper covers probing, hidden states or step-level verification.<sup><a href="#r13">13</a></sup></li>
+      <li><strong>Our method cannot run on Jev itself</strong> (no weights, no logprobs, no generated steps). It can run on the open Jev-like models (Kev, Tev1, decider, Strands Decider). Most are Qwen3.5 fine-tunes, close to our Qwen3 setup. This is an open gap.</li>
+      <li><strong>Jev has been used as a step judge on our benchmark.</strong> One community evaluation reports Jev 1.13 at 66.38 "official PRM score" on PRMBench (6,216 items) and 69.5 F1 on ProcessBench.<sup><a href="#r12">12</a></sup> Our label-free Qwen3-8B Overall is 65.4 and Qwen2.5-Math-PRM-7B is 65.5. The protocol is not published, so treat this as a reference point, not a matched comparison.</li>
+    </ol>
+  </div>
+</section>
+
+<section class="col">
+  <h2>1. What Jev is</h2>
+  <div class="facts">
+    <div class="fact"><div class="eyebrow">Maker</div>TypeSafe AI, San Francisco. CEO Diogo Almeida (ex-OpenAI, RLHF / InstructGPT).<sup><a href="#r1">1</a></sup></div>
+    <div class="fact"><div class="eyebrow">Version</div><span class="num">jev-1.13.0</span>, early access since 2026-09-15. 64k context, text only.<sup><a href="#r3">3</a></sup></div>
+    <div class="fact"><div class="eyebrow">Training</div>Transformer, synthetic data only, "RL for Calibrated Decisions" (RLCD). No paper, no weights, no method details.<sup><a href="#r1">1</a>,<a href="#r2">2</a></sup></div>
+    <div class="fact"><div class="eyebrow">Output</div>Per-option probabilities. "Confidence" is a function of the same distribution: (p<sub>max</sub> − 1/n)/(1 − 1/n) for Choice.<sup><a href="#r4">4</a></sup></div>
+  </div>
+  <p style="margin-top:14px">TypeSafe calls Jev a "System One model": a fast "smart if-statement" inside software, not a reasoner. Multi-step work happens outside the model. The docs tell users to split a decision into separate questions and to combine them in code.<sup><a href="#r2">2</a>,<a href="#r5">5</a></sup> Outside observers suggest Jev may be built on an open-weight LLM, but this is not confirmed.<sup><a href="#r1">1</a></sup></p>
+  <p>The same idea now has an open ecosystem. More than 25 open "Jev-like" models appeared within four weeks. Most are Qwen3.5 / Qwen3.8 fine-tunes with one of three readouts: a pointer head on the hidden state at a <span class="num">&lt;decide&gt;</span> token (Kev), a mask-token encoder head (Laya, ModernBERT), or plain first-token logits over option letters (SemIf, Tev1).<sup><a href="#r13">13</a>,<a href="#r14">14</a>,<a href="#r15">15</a></sup></p>
+</section>
+
+<section>
+  <div class="col">
+    <h2>2. What exists on Jev errors</h2>
+    <p>All studies below are preprints or community audits from 2026-09-19 to 2026-10-12. None is peer-reviewed. All treat Jev as a black box and use its output probability as the error signal.</p>
+  </div>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Study</th><th>Error signal</th><th>Main result</th><th>Step-level?</th></tr></thead>
+      <tbody>
+        <tr><td class="k">Vals AI independent eval<sup><a href="#r6">6</a></sup></td><td>Max probability, ECE, routing at 1% error budget</td><td>10-K claim check: acc 0.975, ECE <span class="num">0.011</span> (best of 12). LegalBench slice: last of 12, ECE <span class="num">0.108</span>; answered "Yes" to all 33 items of one subtask. Confidence field adds nothing beyond the probabilities.</td><td><span class="tag no">no</span></td></tr>
+        <tr><td class="k">JEV-as-a-Judge, CMU (arXiv 2609.26550)<sup><a href="#r7">7</a></sup></td><td>Max label probability q; accept if q ≥ τ, else escalate to GPT-6</td><td>Error-detection AUROC of q: RewardBench <span class="num">0.869</span>, JudgeBench <span class="num">0.745</span>, HaluEval <span class="num">0.863</span> (GPT-6: 0.89–0.91). Reference-free prose: <span class="num">0.518</span>. Cascade keeps ~99.6% of GPT-6 accuracy at ~half the fee.</td><td><span class="tag no">no</span> final verdict only</td></tr>
+        <tr><td class="k">OOD calibration (scienthoon)<sup><a href="#r8">8</a></sup></td><td>ECE vs noise floor, refit temperature</td><td>Public sets near calibrated. Unseen synthetic tickets: ECE <span class="num">0.107</span> (4.4× floor). Priority question: 44.7% accuracy at mean probability 0.74. Overconfident on Choice/Score, underconfident on yes/no.</td><td><span class="tag no">no</span></td></tr>
+        <tr><td class="k">Probability axioms (arXiv 2609.33209)<sup><a href="#r9">9</a></sup></td><td>Coherence of related questions, <strong>no labels</strong></td><td>Negation complement violation <span class="num">0.064</span> (Qwen first-token 0.293). Single-label probabilities sum to 1.14. Violations concentrate on uncertain items, so incoherence marks where to trust less.</td><td><span class="tag no">no</span></td></tr>
+        <tr><td class="k">Type-Safe Is Not Error-Free (arXiv 2609.26758)<sup><a href="#r10">10</a></sup></td><td>Answer flips under option renaming</td><td>Renaming options 0/1 → no/yes flips 70.4 more answers per 100; AUC 0.94 → 0.23. Type-error rate stays 0% while accuracy collapses.</td><td><span class="tag no">no</span></td></tr>
+        <tr><td class="k">Calibration audit (jujumilk3)<sup><a href="#r11">11</a></sup></td><td>ECE, Brier, ablations</td><td>Remove the "unknown" option: accuracy on unanswerable items 0.95 → 0.00, ECE 0.023 → 0.793, wrong answers at 0.79 confidence.</td><td><span class="tag no">no</span></td></tr>
+        <tr><td class="k">Social-science annotation (arXiv 2609.24574)<sup><a href="#r16">16</a></sup></td><td>Confidence threshold, selective prediction</td><td>Trails best LLM on 14 of 15 tasks (median −11.6 macro-F1). Confidence &gt; 0.9 gives median accuracy 0.815, but empathy detection is near chance at high confidence.</td><td><span class="tag no">no</span></td></tr>
+        <tr><td class="k">Agent security decisions (arXiv 2609.33401)<sup><a href="#r17">17</a></sup></td><td>Calibration + selective automation</td><td>Good average calibration hides confident failures on some attack groups. Thresholds that pass on validation can fail on new inputs.</td><td><span class="tag no">no</span></td></tr>
+        <tr><td class="k">Jev as reward model (goya4140)<sup><a href="#r12">12</a></sup></td><td>Jev used <em>as</em> the step judge</td><td>PRMBench <span class="num">66.38</span> (correct-step recall 80.1%, wrong-step recall 63.5%). ProcessBench F1 <span class="num">69.5</span> (GSM8K 74.6, Olympiad 66.0). Cost about $1 for all of PRMBench.</td><td><span class="tag part">Jev judges LLM steps</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col" style="margin-top:14px">
+    <h3>Common findings</h3>
+    <ul>
+      <li>Calibration is good on familiar public tasks and breaks on unseen ones, new languages, and changed answer formats. The sign of the error changes with the question type, so each deployment must fit its own threshold or temperature on 50 to a few hundred labels.<sup><a href="#r8">8</a>,<a href="#r18">18</a></sup></li>
+      <li>The dominant failure is a <em>confident valid wrong answer</em>: no "none of these" option, polar option names, or a label that is not in the text.</li>
+      <li>The only label-free error signal in this literature is probability coherence across related questions.<sup><a href="#r9">9</a></sup></li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <div class="col">
+    <h2>3. Does our approach apply?</h2>
+    <p>Our method scores each step of a solution without labels, from teacher-forced internals of an open model (token probabilities and hidden states), and flags the steps most likely to be wrong. Below is how it maps onto three settings.</p>
+  </div>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Setting</th><th>Fit</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td class="k">Jev itself (hosted)</td><td><span class="tag no">no</span></td><td>No weights, no hidden states, no logprobs beyond the option distribution (rounded to 0.01). No generated steps to score. The only signal is the output distribution, which is what RLCD already tunes. Black-box options remain: coherence checks and paraphrase or option-renaming agreement.</td></tr>
+        <tr><td class="k">Open Jev-like models (Kev, Tev1, decider, Strands Decider, Laya)</td><td><span class="tag yes">yes, open gap</span></td><td>Weights are open and most are Qwen3.5 fine-tunes. We can read the hidden state at the decision token and the option tokens, and build label-free signals for a wrong decision (for example disagreement between layers, or between the head's probability and the base LM's probability). No published work does this yet.<sup><a href="#r13">13</a></sup> The unit is one decision, not a step.</td></tr>
+        <tr><td class="k">Chains of decisions (workflows, agents such as WebJev)</td><td><span class="tag part">partial</span></td><td>A workflow that calls Jev many times is a process: each call is a step. Finding the first wrong call is the same problem as our first-error localization. The "split five ways" result (62.6% → 95% on phishing) shows that decomposition into steps is what makes these models accurate.<sup><a href="#r19">19</a></sup> No benchmark with step labels for decision chains exists yet.</td></tr>
+        <tr><td class="k">Jev as the judge of LLM steps</td><td><span class="tag part">baseline / partner</span></td><td>Here Jev competes with us on PRMBench. It is supervised and closed, but very cheap. A fusion of a cheap external judge with our label-free internal score is a possible later study.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="col">
+    <h2>4. Reference point on PRMBench</h2>
+    <p>Numbers from different sources. Only our row and PRM-7B come from our own pipeline. The Jev row comes from one community repo with no published protocol.</p>
+  </div>
+  <div class="tbl">
+    <table style="min-width:560px">
+      <thead><tr><th>System</th><th>Labels used</th><th>PRMBench overall</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><td>Gemini-2.0-thinking</td><td>closed LLM judge</td><td class="num">68.8</td><td>PRMBench paper, via <a href="#r12">12</a></td></tr>
+        <tr><td>GPT-4o</td><td>closed LLM judge</td><td class="num">66.8</td><td>PRMBench paper, via <a href="#r12">12</a></td></tr>
+        <tr><td>Jev 1.13</td><td>closed, RLCD-trained</td><td class="num">66.38</td><td>community eval <a href="#r12">12</a>, unverified</td></tr>
+        <tr><td>Qwen2.5-Math-PRM-7B</td><td>supervised PRM</td><td class="num">65.5</td><td>our advisor page</td></tr>
+        <tr class="ours"><td>Ours, Qwen3-8B, label-free</td><td>none</td><td class="num">65.4</td><td>our advisor page</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col" style="margin-top:14px">
+    <div class="note"><strong>Caveat.</strong> The repo calls its number an "official PRM score" and has 6,216 records (the full PRMBench size), but it does not show the prompt, how steps are given to Jev, or whether the score uses the same per-category averaging as ours. Do not put this row in the advisor page as a direct comparison without that check. It is safe to say: a closed commercial decision model lands in the same range as our label-free score.</div>
+  </div>
+</section>
+
+<section class="col">
+  <h2>5. Ideas for after the meeting (not now)</h2>
+  <p class="small">Development is frozen until 2026-10-15. These are directions only.</p>
+  <ol>
+    <li>Rerun Jev on PRMBench with our exact protocol and scorer, to get a matched baseline. Cost is about $1.</li>
+    <li>Apply our label-free internal signals to one open decision model (for example Kev-4B or Tev1-4B, both Qwen3.5) and test if they detect wrong decisions better than its own output probability. Use the CMU judge sets as labels for evaluation only.</li>
+    <li>Fuse a cheap Jev step verdict with our internal step score on PRMBench, in the same way we fuse scorers today.</li>
+  </ol>
+</section>
+
+<section class="col">
+  <h2>Sources</h2>
+  <ol class="refs">
+    <li id="r1"><a href="https://en.wikipedia.org/wiki/Jev_(AI_model)">Jev (AI model)</a>, Wikipedia, read 2026-10-12.</li>
+    <li id="r2"><a href="https://typesafe.ai/blog/introducing-system-one-models-and-jev">Introducing System One Models &amp; Jev</a>, TypeSafe AI blog, 2026-09-15.</li>
+    <li id="r3"><a href="https://docs.typesafe.ai/models">Models</a>, TypeSafe docs.</li>
+    <li id="r4"><a href="https://docs.typesafe.ai/confidence">Confidence</a>, TypeSafe docs.</li>
+    <li id="r5"><a href="https://docs.typesafe.ai/introduction">Introduction</a>, TypeSafe docs.</li>
+    <li id="r6"><a href="https://www.vals.ai/blogs/independent-evaluation-of-jev">An Independent Evaluation of TypeSafe's Jev</a>, Vals AI, 2026-10-06.</li>
+    <li id="r7">Li, Miao, Krishnan, Padman. <a href="https://arxiv.org/html/2609.26550v1">JEV-as-a-Judge: Accept When Confident, Escalate When Unsure</a>, arXiv 2609.26550, 2026-09-22.</li>
+    <li id="r8"><a href="https://github.com/scienthoon/jev-ood-calibration">jev-ood-calibration</a>, GitHub, run 2026-09-19.</li>
+    <li id="r9">Li, He, Li. <a href="https://arxiv.org/html/2609.33209v1">Beyond Calibration: Do a Typed-Decision Model's Probabilities Obey the Probability Axioms?</a>, arXiv 2609.33209, 2026-09-29.</li>
+    <li id="r10">Sun, Xu, Shi, Yang. <a href="https://arxiv.org/abs/2609.26758">Type-Safe Is Not Error-Free: A Constrained Decision Head Follows the Option Name, Not the Rubric Bound to It</a>, arXiv 2609.26758, 2026-09-22.</li>
+    <li id="r11"><a href="https://github.com/jujumilk3/jev-calibration-audit">jev-calibration-audit</a>, GitHub.</li>
+    <li id="r12">Linhao Wang. <a href="https://github.com/goya4140/jev-reward-model-evaluation">jev-reward-model-evaluation</a>, GitHub (8 tracks incl. ProcessBench and PRMBench).</li>
+    <li id="r13"><a href="https://github.com/aharshms/awesome-decision-models">awesome-decision-models</a>, GitHub curated list.</li>
+    <li id="r14"><a href="https://dev.to/anyesh/the-open-jev-clones-three-ways-to-read-a-decision-and-a-leaderboard-that-does-not-transfer-4aea">The open Jev clones: three ways to read a decision</a>, DEV, 2026-10-12.</li>
+    <li id="r15"><a href="https://github.com/togethercomputer/tev1">Tev1</a>, Together AI, GitHub.</li>
+    <li id="r16">Ibrahim, Zaki. <a href="https://arxiv.org/abs/2609.24574">Evaluating Decision Models for Text Annotation in Computational Social Science</a>, arXiv 2609.24574.</li>
+    <li id="r17">Liu. <a href="https://arxiv.org/abs/2609.33401">Evaluating System One Models for Agent Security Decisions</a>, arXiv 2609.33401.</li>
+    <li id="r18"><a href="https://dev.to/gde/jev-after-eight-days-of-independent-tests-level-with-mid-price-llms-behind-the-frontier-1kln">Jev After Eight Days of Independent Tests</a>, DEV, 2026-09-23.</li>
+    <li id="r19">Beri. <a href="https://www.beri.net/article/typesafe-jev-typed-decision-model-calibration-decomposition-shadow-eval">TypeSafe's Jev Scores 62.6% Asked Once and 95% Split Five Ways</a>, 2026-09-20.</li>
+  </ol>
+  <p class="small">Related: the sibling scan "Step Scoring Beyond Text" covers process rewards for agents and robots and is not repeated here.</p>
+</section>
+
+</div>
