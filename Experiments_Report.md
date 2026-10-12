@@ -5,6 +5,30 @@
 
 ---
 
+## PRMBench error-count addendum — Step 292 (2026-10-12)
+
+The source-disjoint local CPU A/B/C/D study is complete in
+`results/label_free_error_count_v1_2026-10-12/report/index.html`.
+Every quantity arm uses the same saved IU-PCR ordering. None of the seven
+N16 candidates passes the preregistered combined improvement rule; N56 is
+a fixed sensitivity bank. Q80's noncontrol MAE/PRMScore is 1.425696/.653859;
+B mean gives 1.938174/.644502 and D mean 2.095476/.637595. A has four failed
+N16 folds, with 20.43% noncontrol coverage, and is not a complete result.
+
+The user's quota hypothesis is supported by sensitivity: relative quotas
+10/20/30% produce MoM estimates 13.55/22.90/32.60%. The estimator also responds
+to quota-preserving changes in joint voter agreement, so this is not an
+algebraic identity. Global thresholds and a fixed mean-zero diagnostic fail
+to establish calibration. Stable B emissions remain miscalibrated, and D's
+improved clean abstention costs more misses of erroneous answers. All nine
+PRMBench types, MS valid-step F1, PS/DR/MS Sensitivity, synthetic controls,
+source-group intervals, calibration and matched oracle diagnostics are in
+the package. These are internal development results, not untouched external
+validation. Frozen historical artifacts and earlier report sections remain
+preserved.
+
+
+
 ## Background
 
 This thesis investigates whether **Nadler spectral fusion** can improve hallucination detection in LLMs by aggregating multiple uncertainty signals ("views") of the same question. The appeal is that Nadler is **unsupervised**: it estimates each view's reliability from the covariance structure of the signals alone, without ground-truth labels at inference time.

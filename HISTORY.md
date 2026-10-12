@@ -14653,3 +14653,60 @@ confirmation remain outside this completion. Existing dirty work was preserved.
 ---
 
 **Git publication follow-up (2026-10-12):** The reading delivery and next-agent prompt are published on `codex/advisor-v11-completion`. The full binary bundle remains outside Git; see its RAW_DATA_CATALOG. This is not a Claude Artifact update or a new numerical experiment.
+
+---
+
+### Step 292 [label-free error count] — quota sensitivity confirmed, tested A–D family closes without a supported improvement (2026-10-12)
+
+**What**: Implemented the accepted seven-candidate per-answer quantity family:
+local-score global threshold, absolute-evidence A with mean/median, stable-triple
+B with mean/median, and fixed-emission answer-zero mixture D with mean/median.
+Historical Q80/MoM/R2/entropy controls replay exactly; matched controls learn
+all statistics, survivor selection and cutoffs within the donor source folds.
+Canonical IU-PCR fits once per N16/N56 fold and every count arm uses exactly
+the same saved top-k order. The primary population is 6,211 noncontrols;
+758 synthetic controls and 934 valid-step-zero answers are separate.
+
+**Result**: No N16 arm passes the full-five-fold, MAE-versus-Q80-and-MoM,
+PRMScore-versus-Q80 and one-percentage-point recall-margin gates at one-sided
+alpha .05/7. Q80 MAE/PRMScore/recall are 1.425696/.653859/.487566;
+B mean is 1.938174/.644502/.469085 and D mean is
+2.095476/.637595/.453495. A is explicitly undefined in four N16 folds, covering
+only 1,269/6,211 noncontrols. N56 remains a sensitivity analysis, not a replacement
+winner. PB median gives no benefit in the tested family.
+
+**Mechanism**: The user's 22.9%-versus-23% observation motivated a sealed,
+training-only diagnostic amendment. Quotas 10/20/30% yield vote rates
+13.085/23.016/33.447% and MoM 13.553/22.905/32.600% in historical N16.
+Quota-preserving shuffles produce a wide prevalence range, and an exact
+independent-voter teacher recovers a fixed prevalence under changing marginals:
+MoM is quota-sensitive here but is not mathematically equal to the vote fraction.
+Frozen global thresholds and a mean-zero absolute-score diagnostic do not
+solve calibration. B estimated emissions differ from empirical target emissions
+despite consistent positive orientation; stable covariance is not proof of
+conditional independence or target calibration. D's clean abstention gains
+come with more missed erroneous answers. Label-oracle component diagnostics
+retain headroom in both quantities and ordering; those gains are not additive.
+
+**Validation and limits**: Fifty-five tests cover train/holdout separation,
+label perturbations, compensated scale/mask transfer, exact PMF enumeration,
+zero/full counts, ties, failures and changed-identity resume refusal. Seven
+additional delivery tests reject changed scientific sources/runtime identities
+and preserve existing destinations before any replay writes. All ten
+corrected bridge audits pass 1e-9; an 80-digit Decimal audit checks the numerical
+repair. Independent agents reconstruct sealed rankings, posterior/PMF counts,
+440 triple bootstraps, metrics, quota/calibration/oracle diagnostics and primary
+20,000-source-bootstrap gates. Initial failed attempts and operational repairs
+remain visible. Uncertainty conditions on saved fits; every result is internal
+development validation with no untouched external test.
+
+**State**: The canonical local package is
+`results/label_free_error_count_v1_2026-10-12/` with report, models,
+checkpoints, posteriors, PMFs, ranks, flags, logs, hashes, CSV/JSON, plots,
+reproduction guide and independent review. The advisor package and its manifest
+helpers remain unchanged. No install/GPU/cluster/commit/push/publication;
+pre-existing dirty work was preserved. This family is closed. A continuous
+emission model with explicit dependence/heterogeneity remains an unexecuted
+next hypothesis.
+
+**Git publication follow-up (2026-10-12):** The completed error-count reading delivery is on `codex/label-free-error-count-v1`, based on the advisor v11 publication. The full numerical bundles remain local; reading-delivery manifests and payload catalogs distinguish them. This does not update a Claude Artifact or claim external validation.

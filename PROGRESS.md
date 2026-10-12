@@ -1,5 +1,44 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+**Label-free error-count completion (2026-10-12 — Codex; Step 292):**
+Closed the preregistered A/B/C/D family on the unchanged local
+`codex/claude-feature-bank-token-lsml-v1` checkout, HEAD `8904598661be`.
+Start with `results/label_free_error_count_v1_2026-10-12/report/index.html`,
+`README.md`, `FINDINGS_HE.md`, `evaluation/SUCCESS.json` and `review/`.
+Canonical IU-PCR is fitted once per bank/source fold and its saved ordering is
+shared by every quantity arm; L-SML is secondary. N16 remains the historical
+primary bank and N56 the predefined sensitivity bank. Fits receive no labels,
+types or PRM scores; evaluation follows sealed predictions. All seven N16
+candidates fail the combined success rule with fixed multiplicity seven.
+
+The user's quota hypothesis is supported as a sensitivity mechanism:
+historical N16 relative quotas 10/20/30% yield actual vote rates
+13.085/23.016/33.447% and MoM estimates 13.553/22.905/32.600%.
+Quota-preserving shuffles also change MoM greatly, so this is not an algebraic
+identity with the marginal vote fraction. Global thresholds and an additional
+predefined mean-zero threshold diagnostic do not establish better semantic
+error counts. N16 A has four infeasible-emission folds and only 1,269/6,211
+noncontrols covered; N56 LOCAL has the same partial coverage. No failed arm is
+filled with zeros. The stable triple B estimates 18.50% prevalence versus
+13.96% valid-step truth on all answers, with substantial conditional voter
+dependence. D reduces clean false flags but worsens MAE and misses more
+erroneous answers. Median readout does not improve the result.
+
+The package preserves the initial float64 bridge failure, its compensated
+arithmetic repair with unchanged 1e-9 tolerance, all model/posterior/PMF/rank/
+flag outputs, 20,000 shared source-group bootstrap draws, chronological
+amendments and independent audits. Fifty-five scientific tests and seven
+fresh-replay identity/destination guard tests passed. The frozen
+`advisor_completion_2026-10-11` package and manifest runtime helpers were
+verified unchanged. Component contrasts, calibration and matched oracle
+headroom are evaluation diagnostics, not additional promoted arms. All evidence
+is internal validation on previously inspected development data. A continuous
+emission model addressing dependence and answer heterogeneity is a justified
+next hypothesis, not an executed or authorized follow-up sweep. CPU only;
+local/uncommitted/unpushed/unpublished. Earlier dirty work and handoffs below
+remain preserved.
+
+
 **Advisor CPU completion addendum (2026-10-11/12 — Codex; Step 291 [advisor CPU completion]):**
 Completed the sixteen Claude assignment rows against frozen v10 `53ef62e3` and
 research `080877eb`, preserving the older experiment handoff and existing dirty
@@ -3836,3 +3875,5 @@ Canonical artifacts:
 - LapEigvals integration into spectral_utils — potential Group D feature for M=12, low priority
 
 **Git publication follow-up (2026-10-12):** The reading delivery and next-agent prompt are published on `codex/advisor-v11-completion`. The full binary bundle remains outside Git; see its RAW_DATA_CATALOG. This is not a Claude Artifact update or a new numerical experiment.
+
+**Git publication follow-up (2026-10-12):** The completed error-count reading delivery is on `codex/label-free-error-count-v1`, based on the advisor v11 publication. The full numerical bundles remain local; reading-delivery manifests and payload catalogs distinguish them. This does not update a Claude Artifact or claim external validation.
