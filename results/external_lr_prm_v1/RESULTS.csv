@@ -1,4 +1,6 @@
 benchmark,model,method,rule,official_metric,within_auc,n_answers
+hard2verify,-,Qwen2.5-Math-PRM-7B (supervised PRM),ANSWER_Z_Q80,0.39136364621956243,0.6335062286801009,200
+hard2verify,-,Qwen2.5-Math-PRM-7B (supervised PRM),NATIVE_0.5,0.23356321839080457,0.6335062286801009,200
 hard2verify,4B,"ALL_EQ (label-free, existing row)",ANSWER_Z_Q80,0.4025742997648065,0.5731694509396577,200
 hard2verify,4B,"ALL_EQ (plain average, reproduction check)",ANSWER_Z_Q80,0.4025742997648065,0.5731694509396577,200
 hard2verify,4B,"DS_FILTER_EQ (label-free, existing row)",ANSWER_Z_Q80,0.3993817619783616,0.5741387237839305,200
@@ -13,6 +15,8 @@ hard2verify,8B,"IU_PCR (label-free, existing row)",ANSWER_Z_Q80,0.41526286989097
 hard2verify,8B,LR transfer (trained on PRMBench all6969 steps),ANSWER_Z_Q80,0.4262618083670714,0.6836194628346884,200
 hard2verify,8B,LR transfer (trained on PRMBench noncontrol steps),ANSWER_Z_Q80,0.4278254382693026,0.683799327746696,200
 hard2verify,8B,"LSML_CONT (label-free, existing row)",ANSWER_Z_Q80,0.4025742997648065,0.569408657655838,200
+socratic,-,Qwen2.5-Math-PRM-7B (supervised PRM),ANSWER_Z_Q80,0.6769227968763996,0.8236124967500212,2995
+socratic,-,Qwen2.5-Math-PRM-7B (supervised PRM),NATIVE_0.5,0.6796475832334853,0.8236124967500212,2995
 socratic,4B,"ALL_EQ (label-free, existing row)",ANSWER_Z_Q80,0.6105410585355937,0.646037889760569,2995
 socratic,4B,"ALL_EQ (plain average, reproduction check)",ANSWER_Z_Q80,0.6105410585355937,0.646037889760569,2995
 socratic,4B,"DS_FILTER_EQ (label-free, existing row)",ANSWER_Z_Q80,0.6181109058902471,0.6684260525611141,2995

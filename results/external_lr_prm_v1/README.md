@@ -6,7 +6,7 @@ Nothing here is committed or pushed yet. Files are uncommitted additions.
 
 ## Status
 - **Step 1, LR transfer: DONE** (CPU, local, 51 s). Results are in `RESULTS.csv`, with detail in `LR_TRANSFER.csv` and `LR_TRANSFER_LOG.json`.
-- **Step 2, Qwen2.5-Math-PRM-7B on the externals: NOT RUN.** AIRCC is reachable and the PRM checkpoint is cached there. The driver (`cluster/run_external_prm.py`) and the sbatch file (`cluster/submit_external_prm.sbatch`) are written. The mandatory `/preflight` gate failed at its first rows:
+- **Step 2, PRM: DONE** (see below; submitted on Omri's go-ahead, 2026-10-12, which waived the local-disk preflight row). Original note: AIRCC is reachable and the PRM checkpoint is cached there. The driver (`cluster/run_external_prm.py`) and the sbatch file (`cluster/submit_external_prm.sbatch`) are written. The mandatory `/preflight` gate failed at its first rows:
   - the local C: drive has 4.1 GB free (the gate needs 10 GB);
   - the main checkout is dirty (517 porcelain lines), and a dirty tree is only allowed for a smoke or pilot run.
   
@@ -33,11 +33,18 @@ This mirrors `results/advisor_completion_2026-10-11/lr` on branch `codex/advisor
 - External labels had already been opened in earlier rounds, so this is exploratory transfer evidence, not an untouched test.
 - The step-index control on Hard2Verify has a within-AUC of 0.865 (in `external_nested.csv`). Position alone is a strong Hard2Verify baseline.
 
-## Step 2 plan (ready, not run)
-- One GPU job per benchmark on account `cycle3_tau_averbuch_prj`, QOS `owner_940`, partition `power-gpu`.
-- Input: `$S/data/lsml_external_20260924/{socratic,hard2verify}/answers.json`. These have the same SHA-256 hashes as the local inputs, so the uids and `steps` lists are the ones our telemetry was scored on.
-- Scoring: the same `spectral_utils/prm_scorer.score_steps` as `cluster/run_prmbench_prm.py`, with one `<extra_0>` after each step.
-- Offline evaluation, two rules:
-  - the native rule, reward >= 0.5 means the step is valid;
-  - ANSWER_Z_Q80 on the risk (1 - reward).
-- Rows over 4,096 input tokens are counted in the job manifest. Long Hard2Verify proofs may exceed the PRM's context.
+## Step 2 results: Qwen2.5-Math-PRM-7B (supervised PRM)
+AIRCC jobs 282806 (Socratic, 6.4 min) and 282807 (Hard2Verify, 4.8 min) both COMPLETED. Code snapshot: commit d6c449a4f, copied to `code_external_prm_v1`. Raw rewards: `prm_raw/<bench>/external_prm.pkl`. Evaluator: `prm_evaluate.py`; its rows are in `PRM_EXTERNAL.csv` and were merged into `RESULTS.csv`.
+
+| benchmark | rule | official metric | within-answer AUC |
+|---|---|---|---|
+| Socratic | NATIVE_0.5 | 0.680 | 0.824 |
+| Socratic | ANSWER_Z_Q80 | 0.677 | 0.824 |
+| Hard2Verify | NATIVE_0.5 | 0.234 | 0.634 |
+| Hard2Verify | ANSWER_Z_Q80 | 0.391 | 0.634 |
+
+- **Input format.** Same answers.json as our telemetry (SHA-256 identical), using the model card's template with one `<extra_0>` after each step.
+- **Rules.** NATIVE_0.5: reward >= 0.5 means valid, on every step. ANSWER_Z_Q80 is applied to 1 - reward over the non-empty steps; empty steps are predicted incorrect, exactly as for our methods.
+- **Long inputs.** 19 of the 200 Hard2Verify inputs exceed 4,096 tokens (max 11,719). Their within-AUC is not lower: 0.636 on 12 defined answers, vs 0.633 on 136 shorter ones.
+- **Hard2Verify at 0.5.** The PRM's native rule flags very few errors there, which gives Balanced F1 0.234.
+- **No confidence intervals.**
