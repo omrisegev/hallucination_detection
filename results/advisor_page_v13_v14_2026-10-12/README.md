@@ -31,4 +31,4 @@ Without it, section 5 shows the LR and PRM-7B bars as "running".
 ## External LR and PRM-7B
 
 `external_lr_prm_v1/RESULTS_relayed.csv` is a 3-decimal copy of the LR and PRM-7B rows in `results/external_lr_prm_v1/RESULTS.csv`
-(full results, code and logs; pushed separately from the local checkout).
+(full results, code and logs: branch `claude/project-thread-9ccmlt` @ adc32b5f). Checked 2026-10-12: all 8 rows match the full file within 0.0005 (rounding).
