@@ -1,4 +1,4 @@
-"""Six visual alternatives for the frozen channel-by-error-type analysis.
+"""Eight visual alternatives for the frozen channel-by-error-type analysis.
 
 No scorers are fitted. Family profiles summarize member-channel AUCs, not a
 new fusion score. Paired uncertainty is resampled at canonical source group.
@@ -124,17 +124,26 @@ def main():
     with (OUT / "FAMILY_SUMMARY.csv").open("w", newline="") as stream:
         writer = csv.DictWriter(stream, list(records[0]), lineterminator='\n'); writer.writeheader(); writer.writerows(records)
     template = (OUT / "gallery.template.html").read_text()
+    extension_path = ROOT / 'results/signal_gallery_extensions_2026-10-12/extension.json'
+    extension = json.loads(extension_path.read_text())
+    assert [f['id'] for f in extension['features']] == [f['id'] for f in data['features']]
+    (OUT / 'EXTENSION_DATA.json').write_bytes(extension_path.read_bytes())
     page = template.replace("__DATA__", json.dumps(data, ensure_ascii=False).replace("<", "\\u003c"))
+    page = page.replace('__EXTENSION__', json.dumps(extension, ensure_ascii=False).replace('<', '\\u003c'))
     (OUT / "index.html").write_text(page)
     inputs = [SOURCE / "statistics/CHANNEL_BY_TYPE.csv", SOURCE / "statistics/CHANNEL_PER_ANSWER.npz",
-              SOURCE / "inputs/population.npz", ROOT / "scripts/run_advisor_v11_lr.py"]
-    (OUT / "MANIFEST.json").write_text(json.dumps({"scope": "Presentation alternatives; no new feature/scorer fits",
+              SOURCE / "inputs/population.npz", ROOT / "scripts/run_advisor_v11_lr.py",
+              extension_path, ROOT / 'results/signal_gallery_extensions_2026-10-12/MANIFEST.json']
+    (OUT / "MANIFEST.json").write_text(json.dumps({"scope": "Presentation alternatives; no new fusion fits; G/H use donor-Q80 feature decisions",
         "inputs": [{"path": str(f.relative_to(ROOT)), "sha256": sha(f)} for f in inputs],
         "builder_sha256": sha(Path(__file__)), "template_sha256": sha(OUT / "gallery.template.html"),
         "html_sha256": sha(OUT / "index.html"), "n_features": 56, "n_types": 8,
         "family_summary": "equal mean of member-channel AUC; not fused-family AUC",
         "family_ci": "5000 whole canonical source-group draws on per-answer mean-member AUC",
         "fixed_orientation": True, "MS_AUC": "undefined; intentionally absent",
+        "dependence": "max of two class-conditional mean absolute error phi correlations; same defined peers in both classes; descriptive pairwise dependence only",
+        "prm_family_summary": "equal mean of member-feature PRMScores, not a family fusion score; MS valid-step F1 only",
+        "base_published_commit": "f54aa8113719d8ab9f96a9eea5dd7dc2ab5ca3b5",
         "published": False}, indent=2) + "\n")
     print("Gallery written", OUT / "index.html", flush=True)
 

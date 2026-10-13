@@ -1,6 +1,9 @@
 # Interactive signal gallery — Git reading copy
 
-This delivery contains the six visualization alternatives for advisor section
+This reading delivery adds G/H to the six-view base at `f54aa811`, including
+their sealed display data, numerical summaries, source hashes and review.
+
+This delivery contains the eight visualization alternatives for advisor section
 4c, their display data, builder, template, source hashes and validation receipt.
 The existing advisor v11 presentation remains unchanged.
 
@@ -22,3 +25,12 @@ Reviewers should inspect family means versus fusion scores, fixed channel
 orientation, changing raw/position eligibility, member IQR versus confidence
 intervals, and the paired STEP_INDEX contrasts. Numeric validation and browser
 checks are documented in `REVIEW.md`.
+
+G uses descriptive pairwise conditional error dependence, with undefined
+constant/absent-class pairs preserved. H displays mean member-channel AUC or
+PRMScore, with MS valid-step F1 separated from the macro-F1 curves.
+
+The extension evidence is in `results/signal_gallery_extensions_2026-10-12/`.
+Its NPZ raw arrays remain local and are hash-catalogued in the original manifest.
+`GIT_DELIVERY.json` identifies included and excluded files. This is a reading
+delivery; a fresh numerical replay also needs the frozen source arrays outside Git.
