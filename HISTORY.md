@@ -18457,3 +18457,12 @@ Negative result recorded: results/orthogonal_family_fusion_20261005/run_v1/NEGAT
 **Result**: The package keeps the validated original HTML hash `0117d91120c6e2c96f23dfd9f26c87fc1f5835d116318ebe79a9a7404f03c522`, the 31-minute budget and pending same-checkpoint L-SML/generalization placeholders. The Git reading delivery can rebuild the HTML; full numerical replay still needs the raw arrays listed in SOURCE_MANIFEST. Branch `codex/advisor-v17-2026-10-15`; main checkout and unrelated changes preserved.
 
 ---
+
+
+### Step 453 [advisor-v18 alternative] — Restore the requested explanatory visuals
+
+**What**: Added a second complete HTML version with v16's taxonomy/construction diagram, side-by-side actual NR/NCL examples, and the original category polygon/radar as the default profile. Retained the v17 matched LR profile in an alternate tab.
+**Why**: Omri preferred these visual explanations and requested both versions be published so Claude can recommend what to present.
+**Result**: v18 has 16 main slides, seven appendices and 34 minutes of content; v17 stays at 31 minutes and its exact HTML hash is unchanged. No metric recomputation or inference; v18 UI/source checks passed over all 23 sections. See `results/advisor_page_v18_2026-10-15/CLAUDE_COMPARE_V17_V18.md`.
+
+---
