@@ -53,3 +53,23 @@ Paired differences, with 95% CI:
 - PRM-7B was trained on labels (Qwen MC + judge). The fused score inherits that supervision. Only the fusion
   is label-free.
 - Large outputs (raw telemetry ~1 GB per path, FEATURES.npz) are kept on AIRCC under `results/prm_boost_v1/`.
+
+## Stage 2 (2026-10-13): small PRM-dominant bank, label-selected
+`channel_atlas.py`: within-AUC and conditional Spearman with PRM given the label, for all 56 channels of
+both banks (`CHANNEL_ATLAS_*.csv`). `small_bank.py`: greedy forward selection of channels from both banks
+(PRM fixed at weight 1/2, channels share 1/2), run inside the 5 source-group folds and scored out of fold.
+All 5 folds pick the same first 3, in the same order: bb:energy_level, bb:hist_entropy_cusum_abs_series,
+bb:realized_drv. cusum is weak alone (.678) but nearly conditionally independent of PRM (rho .12 / -.02).
+
+| arm (ANSWER_Z_Q80) | within-AUC | PRMScore |
+|---|---|---|
+| PRM + Omri's set (2 digit channels, chosen_surprisal, evidence_drop) | .8302 | 67.63 |
+| PRM + 3 selected, out of fold | .8508 | 69.38 |
+| PRM + 6 selected, out of fold | .8530 | 69.65 |
+
+`SMALL_BANK_BOOTSTRAP.csv` (contrasts with 95% CI):
+- k=3 out of fold − PRM native: +3.93 [3.24, 4.60] PRMScore.
+- k=3 out of fold − ½PRM + ½N16 backbone: +0.85 [0.53, 1.18] PRMScore.
+
+Label-selected: report it as such. The cross-PRM frozen test is specified in
+`docs/experiments/PRM_BOOSTING_GENERALIZATION_V1.md`.
