@@ -156,3 +156,23 @@ recorded go; full inference additionally requires measured timing, estimate,
 user budget authorization and the existing alignment gate. All future
 cluster-to-Drive transfers use direct `rclone copy` plus zero-difference
 `rclone check`. Codex performed none of those external actions here.
+
+## Claude review fixes (2026-10-13)
+
+1. AFT label leak. Release `conv_id` values encode the label (for example `gaia_0000_safe`,
+   `..._unsafe_injected_reexec`). `uid` and `source_id` are now a sha256 of `conv_id`. The group
+   is a sha256 of the whitespace-normalized task, so safe and unsafe runs of one task share a group.
+   `conv_id` is kept only in the evaluator annotations. AFT uids changed: regenerate the AFT inputs
+   into a NEW versioned directory. Do not reuse `inputs_final`.
+2. G2 definition. Qwen BPE merges step-boundary text such as ".\n\n" and newline padding. A step
+   span is now the set of covering tokens. A gate failure happens only when the overhang outside
+   the step span has non-whitespace characters, the decoded text differs, or one token crosses two
+   steps. `boundary_overhang` (chars, spans) is recorded per item.
+3. G1 definition. The Qwen3 template gives the last history assistant turn an empty think block
+   when it renders only the history. It gives no block when the scored turn follows. We keep the
+   full-render context. G1 accepts exactly this one difference and lists it under
+   `template_last_turn_block` (6 TPRM variants).
+
+Result here (real Qwen3-8B tokenizer, local clones at the pinned commits): APB + TPRM, 1,890 items:
+G1, G2, G3, G4 and LENGTH all PASS. AFT was not checked because HF is blocked in this container.
+Codex must rerun prepare and all CPU gates (G1-G6) on the full 4,166 items.

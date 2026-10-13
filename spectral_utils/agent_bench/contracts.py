@@ -198,8 +198,13 @@ def adapt_tprm(row, subset, diagnostics=None, case_index=None):
 
 
 def adapt_aft(row, safe, test_ids):
-    domain, source = row["domain"], row["conv_id"]
+    # Release conv_ids encode the label (e.g. "gaia_0000_safe", "..._unsafe_injected_reexec").
+    # Blind IDs: hash the conv_id; group by task text so safe/unsafe variants of one task
+    # share a group. The real conv_id is kept in the evaluator file only.
+    domain, conv_id = row["domain"], row["conv_id"]
+    source = hashlib.sha256(conv_id.encode()).hexdigest()[:16]
     uid = f"aft:{domain}:{source}"
+    group = "aft:" + hashlib.sha256(" ".join(row["task"].split()).encode()).hexdigest()[:16]
     if row["num_turns"] != len(row["turns"]):
         raise ValueError(f"{uid}: num_turns mismatch")
     mistake = int(row.get("mistake_step", -1))
@@ -230,11 +235,11 @@ def adapt_aft(row, safe, test_ids):
         fields.append(subs)
     ms = messages([{"role": "system", "content": system}, {"role": "user", "content": row["task"]},
                    {"role": "assistant", "content": text}], uid=uid)
-    item = AgentItem(uid, "aft", domain, source, "aft:" + source, ms, [], render_mode="transcript",
+    item = AgentItem(uid, "aft", domain, source, group, ms, [], render_mode="transcript",
                      step_entry_indices=list(range(len(spans))), entry_spans=spans,
                      entry_field_spans=fields, entry_to_history=list(range(len(spans))))
-    annotation = {"uid": uid, "label": "safe" if safe else "unsafe", "mistake_step": mistake,
-                  "split_test": source in test_ids, **{k: row.get(k) for k in
+    annotation = {"uid": uid, "conv_id": conv_id, "label": "safe" if safe else "unsafe", "mistake_step": mistake,
+                  "split_test": conv_id in test_ids, **{k: row.get(k) for k in
                   ("mistake_agent", "mistake_reason", "unsafe_source", "gold_answer", "domain")}}
     validate(item)
     return item, annotation

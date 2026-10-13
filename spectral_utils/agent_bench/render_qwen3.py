@@ -143,10 +143,24 @@ def tokenize(item, tokenizer, *, max_context=32768, check=True):
         begin, end = bisect_right(ends, a), bisect_left(starts, b)
         if begin >= end or offsets[begin][0] > a or offsets[end-1][1] < b:
             raise ValueError(f"{row['uid']}: unmapped span {chars}")
-        if exact and tokenizer.decode(ids[begin:end], skip_special_tokens=False,
-                                      clean_up_tokenization_spaces=False) != text[a:b]:
-            raise ValueError(f"{row['uid']}: decoded tokens differ at span {chars}")
+        if exact:
+            # A span maps to the minimal contiguous tokens that cover it (the same rule as
+            # external_generalization.contracts.tokenize_answer). Qwen3 BPE may merge the
+            # last char of a span with following newlines (".\n\n") or the first char with
+            # preceding newlines; such a boundary token belongs to this span. Allowed only if
+            # (1) the covered tokens decode exactly to the covered text, and (2) the overhang
+            # outside [a, b) is whitespace. A token shared by two steps is rejected below.
+            lo, hi = offsets[begin][0], offsets[end-1][1]
+            if tokenizer.decode(ids[begin:end], skip_special_tokens=False,
+                                clean_up_tokenization_spaces=False) != text[lo:hi]:
+                raise ValueError(f"{row['uid']}: decoded tokens differ at span {chars}")
+            if text[lo:a].strip() or text[b:hi].strip():
+                raise ValueError(f"{row['uid']}: non-whitespace token overhang at span {chars}")
+            overhang[0] += (a - lo) + (hi - b)
+            overhang[1] += int(lo < a or hi > b)
         return [begin-first_after, end-first_after]
+
+    overhang = [0, 0]
 
     token_spans = [locate(c, exact=check) for c in spans["step_char_spans"]]
     if any(b > c for (a, b), (c, d) in zip(token_spans, token_spans[1:])):
@@ -166,5 +180,6 @@ def tokenize(item, tokenizer, *, max_context=32768, check=True):
             "step_char_spans": spans["step_char_spans"], "step_token_spans": token_spans,
             "context_spans": [{**c, "token_span": locate(c["char_span"])} for c in spans["context_spans"]],
             "step_details": details, "overlength": len(ids)>max_context,
+            "boundary_overhang": {"chars": overhang[0], "spans": overhang[1]},
             "span_coordinate_system": "chars=full_text; tokens=gen_ids; negative context indices are prompt",
             "first_message_token_count": first_after}

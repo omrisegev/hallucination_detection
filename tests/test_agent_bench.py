@@ -211,8 +211,22 @@ class Contracts(unittest.TestCase):
              'turns':[{'role':'agent','content':'abc.'},{'role':'tool','content':'xyz.'}]}
         item,_=adapt_aft(row,True,set());text,spans=render(item,tok)
         self.assertEqual(text[slice(*spans['step_char_spans'][0])],'[Content] abc.')
-        with self.assertRaisesRegex(ValueError,'decoded tokens differ'):
-            tokenize(item,tok)
+        # The ".\n\n" token is attributed to step 0 (whitespace overhang only); text unchanged.
+        out=tokenize(item,tok)
+        (a0,b0),(a1,b1)=out['step_token_spans']
+        self.assertLessEqual(b0,a1)
+        self.assertGreater(out['boundary_overhang']['spans'],0)
+
+    def test_aft_ids_do_not_encode_label(self):
+        base={'domain':'math','task':'same task','num_turns':1,'tools':[],
+              'turns':[{'role':'agent','content':'x'}]}
+        safe,gs=adapt_aft({**base,'conv_id':'gaia_0000_safe'},True,set())
+        bad,gu=adapt_aft({**base,'conv_id':'gaia_0000_unsafe_injected_reexec','mistake_step':0},False,set())
+        for item in (safe,bad):
+            blob=json.dumps(item.to_dict())
+            self.assertNotIn('safe',blob.replace('aft:',''))
+        self.assertEqual(safe.group,bad.group)
+        self.assertEqual(gs['conv_id'],'gaia_0000_safe')
 
     def test_empty_transcript_header_has_no_extra_newline(self):
         item=fixtures()[-1]

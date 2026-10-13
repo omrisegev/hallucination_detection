@@ -3,6 +3,7 @@ import argparse
 from collections import Counter, defaultdict
 import hashlib
 import json
+import re
 from pathlib import Path
 import random
 import sys
@@ -166,6 +167,17 @@ def cpu_gates(answers, tokenizer, out, max_context=32768):
                     actual = text[:spans["step_char_spans"][0][0]]
                     expected = native(tokenizer,prefix_messages,row["tools"],generation=True)
                     gates["G1"]["checked"] += 1
+                    if actual!=expected and prefix_messages[-1]["role"]=="assistant":
+                        # Template quirk, not a renderer change: rendered alone, the history's
+                        # last message (an unscored assistant turn right before the scored one)
+                        # is "loop.last" and gets the empty think block; in the full
+                        # conversation it is not last and gets none. We keep the full-render
+                        # context. Accept exactly this one difference and count it.
+                        heads = [m.start() for m in re.finditer(re.escape(HEADER), expected)]
+                        cut = heads[-2] + len(HEADER)  # header of message k-1; heads[-1] is the generation prompt
+                        if expected[cut:].startswith(EMPTY) and expected[:cut]+expected[cut+len(EMPTY):]==actual:
+                            gates["G1"].setdefault("template_last_turn_block",[]).append(uid)
+                            expected = actual
                     if actual!=expected:
                         position=next((j for j,(a,b) in enumerate(zip(actual,expected)) if a!=b),min(len(actual),len(expected)))
                         gates["G1"]["failures"].append({"uid":uid,"step_message_index":k,"first_difference_char":position})
