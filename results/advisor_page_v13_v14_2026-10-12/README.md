@@ -7,7 +7,8 @@ Artifact: https://claude.ai/artifact/NQNTYpFqVyx6xRnRS4NENV
 | `published_v13_2026-10-12.html` | Live page v13 (artifact version 1791822103-9f6b). Built from outline v2. |
 | `published_v14_2026-10-12.html` | Live page v14 (artifact version 1791824234-383c). Section 3 names Qwen3-8B and adds Qwen3-4B. Section 5 compares plain average, DS-filter, L-SML, IU-PCR, LR and PRM-7B. |
 | `published_v15_2026-10-12.html` | Live page v15 (artifact version 1791842634-85c9). Section 5 adds LR (8B, 4B) and Qwen2.5-Math-PRM-7B (0.5 and Q80) on the same external answers. |
-| `build_v13.py`, `build_v14.py`, `build_v15.py` | Build scripts. Every number comes from saved result files; asserts tie the text to the data. |
+| `published_v16_2026-10-13.html` | Live page v16 (artifact version 1791872373-d6ef). New section 9 (label-free N16 from the PRM-7B backbone and its fusion with the PRM reward) and section 10 (what is next). |
+| `build_v13.py` ... `build_v16.py` | Build scripts. Every number comes from saved result files; asserts tie the text to the data. |
 | `FLOW_OUTLINE_2026-10-15.md` | Outline v1. |
 | `FLOW_OUTLINE_v2_2026-10-15.md` | Outline v2, approved by Omri on 2026-10-12. |
 | `FLOW_OUTLINE_DROPPED_ITEMS_2026-10-12.md` | Items dropped from the outline. |
@@ -22,7 +23,10 @@ Artifact: https://claude.ai/artifact/NQNTYpFqVyx6xRnRS4NENV
 python3 build_v13.py ../advisor_page_v12_2026-10-12/published_v12_2026-10-12.html PKG PF out_v13.html
 python3 build_v14.py ../advisor_page_v12_2026-10-12/published_v12_2026-10-12.html PKG PF out_v14.html [external_lr_prm.csv]
 python3 build_v15.py ../advisor_page_v12_2026-10-12/published_v12_2026-10-12.html PKG PF out_v15.html external_lr_prm_v1/RESULTS_relayed.csv
+python3 build_v16.py ../advisor_page_v12_2026-10-12/published_v12_2026-10-12.html PKG PF out_v16.html external_lr_prm_v1/RESULTS_relayed.csv
 ```
+
+`build_v16.py` also reads `PF/advisor_page/prm_boosting_v1/COMPOSITIONS.csv` and `RESULTS_prm_backbone.csv` (copies in `prm_boosting_v1/` here; source: branch `claude/prm-boosting-v1` @ 122500e2, `results/prm_boosting_v1/`).
 
 The optional 5th argument of `build_v14.py` is a CSV with columns
 `benchmark, model, method, rule, official_metric` (LR and PRM-7B on the external benchmarks).
