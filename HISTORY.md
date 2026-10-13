@@ -18448,3 +18448,22 @@ Negative result recorded: results/orthogonal_family_fusion_20261005/run_v1/NEGAT
 **Result**: Next meeting next week, focused on PRMBench only; ProcessBench de-prioritized (no meaningful gain over the plain average and a small gap to supervised LR). Preparation plan, including Omri's request for an analysis against supervised LR, is in `docs/meetings/advisor_meeting_2026-10-08/README_HE.md`. No experiment launched.
 
 ---
+
+
+### Step 452 [Codex agent telemetry] - Full afae64a CPU rerun with blind AFT IDs, 2026-10-13
+
+**What**: Recreated all 4,166 agent inputs in new `inputs_v2_20261013`
+using Claude's unmodified correction. Collected exact G1-G6/LENGTH outputs,
+17-test results, nine-item CPU interrupt/resume smoke and independent
+full-AFT metadata/source/grouping/span audit.
+**Why**: Claude had checked only 1,890 APB/TPRM items; AFT was unavailable
+in his container. New AFT opaque IDs require fresh inputs and complete
+CPU evidence before GPU alignment and timing.
+**Result**: All CPU gates PASS; 2,276/2,276 AFT rows have no explicit
+annotation/raw-ID leak, invariant inputs under metadata flips, unchanged
+source observations and consistent groups. All 14 checked runtime/test
+files match afae64a exactly; no gate or threshold change. Same ten length
+exclusions, zero truncation. No AIRCC/GPU/Drive action or benchmark
+scoring. Review delivery: [results/agent_step_telemetry_v1/cpu_rerun_v2_20261013/README.md](results/agent_step_telemetry_v1/cpu_rerun_v2_20261013/README.md).
+
+---

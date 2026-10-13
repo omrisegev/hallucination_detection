@@ -1,5 +1,7 @@
 # Handoff to Claude: agent step telemetry v1
 
+> Current CPU rerun (2026-10-13): **G1-G6 and LENGTH PASS**, all 4,166 items, including all 2,276 AFTraj runs. [Current evidence](../results/agent_step_telemetry_v1/cpu_rerun_v2_20261013/README.md) supersedes the older blocked CPU verdict below. The runtime/gate code is unchanged from Claude commit afae64a; G7, Claude approval of the full rerun and GPU go remain pending.
+
 **Review pending. CPU verdict: BLOCKED_BY_CPU_GATES. Do not submit to AIRCC.**
 Omri confirmed AFTraj-2K as the third benchmark and authorized a dedicated
 worktree and branch push. He explicitly instructed Codex not to connect to
@@ -176,3 +178,44 @@ cluster-to-Drive transfers use direct `rclone copy` plus zero-difference
 Result here (real Qwen3-8B tokenizer, local clones at the pinned commits): APB + TPRM, 1,890 items:
 G1, G2, G3, G4 and LENGTH all PASS. AFT was not checked because HF is blocked in this container.
 Codex must rerun prepare and all CPU gates (G1-G6) on the full 4,166 items.
+
+
+## Codex full CPU rerun - 2026-10-13
+
+Source commit `afae64a4d6826ac1465249f6a002ffde4b20fd37`; unchanged
+14 runtime/test/template files, verified against their exact Git blobs.
+New private inputs: `/Users/osegev/Desktop/hallucination_detection/local_cache/agent_step_telemetry_v1/inputs_v2_20261013/`.
+Do not reuse `inputs_final` for AFT: all 2,276 IDs changed.
+
+[Current delivery](../results/agent_step_telemetry_v1/cpu_rerun_v2_20261013/README.md): all six CPU gates and length checks PASS
+for the 4,166-item campaign. G1 covers its registered 910 APB/TPRM prefixes
+with six exactly specified native template variants; additional exact
+observer-prefix parity passes on 2,276/2,276 AFTraj items. G2/G4 cover
+4,166/4,166 items, G3 covers all 445 pairs, G5 covers all source counts and
+annotation ranges. G6 is the prescribed nine-item CPU fixture smoke;
+interrupt after four, resume and independent fresh telemetry are identical.
+The 17 unmodified unit tests pass.
+
+AFT label-blindness audit checks all 2,276 rows: no original conv_id appears
+in answer JSON, no evaluator metadata keys, full independent prompt/source
+reconstruction, and invariant inputs when correctness, error metadata and
+test membership change. The 1,381 normalized tasks map to 1,381 consistent
+groups. No evaluator sidecar was opened by the audit. Source log/task text
+remains unchanged. AFT spans have 21,612 whitespace-overhang cases (43,224
+characters), accepted only by Claude's unchanged covering-token rule and
+recorded per item in `AFT_TOKEN_SPAN_AUDIT.json`. The telemetry collector
+does not currently serialize the returned overhang aggregate; offsets and
+char/token spans retain the information. No collector code was edited.
+
+All older private inputs/reports remain intact. APB/TPRM answers are byte
+identical; for AFT only uid/source_id/group differ. The same ten overlength
+items are excluded (8 GAIA, 2 HotpotQA); zero truncation.
+`CPU_PREFLIGHT.json` binds new inputs/code/protocol with CPU verdict PASS;
+reviewed_by and gpu_approved_by are deliberately null. It is CPU evidence,
+not a cluster-session submission approval.
+
+No AIRCC access, GPU submission, benchmark inference/scoring, package
+installation or Drive upload occurred during this rerun. Claude reviews
+this evidence next, then can run G7/GPU smoke from a machine with access
+after Omri's go. Full inference still needs measured timing and user budget
+approval. Thursday 2026-10-15 remains PRMBench focused.

@@ -6586,3 +6586,20 @@ Omri requested SML/MoM/HEM/DS on a common-plus-orthogonal-contrast representatio
 PRMB primary RAW -> ORTH: SML: B13 0.778598 -> 0.599104; B32 0.731631 -> 0.737647 | MOM: B13 0.779632 -> 0.491271; B32 0.742690 -> 0.559498 | HEM: B13 0.778355 -> 0.753295; B32 0.746882 -> 0.602148 | DS: B13 0.779285 -> 0.522549; B32 0.741728 -> 0.622258. 7/8 primary PRMB comparisons have negative paired 95% intervals; 1/8 positive. SML B32 gains .006016 [.002004,.009977] over RAW SML but remains below COMMON_EQ. With MoM between groups, its differences against RAW SML+MoM and COMMON_MOM both include zero. No general recovery of the supervised gap.
 
 Four tests, all common-only/raw EQ/raw HEM replay controls, 432 independent metric rows and unchanged input/code hashes PASS. All candidate scores sealed before full-run quality evaluation. Native small-group equal guards and clipping documented; expected failures: 0. Orthogonality does not imply independent error votes. This result tests one fixed representation/normalization/weighting recipe, not the whole contrast direction. No supervised-label use to orient or weight contrasts, no GPU/inference, no historical score overwrite. Initial manifest-type smoke error preserved and corrected without changing a numerical gate.
+
+
+## 2026-10-13 - Agent telemetry CPU rerun v2 passes (Codex)
+
+Branch `codex/agent-step-telemetry-v1`, tested Claude correction `afae64a`.
+Full fresh `inputs_v2_20261013`: 4,166 items / 35,705 steps; APB 1,000,
+TPRM 890, AFT 2,276. G1-G6 and LENGTH PASS with unchanged gate/runtime
+code. AFT explicit metadata/raw-ID leak checks, independent full source
+prompt reconstruction and label/test-metadata invariance pass for every
+AFT row; all normalized tasks share consistent groups.
+[Evidence](results/agent_step_telemetry_v1/cpu_rerun_v2_20261013/README.md) includes complete hashes, counts, gate outputs and
+per-item AFT boundary diagnostics. Seventeen tests and nine-item
+interrupt/resume/fresh CPU model smoke pass. Ten overlength exclusions
+unchanged; no truncation; older data/reports preserved.
+CPU only: no benchmark inference/scoring, AIRCC access, Drive transfer or
+GPU permission. Claude reviews the full evidence next; G7/smoke/budget
+remain pending. Thursday 2026-10-15 remains PRMBench focused.
