@@ -285,6 +285,51 @@ def cpu_smoke(out):
     atomic_json(out/'G6.json',result);return result
 
 
+class G7Qwen3Exception(unittest.TestCase):
+    """The reviewed Qwen3-8B prefix exception accepts only its exact binding."""
+    def setUp(self):
+        sys.path.insert(0,str(ROOT/'cluster'))
+        from run_external_telemetry import qwen3_8b_agent_prefix_evidence,QWEN3_8B_REVISION
+        from run_agent_telemetry import G7_EVIDENCE
+        self.check,self.rev,self.evidence=qwen3_8b_agent_prefix_evidence,QWEN3_8B_REVISION,G7_EVIDENCE
+        runs=json.loads(self.evidence.read_text())['runs']
+        self.cases={}
+        for uid in ('apb:hotpotqa:143','tprm:bfcl:multi_turn_base_130:case18:A','aft:agentic:85854e4a13734c2d'):
+            rows={r['j']:r['abs_diff_target'] for r in next(r for r in runs if r['config']=='bf16_sdpa' and r['uid']==uid)['gate16']['rows']}
+            positions=sorted({0,len(rows)//2,len(rows)-1})
+            self.cases[uid]=(positions,[rows[j] for j in positions])
+
+    def call(self,case_uid,**kw):
+        positions,differences=self.cases[case_uid]
+        args=dict(evidence=self.evidence,model_id='Qwen/Qwen3-8B',revision=self.rev,dtype='torch.bfloat16',
+                  uid=case_uid,positions=positions,differences=differences)
+        args.update(kw)
+        return self.check(args.pop('evidence'),**args)
+
+    def test_exact_binding_passes_for_each_benchmark(self):
+        for uid in self.cases:
+            self.assertEqual(len(self.call(uid)),64)
+            self.assertGreater(max(self.cases[uid][1]),.05)
+
+    def test_wrong_binding_fails(self):
+        uid='apb:hotpotqa:143'
+        positions,differences=self.cases[uid]
+        bad=[dict(revision='976055f8c83f394f35dbd3ab09a285a984907bd0'),dict(model_id='Qwen/QwQ-32B'),
+             dict(dtype='torch.float32'),dict(evidence=None),dict(uid='apb:hotpotqa:157'),
+             dict(differences=[d+1e-3 for d in differences]),dict(positions=[0,7,15])]
+        for kw in bad:
+            with self.subTest(kw=list(kw)),self.assertRaises(ValueError):
+                self.call(uid,**kw)
+
+    def test_tampered_evidence_fails(self):
+        with tempfile.TemporaryDirectory() as d:
+            p=Path(d)/'G7_DIAGNOSTIC.json'
+            p.write_bytes(self.evidence.read_bytes().replace(b'"complete": true',b'"complete": false'))
+            self.assertNotEqual(p.read_bytes(),self.evidence.read_bytes())
+            with self.assertRaises(ValueError):
+                self.call('apb:hotpotqa:143',evidence=p)
+
+
 if __name__=='__main__':
     if len(sys.argv)>1 and sys.argv[1]=='--cpu-smoke':
         print(json.dumps(cpu_smoke(Path(sys.argv[2]))))

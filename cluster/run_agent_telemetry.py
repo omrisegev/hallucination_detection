@@ -19,6 +19,8 @@ from run_external_telemetry import alignment_gate, collect_quantities as externa
 
 MODEL = "Qwen/Qwen3-8B"
 REVISION = "b968826d9c46dd6066d109eabc6255188de91218"
+# Reviewed bf16 prefix evidence for the G7 exception (see run_external_telemetry.QWEN3_8B_*).
+G7_EVIDENCE = ROOT/"results/agent_step_telemetry_v1/g7_diagnostic_20261013/G7_DIAGNOSTIC.json"
 STOP = False
 
 
@@ -178,7 +180,8 @@ def main():
             raise ValueError("rope scaling prohibited")
         load_seconds=time.perf_counter()-loaded
         torch.cuda.reset_peak_memory_stats()
-        gate=alignment_gate(model,items[min(range(len(items)),key=lambda i:lengths[i])],model_id=MODEL,revision=REVISION)
+        gate=alignment_gate(model,items[min(range(len(items)),key=lambda i:lengths[i])],model_id=MODEL,revision=REVISION,
+            evidence=G7_EVIDENCE)
         atomic_json(args.out/"ALIGNMENT_GATE.json",gate)
         complete,measurements=run(items,store,lambda i:collect_quantities(model,i),selected,memory=torch.cuda.max_memory_allocated)
         atomic_json(args.out/"TIMING.json",{"identity":identity,"complete":complete,"load_seconds":load_seconds,

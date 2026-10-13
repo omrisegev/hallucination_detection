@@ -68,6 +68,33 @@ def collect_quantities(model, item):
             "top_k_logprobs": {"ids": top["ids"].tolist(), "logprobs": top["logprobs"].tolist()}}
 
 
+# Reviewed Qwen3-8B bf16 prefix exception (Omri, 2026-10-13, after diagnostic job 283828):
+# serial-prefix vs batched log-probs differ by one bf16 logit step (0.25-0.9) on low-probability
+# tokens; fp32 gives <=0.029 and causal/target-offset errors are 0. Bound to the revision, bf16,
+# the shortest agent item of each benchmark and this exact evidence file. Not a blanket tolerance.
+QWEN3_8B_REVISION = 'b968826d9c46dd6066d109eabc6255188de91218'
+QWEN3_8B_AGENT_G7_EVIDENCE_SHA = 'b23f34117d02e6bfa28215e139c328632111e6e1fe409bc5a7e9e9bb6650af91'
+QWEN3_8B_AGENT_G7_UIDS = ('apb:hotpotqa:143', 'tprm:bfcl:multi_turn_base_130:case18:A',
+                          'aft:agentic:85854e4a13734c2d')
+
+
+def qwen3_8b_agent_prefix_evidence(evidence, *, model_id, revision, dtype, uid, positions, differences):
+    """Return the evidence sha256 if this exact discrepancy was reviewed, else raise."""
+    if (evidence is None or model_id != 'Qwen/Qwen3-8B' or revision != QWEN3_8B_REVISION or
+            dtype != 'torch.bfloat16' or uid not in QWEN3_8B_AGENT_G7_UIDS or
+            file_hash(evidence) != QWEN3_8B_AGENT_G7_EVIDENCE_SHA):
+        raise ValueError('prefix discrepancy requires reviewed pinned numerical evidence')
+    diagnostic = json.loads(Path(evidence).read_text())
+    runs = [r for r in diagnostic['runs'] if r['config'] == 'bf16_sdpa' and r['uid'] == uid]
+    if diagnostic['env']['revision'] != revision or len(runs) != 1:
+        raise ValueError('prefix discrepancy does not reproduce reviewed diagnostic')
+    reviewed = {r['j']: r['abs_diff_target'] for r in runs[0]['gate16']['rows']}
+    if (len(positions) != len(differences) or any(j not in reviewed for j in positions) or
+            any(abs(reviewed[j]-d) > 1e-4 for j, d in zip(positions, differences))):
+        raise ValueError('prefix discrepancy does not reproduce reviewed diagnostic')
+    return file_hash(evidence)
+
+
 def alignment_gate(model, item, *, model_id=None, revision=None, evidence=None):
     """Fixed-token serial-prefix vs batched teacher-forcing consistency; no generation.
 
@@ -100,7 +127,11 @@ def alignment_gate(model, item, *, model_id=None, revision=None, evidence=None):
     if max(causal_errors + offset_errors) > 1e-5:
         raise ValueError('fixed-shape causal/target-offset gate failed')
     evidence_sha = None
-    if max(differences) > .05:
+    if max(differences) > .05 and model_id == 'Qwen/Qwen3-8B':
+        positions = sorted({0, len(short["gen_ids"])//2, len(short["gen_ids"])-1})
+        evidence_sha = qwen3_8b_agent_prefix_evidence(evidence, model_id=model_id, revision=revision,
+            dtype=str(model.dtype), uid=item['uid'], positions=positions, differences=differences)
+    elif max(differences) > .05:
         # A single reviewed numerical exception, bound to exact immutable evidence,
         # checkpoint and example. Never turn this into a blanket bf16 tolerance.
         if (evidence is None or model_id != 'Qwen/QwQ-32B' or
