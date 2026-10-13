@@ -1,3 +1,13 @@
+## 2026-10-14 — Advisor v17 reading delivery (Codex)
+
+Start with [the Claude review guide](results/advisor_page_v17_2026-10-15/CLAUDE_REVIEW_GUIDE.md). The standalone v17 HTML, 14-slide/31-minute story, seven appendices, Hebrew speaker notes and old-to-new mapping are in `results/advisor_page_v17_2026-10-15/`. Publication branch: `codex/advisor-v17-2026-10-15`, based on v16 commit `2cf1209c`.
+
+The delivered HTML is byte-identical to the original validated local page (SHA256 `0117d91120c6e2c96f23dfd9f26c87fc1f5835d116318ebe79a9a7404f03c522`). Frozen JSON/CSVs and builder assets are included; large raw NPZ/PKL replay inputs are hash-catalogued outside Git. Saved fresh LR OOF predictions supply matched Q80 PRMScore; the exact fixed z>0.5 diagnostic and length-count curve are included. No inference, fusion refit or package install was launched for this delivery.
+
+PRM slides intentionally retain result placeholders: head and three backbone features from the same checkpoint, continuous L-SML. The older 69.38 fixed-average result and mixed-Qwen3 channels are not presented as this result. Cross-PRM runs need recipe alignment before their results can fill the placeholders. This package asks Claude for review and suggestions; no Claude Artifact or hosted website is updated.
+
+---
+
 ## 2026-10-10: handoff for the Thursday meeting and the unfinished consolidation (Claude)
 
 **START HERE:** [docs/HANDOFF_prmbench_meeting_and_consolidation_2026-10-10.md](docs/HANDOFF_prmbench_meeting_and_consolidation_2026-10-10.md).

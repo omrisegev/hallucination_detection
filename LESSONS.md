@@ -470,3 +470,10 @@ What happened: the orthogonal-family report completed its file writes, hash mani
 Why: explicitly encoding file writes does not configure the Windows console stream.
 Rule: launch report scripts that print Hebrew with PYTHONIOENCODING=utf-8; distinguish a console-print failure from failed artifact generation and verify existing hashes before a rerun.
 Enforced by: command (UTF-8 environment on the report_orthogonal_family_fusion.py rerun). Session also corrected the pre-fit manifest-type smoke error; original empty smoke and completed smoke_v2 are preserved.
+
+
+## 2026-10-14 — Preserve original bytes when appending publication history
+What happened: a v17 handoff append normalized pre-existing CRLF lines in HISTORY.md; the staged-scope preparation caught the large diff before any commit.
+Why: read_text/write_text rewrote the entire historical prefix with a different newline convention.
+Rule: preserve the original byte prefix and append only the new entry; inspect the scoped diff before staging publication records.
+Enforced by: publication byte/hash and Git diff checks.
