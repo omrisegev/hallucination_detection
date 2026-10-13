@@ -105,11 +105,13 @@ def prepare(sources, out):
     items = [i for i in items if i.benchmark!="aft"] + sorted([i for i in items if i.benchmark=="aft"],key=lambda i:i.uid)
     (out/"evaluator_only").mkdir()
     for benchmark in ("apb","tprm","aft"):
-        with (out/f"{benchmark}_answers.jsonl").open("w",encoding="utf8") as f:
+        with (out/f"{benchmark}_answers.jsonl").open("w",encoding="utf8",newline="
+") as f:
             for item in items:
                 if item.benchmark==benchmark:
                     f.write(json.dumps(item.to_dict(),ensure_ascii=False,allow_nan=False)+"\n")
-        with (out/"evaluator_only"/f"{benchmark}.jsonl").open("w",encoding="utf8") as f:
+        with (out/"evaluator_only"/f"{benchmark}.jsonl").open("w",encoding="utf8",newline="
+") as f:
             for a in annotations:
                 if a["uid"].startswith(benchmark+":"):
                     f.write(json.dumps(a,ensure_ascii=False,allow_nan=False)+"\n")
