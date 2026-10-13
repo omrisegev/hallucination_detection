@@ -1,0 +1,115 @@
+{
+  "G1": {
+    "pass": true,
+    "native_prmscore": 65.31430781654949,
+    "leaderboard": 65.3,
+    "tolerance": 1.0
+  },
+  "G2": {
+    "pass": true,
+    "token_surprisal_median": 0.09075123071670532,
+    "n_rows_step_text_mismatch": 0
+  },
+  "G3": {
+    "pass": true,
+    "max_abs_error": 0.0,
+    "digit_active_mismatch": 0
+  },
+  "full_population": {
+    "pass": true,
+    "n_rows": 6969
+  },
+  "publish_fused": true,
+  "sources": {
+    "features": {
+      "path": "/shared/cycle2_tau_averbuch_prj/omrisegev1/results/prm_boost_gen_v1/bank_pure_prm/FEATURES.npz",
+      "sha256": "86d2253bb4f2ab31381551c025dde147ae848efbd4b117b0e358e6b3bd71f896"
+    },
+    "q3_features": {
+      "path": "/shared/cycle2_tau_averbuch_prj/omrisegev1/results/thinkfix_rescore_v1/source_bank_thinkfix_mask1/FEATURES.npz",
+      "sha256": "f14ab5d68360cd30819077051329678944bc631b94f2510bc67c9b697bf0948f"
+    },
+    "telemetry": {
+      "path": "/shared/cycle2_tau_averbuch_prj/omrisegev1/results/prm_boost_gen_v1/full_pure_prm/prmbench_telemetry.pkl",
+      "sha256": "31380598e824c6be7f06c7cebc906270a8972bdd43925d0dad294d12dbc6996e"
+    },
+    "manifest": {
+      "path": "/shared/cycle2_tau_averbuch_prj/omrisegev1/results/prm_boost_gen_v1/full_pure_prm/manifest.json",
+      "sha256": "89e6cd5e4adc31ad2dd7bf1312acaec7737a70f6651363932bb867278b23ab2e"
+    },
+    "q3_parity": {
+      "path": "/shared/cycle2_tau_averbuch_prj/omrisegev1/results/prm_boost_v1/bank_parity_qwen3_8b/PARITY.json",
+      "sha256": "8bf410b083a3d19584bf3119f99fc21cd2a4d7c66bec7818254cf35deda050f8"
+    },
+    "q3_parity_manifest": {
+      "path": "/shared/cycle2_tau_averbuch_prj/omrisegev1/results/prm_boost_v1/bank_parity_qwen3_8b/MANIFEST.json",
+      "sha256": "4a42168eba561391da79f9bf5f7522970a989b993ed2c18e6505ad5a91a11ce8"
+    },
+    "answers": {
+      "path": "/shared/cycle2_tau_averbuch_prj/omrisegev1/eval_mirror_prm_gen_v1/.worktrees/readout-quickest-detection-v1/results/step_evidence_v1/OOF_ANSWERS.csv",
+      "sha256": "d44ee1cb7cce3265318913a4d10c9c3cd5b279d6ad6736ccad7464b7d9d0a2c9"
+    },
+    "labels": {
+      "path": "/shared/cycle2_tau_averbuch_prj/omrisegev1/eval_mirror_prm_gen_v1/.worktrees/readout-quickest-detection-v1/results/step_evidence_v1/OOF_STEP_SCORES.npz",
+      "sha256": "473c7caa001d6c5487c9f0663c705b1de1338c0e7408f1b9f6afccf0963e58cd"
+    }
+  },
+  "frozen_code_sha256": {
+    "results/prm_boosting_v1/build_bank.py": "0cc418ac5898504b480c8ab16ca4f645d8c6474f9bb33ff3075820bbac1aeda0",
+    "results/monday_external_panel_v1/score.py": "35a71cc8f46e71588a642ddb35a32c448d3b7fc8fad2e42f86fd95ef6c099d42"
+  },
+  "claim": "Cross-model development test; supervised PRM, Qwen-7B label-selected channels, label-free fusion.",
+  "fit_diagnostics": {
+    "survivors": [
+      "q15_H1",
+      "q15_VE1",
+      "chosen_surprisal",
+      "logprob_margin",
+      "true_tail50",
+      "energy_level",
+      "energy_innovation",
+      "top15_turnover",
+      "dominant_freq16",
+      "bocpd_p0",
+      "realized_z",
+      "realized_drv",
+      "digit_alternative",
+      "digit_spread",
+      "digit_alternative_innovation"
+    ],
+    "n_channels": 16,
+    "groups": [
+      2,
+      2,
+      0,
+      2,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      3,
+      3,
+      3
+    ],
+    "anchor": "q15_H1",
+    "prevalence_hat": 0.29134329783086643,
+    "tci_kept": {
+      "1": [
+        "top15_turnover",
+        "dominant_freq16",
+        "bocpd_p0"
+      ],
+      "2": [
+        "q15_VE1",
+        "logprob_margin",
+        "energy_level"
+      ]
+    },
+    "lf_sign_flips": [],
+    "all_members_gate": 0.0
+  }
+}
