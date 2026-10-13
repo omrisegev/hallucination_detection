@@ -6,7 +6,13 @@ generation, one forward pass per row. Output rows have the run_prmbench_teacher_
 (gen_token_ids / token_entropies / token_spilled_energies / token_logsumexp / top_k_logprobs /
 step_token_spans), so the frozen feature-bank code reads them unchanged.
 
-Two modes:
+Adapters: qwen_prm (historical 7B), qwen_prm_72b (literal upstream
+wrapper), rlhflow_prm, pure_prm, math_shepherd. Skywork's templates are
+inspectable but inference is blocked pending its n+1 reward clarification.
+No separate base-model forward is performed; only cached vocabulary weights
+may be borrowed. --compare-to checks the first 40 rows for GPU regression T1.
+
+Two compatibility modes:
 
 --mode prm (primary, "same pass"):
     Input = the PRM model card's exact 3-turn template with one <extra_0> after every step
@@ -52,8 +58,9 @@ except Exception:
 
 from backfill_views import forward_batch, candidate_quantities
 from spectral_utils import load_cache, save_cache_atomic, free_memory
-from spectral_utils.prm_scorer import PRM_MODEL_ID, PRM_SYSTEM_PROMPT, load_prm_model, make_step_rewards
+from spectral_utils.prm_scorer import PRM_MODEL_ID, PRM_SYSTEM_PROMPT, make_step_rewards
 from spectral_utils.prmbench import load_prmbench, build_chain, step_token_spans, assert_alignment
+from spectral_utils.prm_adapters import ADAPTERS, get_adapter, OFFICIAL_WRAPPER_COMMIT, OFFICIAL_QWEN_SYSTEM_PROMPT
 from run_teacher_forced import batched  # noqa: E402
 
 INSTRUCT_ID = "Qwen/Qwen2.5-Math-7B-Instruct"
@@ -64,16 +71,6 @@ STOP = {"flag": False}
 def _on_sigterm(signum, frame):
     STOP["flag"] = True
     print("[prm-tel] SIGTERM received; will checkpoint after the current row", flush=True)
-
-
-def load_head_weight(model_id, name="lm_head.weight"):
-    from huggingface_hub import snapshot_download
-    from safetensors import safe_open
-    d = snapshot_download(model_id, local_files_only=True,
-                          allow_patterns=["*.json", "*.safetensors"])
-    idx = json.load(open(os.path.join(d, "model.safetensors.index.json")))["weight_map"]
-    with safe_open(os.path.join(d, idx[name]), framework="pt") as f:
-        return f.get_tensor(name)
 
 
 def row_record(row, extra):
@@ -92,69 +89,112 @@ def quantities(logits, gen_ids, k):
 
 
 def prm_inputs(tok, row):
-    response = "<extra_0>".join(row["steps"]) + "<extra_0>"
-    msgs = [{"role": "system", "content": PRM_SYSTEM_PROMPT}, {"role": "user", "content": row["question"]},
-            {"role": "assistant", "content": response}]
-    conv = tok.apply_chat_template(msgs, tokenize=False, add_generation_prompt=False)
-    cut = conv.rindex(response)
-    ids = tok.encode(conv); pre = tok.encode(conv[:cut])
-    if ids[:len(pre)] != pre:
-        raise ValueError("prefix tokenization differs inside the full conversation")
-    sep = tok.encode("<extra_0>")[0]
-    seps = [p for p in range(len(pre), len(ids)) if ids[p] == sep]
-    if len(seps) != len(row["steps"]):
-        raise ValueError(f"{len(seps)} separators for {len(row['steps'])} steps")
-    pos, spans, start, n_text_mismatch = [], [], len(pre), 0
-    for k, s in enumerate(seps):
-        seg = list(range(start, s))
-        if tok.decode([ids[p] for p in seg]) != row["steps"][k]:
-            n_text_mismatch += 1
-        spans.append((len(pos), len(pos) + len(seg))); pos += seg; start = s + 1
-    return ids, seps, pos, spans, n_text_mismatch
+    """Compatibility entry point: historical Qwen-7B tokenization, unchanged."""
+    batch = get_adapter('qwen_prm').build(tok, row['question'], row['steps'])
+    pos, spans = compressed_positions(batch)
+    return batch['input_ids'], batch['score_positions'], pos, spans, batch['n_step_text_mismatch']
+
+
+def compressed_positions(batch):
+    pos, spans = [], []
+    for segment in batch['step_token_positions']:
+        spans.append((len(pos), len(pos) + len(segment))); pos.extend(segment)
+    return pos, spans
+
+
+def compare_caches(cache, reference_path, n_rows=40):
+    """T1: exact IDs/spans/reward order and <=1e-5 floating telemetry differences."""
+    reference = load_cache(reference_path)
+    ref = {str(e['idx']): e for e in reference.values()}
+    order = [str(e['idx']) for _, e in sorted(reference.items())][:n_rows]
+    current = [str(e['idx']) for _, e in sorted(cache.items())][:n_rows]
+    if current != order: raise ValueError('T1 first-row identity/order mismatch')
+    checked = 0; gaps = {'rewards': 0.}
+    for _, row in sorted(cache.items()):
+        if checked == n_rows: break
+        if 'failure' in row: raise ValueError('T1 contains a counted inference failure')
+        old = ref[str(row['idx'])]
+        for key in ('gen_token_ids', 'step_token_spans', 'rewards'):
+            if not np.array_equal(row[key], old[key]): raise ValueError('T1 mismatch: ' + key)
+        for key in ('token_entropies', 'token_spilled_energies', 'token_logsumexp'):
+            a, b = np.asarray(row[key]), np.asarray(old[key])
+            if a.shape != b.shape or not np.allclose(a, b, atol=1e-5, rtol=0):
+                raise ValueError('T1 mismatch: ' + key)
+            gaps[key] = max(gaps.get(key, 0.), float(np.max(np.abs(a-b), initial=0)))
+        if not np.array_equal(row['top_k_logprobs']['ids'], old['top_k_logprobs']['ids']):
+            raise ValueError('T1 mismatch: top-k IDs')
+        if not np.allclose(row['top_k_logprobs']['logprobs'], old['top_k_logprobs']['logprobs'], atol=1e-5, rtol=0):
+            raise ValueError('T1 mismatch: top-k log probabilities')
+        checked += 1
+    if checked != n_rows: raise ValueError(f'T1 requires {n_rows} rows; checked {checked}')
+    return {'status': 'PASS', 'n_checked': checked, 'max_abs_gaps': gaps}
+
+
+def chunk_quantities(adapter, h, pos, ids, k, chunk_size):
+    """Bound vocabulary memory; concatenate compact telemetry, not vocabulary logits."""
+    pieces = []
+    for start in range(0, len(pos), chunk_size):
+        pp = pos[start:start+chunk_size]; gi = [ids[p] for p in pp]
+        logits = adapter.vocab_logits(h, [p-1 for p in pp])
+        pieces.append(quantities(logits, gi, k)); del logits
+    if not pieces:
+        return {'token_entropies': [], 'token_spilled_energies': [], 'token_logsumexp': [],
+                'top_k_logprobs': {'ids': np.empty((0, k), np.int32), 'logprobs': np.empty((0, k), np.float32)}}
+    out = {key: np.concatenate([q[key] for q in pieces]).tolist()
+           for key in ('token_entropies', 'token_spilled_energies', 'token_logsumexp')}
+    out['top_k_logprobs'] = {key: np.concatenate([q['top_k_logprobs'][key] for q in pieces])
+                           for key in ('ids', 'logprobs')}
+    return out
 
 
 def run_prm(cfg, meta, out_path):
-    mdl, tok = load_prm_model(cfg.model)
-    W = load_head_weight(cfg.model).to(mdl.device, dtype=torch.bfloat16)
-    head_check = {"prm_lm_head_shape": list(W.shape)}
-    try:
-        Wi = load_head_weight(INSTRUCT_ID).to(W.device, dtype=torch.bfloat16)
-        head_check.update({"instruct_lm_head_identical": bool(torch.equal(W, Wi)),
-                           "max_abs_diff_vs_instruct": float((W.float() - Wi.float()).abs().max())})
-        del Wi
-    except Exception as exc:
-        head_check["instruct_compare_error"] = str(exc)[:200]
-    print("[prm-tel] lm_head check", head_check, flush=True)
-    backbone, score = mdl.model, mdl.score
+    adapter = get_adapter(cfg.adapter)
+    mdl, tok, head_check = adapter.load(cfg.model)
+    head_check['prm_lm_head_shape'] = list(adapter.head_weight.shape)
+    if cfg.adapter == 'qwen_prm':
+        gap = head_check['lm_head_vs_base_max_abs_diff']
+        head_check.update(instruct_lm_head_identical=gap == 0 if gap is not None else None,
+                          max_abs_diff_vs_instruct=gap)
+    print('[prm-tel] lm_head check', head_check, flush=True)
     cache = load_cache(out_path); n_done = 0; worst_reward_gap = 0.0
+    context = int(mdl.config.max_position_embeddings)
+    device = next(adapter.backbone.parameters()).device
     for i, row in enumerate(meta):
-        if i in cache:
-            continue
-        if STOP["flag"]:
+        if i in cache: continue
+        if STOP['flag']:
             save_cache_atomic(cache, out_path); return False, head_check, worst_reward_gap
         t0 = time.time()
-        ids, seps, pos, spans, mism = prm_inputs(tok, row)
-        x = torch.tensor([ids], device=mdl.device)
+        batch = adapter.build(tok, row['question'], row['steps'])
+        ids = batch['input_ids']; pos, spans = compressed_positions(batch)
+        if len(ids) > context:
+            cache[i] = row_record(row, {'failure': 'context_overflow', 'n_input_tokens': len(ids),
+                                       'context_limit': context})
+            save_cache_atomic(cache, out_path)
+            print(f'[prm-tel] counted context failure {row["idx"]}: {len(ids)} > {context}', flush=True)
+            continue
+        x = torch.tensor([ids], device=device)
         with torch.no_grad():
-            h = backbone(input_ids=x, use_cache=False)[0]
-            cls = score(h)
-            rewards = make_step_rewards(cls, x == ids[seps[0]])[0]
-            if n_done < cfg.verify_rows:   # reward path must equal the model's own forward
-                ref = make_step_rewards(mdl(input_ids=x)[0], x == ids[seps[0]])[0]
-                worst_reward_gap = max(worst_reward_gap, float(np.max(np.abs(np.subtract(rewards, ref)))))
-                if worst_reward_gap > 1e-3:
-                    raise SystemExit(f"reward path mismatch {worst_reward_gap}")
-            pidx = torch.tensor(pos, device=mdl.device) - 1
-            logits = h[0, pidx] @ W.T
-        gen_ids = [ids[p] for p in pos]
-        rec = row_record(row, {"gen_token_ids": gen_ids, "step_token_spans": spans, "rewards": rewards,
-                               "n_input_tokens": len(ids), "n_step_text_mismatch": mism,
-                               **quantities(logits, gen_ids, cfg.logprob_top_k)})
-        cache[i] = rec; n_done += 1
-        del h, cls, logits
+            h, outputs = adapter.forward(x, batch)
+            rewards = adapter.rewards(outputs, batch)
+            if len(rewards) != len(row['steps']): raise ValueError('reward/step count mismatch')
+            if cfg.adapter.startswith('qwen_prm') and n_done < cfg.verify_rows:
+                ref = make_step_rewards(mdl(input_ids=x)[0], x == ids[batch['score_positions'][0]])[0]
+                worst_reward_gap = max(worst_reward_gap, float(np.max(np.abs(np.subtract(rewards, ref)), initial=0)))
+                if worst_reward_gap > 1e-3: raise SystemExit(f'reward path mismatch {worst_reward_gap}')
+            # Keep historical 7B GEMM/telemetry reduction bit-identical. 72B is chunked.
+            chunk = (len(pos) or 1) if cfg.adapter == 'qwen_prm' else 1024
+            q = chunk_quantities(adapter, h, pos, ids, cfg.logprob_top_k, chunk)
+        extra = {'gen_token_ids': [ids[p] for p in pos], 'step_token_spans': spans, 'rewards': rewards,
+                 'native_labels': adapter.native_labels(rewards), 'n_input_tokens': len(ids),
+                 'n_step_text_mismatch': batch['n_step_text_mismatch'],
+                 'n_boundary_whitespace': batch['n_boundary_whitespace'], **q}
+        if 'terminal_score_position' in batch:
+            extra['terminal_reward'] = float(outputs['logits'][0, batch['terminal_score_position']])
+        cache[i] = row_record(row, extra); n_done += 1
+        del h, outputs
         if n_done % cfg.checkpoint_every == 0:
             save_cache_atomic(cache, out_path)
-            print(f"[prm-tel] {len(cache)}/{len(meta)} rows ({time.time() - t0:.2f}s last)", flush=True)
+            print(f'[prm-tel] {len(cache)}/{len(meta)} rows ({time.time()-t0:.2f}s last)', flush=True)
     save_cache_atomic(cache, out_path)
     return True, head_check, worst_reward_gap
 
@@ -165,6 +205,7 @@ def run_instruct(cfg, meta, out_path):
     mdl = AutoModelForCausalLM.from_pretrained(cfg.model, torch_dtype=torch.bfloat16, device_map={"": 0},
                                                attn_implementation="sdpa").eval()
     items = []
+    cache = load_cache(out_path)
     for i, row in enumerate(meta):
         text, char_spans = build_chain(row["steps"])
         gen_ids, spans = step_token_spans(tok, text, char_spans)
@@ -172,9 +213,15 @@ def run_instruct(cfg, meta, out_path):
         prompt = tok.apply_chat_template([{"role": "system", "content": PRM_SYSTEM_PROMPT},
                                           {"role": "user", "content": row["question"]}],
                                          tokenize=False, add_generation_prompt=True)
+        n_input = len(tok(prompt).input_ids) + len(gen_ids)
+        if n_input > mdl.config.max_position_embeddings:
+            cache[i] = row_record(row, {'failure': 'context_overflow', 'n_input_tokens': n_input,
+                                       'context_limit': mdl.config.max_position_embeddings})
+            continue
         items.append({"idx": i, "prompt_ids": tok(prompt).input_ids, "gen_ids": gen_ids,
                       "step_token_spans": spans, "align_diag": diag, "row": row})
-    cache = load_cache(out_path); todo = [it for it in items if it["idx"] not in cache]; n_done = 0
+    save_cache_atomic(cache, out_path)
+    todo = [it for it in items if it["idx"] not in cache]; n_done = 0
     for batch in batched(todo, cfg.max_batch_tokens, cfg.max_batch):
         if STOP["flag"]:
             save_cache_atomic(cache, out_path); return False
@@ -193,8 +240,10 @@ def run_instruct(cfg, meta, out_path):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--mode", choices=["prm", "instruct"], required=True)
+    ap.add_argument("--mode", choices=["prm", "instruct"], default="prm")
     ap.add_argument("--model", default=None)
+    ap.add_argument("--adapter", choices=list(ADAPTERS), default="qwen_prm")
+    ap.add_argument("--compare-to", help="T1 reference telemetry pkl; compare first 40 rows")
     ap.add_argument("--out", required=True)
     ap.add_argument("--n-samples", type=int, default=None, help="cap RAW rows (pilot only)")
     ap.add_argument("--seed", type=int, default=0)
@@ -205,7 +254,13 @@ def main():
     ap.add_argument("--meta-pkl", default=None, help="take PRMBench rows from this telemetry pkl (no datasets import)")
     ap.add_argument("--verify-rows", type=int, default=20)
     cfg = ap.parse_args()
-    cfg.model = cfg.model or (PRM_MODEL_ID if cfg.mode == "prm" else INSTRUCT_ID)
+    if cfg.mode == 'prm' and cfg.adapter == 'qwen_prm' and cfg.model and '72B' in cfg.model:
+        ap.error('Use --adapter qwen_prm_72b for the 72B official template and chunked vocabulary projection')
+    if cfg.mode == 'prm' and getattr(ADAPTERS[cfg.adapter], 'blocked_reason', None):
+        ap.error(ADAPTERS[cfg.adapter].blocked_reason)
+    cfg.model = cfg.model or (ADAPTERS[cfg.adapter].model_id if cfg.mode == "prm" else INSTRUCT_ID)
+    if cfg.mode == 'instruct' and cfg.adapter != 'qwen_prm':
+        ap.error('--adapter applies only to --mode prm')
     signal.signal(signal.SIGTERM, _on_sigterm)
     os.makedirs(cfg.out, exist_ok=True)
     if cfg.meta_pkl:   # rows (question, steps, ids) of an existing PRMBench telemetry cell: same rows, same order
@@ -218,23 +273,59 @@ def main():
         meta, diag = load_prmbench(n_samples=cfg.n_samples, seed=cfg.seed)
     print(f"[prm-tel] mode={cfg.mode} model={cfg.model} rows={len(meta)}", flush=True)
     out_path = os.path.join(cfg.out, "prmbench_telemetry.pkl"); t0 = time.time(); extra = {}
+    identity_path = os.path.join(cfg.out, 'run_identity.json')
+    identity = {'adapter': cfg.adapter, 'mode': cfg.mode, 'model': cfg.model,
+                'logprob_top_k': cfg.logprob_top_k, 'row_ids': [str(r['idx']) for r in meta],
+                'questions_steps': [(r['question'], r['steps']) for r in meta]}
+    identity = json.loads(json.dumps(identity))
+    if os.path.exists(identity_path):
+        with open(identity_path) as f: previous = json.load(f)
+        n_previous = len(previous['row_ids'])
+        fixed = ('adapter', 'mode', 'model', 'logprob_top_k')
+        same_prefix = (previous['row_ids'] == identity['row_ids'][:n_previous] and
+                       previous['questions_steps'] == identity['questions_steps'][:n_previous])
+        if not same_prefix or any(previous[k] != identity[k] for k in fixed):
+            raise ValueError('resume identity differs: model, adapter, rows, text, or top-k')
+    elif os.path.exists(out_path):
+        legacy = load_cache(out_path)
+        for i, r in legacy.items():
+            if i >= len(meta) or any(r[k] != meta[i][k] for k in ('idx', 'question', 'steps')):
+                raise ValueError('legacy resume row/text mismatch')
+        old_manifest = os.path.join(cfg.out, 'manifest.json')
+        if not os.path.exists(old_manifest): raise ValueError('legacy cache has no model provenance; use a fresh --out')
+        with open(old_manifest) as f: previous = json.load(f)
+        if any(previous.get(k, 'qwen_prm' if k == 'adapter' else None) != identity[k]
+               for k in ('mode', 'model', 'adapter', 'logprob_top_k')):
+            raise ValueError('legacy resume model/adapter mismatch')
+    with open(identity_path+'.tmp', 'w') as f: json.dump(identity, f)
+    os.replace(identity_path+'.tmp', identity_path)
     if cfg.mode == "prm":
         ok, head_check, gap = run_prm(cfg, meta, out_path); extra = {"lm_head_check": head_check, "reward_path_max_abs_gap": gap}
     else:
         ok = run_instruct(cfg, meta, out_path)
-    if not ok:
-        print("[prm-tel] INCOMPLETE; resubmit with the same --out to resume", flush=True)
-        sys.exit(EXIT_INCOMPLETE)
     cache = load_cache(out_path)
-    surpr = np.concatenate([np.asarray(e["token_spilled_energies"]) for e in cache.values()])
-    ent = np.concatenate([np.asarray(e["token_entropies"]) for e in cache.values()])
+    failures = {str(i): e for i, e in cache.items() if 'failure' in e}
+    good = [e for e in cache.values() if 'failure' not in e]
+    if cfg.compare_to and ok:
+        extra['regression'] = compare_caches(cache, cfg.compare_to)
+    extra.update(status=('COMPLETE_WITH_FAILURES' if failures else 'COMPLETE') if ok else 'INCOMPLETE', n_failed_rows=len(failures),
+                 n_successful_rows=len(good), failed_rows=failures,
+                 n_rows_context_overflow=sum(e.get('failure') == 'context_overflow' for e in failures.values()))
+    if cfg.mode == 'prm':
+        extra.update({k: head_check.get(k) for k in ('adapter', 'lm_head_source', 'lm_head_vs_base_max_abs_diff',
+                                                   'hidden_after_final_norm', 'official_wrapper_commit')})
+    surpr = np.concatenate([np.asarray(e["token_spilled_energies"]) for e in good]) if good else np.array([])
+    ent = np.concatenate([np.asarray(e["token_entropies"]) for e in good]) if good else np.array([])
     manifest = {"driver": "run_prmbench_prm_telemetry.py", "mode": cfg.mode, "model": cfg.model,
                 "dataset_diagnostics": diag, "n_rows": len(cache), "logprob_top_k": cfg.logprob_top_k,
-                "system_prompt": PRM_SYSTEM_PROMPT,
-                "token_surprisal_median": float(np.median(surpr)), "token_surprisal_mean": float(surpr.mean()),
-                "token_entropy15_median": float(np.median(ent)),
+                "system_prompt": (OFFICIAL_QWEN_SYSTEM_PROMPT if cfg.adapter == 'qwen_prm_72b' else PRM_SYSTEM_PROMPT)
+                                 if cfg.mode == 'instruct' or cfg.adapter.startswith('qwen_prm') else None,
+                "n_boundary_whitespace": int(sum(e.get('n_boundary_whitespace', 0) for e in good)),
+                "token_surprisal_median": float(np.median(surpr)) if len(surpr) else None, "token_surprisal_mean": float(surpr.mean()) if len(surpr) else None,
+                "token_entropy15_median": float(np.median(ent)) if len(ent) else None,
+                "n_step_text_mismatch": int(sum(e.get("n_step_text_mismatch", 0) for e in good)),
                 "n_rows_step_text_mismatch": int(sum(e.get("n_step_text_mismatch", 0) > 0 for e in cache.values())),
-                "max_input_tokens": int(max(e["n_input_tokens"] for e in cache.values())),
+                "max_input_tokens": int(max((e["n_input_tokens"] for e in cache.values()), default=0)),
                 "n_rows_over_4096_tokens": int(sum(e["n_input_tokens"] > 4096 for e in cache.values())),
                 **extra, "elapsed_sec": time.time() - t0, "job_id": os.environ.get("SLURM_JOB_ID", ""),
                 "written_utc": datetime.now(timezone.utc).isoformat(timespec="seconds")}
@@ -243,7 +334,13 @@ def main():
         json.dump(manifest, f, indent=2, default=str)
     os.replace(path + ".tmp", path)
     print(json.dumps(manifest, indent=2, default=str), flush=True)
-    print(f"COMPLETE -> {cfg.out}", flush=True)
+    if not ok:
+        print('[prm-tel] INCOMPLETE; resubmit with the same --out to resume', flush=True)
+        sys.exit(EXIT_INCOMPLETE)
+    if failures:
+        print(f'[prm-tel] COMPLETE_WITH_FAILURES: {len(failures)} counted rows; fusion blocked', flush=True)
+        sys.exit(2)
+    print(f'COMPLETE -> {cfg.out}', flush=True)
     free_memory()
 
 

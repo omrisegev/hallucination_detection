@@ -21,15 +21,34 @@ import numpy as np
 import pandas as pd
 from scipy.stats import rankdata
 
-MAIN = Path(r'C:\Users\omris\TAU\hallucination_detection'); OUT = Path(__file__).resolve().parent
-spec = importlib.util.spec_from_file_location('ext_score', MAIN / 'results/monday_external_panel_v1/score.py')
-ext = importlib.util.module_from_spec(spec); spec.loader.exec_module(ext)
+MAIN = Path(__file__).resolve().parents[2]; OUT = Path(__file__).resolve().parent
+def load_frozen_adapter():
+    """Rebind only environment globals; execute the frozen functions unchanged.
+
+    N16/N16P have no lf__ channels, so the historical POOL_STRUCTURE signs
+    are never consulted. Missing lf__ signs are not synthesized.
+    """
+    import ast, types
+    path = MAIN / 'results/monday_external_panel_v1/score.py'
+    tree = ast.parse(path.read_text())
+    bindings = {'MAIN', 'BN', 'PS'}
+    tree.body = [n for n in tree.body if not (isinstance(n, ast.Assign) and
+                 any(isinstance(t, ast.Name) and t.id in bindings for t in n.targets))]
+    module = types.ModuleType('prm_frozen_monday'); module.__file__ = str(path)
+    module.MAIN = MAIN
+    module.BN = json.loads((MAIN / 'results/monday_nested_banks_v2/BANKS.json').read_text())
+    module.PS = pd.DataFrame(columns=['r_level_marginal'])
+    exec(compile(tree, str(path), 'exec'), module.__dict__)
+    return module
+
+
+ext = load_frozen_adapter()
 sys.path.insert(0, str(MAIN))
 from spectral_utils.prmbench import prmbench_evaluate  # noqa: E402
 
 SE = MAIN / '.worktrees/readout-quickest-detection-v1/results/step_evidence_v1'
-FEAT = Path(sys.argv[1]) if len(sys.argv) > 1 else MAIN / 'scratch/external_lr_prm_v1/inputs/src8b_FEATURES.npz'
-TAG = sys.argv[2] if len(sys.argv) > 2 else 'qwen3_8b_mask1'
+FEAT = MAIN / 'scratch/external_lr_prm_v1/inputs/src8b_FEATURES.npz'
+TAG = 'qwen3_8b_mask1'
 PARITY = MAIN / 'results/thinkfix_rescore_v1/prmscore_inputs/bank_N16.npz'
 PRM_PKL = MAIN / 'dataset_cache/four_localization/prmbench_qwen25math7b_full/prmbench_prm.pkl'
 N16 = json.loads((MAIN / 'results/monday_nested_banks_v2/BANKS.json').read_text())['N16']
@@ -43,6 +62,17 @@ def auc(y, s):
 
 
 def main():
+    import argparse
+    global FEAT, TAG, PRM_PKL, SE, OUT
+    ap = argparse.ArgumentParser()
+    ap.add_argument('features', nargs='?', type=Path, default=FEAT)
+    ap.add_argument('tag', nargs='?', default=TAG)
+    ap.add_argument('--prm-pkl', type=Path, default=PRM_PKL)
+    ap.add_argument('--step-evidence', type=Path, default=SE)
+    ap.add_argument('--out', type=Path, default=OUT)
+    args = ap.parse_args()
+    FEAT, TAG, PRM_PKL, SE, OUT = args.features, args.tag, args.prm_pkl, args.step_evidence, args.out
+    OUT.mkdir(parents=True, exist_ok=True)
     t0 = time.time()
     A = pd.read_csv(SE / 'OOF_ANSWERS.csv', encoding='utf-8-sig')
     with np.load(SE / 'OOF_STEP_SCORES.npz') as z:
@@ -50,7 +80,7 @@ def main():
     F = dict(np.load(FEAT))
     if [str(u) for u in F['uids']] != A.uid.astype(str).tolist() or not np.array_equal(F['offsets'], OFF):
         raise SystemExit('source order')
-    prm = {r['idx']: r for r in pickle.load(open(PRM_PKL, 'rb')).values()}
+    prm = {str(r['idx']): r for r in pickle.load(open(PRM_PKL, 'rb')).values()}
     cells = A.cell.to_numpy(); ids = A.id.astype(str).to_numpy()
     ans = np.flatnonzero(cells == CELL); S = int(OFF[-1])
     risk = np.zeros(S)
@@ -80,7 +110,7 @@ def main():
 
     rows = []
     rP = np.concatenate([risk[OFF[i]:OFF[i + 1]] for i in ans])
-    native = np.concatenate([np.asarray(prm[ids[i]]['labels']) == 0 for i in ans])
+    native = np.concatenate([np.asarray(prm[ids[i]].get('native_labels', prm[ids[i]].get('labels'))) == 0 for i in ans])
     rows.append({'bank': 'PRM', 'scorer': 'PRM_REWARD', 'rule': 'NATIVE_0.5', **evaluate(rP, native)})
     parity, diag, scores = {}, {}, {}
     for bi, bk in enumerate(['N16', 'N16P']):

@@ -470,3 +470,14 @@ What happened: the orthogonal-family report completed its file writes, hash mani
 Why: explicitly encoding file writes does not configure the Windows console stream.
 Rule: launch report scripts that print Hebrew with PYTHONIOENCODING=utf-8; distinguish a console-print failure from failed artifact generation and verify existing hashes before a rerun.
 Enforced by: command (UTF-8 environment on the report_orthogonal_family_fusion.py rerun). Session also corrected the pre-fit manifest-type smoke error; original empty smoke and completed smoke_v2 are preserved.
+
+
+## 2026-10-13 - Execute literal wrapper templates before trusting protocol summaries
+What happened: CPU snapshot generation exposed an extra terminal Skywork reward,
+a backspace escape in Qwen's official prompt, and PURE's renamed HF ID.
+Why: prose model tables do not specify all evaluated Python/tokenizer behavior.
+Rule: pin source revisions, execute official template bodies on tokenizer-only
+fixtures, preserve the historical regression path separately and block unresolved
+reward-count mismatches rather than silently dropping scores.
+Enforced by: code (tests/test_prm_adapters.py and pinned template snapshots;
+Skywork inference/evaluation blocked in prm_adapters.py and evaluate.py).
