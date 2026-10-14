@@ -1,0 +1,40 @@
+<div class="box"><span class="kt">What the bug was · a concrete fixed-answer example</span>
+<p>Teacher forcing scores an existing answer token by token. It does not generate a new solution. In our old /no_think path the prompt stopped at the assistant header; the fixed answer started immediately. Qwen3 instead predicted the structural &lt;think&gt; token at that boundary. The corrected prompt supplies the empty think block before the answer content.</p>
+<p><b>Actual PRMBench question:</b> Three pencils and a jumbo eraser cost $1.24. Five pencils and a jumbo eraser cost $1.82. No prices include tax. In cents, what is the cost of a pencil?</p>
+<p><b>First two steps of the fixed answer:</b></p><pre style="white-space:pre-wrap;background:#f5f8fb;padding:14px">1. Let&#x27;s call the price of a pencil p and the price of a jumbo eraser e. Then we can write two equations.
+
+2. We have $3p+e=1.24$ and $5p+e=1.82$.</pre>
+<p><b>Old end of prompt:</b></p><pre style="white-space:pre-wrap;background:#f5f8fb;padding:14px">&lt;|im_start|&gt;assistant
+[fixed answer starts here]</pre><p><b>Corrected end of prompt:</b></p><pre style="white-space:pre-wrap;background:#f5f8fb;padding:14px">&lt;|im_start|&gt;assistant
+&lt;think&gt;
+
+&lt;/think&gt;
+
+[the same fixed answer starts here]</pre>
+<details><summary>Complete reconstructed prompts and the full fixed answer</summary><p>Reconstruction from the saved official row and the frozen formatter; this is not a raw captured prompt from a selected inference record. Bracketed annotations above are explanatory labels and are not supplied to the model.</p><h3>Old conditioning prompt</h3><pre style="white-space:pre-wrap">&lt;|im_start|&gt;user
+Solve the following competition math problem. Show all your work step by step, then give your final answer in \boxed{}.
+
+Three pencils and a jumbo eraser cost $1.24. Five pencils and a jumbo eraser cost $1.82. No prices include tax. In cents, what is the cost of a pencil? /no_think&lt;|im_end|&gt;
+&lt;|im_start|&gt;assistant
+</pre><h3>Corrected conditioning prompt</h3><pre style="white-space:pre-wrap">&lt;|im_start|&gt;user
+Solve the following competition math problem. Show all your work step by step, then give your final answer in \boxed{}.
+
+Three pencils and a jumbo eraser cost $1.24. Five pencils and a jumbo eraser cost $1.82. No prices include tax. In cents, what is the cost of a pencil? /no_think&lt;|im_end|&gt;
+&lt;|im_start|&gt;assistant
+&lt;think&gt;
+
+&lt;/think&gt;
+
+</pre><h3>Same fixed answer in both runs</h3><pre style="white-space:pre-wrap">1. Let&#x27;s call the price of a pencil p and the price of a jumbo eraser e. Then we can write two equations.
+
+2. We have $3p+e=1.24$ and $5p+e=1.82$.
+
+3. Assume a pencil costs 29 cents. Then verify this against the original equations.
+
+4. If $p=0.29$, substitute into one of the equations, for example, $3p+e=1.24$. It gives $3(0.29)+e=1.24$.
+
+5. Solving $0.87+e=1.24$ gives $e=0.37$. Now check $5p+e=1.82$ to confirm.
+
+6. Plug $p=0.29$ and $e=0.37$ into $5p+e=1.82$. We get $5(0.29)+0.37=1.82$.
+
+7. The check confirms that the assumed price of 29 cents per pencil is correct.</pre></details></div>

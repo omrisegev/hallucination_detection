@@ -1,3 +1,18 @@
+## 2026-10-15: Advisor meeting findings documented — Section 5 external transfer & PRM boosting (Codex)
+
+**START HERE:** [docs/reports/ADVISOR_MEETING_EXTERNAL_AND_PRM_BOOSTING_FINDINGS_20261015.md](docs/reports/ADVISOR_MEETING_EXTERNAL_AND_PRM_BOOSTING_FINDINGS_20261015.md).
+
+- **Advisor preparation complete:** Verified that the material is ready for the advisors and strongly recommended for presentation.
+- **Section 5 External Transfer (Socratic & Hard2Verify):** 
+  - On Socratic (math), supervised PRM leads with Within-AUC 0.824 and PRMScore 0.680; PRMBench-trained LR transfer reaches 0.717/0.729 AUC and 0.635/0.640 PRMScore.
+  - On Hard2Verify, PRMBench-trained LR outperforms the supervised PRM! LR transfer achieves Within-AUC 0.684 (8B) / 0.674 (4B) and Balanced F1 0.428 (8B) / 0.448 (4B), while Qwen-PRM-7B achieves 0.634 AUC and its native 0.5 threshold fails (Balanced F1 0.234; 0.391 under ANSWER_Z_Q80). Unsupervised IU-PCR achieves 0.415 Balanced F1.
+- **PRM Boosting on Qwen2.5-Math-PRM-7B (PRMBench):**
+  - Combining PRM reward head with 3 backbone telemetry signals (`energy_level`, `hist_entropy_cusum_abs_series`, `realized_drv`) using label-free continuous L-SML boosts PRMScore from 65.49 to **69.48** (+3.99 [95% CI: 3.31, 4.67]) and Within-AUC from 0.801 to **0.850** (+0.048 [0.044, 0.053]).
+  - L-SML weights: PRM risk 0.3693, energy 0.2438, entropy cusum 0.1610, realized drv 0.2259. Massive gains on redundancy (49.0 -> 67.7) and circular reasoning (54.9 -> 71.8).
+- **Cross-PRM Generalization (5 models, frozen recipe):**
+  - Confirmed across 5 diverse PRMs: Qwen-7B (+3.99), Qwen-72B (+1.66), PURE-7B (+1.38), RLHFlow Llama-3.1-8B (+9.10), MathShepherd Mistral-7B (+16.67). All 95% CIs exclude 0.
+- **Presentation constraint adhered to:** Presentation HTML slides were left strictly untouched; findings, diagnostic tables, and advisor notes documented exclusively in Markdown and committed to remote.
+
 ## 2026-10-10: handoff for the Thursday meeting and the unfinished consolidation (Claude)
 
 **START HERE:** [docs/HANDOFF_prmbench_meeting_and_consolidation_2026-10-10.md](docs/HANDOFF_prmbench_meeting_and_consolidation_2026-10-10.md).

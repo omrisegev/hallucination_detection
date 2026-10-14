@@ -1,0 +1,349 @@
+{
+  "updated": "2026-10-14",
+  "boosting": {
+    "status": "complete",
+    "fusion": "LSML_CONT",
+    "same_checkpoint": true,
+    "features": [
+      "energy_level",
+      "hist_entropy_cusum_abs_series",
+      "realized_drv"
+    ],
+    "source": "Qwen2.5-Math-PRM-7B on PRMBench, 6,969 answers (AUC on 6,030). One forward: reward head + backbone token distributions. Views are per-answer z-scored, oriented so higher = riskier. L-SML = spectral_utils.fusion_utils.lsml_continuous, automatic grouping, fitted label-free on the pooled PRMBench steps. Flags: ANSWER_Z_Q80 except the native row. AIRCC job 284086 \u00b7 results/prm_boost_gen_v1/eval_slide12",
+    "lsml_diagnostics": {
+      "LSML_CONT": {
+        "K": 2,
+        "groups": [
+          0,
+          1,
+          1,
+          1
+        ],
+        "degenerate": false,
+        "weights_normalized": {
+          "prm_risk": 0.3693,
+          "energy_level": 0.2438,
+          "hist_entropy_cusum_abs_series": 0.161,
+          "realized_drv": 0.2259
+        }
+      },
+      "SML4": {
+        "K": 4,
+        "groups": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "degenerate": false,
+        "weights_normalized": {
+          "prm_risk": 0.2677,
+          "energy_level": 0.3134,
+          "hist_entropy_cusum_abs_series": 0.1473,
+          "realized_drv": 0.2716
+        }
+      },
+      "LSML3": {
+        "K": 2,
+        "groups": [
+          0,
+          1,
+          0
+        ],
+        "degenerate": false,
+        "weights_normalized": {
+          "energy_level": 0.2929,
+          "hist_entropy_cusum_abs_series": 0.4142,
+          "realized_drv": 0.2929
+        }
+      }
+    },
+    "paired_ci_7b": {
+      "LSML_CONT - PRM_native": {
+        "prmscore": [
+          3.9940967718937372,
+          3.308327662895699,
+          4.667573390297505
+        ],
+        "within_auc": [
+          0.04833524283945412,
+          0.0439892215043896,
+          0.052623868535128515
+        ]
+      },
+      "LSML_CONT - PRM_Q80": {
+        "prmscore": [
+          3.6633643359509023,
+          3.1286737165748795,
+          4.170174842735964
+        ],
+        "within_auc": [
+          0.04833524283945412,
+          0.0439892215043896,
+          0.052623868535128515
+        ]
+      },
+      "LSML_CONT - LSML3": {
+        "prmscore": [
+          2.853140901302041,
+          2.478041321445783,
+          3.244349321598363
+        ],
+        "within_auc": [
+          0.049702323949510796,
+          0.045647056589954015,
+          0.05392817583263761
+        ]
+      },
+      "LSML3 - PRM_native": {
+        "prmscore": [
+          1.1409558705916965,
+          0.38967122046746566,
+          1.901693016936815
+        ],
+        "within_auc": [
+          -0.0013670811100566782,
+          -0.008610767401364872,
+          0.005702654907357499
+        ]
+      }
+    },
+    "rows": [
+      {
+        "label": "PRM reward head \u00b7 native 0.5",
+        "arm": "PRM_native",
+        "checkpoint": "Qwen2.5-Math-PRM-7B",
+        "rule": "native reward < 0.5",
+        "source": "AIRCC job 284086 \u00b7 results/prm_boost_gen_v1/eval_slide12/SLIDE12_RESULTS_qwen_prm_7b.csv",
+        "prmscore": 65.48848312882983,
+        "auc": 0.8011803689223951,
+        "n_answers": 6969,
+        "n_auc_answers": 6030
+      },
+      {
+        "label": "PRM reward head \u00b7 Q80",
+        "arm": "PRM_Q80",
+        "checkpoint": "Qwen2.5-Math-PRM-7B",
+        "rule": "ANSWER_Z_Q80",
+        "source": "AIRCC job 284086 \u00b7 results/prm_boost_gen_v1/eval_slide12/SLIDE12_RESULTS_qwen_prm_7b.csv",
+        "prmscore": 65.81921556477266,
+        "auc": 0.8011803689223951,
+        "n_answers": 6969,
+        "n_auc_answers": 6030
+      },
+      {
+        "label": "energy_level alone",
+        "arm": "CH_energy_level",
+        "checkpoint": "Qwen2.5-Math-PRM-7B",
+        "rule": "ANSWER_Z_Q80",
+        "source": "AIRCC job 284086 \u00b7 results/prm_boost_gen_v1/eval_slide12/SLIDE12_RESULTS_qwen_prm_7b.csv",
+        "prmscore": 65.96361432832617,
+        "auc": 0.7990812373403251,
+        "n_answers": 6969,
+        "n_auc_answers": 6030
+      },
+      {
+        "label": "hist_entropy_cusum_abs_series alone",
+        "arm": "CH_hist_entropy_cusum_abs_series",
+        "checkpoint": "Qwen2.5-Math-PRM-7B",
+        "rule": "ANSWER_Z_Q80",
+        "source": "AIRCC job 284086 \u00b7 results/prm_boost_gen_v1/eval_slide12/SLIDE12_RESULTS_qwen_prm_7b.csv",
+        "prmscore": 58.02961354532382,
+        "auc": 0.6775075196734334,
+        "n_answers": 6969,
+        "n_auc_answers": 6030
+      },
+      {
+        "label": "realized_drv alone",
+        "arm": "CH_realized_drv",
+        "checkpoint": "Qwen2.5-Math-PRM-7B",
+        "rule": "ANSWER_Z_Q80",
+        "source": "AIRCC job 284086 \u00b7 results/prm_boost_gen_v1/eval_slide12/SLIDE12_RESULTS_qwen_prm_7b.csv",
+        "prmscore": 61.8366494310506,
+        "auc": 0.7363115174606231,
+        "n_answers": 6969,
+        "n_auc_answers": 6030
+      },
+      {
+        "label": "L-SML \u00b7 3 backbone signals",
+        "arm": "LSML3",
+        "checkpoint": "Qwen2.5-Math-PRM-7B",
+        "rule": "ANSWER_Z_Q80",
+        "source": "AIRCC job 284086 \u00b7 results/prm_boost_gen_v1/eval_slide12/SLIDE12_RESULTS_qwen_prm_7b.csv",
+        "prmscore": 66.62943899942152,
+        "auc": 0.7998132878123388,
+        "n_answers": 6969,
+        "n_auc_answers": 6030
+      },
+      {
+        "label": "L-SML \u00b7 PRM risk + 3 backbone signals",
+        "arm": "LSML_CONT",
+        "checkpoint": "Qwen2.5-Math-PRM-7B",
+        "rule": "ANSWER_Z_Q80",
+        "source": "AIRCC job 284086 \u00b7 results/prm_boost_gen_v1/eval_slide12/SLIDE12_RESULTS_qwen_prm_7b.csv",
+        "prmscore": 69.48257990072356,
+        "auc": 0.8495156117618493,
+        "n_answers": 6969,
+        "n_auc_answers": 6030
+      }
+    ]
+  },
+  "generalization": {
+    "status": "complete",
+    "fusion": "LSML_CONT",
+    "same_checkpoint": true,
+    "source": "Each PRM: its own reward head + its own 3 backbone signals, same frozen feature list and L-SML procedure; no re-selection. Paired source-group bootstrap (707 groups, 2,000 draws). AIRCC job 284086 \u00b7 results/prm_boost_gen_v1/eval_slide12",
+    "rows": [
+      {
+        "checkpoint": "Qwen2.5-Math-PRM-7B (feature-selection model)",
+        "tag": "qwen_prm_7b",
+        "rule": "native PRM rule vs L-SML at ANSWER_Z_Q80",
+        "source": "AIRCC job 284086 \u00b7 results/prm_boost_gen_v1/eval_slide12/SLIDE12_RESULTS_qwen_prm_7b.csv",
+        "same_checkpoint": true,
+        "fixed_features": true,
+        "prm_prmscore": 65.48848312882983,
+        "lsml_prmscore": 69.48257990072356,
+        "prm_auc": 0.8011803689223951,
+        "lsml_auc": 0.8495156117618493,
+        "delta_prmscore_ci": [
+          3.9940967718937372,
+          3.308327662895699,
+          4.667573390297505
+        ],
+        "delta_auc_ci": [
+          0.04833524283945412,
+          0.0439892215043896,
+          0.052623868535128515
+        ],
+        "lsml_K": 2,
+        "lsml_groups": [
+          0,
+          1,
+          1,
+          1
+        ],
+        "prm_weight": 0.3693
+      },
+      {
+        "checkpoint": "Qwen2.5-Math-PRM-72B",
+        "tag": "qwen_prm_72b",
+        "rule": "native PRM rule vs L-SML at ANSWER_Z_Q80",
+        "source": "AIRCC job 284086 \u00b7 results/prm_boost_gen_v1/eval_slide12/SLIDE12_RESULTS_qwen_prm_72b.csv",
+        "same_checkpoint": true,
+        "fixed_features": true,
+        "prm_prmscore": 68.17941456285924,
+        "lsml_prmscore": 69.84229376533564,
+        "prm_auc": 0.7948105794066506,
+        "lsml_auc": 0.8564513810159087,
+        "delta_prmscore_ci": [
+          1.662879202476418,
+          1.0086176478600641,
+          2.277155604855929
+        ],
+        "delta_auc_ci": [
+          0.061640801609258555,
+          0.05697759093152844,
+          0.06612043087620784
+        ],
+        "lsml_K": 2,
+        "lsml_groups": [
+          0,
+          1,
+          1,
+          1
+        ],
+        "prm_weight": 0.3683
+      },
+      {
+        "checkpoint": "PURE-PRM-7B",
+        "tag": "pure_prm",
+        "rule": "native PRM rule vs L-SML at ANSWER_Z_Q80",
+        "source": "AIRCC job 284086 \u00b7 results/prm_boost_gen_v1/eval_slide12/SLIDE12_RESULTS_pure_prm.csv",
+        "same_checkpoint": true,
+        "fixed_features": true,
+        "prm_prmscore": 65.31430781654949,
+        "lsml_prmscore": 66.68958099346494,
+        "prm_auc": 0.7628215795450851,
+        "lsml_auc": 0.8106994914776833,
+        "delta_prmscore_ci": [
+          1.3752731769154565,
+          0.7538859397153981,
+          2.075473775136504
+        ],
+        "delta_auc_ci": [
+          0.04787791193259805,
+          0.04271833830012361,
+          0.05302049687038766
+        ],
+        "lsml_K": 2,
+        "lsml_groups": [
+          0,
+          1,
+          1,
+          1
+        ],
+        "prm_weight": 0.3822
+      },
+      {
+        "checkpoint": "RLHFlow Llama-3.1-8B PRM",
+        "tag": "rlhflow_prm",
+        "rule": "native PRM rule vs L-SML at ANSWER_Z_Q80",
+        "source": "AIRCC job 284086 \u00b7 results/prm_boost_gen_v1/eval_slide12/SLIDE12_RESULTS_rlhflow_prm.csv",
+        "same_checkpoint": true,
+        "fixed_features": true,
+        "prm_prmscore": 54.42936657060371,
+        "lsml_prmscore": 63.53309104519707,
+        "prm_auc": 0.6623798299022124,
+        "lsml_auc": 0.7716189261416303,
+        "delta_prmscore_ci": [
+          9.103724474593356,
+          8.419213509166077,
+          9.788628817120813
+        ],
+        "delta_auc_ci": [
+          0.10923909623941808,
+          0.1028239569871983,
+          0.11573599634356796
+        ],
+        "lsml_K": 2,
+        "lsml_groups": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "prm_weight": 0.2894
+      },
+      {
+        "checkpoint": "MathShepherd Mistral-7B PRM",
+        "tag": "math_shepherd",
+        "rule": "native PRM rule vs L-SML at ANSWER_Z_Q80",
+        "source": "AIRCC job 284086 \u00b7 results/prm_boost_gen_v1/eval_slide12/SLIDE12_RESULTS_math_shepherd.csv",
+        "same_checkpoint": true,
+        "fixed_features": true,
+        "prm_prmscore": 47.0157414558515,
+        "lsml_prmscore": 63.68170661877186,
+        "prm_auc": 0.6844256079692012,
+        "lsml_auc": 0.7588527398367331,
+        "delta_prmscore_ci": [
+          16.665965162920372,
+          15.131491010909741,
+          18.090256157479427
+        ],
+        "delta_auc_ci": [
+          0.07442713186753114,
+          0.06681355361320289,
+          0.08246244414008394
+        ],
+        "lsml_K": 2,
+        "lsml_groups": [
+          0,
+          1,
+          0,
+          0
+        ],
+        "prm_weight": 0.2332
+      }
+    ]
+  }
+}
