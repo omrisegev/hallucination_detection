@@ -18467,3 +18467,58 @@ exclusions, zero truncation. No AIRCC/GPU/Drive action or benchmark
 scoring. Review delivery: [results/agent_step_telemetry_v1/cpu_rerun_v2_20261013/README.md](results/agent_step_telemetry_v1/cpu_rerun_v2_20261013/README.md).
 
 ---
+
+### Step 453 [Claude agent telemetry] - First evaluation of the agent-step telemetry: baselines, bias audit, N16 fair re-score, 2026-10-16
+
+**What**: First quality evaluation of the completed Qwen3-8B teacher-forced telemetry collection
+(813d11b; AIRCC jobs 284668-284670, `complete=True`; APB 990 / TPRM 890 / AFT 2,276 items; 4.3 GB on
+Drive `cluster_results/agent_step_telemetry_v1/`). The collection itself had `quality_evaluation=false`,
+so no PRMScore or other metric existed before this step. Four parts:
+(1) label-free per-step baselines (mean/max NLL, mean full-vocab entropy, length) with each benchmark's
+standard metric (TPRM pairwise accuracy, APB step AUROC + first-error localization, AFT trajectory AUROC +
+mistake-step localization);
+(2) bias audit of dataset construction;
+(3) N16 Continuous L-SML and IU-PCR, mirroring `results/monday_cont_baselines_v1/run.py:fit_lsml/fit_iu`
+(the path behind PRMBench L-SML 0.779 / IU-PCR 0.780, 080877eb), with the N16 bank from
+`monday_external_panel_v1/score.py:build_bank`;
+(4) a re-score of N16 under the fair protocols from (2), plus a main-session position-prior check.
+**Why**: Omri asked whether the agent PRM-benchmark run worked and how it compares to accepted metrics and
+to published methods (ToolPRMBench release results for 7 RMs/judges; the same-backbone Qwen3-8B LLM judge
+on APB).
+**Result**: No convincing label-free signal beyond length, position and construction artifacts.
+- **Baselines.** TPRM: length 0.625 beats entropy 0.584, and NLL is anti-predictive (0.436). APB: entropy
+  step AUROC 0.582, close to length 0.567. AFT: entropy 0.692, coming only from *injected* errors (coding
+  0.951, math 0.902); diagnosed errors score 0.45-0.47.
+- **Bias audit.**
+  - TPRM: GTA chosen = gold JSON call vs prose rejected. ToolSandbox: chosen shorter (78-84%). Length-matched
+    pooled pairs give NLL 0.519 and entropy 0.494.
+  - APB: 76% of -1 steps lie after the first error (label propagation), and step position alone scores
+    AUROC 0.714.
+  - AFT: injected runs carry injection markers (`call_verify_shortcut`-style ids in 265/333 math injected
+    runs, 0 safe runs), self-incriminating injected steps (coding) and truncation.
+- **N16 (canonical).** About equal to plain entropy everywhere (APB 0.584/0.590; AFT 0.706/0.705).
+  Canonical per-answer z zeroes every channel on TPRM (one step per item), so a labelled whole-benchmark
+  normalization variant (`cellz`) was added. With it, TPRM pairwise accuracy is 0.593/0.600, below length.
+- **Fair protocols.**
+  - TPRM same-format pairs: N16 at or below chance on bfcl/tooltalk after length control. On ToolSandbox
+    it is 0.71, below residualized entropy 0.85.
+  - APB, first error vs prior clean steps, length+position residualized: IU-PCR ansz 0.613 [0.58,0.65]
+    vs entropy 0.528. The Qwen3-8B judge label scores 0.592 raw on the same comparison; its official
+    `first_neg1_idx_acc` 0.407 is a different metric.
+  - AFT diagnosed, online trajectory AUROC: chance (0.52 agentic / 0.57 math).
+  - AFT injected, paired with the safe twin at the mistake step: 0.876 raw, 0.827 length-residualized,
+    vs entropy 0.820.
+- **Position-prior check.** The apparent diagnosed-AFT localization gain is mostly position. On agentic,
+  a constant step-3 guess hits 0.342 > IU-PCR 0.233. On math, IU-PCR picks step 1 in 38/64 runs
+  (constant step 1 = 0.313, IU-PCR 0.359).
+- **Only surviving signal:** a modest APB first-error margin (about 0.61, mostly hotpotqa/tau2).
+
+Deliveries:
+[baselines](results/agent_step_telemetry_v1_baselines_2026-10-16/REPORT.md),
+[bias audit](results/agent_step_telemetry_v1_bias_audit_2026-10-16/README.md),
+[N16](results/agent_step_telemetry_v1_n16_2026-10-16/README.md),
+[fair protocols](results/agent_step_telemetry_v1_n16_2026-10-16/fair_protocols/README.md).
+Derived `FEATURES_*/SCORES_*.npz` (~19 MB) are kept out of Git.
+Caveat: only the first token of each concatenated trace was masked.
+
+---

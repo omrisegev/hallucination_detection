@@ -1,3 +1,22 @@
+## 2026-10-16: agent-step telemetry evaluated: no robust label-free signal (Claude)
+
+**START HERE:** HISTORY Step 453 [Claude agent telemetry] and [the fair-protocol README](results/agent_step_telemetry_v1_n16_2026-10-16/fair_protocols/README.md).
+
+- The Qwen3-8B telemetry collection on AgentProcessBench / ToolPRMBench / AFTraj-2K is complete on Drive (`cluster_results/agent_step_telemetry_v1/*_813d11b_full`). This step is the first quality evaluation of it.
+- **Verdict.** Simple NLL/entropy baselines and N16 Continuous L-SML / IU-PCR show almost no signal once length, step position and dataset construction are controlled:
+  - TPRM: length wins.
+  - AFT: the high AUROC comes from injection artifacts; diagnosed errors are at chance.
+  - APB: the only surviving margin is modest, about 0.61 after length and position residualization, on first error vs prior clean steps.
+- **References.** ToolPRMBench published RMs/judges reach 0.38-0.83 per subset. The Qwen3-8B judge on APB gets official `first_neg1_idx_acc` 0.407.
+- **Fair protocols to use from now on:**
+  - TPRM: per subset, same-format pairs, length-matched/residualized; GTA only as a format probe.
+  - APB: first error vs the clean steps before it, length+position residualized.
+  - AFT: diagnosed only, online; injected only as safe-twin pairs at the mistake step; always include a constant-position localization baseline.
+- **Open.**
+  - Canonical per-answer z is undefined on single-step items (TPRM); `cellz` is an added variant, not canonical.
+  - Later step starts were not masked.
+  - Whether agent benchmarks stay in scope is Omri's call.
+
 ## 2026-10-10: handoff for the Thursday meeting and the unfinished consolidation (Claude)
 
 **START HERE:** [docs/HANDOFF_prmbench_meeting_and_consolidation_2026-10-10.md](docs/HANDOFF_prmbench_meeting_and_consolidation_2026-10-10.md).
