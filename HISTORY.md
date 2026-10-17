@@ -18927,3 +18927,22 @@ full numerical replay still needs frozen v11 arrays outside Git. This is a
 Git reading delivery, not a hosted deployment or Claude.ai Artifact update.
 The root checkout's existing dirty changes and sealed scientific sources were
 preserved; no fits/inference/install were rerun for publication.
+
+
+---
+
+### Step 464 [LR-gap closed] — Why supervised LR gains from more channels on PRMBench while label-free L-SML / IU-PCR do not; direction closed (2026-10-17)
+
+**What**: Closing record of the LR-gap question (advisor deck slide 16; draft in `results/lr_gap_explanation_draft_2026-10-15/`). Question: on PRMBench, why does supervised LR keep improving as channels are added (N14→N56 within-answer AUC .797→.821) while label-free L-SML (.776→.770) and IU-PCR do not.
+- **Oracle ladder** (true μ, ridge λ=0.1; `analysis/ladder.py`, `cosdiag.json`): oracle *voting* is flat (.779/.783/.780/.784/.775 for N14/16/25/43/56); oracle *conditioning* rises (.791→.810). Effective dimension 5.2/5.7/6.2/11.0/7.9. Cosine between label-free μ and true μ is ≈ 0 in the weak half of Σ (N56 −0.30) and .90–.96 in the strong half.
+- **Main-session correction** (`analysis/handoff_checks.py`, worktree `claude/lr-gap-explanation-v1`): LR with non-negative weights closes 86–94% of the L-SML→LR gap (N56 .8139 vs LR .8207) using about half the channels; negative weights add only 0.2–0.7 pt; random same-size clusters ≈ L-SML clusters for within-cluster conditioning. The mechanism is selection + supervised weighting, not subtraction.
+- **Per-channel weights on N56** (`analysis/feature_weights.py`, `feature_weights_N56.{png,csv,json}`): NNLR drops 25/56 channels, including 11 of the 18 F1 uncertainty channels (strong but redundant copies; median single-channel AUC of dropped .702 vs kept .613). L-SML puts 0.51 of its weight mass on channels NNLR drops.
+- **Ceiling check** (`analysis/lsml_on_nnlr_set.py`, `lsml_on_nnlr_set.json`): L-SML on the NNLR-kept set is *worse* than on all channels: N14 .758 (2 folds fell back to K=2), N16 .773, N25 .769, N43 .731, N56 .712 vs .776/.779/.775/.763/.770.
+- **Omri's label-free proposal** — effective-dimension pruning inside L-SML clusters, then L-SML refit (`analysis/lsml_ed_prune.py`, `lsml_ed_prune_*.json`): N14 .778, N16 .778, N25 .774, N43 .635, N56 .727 — no gain on small banks, large loss on large banks, consistent over all 5 folds; the rule removes the most central (strongest) members such as `energy_level`.
+
+**Why**: The advisors asked (slide 16) why adding channels helps the supervised reference but not our label-free fusion, and whether a label-free selection rule could recover the gap.
+
+**Result**: For a voting rule, redundant copies of the strong uncertainty signal act as its weight; removing them shifts the vote to weak channels whose weights label-free estimation cannot recover (label-free μ is uninformative in the weak half of Σ). LR's gain is supervised selection + weighting, which no tested label-free rule reproduces. Direction **CLOSED** by Omri on 2026-10-17 as exhausted for now. Not pursued: a keep-the-strongest-member pruning variant (expected to return to the baseline). Numbers were measured in the LR-gap sessions and are recorded here without recomputation.
+
+**Files**:
+- `results/lr_gap_explanation_draft_2026-10-15/` — EXPERIMENTS_SUMMARY.md, EXPLANATION_HE.md, slides, `analysis/` scripts and JSON/CSV outputs (`feature_weights_N56.png` force-added; `*.png` is gitignored).

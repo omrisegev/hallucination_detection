@@ -1,3 +1,15 @@
+## 2026-10-17: integration branch + LR-gap direction closed, Step 464 [LR-gap closed] (Claude)
+
+**START HERE:** HISTORY Step 464 [LR-gap closed] and `results/lr_gap_explanation_draft_2026-10-15/`.
+
+- **Integration.** `claude/integration-2026-10-17` merges the 2026-10 lines: REWIND (463), agent telemetry (452–454), PRM boosting + cross-PRM generalization, advisor pages v6–v19, LR-gap draft, external comparators, Jev note, PRM voters pilot, and the older Codex line (Steps 290–295: CIW-DEEM, advisor v11 CPU completion, label-free error count, clustered IU-PCR, F1/F2/F7, gallery G/H). Colliding step numbers are tagged, not renumbered.
+- **LR-gap: CLOSED (Omri, 2026-10-17).** Supervised LR gains from more channels through selection + weighting. Non-negative LR closes 86–94% of the gap. Redundant strong uncertainty copies act as the vote weight in label-free fusion. Label-free pruning (NNLR-kept set, ED pruning in clusters) only hurts: N56 .712 / .727 vs .770. Keep the full matched banks; no further LR-gap work.
+- **Open lines and their recorded next steps** (see sections below):
+  - Agent telemetry (Step 454): judge+length/position controls on APB; own-backbone TPRM test needs Omri's GPU go.
+  - PRM + own-backbone boosting: frozen 3-channel recipe beats 5 PRMs on PRMBench. Check PRMBench leaderboard comparability (Step 463 survey) before any claim.
+  - PRM voters (multi-PRM fusion): ProcessBench pilot done; the PRMBench cluster run is handed off in `docs/experiments/PRMBENCH_STEP_VOTERS_HANDOFF.md`.
+  - Label-free error count (Step 292 [label-free error count]): A–D family closed. A continuous emission model with explicit dependence is only an unexecuted hypothesis.
+
 ## 2026-10-17: literature survey + REWIND check, Step 463 (Claude)
 
 **START HERE:** [survey](docs/research_notes/literature_survey_localization_prm_2026-10-16.md), Part C (implications for this line).
