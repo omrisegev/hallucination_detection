@@ -1,0 +1,135 @@
+<title>Label-free attempts on N56</title>
+<style>
+/* Layout: one v18-style slide card — chart left, three short reading blocks right. */
+:root{
+  --ink:#203044;--muted:#667587;--accent:#1766a1;--line:#dde4eb;--paper:#ffffff;--ground:#f4f6f8;
+  --callout:#f1f6fa;--research-bg:#fff7e9;--research:#c77b21;--panel:#f6f8fb;
+  --lf:#1766a1;--lab:#c77b21;--band:#e8f0f7;--grid:#e8edf2;--axis:#526173;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --ink:#e3eaf1;--muted:#9aa9b8;--accent:#5aa3dc;--line:#2b3a4a;--paper:#17222e;--ground:#0f1720;
+  --callout:#1c2b3a;--research-bg:#2b2116;--research:#e09a4a;--panel:#1b2734;
+  --lf:#5aa3dc;--lab:#e09a4a;--band:#1d3042;--grid:#243241;--axis:#9aa9b8;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --ink:#e3eaf1;--muted:#9aa9b8;--accent:#5aa3dc;--line:#2b3a4a;--paper:#17222e;--ground:#0f1720;
+  --callout:#1c2b3a;--research-bg:#2b2116;--research:#e09a4a;--panel:#1b2734;
+  --lf:#5aa3dc;--lab:#e09a4a;--band:#1d3042;--grid:#243241;--axis:#9aa9b8;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font:16px/1.5 var(--font)}
+main{padding-block:24px 40px;padding-inline:16px}
+.slide{background:var(--paper);max-width:1240px;margin:0 auto;padding:30px clamp(18px,3vw,40px) 24px;border:1px solid var(--line);border-radius:12px;box-shadow:0 4px 18px #172d4010}
+.eyebrow{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px 15px;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--muted);margin-bottom:13px;text-transform:uppercase}
+h1{font-size:clamp(24px,2.5vw,36px);line-height:1.15;letter-spacing:-.6px;margin:0 0 12px;text-wrap:balance}
+.lead{font-size:19px;line-height:1.4;margin:0 0 18px;max-width:72ch}
+.columns{display:grid;grid-template-columns:minmax(0,1.9fr) minmax(0,1fr);gap:28px;align-items:start}
+.columns>*{min-width:0}
+.callout{border-left:4px solid var(--accent);padding:12px 16px;background:var(--callout);border-radius:0 7px 7px 0;margin:0 0 12px}
+.callout strong{font-size:15.5px}
+.callout p{margin:5px 0 0;font-size:14px}
+.callout.research{border-color:var(--research);background:var(--research-bg)}
+.chart svg{width:100%;height:auto;display:block}
+.chart text{fill:var(--axis);font:11.5px var(--font)}
+.chart .row{fill:var(--ink)}
+.chart .grp{fill:var(--muted);font-size:10px;font-weight:700;letter-spacing:1px}
+.chart .val{font-weight:650;font-variant-numeric:tabular-nums}
+.caption{font-size:12px;color:var(--muted);line-height:1.45;margin-top:6px}
+.limit{font-size:12.5px;color:var(--muted);border-top:1px dashed var(--line);padding-top:8px;margin-top:12px}
+.limit b{color:var(--ink)}
+.source{font-size:10px;color:var(--muted);border-top:1px solid var(--line);margin-top:16px;padding-top:9px;overflow-wrap:anywhere}
+.speaker{margin-top:16px;padding:12px 16px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:14px;line-height:1.6}
+.speaker h3{margin:0 0 4px;font-size:13px;color:var(--muted)}
+.speaker p{margin:6px 0}
+#tip{position:fixed;pointer-events:none;z-index:20;background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px 9px;font-size:12px;line-height:1.4;box-shadow:0 4px 14px #0003;max-width:280px}
+details{margin-top:8px;font-size:12.5px}
+details summary{cursor:pointer;color:var(--accent)}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums;margin-top:6px}
+th,td{border-bottom:1px solid var(--line);padding:4px 8px;text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+@media(max-width:860px){.columns{grid-template-columns:minmax(0,1fr)}}
+</style>
+<div id="tip" hidden></div>
+<main>
+<section class="slide">
+  <div class="eyebrow">Draft · answers slide 16, question 01<span>N56 · within-answer AUC · 6,030 answers · source-group OOF</span></div>
+  <h1>Every label-free attempt stays near L-SML</h1>
+  <p class="lead">We tried eight ways to make label-free fusion use the contrasts LR uses. None gains more than 0.7 AUC points. Only rows that use labels reach LR.</p>
+  <div class="columns">
+    <div>
+      <figure class="chart" id="chart" aria-label="Dot plot of within-answer AUC for each attempt on N56"></figure>
+      <details><summary>Show numbers</summary><div class="tbl" id="tbl"></div></details>
+    </div>
+    <div>
+      <div class="callout"><strong>What we tried</strong><p>Weight contrasts inside L-SML clusters, using the other clusters, pseudo-labels, third moments, sparsity of errors, or agreement between clusters. Or feed LR's pairs to the methods as ready-made differences.</p></div>
+      <div class="callout research"><strong>Why it cannot work this way</strong><p>LR's gain sits in exact, signed weights between channels that repeat each other. Without labels those weights are not identifiable: the error label explains only about 1% of the correlation between clusters, and the rest is shared noise.</p></div>
+      <div class="callout"><strong>What the labels buy</strong><p>With true labels, the same channels reach 0.810 by conditioning. With labels choosing the pairs, even a plain average gains 1.6 points.</p></div>
+    </div>
+  </div>
+  <div class="limit"><b>Limit:</b> each attempt shows its best setting, chosen after seeing labels, so every blue row is an upper bound. Rows marked “uses labels” are references, not label-free methods.</div>
+  <aside class="speaker" lang="he" dir="rtl"><h3>הערות דובר</h3>
+    <p>השאלה: אפשר להוציא עוד מהערוצים של N56 בלי תוויות? כל נקודה כחולה היא ניסיון שלנו, וכולן נוחתות בטווח של נקודה אחת סביב L-SML. הנקודות הכתומות משתמשות בתוויות, והן היחידות שמגיעות ל-LR.</p>
+    <p>הסיבה: LR מרוויח ממשקלים מדויקים עם סימנים הפוכים בין ערוצים שחוזרים זה על זה. כדי לדעת אותם צריך לדעת איך כל ערוץ קשור לשגיאה בכיוונים שבהם הערוצים כמעט לא משתנים. שם התווית מסבירה רק כאחוז מהקורלציה, והשאר רעש משותף. גם כשהזנו את ההפרשים מראש, L-SML ו-IU-PCR לא ידעו לכוון אותם וקרסו.</p>
+  </aside>
+  <div class="source"><b>Evidence</b> L-SML, IU-PCR, LR: advisor_completion_2026-10-11/lr/METRICS.csv. Attempts and oracle rows: lr_gap_explanation_draft_2026-10-15/analysis/ (ladder, xg, wsml, pseudo, diag2, third, kstep, kcontrast, instr, diff_bank), same folds and population.</div>
+</section>
+</main>
+<script>
+const ROWS=[
+ ['g','REFERENCES'],
+ ['L-SML','.7704','lf','L-SML on the 56 channels, label-free'],
+ ['IU-PCR','.7641','lf','IU-PCR on the 56 channels, label-free'],
+ ['g','CONTRASTS INSIDE CLUSTERS, LABEL-FREE'],
+ ['Weights from the other clusters','.7738','lf','Each cluster conditioned toward a score built from the other clusters'],
+ ['Agreement between clusters','.7728','lf','Contrast only pairs whose sign agrees across clusters'],
+ ['Cluster components as views','.7775','lf','Top-3 components of each cluster fed to SML'],
+ ['Third-moment loadings','.6850','lf','Loadings from a cross-cluster third moment, then conditioning'],
+ ['g','OTHER LABEL-FREE ROUTES'],
+ ['Full conditioning, label-free','.7377','lf','Σ⁻¹ times the label-free loading estimate'],
+ ['Pseudo-labels','.7677','lf','Top L-SML step per answer used as a label, then conditioning'],
+ ['Sparse-error direction','.7748','lf','One small step toward higher within-answer kurtosis'],
+ ['g','LR PAIRS FED AS DIFFERENCES'],
+ ['L-SML, differences replace pairs','.5230','lf','LR pairs chosen with labels; L-SML fit without labels'],
+ ['IU-PCR, differences replace pairs','.6055','lf','LR pairs chosen with labels; IU-PCR fit without labels'],
+ ['Plain average + differences','.7693','lab','Pairs and their sign come from LR (labels); +1.6 over plain average'],
+ ['g','USES LABELS'],
+ ['Oracle conditioning','.8099','lab','Σ⁻¹ times the true loadings (LDA)'],
+ ['LR · supervised OOF','.8211','lab','Logistic regression, source-group OOF']
+];
+const NS='http://www.w3.org/2000/svg';
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+function el(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+function txt(p,x,y,s,a){const t=el('text',Object.assign({x,y},a||{}),p);t.textContent=s;return t}
+const tip=document.getElementById('tip');
+function hover(n,h){n.addEventListener('mousemove',e=>{tip.innerHTML=h;tip.hidden=false;const r=tip.getBoundingClientRect();let x=e.clientX+14,y=e.clientY+14;if(x+r.width>innerWidth-8)x=e.clientX-r.width-14;if(y+r.height>innerHeight-8)y=e.clientY-r.height-14;tip.style.left=x+'px';tip.style.top=y+'px'});n.addEventListener('mouseleave',()=>tip.hidden=true)}
+function draw(){
+  const box=document.getElementById('chart');box.innerHTML='';
+  const W=760,rh=22,gh=24,m={l:222,r:56,t:30,b:34};
+  let H=m.t+m.b;ROWS.forEach(r=>H+=r[0]==='g'?gh:rh);
+  const s=el('svg',{viewBox:`0 0 ${W} ${H}`,role:'img'},box);
+  const x0=.45,x1=.83,iw=W-m.l-m.r,X=v=>m.l+iw*(v-x0)/(x1-x0);
+  const lsml=.7704,lr=.8211;
+  el('rect',{x:X(lsml-.01),y:m.t-6,width:X(lsml+.01)-X(lsml-.01),height:H-m.t-m.b+6,fill:css('--band')},s);
+  for(let v=.45;v<=.8301;v+=.05){el('line',{x1:X(v),x2:X(v),y1:m.t-6,y2:H-m.b,stroke:css('--grid')},s);txt(s,X(v),H-m.b+16,v.toFixed(2),{'text-anchor':'middle'})}
+  [[lsml,'L-SML','--lf'],[lr,'LR','--lab']].forEach(([v,n,c])=>{el('line',{x1:X(v),x2:X(v),y1:m.t-6,y2:H-m.b,stroke:css(c),'stroke-width':1.5,'stroke-dasharray':'4 3'},s);
+    const t=txt(s,X(v),m.t-12,n,{'text-anchor':'middle',class:'val'});t.style.fill=css(c)});
+  txt(s,W-m.r,H-4,'Shaded band: L-SML ± 1 point',{'text-anchor':'end'});
+  txt(s,m.l,H-4,'Within-answer AUC on N56',{});
+  let y=m.t;
+  ROWS.forEach(r=>{
+    if(r[0]==='g'){txt(s,8,y+gh-7,r[1],{class:'grp'});y+=gh;return}
+    const [name,vs,fam,desc]=r,v=parseFloat(vs),cy=y+rh/2,col=css(fam==='lf'?'--lf':'--lab');
+    txt(s,m.l-10,cy+4,name,{'text-anchor':'end',class:'row'});
+    el('line',{x1:X(lsml),x2:X(v),y1:cy,y2:cy,stroke:col,'stroke-width':2,opacity:.35},s);
+    el('circle',{cx:X(v),cy,r:5,fill:col,stroke:css('--paper'),'stroke-width':2},s);
+    const vt=txt(s,X(v)+(v>=lsml?10:-10),cy+4,vs,{class:'val','text-anchor':v>=lsml?'start':'end'});vt.style.fill=css('--ink');
+    const hit=el('rect',{x:0,y,width:W,height:rh,fill:'transparent'},s);
+    const d=(v-lsml)*100;hover(hit,`<b>${name}</b><br>${desc}<br>AUC ${vs} · ${d>=0?'+':''}${d.toFixed(1)} vs L-SML`);
+    y+=rh});
+  document.getElementById('tbl').innerHTML='<table><thead><tr><th>Attempt</th><th>AUC</th><th>vs L-SML</th><th>Labels</th></tr></thead><tbody>'+
+    ROWS.filter(r=>r[0]!=='g').map(r=>{const d=(parseFloat(r[1])-lsml)*100;return `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${d>=0?'+':''}${d.toFixed(1)}</td><td>${r[2]==='lab'?'yes':'no'}</td></tr>`}).join('')+'</tbody></table>';
+}
+draw();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw);
+new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+</script>

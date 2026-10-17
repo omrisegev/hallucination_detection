@@ -1,0 +1,178 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Why LR keeps gaining</title>
+<style>
+/* Layout: one v18-style slide card — thesis, a three-term strip, chart left, three short reading blocks right. */
+:root{
+  --ink:#203044;--muted:#667587;--accent:#1766a1;--line:#dde4eb;--paper:#ffffff;--ground:#f4f6f8;
+  --callout:#f1f6fa;--research-bg:#fff7e9;--research:#c77b21;--panel:#f6f8fb;
+  --lsml:#1766a1;--iu:#6f58a5;--lr:#c77b21;--ovote:#203044;--ocond:#a3461f;
+  --grid:#e8edf2;--axis:#526173;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --ink:#e3eaf1;--muted:#9aa9b8;--accent:#5aa3dc;--line:#2b3a4a;--paper:#17222e;--ground:#0f1720;
+  --callout:#1c2b3a;--research-bg:#2b2116;--research:#e09a4a;--panel:#1b2734;
+  --lsml:#5aa3dc;--iu:#a593dc;--lr:#e09a4a;--ovote:#d7e1ea;--ocond:#ee7f56;
+  --grid:#243241;--axis:#9aa9b8;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --ink:#e3eaf1;--muted:#9aa9b8;--accent:#5aa3dc;--line:#2b3a4a;--paper:#17222e;--ground:#0f1720;
+  --callout:#1c2b3a;--research-bg:#2b2116;--research:#e09a4a;--panel:#1b2734;
+  --lsml:#5aa3dc;--iu:#a593dc;--lr:#e09a4a;--ovote:#d7e1ea;--ocond:#ee7f56;
+  --grid:#243241;--axis:#9aa9b8;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font:16px/1.5 var(--font)}
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 16px;background:var(--paper);border-bottom:1px solid var(--line)}
+.topbar .t{font-size:13px;color:var(--muted)}
+.topbar button{font:inherit;font-size:13px;border:1px solid var(--line);border-radius:7px;padding:6px 11px;background:var(--paper);color:var(--ink);cursor:pointer}
+.topbar button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+main{padding-block:24px 40px;padding-inline:16px}
+.slide{background:var(--paper);max-width:1240px;margin:0 auto;padding:30px clamp(18px,3vw,40px) 24px;border:1px solid var(--line);border-radius:12px;box-shadow:0 4px 18px #172d4010}
+.eyebrow{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px 15px;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--muted);margin-bottom:13px;text-transform:uppercase}
+h1{font-size:clamp(24px,2.5vw,36px);line-height:1.15;letter-spacing:-.6px;margin:0 0 12px;text-wrap:balance}
+p{margin:8px 0}
+.lead{font-size:19px;line-height:1.4;margin:0 0 16px;max-width:72ch}
+.terms{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:10px;margin:0 0 20px}
+.term{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 13px}
+.term .name{font-weight:700;font-size:14.5px}
+.term .f{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;color:var(--accent);margin-left:6px}
+.term p{font-size:13px;margin:3px 0 0}
+.fam{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.8px;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:2px}
+.fam.v{background:var(--callout);color:var(--accent)}
+.fam.c{background:var(--research-bg);color:var(--research)}
+.columns{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:28px;align-items:start}
+.columns>*{min-width:0}
+.callout{border-left:4px solid var(--accent);padding:11px 15px;background:var(--callout);border-radius:0 7px 7px 0;margin:0 0 12px}
+.callout strong{font-size:15.5px}
+.callout p{margin:4px 0 0;font-size:14px}
+.callout.research{border-color:var(--research);background:var(--research-bg)}
+.callout.plain{border-color:var(--line);background:var(--panel)}
+.toyrow{display:flex;gap:14px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.toyrow svg{width:170px;height:auto;flex:none}
+.toyrow .k{font-size:12.5px;color:var(--muted);flex:1 1 140px;min-width:0}
+figure{margin:0}
+.chart svg{width:100%;height:auto;display:block}
+.chart text{fill:var(--axis);font:12px var(--font)}
+.chart .lbl{font-size:12px;font-weight:650}
+.chart .note{font-size:11.5px;font-style:italic}
+.legend{display:none;flex-wrap:wrap;gap:4px 14px;font-size:12px;margin-top:6px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:20px;border-top:2.5px solid}
+.legend i.d{border-top-style:dashed}
+.caption{font-size:12px;color:var(--muted);line-height:1.45;margin-top:6px}
+.limit{font-size:12.5px;color:var(--muted);border-top:1px dashed var(--line);padding-top:8px;margin-top:14px}
+.limit b{color:var(--ink)}
+.source{font-size:10px;color:var(--muted);border-top:1px solid var(--line);margin-top:16px;padding-top:9px;overflow-wrap:anywhere}
+.speaker{margin-top:16px;padding:12px 16px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:14px;line-height:1.6}
+.speaker h3{margin:0 0 4px;font-size:13px;color:var(--muted)}
+.speaker p{margin:6px 0}
+body.hide-notes .speaker{display:none}
+#tip{position:fixed;pointer-events:none;z-index:20;background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px 9px;font-size:12px;line-height:1.4;box-shadow:0 4px 14px #0003;font-variant-numeric:tabular-nums}
+@media(max-width:860px){.columns{grid-template-columns:minmax(0,1fr)}}
+</style>
+
+<div class="topbar"><span class="t">Draft · not part of the v18 deck · 1 slide</span><button id="notesBtn" aria-pressed="true">הערות דובר</button></div>
+<div id="tip" hidden></div>
+<main>
+<section class="slide">
+  <div class="eyebrow">Draft for the advisor meeting · answers slide 16, question 01<span>PRMBench · within-answer AUC · 6,030 answers · source-group OOF</span></div>
+  <h1>Why LR gains from more channels and our fusion does not</h1>
+  <p class="lead">Our label-free methods <b>vote</b>, LR <b>conditions</b>. Most added channels repeat channels we already have, and a repeat helps only conditioning.</p>
+
+  <div class="terms">
+    <div class="term"><div class="name">Voting rule<span class="f">wᵢ ∝ μᵢ</span><span class="fam v">L-SML · IU-PCR</span></div><p>Each channel is weighted by its own signal μ, judged alone. μ = mean on erroneous steps − mean on correct steps.</p></div>
+    <div class="term"><div class="name">Conditioning rule<span class="f">w = Σ⁻¹μ</span><span class="fam c">LR</span></div><p>Each channel is weighted by what it adds beyond the others (Σ = channel correlations). Weights can be negative.</p></div>
+    <div class="term"><div class="name">Oracle</div><p>The rule given the true μ from the labels. A reference ceiling for that rule, not a method we can deploy.</p></div>
+  </div>
+
+  <div class="columns">
+    <figure>
+      <div class="chart" id="ladder" aria-label="Line chart: within-answer AUC from N14 to N56 for LR, oracle conditioning, oracle voting, L-SML and IU-PCR"></div>
+      <div class="legend" id="legend"></div>
+      <p class="caption">Solid = deployable rows (only LR uses labels). Dashed = oracle rows. Bank = channel set; N56 has 56 channels.</p>
+    </figure>
+    <div>
+      <div class="callout"><strong>1 · Perfect voting weights do not help</strong><p>With the true μ, voting stays flat (0.779 → 0.775). Conditioning on the same μ rises with LR (0.791 → 0.810, LR 0.797 → 0.821). The limit is the voting rule, not how we estimate its weights.</p></div>
+      <div class="callout plain"><strong>2 · The added channels are mostly repeats</strong><p>56 channels span only about 8 independent directions (effective dimension 5.2 at N14, 7.9 at N56). For voting a repeat is a second vote with the same noise. For conditioning it is a noise reference that can be subtracted.</p>
+        <div class="toyrow"><svg id="toy" viewBox="0 0 170 90" role="img" aria-label="Weights on channel A and its repeat A-prime: voting plus one and plus one, conditioning plus and minus"></svg><span class="k">A and its repeat A′. Voting adds them; conditioning subtracts them, so the shared noise cancels.</span></div></div>
+      <div class="callout research"><strong>3 · Why labels are needed to do this</strong><p>The useful contrasts sit in the weak directions of Σ. There our label-free μ is unrelated to the true one (cosine −0.30 at N56; 0.90–0.96 in the strong directions). IU-PCR keeps only the top-2 directions: even with true μ that gives 0.765 at N56 vs 0.815 with all.</p></div>
+      <p class="caption">Label-free attempts to reach these directions are on the next draft slide.</p>
+    </div>
+  </div>
+
+  <div class="limit"><b>Limit:</b> oracle rows use labels and are references only. Oracle conditioning uses ridge λ = 0.1 on standardized channels. Effective dimension = participation ratio of Σ's eigenvalues.</div>
+  <aside class="speaker" lang="he" dir="rtl"><h3>הערות דובר</h3>
+    <p>השקף עונה על השאלה הראשונה בשקף 16: למה LR ממשיך להשתפר כשמוסיפים ערוצים, וה-fusion ללא תוויות שלנו לא.</p>
+    <p>יש שני סוגי כללים. <b>הצבעה</b>: כל ערוץ מקבל משקל לפי הסיגנל שלו לבד. זה מה ש-L-SML ו-IU-PCR מנסים לשחזר בלי תוויות. <b>התניה</b>: כל ערוץ מקבל משקל לפי מה שהוא מוסיף מעבר לשאר הערוצים, ולכן משקל יכול להיות שלילי. זה מה ש-LR עושה.</p>
+    <p>המבחן: נותנים לשני הכללים את μ האמיתי מהתוויות. הצבעה מושלמת נשארת שטוחה סביב 0.78. התניה על אותו μ עולה יחד עם LR. כלומר גם אילו L-SML היה מעריך את המשקלים בדיוק, הוא לא היה מרוויח מהערוצים הנוספים.</p>
+    <p>הסיבה: רוב הערוצים שהוספנו חוזרים על ערוצים קיימים. ב-N56 יש 56 ערוצים אבל רק כ-8 כיוונים בלתי תלויים. בהצבעה ערוץ חוזר הוא עוד קול עם אותו רעש. בהתניה הוא משמש כייחוס לרעש, ומחסרים אותו.</p>
+    <p>למה אי אפשר לעשות את זה בלי תוויות: ההבדלים האלה נמצאים בכיוונים החלשים של מטריצת הקורלציה, ושם ההערכה שלנו ל-μ לא קשורה לאמת. בכיוונים החזקים היא כמעט מושלמת. IU-PCR שומר רק שני כיוונים חזקים, ולכן גם עם μ אמיתי הוא לא מגיע ל-LR. הניסיונות לסגור את הפער בלי תוויות מופיעים בשקף הבא.</p>
+  </aside>
+  <div class="source"><b>Evidence</b> LR, L-SML, IU-PCR: results/advisor_completion_2026-10-11/lr/METRICS.csv (official OOF). Oracle rows, effective dimension, top-2 truncation and cosines: results/lr_gap_explanation_draft_2026-10-15/analysis/ladder.py (same folds and population; cosdiag.json).</div>
+</section>
+</main>
+
+<script>
+const BANKS=['N14','N16','N25','N43','N56'];
+const D={
+  lr:[.797,.802,.807,.816,.821],
+  ocond:[.791,.796,.801,.807,.810],
+  ovote:[.779,.783,.780,.784,.775],
+  lsml:[.776,.779,.775,.763,.770],
+  iu:[.775,.781,.773,.755,.764]
+};
+const S=[['lr','LR · supervised','--lr',''],['ocond','Oracle conditioning','--ocond','6 4'],
+  ['ovote','Oracle voting','--ovote','6 4'],['lsml','L-SML','--lsml',''],['iu','IU-PCR','--iu','']];
+const NS='http://www.w3.org/2000/svg';
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+function el(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+function txt(p,x,y,s,a){const t=el('text',Object.assign({x,y},a||{}),p);t.textContent=s;return t}
+const tip=document.getElementById('tip');
+function tipOn(e,h){tip.innerHTML=h;tip.hidden=false;const r=tip.getBoundingClientRect();let x=e.clientX+14,y=e.clientY+14;if(x+r.width>innerWidth-8)x=e.clientX-r.width-14;if(y+r.height>innerHeight-8)y=e.clientY-r.height-14;tip.style.left=x+'px';tip.style.top=y+'px'}
+function hover(n,h){n.addEventListener('mousemove',e=>tipOn(e,h));n.addEventListener('mouseleave',()=>tip.hidden=true)}
+
+function ladder(){
+  const box=document.getElementById('ladder');box.innerHTML='';
+  const W=Math.max(300,Math.round(box.clientWidth||640)),wide=W>=520;
+  const H=wide?Math.round(Math.min(380,W*.56)):260,m={l:42,r:wide?168:14,t:14,b:46};
+  const s=el('svg',{viewBox:`0 0 ${W} ${H}`,role:'img'},box);
+  const y0=.75,y1=.825,iw=W-m.l-m.r,ih=H-m.t-m.b;
+  const X=i=>m.l+iw*i/(BANKS.length-1),Y=v=>m.t+ih*(1-(v-y0)/(y1-y0));
+  for(let v=y0;v<=y1+1e-9;v+=.025){el('line',{x1:m.l,x2:m.l+iw,y1:Y(v),y2:Y(v),stroke:css('--grid')},s);txt(s,m.l-7,Y(v)+4,v.toFixed(3),{'text-anchor':'end'})}
+  BANKS.forEach((b,i)=>txt(s,X(i),H-m.b+18,b,{'text-anchor':wide?'middle':(i===0?'start':i===4?'end':'middle')}));
+  txt(s,m.l,H-4,'Channels added (bank) →',{});
+  const ends=[];
+  S.forEach(([k,name,c,dash])=>{
+    const col=css(c);
+    el('polyline',{points:D[k].map((v,i)=>X(i)+','+Y(v)).join(' '),fill:'none',stroke:col,'stroke-width':dash?2.2:2.4,'stroke-dasharray':dash,'stroke-linejoin':'round'},s);
+    D[k].forEach((v,i)=>{el('circle',{cx:X(i),cy:Y(v),r:3.6,fill:col,stroke:css('--paper'),'stroke-width':1.8},s);
+      hover(el('circle',{cx:X(i),cy:Y(v),r:11,fill:'transparent'},s),`<b>${name}</b><br>${BANKS[i]} · AUC ${v.toFixed(3)}`)});
+    ends.push({name,col,y:Y(D[k][4]),v:D[k][4]});
+  });
+  if(wide){
+    ends.sort((a,b)=>a.y-b.y);for(let i=1;i<ends.length;i++)if(ends[i].y-ends[i-1].y<15)ends[i].y=ends[i-1].y+15;
+    ends.forEach(e=>{const t=txt(s,X(4)+10,e.y+4,`${e.name} ${e.v.toFixed(3)}`,{class:'lbl'});t.style.fill=e.col});
+  }
+  const n=txt(s,X(2),Y(.7835)-9,'flat even with true labels',{'text-anchor':'middle',class:'note'});n.style.fill=css('--ovote');
+  const lg=document.getElementById('legend');lg.style.display=wide?'none':'flex';
+  lg.innerHTML=S.map(([k,name,c,d])=>`<span><i class="${d?'d':''}" style="border-color:var(${c})"></i>${name}</span>`).join('');
+}
+function toy(){
+  const s=document.getElementById('toy');s.innerHTML='';
+  const mid=40,sc=24,bw=16;
+  [['Voting',8,[1,1]],['Conditioning',92,[1.2,-1.1]]].forEach(([lab,x0,w])=>{
+    el('line',{x1:x0,x2:x0+68,y1:mid,y2:mid,stroke:css('--axis')},s);
+    w.forEach((v,i)=>{const x=x0+10+i*30,h=Math.abs(v)*sc,y=v>=0?mid-h:mid;
+      el('rect',{x,y,width:bw,height:h,rx:2,fill:css(v>=0?'--accent':'--lr')},s);
+      const t=txt(s,x+bw/2,v>=0?mid+12:mid-4,i?'A′':'A',{'text-anchor':'middle'});t.style.font='10px '+css('--font');t.style.fill=css('--muted')});
+    const t=txt(s,x0+34,86,lab,{'text-anchor':'middle'});t.style.font='600 10.5px '+css('--font');t.style.fill=css('--ink');
+  });
+}
+function draw(){ladder();toy()}
+draw();
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw);
+new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+let rw=0;new ResizeObserver(es=>{const w=Math.round(es[0].contentRect.width);if(w!==rw){rw=w;ladder()}}).observe(document.getElementById('ladder'));
+const nb=document.getElementById('notesBtn');
+nb.addEventListener('click',()=>{const hid=document.body.classList.toggle('hide-notes');nb.setAttribute('aria-pressed',String(!hid))});
+</script>
