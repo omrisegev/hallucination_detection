@@ -1,0 +1,377 @@
+<title>Where the LR gap comes from</title>
+<style>
+/* Layout: the v18 advisor deck — stacked white slide cards on a cool grey ground, one idea per card, chart left / reading right. */
+:root{
+  --ink:#203044;--muted:#667587;--accent:#1766a1;--line:#dde4eb;--paper:#ffffff;--ground:#f4f6f8;
+  --callout:#f1f6fa;--research-bg:#fff7e9;--research:#c77b21;--panel:#f6f8fb;
+  --plain:#8d99a5;--lsml:#1766a1;--iu:#6f58a5;--lr:#c77b21;--ovote:#203044;--ocond:#a3461f;
+  --seg-est:#86b4d8;--seg-within:#c77b21;--seg-between:#e6bb85;--seg-rest:#c3ccd5;
+  --hi:#1766a1;--lo:#c77b21;--grid:#e8edf2;--axis:#526173;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --ink:#e3eaf1;--muted:#9aa9b8;--accent:#5aa3dc;--line:#2b3a4a;--paper:#17222e;--ground:#0f1720;
+  --callout:#1c2b3a;--research-bg:#2b2116;--research:#e09a4a;--panel:#1b2734;
+  --plain:#8d99a5;--lsml:#5aa3dc;--iu:#a593dc;--lr:#e09a4a;--ovote:#d7e1ea;--ocond:#ee7f56;
+  --seg-est:#4f86b3;--seg-within:#e09a4a;--seg-between:#9c7444;--seg-rest:#53616f;
+  --hi:#5aa3dc;--lo:#e09a4a;--grid:#243241;--axis:#9aa9b8;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --ink:#e3eaf1;--muted:#9aa9b8;--accent:#5aa3dc;--line:#2b3a4a;--paper:#17222e;--ground:#0f1720;
+  --callout:#1c2b3a;--research-bg:#2b2116;--research:#e09a4a;--panel:#1b2734;
+  --plain:#8d99a5;--lsml:#5aa3dc;--iu:#a593dc;--lr:#e09a4a;--ovote:#d7e1ea;--ocond:#ee7f56;
+  --seg-est:#4f86b3;--seg-within:#e09a4a;--seg-between:#9c7444;--seg-rest:#53616f;
+  --hi:#5aa3dc;--lo:#e09a4a;--grid:#243241;--axis:#9aa9b8;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font:16px/1.5 var(--font)}
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 16px;background:var(--paper);border-bottom:1px solid var(--line)}
+.topbar .t{font-size:13px;color:var(--muted)}
+.topbar button{font:inherit;font-size:13px;border:1px solid var(--line);border-radius:7px;padding:6px 11px;background:var(--paper);color:var(--ink);cursor:pointer}
+.topbar button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+main{padding-block:24px 60px;padding-inline:16px}
+.slide{background:var(--paper);max-width:1240px;margin:0 auto 28px;padding:30px clamp(18px,3vw,40px) 24px;border:1px solid var(--line);border-radius:12px;box-shadow:0 4px 18px #172d4010}
+.eyebrow{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px 15px;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--muted);margin-bottom:13px;text-transform:uppercase}
+h1{font-size:clamp(24px,2.5vw,36px);line-height:1.15;letter-spacing:-.6px;margin:0 0 14px;text-wrap:balance}
+h2{font-size:19px;line-height:1.25;margin:4px 0 8px;text-wrap:balance}
+p{margin:8px 0}
+.lead{font-size:19px;line-height:1.4;margin:0 0 18px;max-width:70ch}
+.columns{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:28px;align-items:start}
+.columns.even{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.columns>*{min-width:0}
+.callout{border-left:4px solid var(--accent);padding:12px 16px;background:var(--callout);border-radius:0 7px 7px 0;margin:0 0 14px}
+.callout strong{font-size:16px}
+.callout p{margin:5px 0 0;font-size:14.5px}
+.callout.research{border-color:var(--research);background:var(--research-bg)}
+.tag{font-size:10px;font-weight:800;letter-spacing:1px;color:var(--accent);text-transform:uppercase}
+.caption{font-size:12px;color:var(--muted);line-height:1.45;margin-top:6px}
+.limit{font-size:12.5px;color:var(--muted);border-top:1px dashed var(--line);padding-top:8px;margin-top:12px}
+.limit b{color:var(--ink)}
+.source{font-size:10px;color:var(--muted);border-top:1px solid var(--line);margin-top:18px;padding-top:9px;overflow-wrap:anywhere}
+.terms{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:12px;margin:6px 0 16px}
+.term{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.term .name{font-weight:700;font-size:15px}
+.term .f{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;color:var(--accent);display:block;margin:3px 0}
+.term p{font-size:13.5px;margin:4px 0 0;color:var(--ink)}
+.term .ex{color:var(--muted);font-size:12.5px}
+.fam{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.8px;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:2px}
+.fam.v{background:var(--callout);color:var(--accent)}
+.fam.c{background:var(--research-bg);color:var(--research)}
+figure{margin:0}
+.chart svg{width:100%;height:auto;display:block}
+.chart text{fill:var(--axis);font:11px var(--font)}
+.chart .lbl{font-size:11.5px;font-weight:650}
+.chart .ttl{font-size:12px;font-weight:700;fill:var(--ink)}
+details{margin-top:8px;font-size:12.5px}
+details summary{cursor:pointer;color:var(--accent)}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums;margin-top:6px;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:4px 8px;text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:650}
+.big{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:12px;margin:4px 0 14px}
+.big>div{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.big .n{font-size:28px;font-weight:750;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+.big .d{font-size:12.5px;color:var(--muted)}
+.speaker{margin-top:16px;padding:12px 16px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:14px;line-height:1.6}
+.speaker h3{margin:0 0 4px;font-size:13px;color:var(--muted)}
+.speaker p{margin:6px 0}
+body.hide-notes .speaker{display:none}
+#tip{position:fixed;pointer-events:none;z-index:20;background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px 9px;font-size:12px;line-height:1.4;box-shadow:0 4px 14px #0003;font-variant-numeric:tabular-nums;max-width:260px}
+.toy{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.toy>div{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;min-width:0}
+@media(max-width:860px){.columns,.columns.even{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:480px){.toy{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+
+<div class="topbar"><span class="t">Draft · not part of the v18 deck · 6 slides</span><button id="notesBtn" aria-pressed="true">הערות דובר</button></div>
+<div id="tip" hidden></div>
+<main>
+
+<!-- G1 -->
+<section class="slide" id="g1">
+  <div class="eyebrow">Draft for the advisor meeting · answers slide 16, question 01<span>Terms used on the next slides</span></div>
+  <h1>Two ways to combine step signals</h1>
+  <p class="lead">Every method on slide 5 scores a step as a weighted sum of its channels. The methods differ only in how they choose the weights.</p>
+  <div class="terms">
+    <div class="term"><div class="name">Channel</div><p>One step-level signal, such as entropy, surprise or digit disagreement. A bank (N16, N56) is a set of channels.</p></div>
+    <div class="term"><div class="name">Signal of a channel, μ</div><span class="f">μᵢ = mean on erroneous steps − mean on correct steps</span><p>In standard units. Measuring it requires the step labels.</p></div>
+    <div class="term"><div class="name">Redundancy, Σ</div><span class="f">Σᵢⱼ = correlation of channels i and j</span><p>Measured without labels. Two channels with ρ near 1 repeat each other, including each other's noise.</p></div>
+    <div class="term"><div class="name">Voting rule<span class="fam v">OUR METHODS</span></div><span class="f">wᵢ ∝ μᵢ</span><p>Each channel gets weight for its own signal, judged alone. Plain average, L-SML and IU-PCR estimate these weights without labels.</p></div>
+    <div class="term"><div class="name">Conditioning rule<span class="fam c">LR</span></div><span class="f">w = Σ⁻¹ μ</span><p>Each channel gets weight for what it adds once the other channels are known. A channel that repeats another adds little, so it gets little weight. LR (and LDA) work this way.</p></div>
+    <div class="term"><div class="name">Oracle</div><p>A reference row that uses the true labels only to compute μ. It is a ceiling for a rule, not a method we could deploy.</p><p class="ex">Oracle voting = best possible voting. Oracle conditioning = LDA.</p></div>
+  </div>
+  <div class="columns even">
+    <div>
+      <div class="tag">Illustration · two channels that repeat each other</div>
+      <div class="toy" style="margin-top:8px">
+        <div><h2 style="font-size:15px">Voting</h2><figure class="chart" id="toyVote"></figure><p class="caption">A and its repeat A′ both vote. A's view is counted twice and B's carries half the weight.</p></div>
+        <div><h2 style="font-size:15px">Conditioning</h2><figure class="chart" id="toyCond"></figure><p class="caption">Once A is known, A′ adds almost nothing and gets almost no weight. A and B each count once.</p></div>
+      </div>
+    </div>
+    <div>
+      <div class="callout"><strong>The question for the next slides</strong><p>When we add channels, LR improves and our methods do not. Is that because we estimate the weights badly, or because voting cannot use the new channels at all?</p></div>
+      <div class="callout research"><strong>How we test it</strong><p>Give both rules the true μ. If oracle voting also stays flat, the limit is the rule, not our estimation.</p></div>
+    </div>
+  </div>
+  <div class="limit"><b>Limit:</b> the illustration is schematic. Negative weights are not the main mechanism: LR restricted to non-negative weights closes 86–94% of the L-SML → LR gap on N14–N56, using about half of the channels. LR's large opposite pairs (e.g. the digit pair at ρ = 0.9998) add only 0.1–0.2 points each.</div>
+  <aside class="speaker" lang="he" dir="rtl"><h3>הערות דובר</h3>
+    <p>השקף מגדיר את המונחים שבהם נשתמש. כל השיטות בטבלה של שקף 5 נותנות לכל צעד ציון שהוא סכום משוקלל של הערוצים. ההבדל היחיד ביניהן הוא איך בוחרים את המשקלים.</p>
+    <p><b>הצבעה:</b> כל ערוץ מקבל משקל לפי הסיגנל שלו לבד. זה מה ש-L-SML ו-IU-PCR מנסים לשחזר בלי תוויות. <b>התניה:</b> כל ערוץ מקבל משקל לפי מה שהוא מוסיף מעבר לשאר. זה מה ש-LR עושה.</p>
+    <p>הדוגמה: A′ חוזר על A. בהצבעה A נספר פעמיים ו-B מקבל רק חצי מהמשקל. בהתניה A′ כמעט לא מקבל משקל, כי אחרי שיודעים את A הוא לא מוסיף מידע.</p>
+    <p>חשוב: המנגנון העיקרי הוא בחירה ולא חיסור. LR עם משקלים לא-שליליים בלבד סוגר 86–94% מהפער ומשתמש בכמחצית מהערוצים. זה תואם את מה שנמצא ב-6.10 על B13/B32 (97%/86%).</p>
+  </aside>
+  <div class="source"><b>Evidence</b> Non-negative LR: analysis/handoff_checks.py (orientation by training-fold μ). Earlier finding on B13/B32: docs/HANDOFF_within_group_fusion_2026-10-06.md §2.3. Digit pair: monday_lr_weights_v1/PAIRS.csv.</div>
+</section>
+
+<!-- G2 -->
+<section class="slide" id="g2">
+  <div class="eyebrow">Draft · digit-bank chain as on slide 6<span>Within-answer AUC · 6,030 answers · source-group OOF</span></div>
+  <h1>Even perfect voting weights do not improve with more channels</h1>
+  <p class="lead">With the true labels, voting stays near 0.78 across the chain. Conditioning rises with LR.</p>
+  <div class="columns">
+    <figure class="chart" id="ladder" aria-label="Line chart of within-answer AUC by bank for seven rules"></figure>
+    <div>
+      <div class="callout"><strong>Oracle voting stays flat</strong><p>0.779 at N14, 0.775 at N56. Our methods sit at or below it. Their problem on the large banks is the voting rule, not the estimation of weights.</p></div>
+      <div class="callout research"><strong>Oracle conditioning follows LR</strong><p>0.791 → 0.810, against LR 0.797 → 0.821. LR with non-negative weights tracks it too (0.794 → 0.814), so the gain does not depend on negative weights.</p></div>
+      <p class="caption">Solid = deployable rows (labels used only by the LR rows). Dashed = oracle rows (true μ from the training folds, scored on held-out folds). Dotted = LR with non-negative weights. Blue family = voting, orange family = conditioning.</p>
+    </div>
+  </div>
+  <details><summary>Show numbers</summary><div class="tbl" id="ladderTbl"></div></details>
+  <div class="limit"><b>Limit:</b> oracle rows use labels and are references. Oracle conditioning uses ridge λ = 0.1 on standardized channels. LR remains about 0.6–1.1 points above it, which is the difference between logistic regression and a linear class-mean rule. This chain includes digit channels, which were excluded from future methods on 17 Sep; it is shown because slide 6 uses it.</div>
+  <aside class="speaker" lang="he" dir="rtl"><h3>הערות דובר</h3>
+    <p>זה השקף המרכזי. אותו ציר כמו שקף 6, ושתי שורות חדשות מקווקוות. שתיהן מקבלות את התוויות האמיתיות, ולכן הן ייחוס ולא שיטה.</p>
+    <p>הצבעה מושלמת, עם המשקלים הנכונים, נשארת שטוחה בסביבות 0.78. כלומר גם אם L-SML היה מעריך את המשקלים בדיוק, הוא לא היה מרוויח מהערוצים הנוספים. התניה על אותו μ עולה יחד עם LR.</p>
+    <p>מכאן שהפער מול LR אינו בעיקר שגיאת הערכה. הוא נובע מסוג הכלל.</p>
+  </aside>
+  <div class="source"><b>Evidence</b> LR, L-SML, IU-PCR: advisor_completion_2026-10-11/lr/METRICS.csv (official OOF). Plain average: controls/ALL_BANK_TOP1_AUC.csv (ALL_EQ, unrestricted). Oracle rows: analysis/ladder.py, same folds and population.</div>
+</section>
+
+<!-- G3 -->
+<section class="slide" id="g3">
+  <div class="eyebrow">Draft · why voting gains nothing<span>Effective dimension of each bank</span></div>
+  <h1>Most added channels repeat channels we already have</h1>
+  <p class="lead">From N14 to N56 the bank grows by 42 channels but only by about 3 independent directions.</p>
+  <div class="columns">
+    <figure class="chart" id="effdim" aria-label="Bars of channel count and effective dimension per bank"></figure>
+    <div>
+      <div class="term" style="margin-bottom:14px"><div class="name">Effective dimension</div><span class="f">(Σλ)² / Σλ²  over the eigenvalues λ of Σ</span><p>How many independent directions the bank's variation actually spreads over. Adding an exact copy of a channel adds a channel but no direction, and can even lower this number (N43 → N56).</p></div>
+      <div class="callout"><strong>Voting</strong><p>A repeated channel is counted again, with its noise. At best it changes nothing.</p></div>
+      <div class="callout research"><strong>Conditioning</strong><p>A repeated channel adds almost nothing once its twin is known, so it gets almost no weight. LR with non-negative weights keeps 29 of 56 channels at N56.</p></div>
+    </div>
+  </div>
+  <details><summary>Show numbers</summary><div class="tbl" id="effTbl"></div></details>
+  <div class="limit"><b>Limit:</b> effective dimension is averaged over the five training folds. It describes redundancy and does not by itself show which channels carry signal.</div>
+  <aside class="speaker" lang="he" dir="rtl"><h3>הערות דובר</h3>
+    <p>למה הצבעה לא מרוויחה? כי רוב הערוצים החדשים חוזרים על ערוצים קיימים. הוספנו 42 ערוצים, ונוספו בערך 3 כיוונים בלתי תלויים.</p>
+    <p>בשביל הצבעה, ערוץ חוזר הוא עוד קול לאותה דעה, והוא מטה את המשקל לכיוון המשפחה שחוזרת על עצמה. בשביל התניה, ערוץ חוזר כמעט לא מוסיף מידע, ולכן הוא מקבל משקל קרוב לאפס. LR עם משקלים לא-שליליים משאיר ב-N56 רק 29 מתוך 56 ערוצים.</p>
+  </aside>
+  <div class="source"><b>Evidence</b> analysis/ladder.py, eff_dim column (participation ratio of the training correlation matrix), inputs/bank_V_N*.npz.</div>
+</section>
+
+<!-- G4 -->
+<section class="slide" id="g4">
+  <div class="eyebrow">Draft · decomposing LR − L-SML<span>AUC points (×100) · each step adds one ingredient</span></div>
+  <h1>The conditioning share of the gap grows with the bank</h1>
+  <p class="lead">At N56 conditioning explains 3.5 of the 5.1 points. Conditioning inside groups of channels gives a large part of it, but random groups give most of that too.</p>
+  <div class="columns">
+    <figure class="chart" id="waterfall" aria-label="Stacked bars decomposing the LR minus L-SML gap per bank"></figure>
+    <div>
+      <div class="term" style="margin-bottom:12px"><div class="name">How each bar is built</div><p><b>Estimation</b> = L-SML → oracle voting.<br><b>Inside clusters</b> = oracle voting → conditioning applied only within each L-SML cluster.<br><b>Between clusters</b> → full oracle conditioning.<br><b>Rest</b> → LR.</p></div>
+      <div class="callout research"><strong>Inside clusters: 0.2 → 2.1 points</strong><p>From N16 to N56. Random groups of the same sizes reach 0.787 at N56, against 0.795 with L-SML's clusters. The clusters help by about 0.9 points there and not at all at N16.</p></div>
+      <div class="callout"><strong>N43 is a different failure</strong><p>2.1 points are lost already in estimation, below oracle voting. This is the same L-SML collapse seen at N40.</p></div>
+    </div>
+  </div>
+  <details><summary>Show numbers</summary><div class="tbl" id="wfTbl"></div></details>
+  <div class="limit"><b>Limit:</b> the split between inside and between clusters depends on the order of the steps; the conditioning total does not. Oracle steps use labels and are references. Random-group control: 20 permutations of the L-SML cluster labels per fold (N16 0.784, N43 0.789, N56 0.787).</div>
+  <aside class="speaker" lang="he" dir="rtl"><h3>הערות דובר</h3>
+    <p>מפרקים את הפער בכל בנק לארבעה חלקים, ומוסיפים מרכיב אחד בכל שלב. החלק הכחול הוא הערכת המשקלים בלי תוויות. החלקים הכתומים הם התניה. האפור הוא מה שנשאר עד LR.</p>
+    <p>ההתניה גדלה מ-1.2 נקודות ב-N16 ל-3.5 ב-N56. חלק גדול ממנה מתקבל כבר מהתניה בתוך קבוצות, אבל קבוצות אקראיות באותם גדלים נותנות את רובו. האשכולות של L-SML עדיפים על אקראיים רק ב-N56, בכ-0.9 נקודות. זה תואם את מה שנמצא ב-6.10 על B13/B32, שם קבוצות אקראיות נתנו אותו LR על ציוני הקבוצות.</p>
+    <p>ב-N43 יש בנוסף הפסד של 2 נקודות בהערכה עצמה. זו הקריסה של L-SML שראינו גם ב-N40, ולא אותה תופעה.</p>
+  </aside>
+  <div class="source"><b>Evidence</b> analysis/ladder.py (ORACLE_VOTER, ORACLE_BLOCK_LDA, ORACLE_LDA); official LR and L-SML from lr/METRICS.csv; L-SML clusters from lr/checkpoints/&lt;bank&gt;/outer_&lt;k&gt;/MODELS.json.</div>
+</section>
+
+<!-- G5 -->
+<section class="slide" id="g5">
+  <div class="eyebrow">Draft · why we cannot simply condition without labels<span>Label-free estimate of μ vs true μ</span></div>
+  <h1>Without labels, μ is invisible where conditioning needs it</h1>
+  <p class="lead">Our label-free μ is accurate in the strong directions of Σ and unrelated to the truth in the weak ones. Conditioning works in the weak ones.</p>
+  <div class="columns">
+    <div>
+      <figure class="chart" id="cosine" aria-label="Grouped bars of cosine similarity by subspace"></figure>
+      <details><summary>Show numbers</summary><div class="tbl" id="cosTbl"></div></details>
+    </div>
+    <div>
+      <div class="big">
+        <div><div class="n">0.8–1.5%</div><div class="d">of the correlation between L-SML clusters is explained by the error label. The rest is noise the clusters share.</div></div>
+        <div><div class="n">≤ +0.8</div><div class="d">AUC points over L-SML for every label-free variant tried at N56. LR is +5.1.</div></div>
+      </div>
+      <div class="tbl"><table>
+        <thead><tr><th>Label-free variant tried (N56)</th><th>AUC</th></tr></thead>
+        <tbody>
+          <tr><td>L-SML (reference)</td><td>0.7704</td></tr>
+          <tr><td>Conditioning toward a proxy from the other clusters</td><td>0.7738</td></tr>
+          <tr><td>Conditioning on the label-free μ (whitened SML)</td><td>0.7377</td></tr>
+          <tr><td>Conditioning on pseudo-labels (top L-SML step)</td><td>0.7677</td></tr>
+          <tr><td>Cluster components as SML views</td><td>0.7775</td></tr>
+          <tr><td>Kurtosis step from L-SML</td><td>0.7748</td></tr>
+          <tr><td>Kurtosis inside cluster contrasts</td><td>0.7707</td></tr>
+          <tr><td>ZCA whitening inside each cluster, then L-SML</td><td>0.7631</td></tr>
+          <tr><td>Partial whitening (shrinkage) inside each cluster, then L-SML</td><td>0.7714</td></tr>
+          <tr><td>PCA + ridge inside each cluster, SML between clusters</td><td>0.7749</td></tr>
+          <tr><td>LR · supervised OOF</td><td>0.8211</td></tr>
+        </tbody></table></div>
+      <p class="caption">Best setting per variant shown, chosen after seeing labels, so each row is an upper bound for that variant. Earlier project attempts point the same way: Helmert common-plus-contrast coordinates with SML/MoM/HEM/DS (Step 449, 7 of 8 comparisons negative), covariance-inverse readout (Step 402), whitening and third-moment tensors (6 Oct handoff).</p>
+    </div>
+  </div>
+  <div class="limit"><b>Limit:</b> the split into strong and weak directions halves the eigenvalues of Σ; the cosine is averaged over five folds. This rules out conditioning built only from correlations. It does not rule out other label-free information.</div>
+  <aside class="speaker" lang="he" dir="rtl"><h3>הערות דובר</h3>
+    <p>אם ההתניה היא מה שחסר, למה לא לעשות התניה בלי תוויות? כי היא צריכה את μ בדיוק בכיוונים החלשים של מטריצת הקורלציה, ושם ההערכה שלנו בלי תוויות לא קשורה לאמת (קוסינוס סביב 0). בכיוונים החזקים היא טובה מאוד (0.90–0.96), ולכן ההצבעה שלנו עובדת.</p>
+    <p>הסיבה: הלייבל מסביר רק כאחוז מהקורלציה בין האשכולות. כל השאר רעש משותף. מקורלציות בלבד אי אפשר להפריד ביניהם. זו מגבלת זיהוי של הנתונים, לא באג באלגוריתם.</p>
+    <p>ניסינו תשע גרסאות בלי תוויות, כולל הלבנה בתוך אשכול ו-PCA+ridge. אף אחת לא עברה את L-SML ביותר מ-0.8 נקודות. גם ניסיונות קודמים בפרויקט נכשלו: Step 449 (קואורדינטות Helmert), ‏Step 402 (קריאה מההופכי של הקוואריאנס), והלבנה וטנזור מסדר שלישי מה-handoff של 6.10.</p>
+  </aside>
+  <div class="source"><b>Evidence</b> analysis/mudiag.py and cosdiag.json (cross-cluster rank-1 estimate of μ); variants: analysis/xg.py, wsml.py, pseudo.py, diag2.py, kstep.py, kcontrast.py.</div>
+</section>
+
+<!-- G6 -->
+<section class="slide" id="g6">
+  <div class="eyebrow">Draft · back to slide 16, question 01<span>“Separate feature value, redundancy and score weighting”</span></div>
+  <h1>What the added channels give, and to whom</h1>
+  <p class="lead">The added channels carry little new signal of their own. LR gains by choosing which of the repeated channels to trust, and that choice cannot be read from the correlations without labels.</p>
+  <div class="terms">
+    <div class="term"><div class="name">Feature value</div><p>Small. Oracle voting moves by −0.45 points from N14 to N56 (slide G2).</p></div>
+    <div class="term"><div class="name">Redundancy</div><p>Large. 42 channels add about 3 independent directions (slide G3).</p></div>
+    <div class="term"><div class="name">Score weighting</div><p>Decisive. Conditioning explains 3.5 of LR's 5.1 points at N56 (slide G4); with non-negative weights it still closes 87%. It cannot be estimated from correlations alone (slide G5).</p></div>
+  </div>
+  <div class="callout research"><strong>Questions for the discussion</strong>
+    <p>1. Report the large-bank gap as an identifiability limit of label-free fusion, with the oracle rows as the evidence?</p>
+    <p>2. Would a small labelled set be acceptable for μ alone, with Σ from all unlabelled steps? This connects to question 02 on label budget. Not yet run.</p>
+    <p>3. Is there label-free information beyond correlations worth pursuing? Within-answer spikiness points about halfway toward the right direction (cosine ≈ 0.5), but naive optimisation of it fails.</p>
+  </div>
+  <aside class="speaker" lang="he" dir="rtl"><h3>הערות דובר</h3>
+    <p>חוזרים לשאלה מספר 1 בשקף 16, שביקשה להפריד בין ערך הפיצ׳ר, היתירות והשקלול. התשובה: הערך העצמאי של הערוצים החדשים קטן, היתירות גדולה, והשקלול מכריע. רק כלל שמתנה מרוויח מהיתירות, ואת ההתניה אי אפשר לבנות מקורלציות בלבד.</p>
+    <p>מסיימים בשלוש שאלות למנחים, ולא בהצעת שיטה.</p>
+  </aside>
+  <div class="source"><b>Evidence</b> Slides G2–G5 of this draft. Spikiness lead: analysis/spike.py, kstep.py. Consistent with the supervised oracles of Steps 447–448 (B13/B32: group-restricted spans recover 94%/90% of the gap) and the 6 Oct handoff.</div>
+</section>
+</main>
+
+<script>
+const BANKS=['N14','N16','N25','N43','N56'];
+const ADDED=['','+2','+9','+18','+13'];
+const D={
+  plain:[.7655,.7708,.7730,.7493,.7536],
+  lsml:[.7756,.7789,.7745,.7625,.7704],
+  iu:[.7754,.7805,.7729,.7547,.7641],
+  ovote:[.7790,.7834,.7803,.7837,.7745],
+  oblock:[.7834,.7852,.7823,.7920,.7952],
+  ocond:[.7911,.7959,.8011,.8065,.8099],
+  lr:[.7971,.8017,.8072,.8158,.8211],
+  nnlr:[.7938,.8002,.8029,.8115,.8139]
+};
+const CH=[14,16,25,43,56], EFF=[5.2,5.7,6.2,11.0,7.9];
+const COS={hi:[.955,.934,.937,.897,.938],lo:[-.181,.282,.080,-.042,-.295]};
+const NS='http://www.w3.org/2000/svg';
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+function el(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+function txt(p,x,y,s,a){const t=el('text',Object.assign({x,y},a||{}),p);t.textContent=s;return t}
+const tip=document.getElementById('tip');
+function tipOn(e,h){tip.innerHTML=h;tip.hidden=false;const r=tip.getBoundingClientRect();let x=e.clientX+14,y=e.clientY+14;if(x+r.width>innerWidth-8)x=e.clientX-r.width-14;if(y+r.height>innerHeight-8)y=e.clientY-r.height-14;tip.style.left=x+'px';tip.style.top=y+'px'}
+function hover(node,h){node.addEventListener('mousemove',e=>tipOn(e,h));node.addEventListener('mouseleave',()=>tip.hidden=true)}
+const f4=v=>v.toFixed(4), f2=v=>v.toFixed(2);
+
+function ladder(){
+  const box=document.getElementById('ladder');box.innerHTML='';
+  const W=720,H=360,m={l:52,r:150,t:18,b:46};
+  const s=el('svg',{viewBox:`0 0 ${W} ${H}`,role:'img'},box);
+  const y0=.74,y1=.825,iw=W-m.l-m.r,ih=H-m.t-m.b;
+  const X=i=>m.l+iw*i/(BANKS.length-1), Y=v=>m.t+ih*(1-(v-y0)/(y1-y0));
+  for(let v=.74;v<=.8251;v+=.02){el('line',{x1:m.l,x2:m.l+iw,y1:Y(v),y2:Y(v),stroke:css('--grid'),'stroke-width':1},s);txt(s,m.l-8,Y(v)+4,v.toFixed(2),{'text-anchor':'end'})}
+  BANKS.forEach((b,i)=>{txt(s,X(i),H-m.b+18,b,{'text-anchor':'middle'});if(ADDED[i])txt(s,X(i),H-m.b+32,ADDED[i],{'text-anchor':'middle'})});
+  txt(s,m.l,H-6,'Bank (channels added at each step)',{});
+  const S=[
+    ['lr','LR · supervised','--lr',''],['nnlr','LR, weights ≥ 0','--lr','2 3'],['ocond','Oracle conditioning','--ocond','6 4'],
+    ['ovote','Oracle voting','--ovote','6 4'],['lsml','L-SML','--lsml',''],['iu','IU-PCR','--iu',''],['plain','Plain average','--plain','']];
+  const ends=[];
+  S.forEach(([k,name,c,dash])=>{
+    const col=css(c);
+    el('polyline',{points:D[k].map((v,i)=>X(i)+','+Y(v)).join(' '),fill:'none',stroke:col,'stroke-width':2,'stroke-dasharray':dash,'stroke-linejoin':'round'},s);
+    D[k].forEach((v,i)=>{const dot=el('circle',{cx:X(i),cy:Y(v),r:4,fill:col,stroke:css('--paper'),'stroke-width':2},s);
+      const hit=el('circle',{cx:X(i),cy:Y(v),r:11,fill:'transparent'},s);hover(hit,`<b>${name}</b><br>${BANKS[i]} · AUC ${f4(v)}`)});
+    ends.push({name,col,y:Y(D[k][4]),v:D[k][4]});
+  });
+  ends.sort((a,b)=>a.y-b.y);for(let i=1;i<ends.length;i++)if(ends[i].y-ends[i-1].y<14)ends[i].y=ends[i-1].y+14;
+  ends.forEach(e=>{const t=txt(s,X(4)+10,e.y+4,`${e.name} ${f4(e.v)}`,{class:'lbl'});t.style.fill=e.col});
+  const rows=[['LR · supervised','lr'],['LR, weights ≥ 0','nnlr'],['Oracle conditioning','ocond'],['Oracle voting','ovote'],['L-SML','lsml'],['IU-PCR','iu'],['Plain average','plain']];
+  document.getElementById('ladderTbl').innerHTML='<table><thead><tr><th>Rule</th>'+BANKS.map(b=>`<th>${b}</th>`).join('')+'</tr></thead><tbody>'+rows.map(([n,k])=>`<tr><td>${n}</td>${D[k].map(v=>`<td>${f4(v)}</td>`).join('')}</tr>`).join('')+'</tbody></table>';
+}
+
+function effdim(){
+  const box=document.getElementById('effdim');box.innerHTML='';
+  const W=640,H=330,m={l:44,r:16,t:30,b:40};const s=el('svg',{viewBox:`0 0 ${W} ${H}`,role:'img'},box);
+  const iw=W-m.l-m.r,ih=H-m.t-m.b,Y=v=>m.t+ih*(1-v/60),gw=iw/BANKS.length,bw=Math.min(34,gw/3);
+  for(let v=0;v<=60;v+=10){el('line',{x1:m.l,x2:m.l+iw,y1:Y(v),y2:Y(v),stroke:css('--grid')},s);txt(s,m.l-8,Y(v)+4,v,{'text-anchor':'end'})}
+  const legend=[['Channels in the bank','--seg-rest'],['Effective dimension','--accent']];
+  legend.forEach(([n,c],i)=>{el('rect',{x:m.l+i*190,y:6,width:12,height:12,rx:3,fill:css(c)},s);txt(s,m.l+i*190+18,16,n,{class:'lbl'})});
+  BANKS.forEach((b,i)=>{const cx=m.l+gw*i+gw/2;
+    [[CH[i],'--seg-rest','Channels'],[EFF[i],'--accent','Effective dimension']].forEach(([v,c,n],j)=>{
+      const x=cx-bw-1+j*(bw+2);const r=el('path',{d:bar(x,Y(v),bw,Y(0)-Y(v)),fill:css(c)},s);hover(r,`<b>${b}</b><br>${n}: ${v}`);
+      txt(s,x+bw/2,Y(v)-5,v,{'text-anchor':'middle',class:'lbl'})});
+    txt(s,cx,H-m.b+18,b,{'text-anchor':'middle'})});
+  document.getElementById('effTbl').innerHTML='<table><thead><tr><th></th>'+BANKS.map(b=>`<th>${b}</th>`).join('')+'</tr></thead><tbody><tr><td>Channels</td>'+CH.map(v=>`<td>${v}</td>`).join('')+'</tr><tr><td>Effective dimension</td>'+EFF.map(v=>`<td>${v}</td>`).join('')+'</tr></tbody></table>';
+}
+function bar(x,y,w,h){const r=Math.min(4,h);return `M${x},${y+h}V${y+r}Q${x},${y} ${x+r},${y}H${x+w-r}Q${x+w},${y} ${x+w},${y+r}V${y+h}Z`}
+
+function waterfall(){
+  const box=document.getElementById('waterfall');box.innerHTML='';
+  const seg=BANKS.map((b,i)=>{const L=D.lsml[i];return [
+    ['Estimation (L-SML → oracle voting)','--seg-est',(D.ovote[i]-L)*100],
+    ['Conditioning inside clusters','--seg-within',(D.oblock[i]-D.ovote[i])*100],
+    ['Conditioning between clusters','--seg-between',(D.ocond[i]-D.oblock[i])*100],
+    ['Rest (oracle conditioning → LR)','--seg-rest',(D.lr[i]-D.ocond[i])*100]]});
+  const W=680,H=330,m={l:44,r:70,t:58,b:34};const s=el('svg',{viewBox:`0 0 ${W} ${H}`,role:'img'},box);
+  const iw=W-m.l-m.r,ih=H-m.t-m.b,rh=ih/BANKS.length,bh=Math.min(30,rh*.62),Xs=v=>m.l+iw*v/6;
+  for(let v=0;v<=6;v++){el('line',{x1:Xs(v),x2:Xs(v),y1:m.t-6,y2:m.t+ih,stroke:css('--grid')},s);txt(s,Xs(v),H-m.b+16,v,{'text-anchor':'middle'})}
+  txt(s,m.l,H-4,'AUC points between L-SML and LR',{});
+  seg[0].forEach(([n,c],i)=>{const lx=m.l+(i%2)*300,ly=8+Math.floor(i/2)*20;el('rect',{x:lx,y:ly,width:12,height:12,rx:3,fill:css(c)},s);txt(s,lx+18,ly+10,n,{class:'lbl'})});
+  BANKS.forEach((b,i)=>{const y=m.t+rh*i+(rh-bh)/2;let acc=0;txt(s,m.l-8,y+bh/2+4,b,{'text-anchor':'end',class:'lbl'});
+    seg[i].forEach(([n,c,v])=>{const x=Xs(acc),w=Math.max(0,Xs(acc+v)-x);const r=el('rect',{x,y,width:Math.max(0,w-2),height:bh,rx:2,fill:css(c)},s);
+      hover(r,`<b>${b}</b><br>${n}: ${f2(v)} points`);
+      if(w>30){const t=txt(s,x+w/2-1,y+bh/2+4,f2(v),{'text-anchor':'middle',class:'lbl'});t.style.fill=css('--ink')}acc+=v});
+    txt(s,Xs(acc)+6,y+bh/2+4,'= '+f2(acc),{class:'lbl'})});
+  document.getElementById('wfTbl').innerHTML='<table><thead><tr><th>AUC points</th>'+BANKS.map(b=>`<th>${b}</th>`).join('')+'</tr></thead><tbody>'+seg[0].map((r,j)=>`<tr><td>${r[0]}</td>${seg.map(sg=>`<td>${f2(sg[j][2])}</td>`).join('')}</tr>`).join('')+`<tr><td><b>LR − L-SML</b></td>${seg.map(sg=>`<td><b>${f2(sg.reduce((a,x)=>a+x[2],0))}</b></td>`).join('')}</tr></tbody></table>`;
+}
+
+function cosine(){
+  const box=document.getElementById('cosine');box.innerHTML='';
+  const W=620,H=320,m={l:46,r:12,t:34,b:40};const s=el('svg',{viewBox:`0 0 ${W} ${H}`,role:'img'},box);
+  const iw=W-m.l-m.r,ih=H-m.t-m.b,y0=-.4,y1=1,Y=v=>m.t+ih*(1-(v-y0)/(y1-y0)),gw=iw/BANKS.length,bw=Math.min(32,gw/3);
+  for(let v=-.4;v<=1.001;v+=.2){el('line',{x1:m.l,x2:m.l+iw,y1:Y(v),y2:Y(v),stroke:Math.abs(v)<1e-9?css('--axis'):css('--grid')},s);txt(s,m.l-8,Y(v)+4,v.toFixed(1),{'text-anchor':'end'})}
+  [['Strong directions of Σ (top half)','--hi'],['Weak directions of Σ (bottom half)','--lo']].forEach(([n,c],i)=>{el('rect',{x:m.l+i*250,y:6,width:12,height:12,rx:3,fill:css(c)},s);txt(s,m.l+i*250+18,16,n,{class:'lbl'})});
+  BANKS.forEach((b,i)=>{const cx=m.l+gw*i+gw/2;
+    [[COS.hi[i],'--hi','Strong directions'],[COS.lo[i],'--lo','Weak directions']].forEach(([v,c,n],j)=>{
+      const x=cx-bw-1+j*(bw+2),top=Y(Math.max(v,0)),hgt=Math.abs(Y(v)-Y(0));
+      const r=el('rect',{x,y:top,width:bw,height:Math.max(1,hgt),rx:2,fill:css(c)},s);hover(r,`<b>${b}</b><br>${n}: cosine ${v.toFixed(3)}`);
+      txt(s,x+bw/2,v>=0?top-5:Y(v)+13,v.toFixed(2),{'text-anchor':'middle',class:'lbl'})});
+    txt(s,cx,H-m.b+18,b,{'text-anchor':'middle'})});
+  txt(s,m.l,H-4,'Cosine between label-free μ and true μ',{});
+  document.getElementById('cosTbl').innerHTML='<table><thead><tr><th>Cosine</th>'+BANKS.map(b=>`<th>${b}</th>`).join('')+'</tr></thead><tbody><tr><td>Strong directions</td>'+COS.hi.map(v=>`<td>${v.toFixed(3)}</td>`).join('')+'</tr><tr><td>Weak directions</td>'+COS.lo.map(v=>`<td>${v.toFixed(3)}</td>`).join('')+'</tr></tbody></table>';
+}
+
+function toy(id,w,cap){
+  const box=document.getElementById(id);box.innerHTML='';
+  const W=240,H=150,s=el('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':cap},box);
+  const mid=H/2,sc=50,names=['A','A′ (repeats A)','B'],bw=34,gap=74;
+  el('line',{x1:10,x2:W-10,y1:mid,y2:mid,stroke:css('--axis')},s);
+  w.forEach((v,i)=>{const x=22+i*gap,h=Math.abs(v)*sc,y=v>=0?mid-h:mid;
+    el('rect',{x,y,width:bw,height:Math.max(h,1),rx:3,fill:css(v>=0?'--accent':'--lr')},s);
+    txt(s,x+bw/2,v>=0?y-5:y+h+13,(v>0?'+':'')+v,{'text-anchor':'middle',class:'lbl'});
+    txt(s,x+bw/2,H-2,names[i].split(' ')[0],{'text-anchor':'middle'})});
+}
+function draw(){ladder();effdim();waterfall();cosine();toy('toyVote',[0.67,0.67,0.67],'Voting weights: equal for all three, so A counts twice');toy('toyCond',[1,0.05,1],'Conditioning weights: plus one for A, near zero for its repeat, plus one for B')}
+draw();
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw);
+new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+const nb=document.getElementById('notesBtn');
+nb.addEventListener('click',()=>{const hid=document.body.classList.toggle('hide-notes');nb.setAttribute('aria-pressed',String(!hid))});
+</script>

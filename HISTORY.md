@@ -18463,7 +18463,7 @@ annotation/raw-ID leak, invariant inputs under metadata flips, unchanged
 source observations and consistent groups. All 14 checked runtime/test
 files match afae64a exactly; no gate or threshold change. Same ten length
 exclusions, zero truncation. No AIRCC/GPU/Drive action or benchmark
-scoring. Review delivery: [results/agent_step_telemetry_v1/cpu_rerun_v2_20261013/README.md](results/agent_step_telemetry_v1/cpu_rerun_v2_20261013/README.md).
+scoring. Review delivery: [results/agent_step_telemetry_v1/cpu_rerun_v2_20261013/README.md](results/agent_step_telemetry_v1/cpu_rerun_v2_20261013/README.md).
 
 ---
 
@@ -18479,7 +18479,15 @@ AIRCC, preserving the historical Qwen-7B path and existing result artifacts.
 head, metric and lifecycle tests pass (final command/count in VALIDATION.json).
 Skywork is explicitly blocked per user pending its n+1 reward protocol; optional
 ReasonEval is blocked. GPU T1 and real new-model gates remain pending. No merge,
-GPU/cluster job, model-weight download or channel/threshold re-selection.
+GPU/cluster job, model-weight download or channel/threshold re-selection.
+
+---
+
+### Step 452 [advisor-v17 publication] — Preserve the agreed meeting story for Claude review
+
+**What**: Prepared a versioned standalone HTML reading delivery on top of v16, with 14 main slides, seven appendices, Hebrew speaker notes, source mapping, frozen display data, chart assets and a focused Claude review guide.
+**Why**: Omri requested commit and push so Claude can read the exact revised story and suggest improvements. Background/metrics now precede comparisons; the bug is an appendix; PRM fusion must be continuous L-SML using one checkpoint's own signals.
+**Result**: The package keeps the validated original HTML hash `0117d91120c6e2c96f23dfd9f26c87fc1f5835d116318ebe79a9a7404f03c522`, the 31-minute budget and pending same-checkpoint L-SML/generalization placeholders. The Git reading delivery can rebuild the HTML; full numerical replay still needs the raw arrays listed in SOURCE_MANIFEST. Branch `codex/advisor-v17-2026-10-15`; main checkout and unrelated changes preserved.
 
 ---
 
@@ -18534,7 +18542,15 @@ Deliveries:
 [N16](results/agent_step_telemetry_v1_n16_2026-10-16/README.md),
 [fair protocols](results/agent_step_telemetry_v1_n16_2026-10-16/fair_protocols/README.md).
 Derived `FEATURES_*/SCORES_*.npz` (~19 MB) are kept out of Git.
-Caveat: only the first token of each concatenated trace was masked.
+Caveat: only the first token of each concatenated trace was masked.
+
+---
+
+### Step 453 [advisor-v18 alternative] — Restore the requested explanatory visuals
+
+**What**: Added a second complete HTML version with v16's taxonomy/construction diagram, side-by-side actual NR/NCL examples, and the original category polygon/radar as the default profile. Retained the v17 matched LR profile in an alternate tab.
+**Why**: Omri preferred these visual explanations and requested both versions be published so Claude can recommend what to present.
+**Result**: v18 has 16 main slides, seven appendices and 34 minutes of content; v17 stays at 31 minutes and its exact HTML hash is unchanged. No metric recomputation or inference; v18 UI/source checks passed over all 23 sections. See `results/advisor_page_v18_2026-10-15/CLAUDE_COMPARE_V17_V18.md`.
 
 ---
 
@@ -18568,7 +18584,7 @@ Caveat: only the first token of each concatenated trace was masked.
   - Judge+length / judge+position controls were not run.
   - The own-backbone TPRM test needs GPU telemetry from each competitor's backbone.
 
-Delivery: [results/agent_step_telemetry_v1_competitor_fusion_pilot_2026-10-17/README.md](results/agent_step_telemetry_v1_competitor_fusion_pilot_2026-10-17/README.md).
+Delivery: [results/agent_step_telemetry_v1_competitor_fusion_pilot_2026-10-17/README.md](results/agent_step_telemetry_v1_competitor_fusion_pilot_2026-10-17/README.md).
 
 ---
 

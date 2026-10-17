@@ -1,0 +1,20 @@
+{
+  "html": "published_v17_2026-10-15.html",
+  "sha256": "0117d91120c6e2c96f23dfd9f26c87fc1f5835d116318ebe79a9a7404f03c522",
+  "main_slides": 14,
+  "appendix_slides": 7,
+  "minutes": 31.0,
+  "figures": {
+    "example_risk": "Actual saved L-SML scores for the example on slide 1. Red bars: annotated errors (3\u20135). This is one example, not a benchmark summary.",
+    "nested_banks": "N14 \u2282 N16 \u2282 N25 \u2282 N43 \u2282 N56; all three digit channels retained. AUC: 6,030 eligible answers. PRMScore: 6,211 noncontrol answers, Q80. Both metrics use the same saved prediction; LR is fresh source-group OOF. Point estimates, no CI.",
+    "leaderboard": "Our reruns: same 6,211 noncontrol answers and evaluator port. Our methods/LR: Q80. PRM: native reward <0.5. Published paper rows retain their authors\u2019 protocols; o1-mini uses N=394. This is a selected comparison, not a current live leaderboard.",
+    "error_profile": "N16; 6,211 noncontrol answers split by type (MS: 160). Our methods and LR: Q80. PRM: native 0.5. Same evaluator and rows. Eight error types use macro-F1; MS is shown separately with valid-step F1 only.",
+    "signal_heatmap": "All 56 signals + STEP_INDEX. Within-type error/valid eligible answers; 6,030 in total. Raw within-answer AUC with label-free signs; no threshold. Orange outlines guide the three findings. MS has no error/valid pairs and is omitted.",
+    "selected_feature_prmscore": "Gallery H: individual-feature PRMScore across eight types (6,051 noncontrol answers; MS excluded). STEP_INDEX is newly derived with the same donor/source-fold Q80 (\u2265). This differs from pooled development Q80 for the main fused scores. No family fusion or CI is shown.",
+    "threshold_budget": "Sweep of one scalar threshold for each fixed score. X uses all 94,203 steps; Y uses 6,211 noncontrol answers. Markers are the actual operating points. Sweep maxima use evaluation labels and are diagnostics, not deployable selected rules.",
+    "count_and_ranking": "N16 L-SML; 6,211 noncontrol answers. Six independent interventions, not additive gains. Rows 1\u20135 retain our ranking. Row 6 retains Q80 counts and replaces ranking with truth. Type-count 68.9 is rounded from v16; remaining values use saved diagnostics.",
+    "threshold_and_length": "Exactly the same IU-PCR fixed-z>0.5 prediction supplies the threshold table and this count curve. Noncontrol N=6,211; identical length bins. \u03c1 is answer-level Spearman correlation with length. PRM native uses reward<0.5, a different score scale."
+  },
+  "source_v16_sha256": "316e5686cce98046f783c1b383117b6f7cd961125fa8ea780e49a7782dca4768",
+  "source_v16_blob": "9aaab92066600edb593b7050cd7f042acf7f1719"
+}

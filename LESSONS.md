@@ -489,3 +489,9 @@ fixtures, preserve the historical regression path separately and block unresolve
 reward-count mismatches rather than silently dropping scores.
 Enforced by: code (tests/test_prm_adapters.py and pinned template snapshots;
 Skywork inference/evaluation blocked in prm_adapters.py and evaluate.py).
+
+## 2026-10-14 — Preserve original bytes when appending publication history
+What happened: a v17 handoff append normalized pre-existing CRLF lines in HISTORY.md; the staged-scope preparation caught the large diff before any commit.
+Why: read_text/write_text rewrote the entire historical prefix with a different newline convention.
+Rule: preserve the original byte prefix and append only the new entry; inspect the scoped diff before staging publication records.
+Enforced by: publication byte/hash and Git diff checks.

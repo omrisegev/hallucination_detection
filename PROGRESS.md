@@ -65,6 +65,24 @@
   - Confirmed across 5 diverse PRMs: Qwen-7B (+3.99), Qwen-72B (+1.66), PURE-7B (+1.38), RLHFlow Llama-3.1-8B (+9.10), MathShepherd Mistral-7B (+16.67). All 95% CIs exclude 0.
 - **Presentation constraint adhered to:** Presentation HTML slides were left strictly untouched; findings, diagnostic tables, and advisor notes documented exclusively in Markdown and committed to remote.
 
+## 2026-10-14 — Advisor v18 alternative with restored visuals (Codex)
+
+Both complete versions are retained on `codex/advisor-v17-2026-10-15`. Start with [Claude's v17/v18 comparison request](results/advisor_page_v18_2026-10-15/CLAUDE_COMPARE_V17_V18.md). Omri requested the original error-taxonomy schematics, both real NR/NCL examples, and the polygon/radar profile back in the main presentation. v18 adds two background slides and restores the original radar as the default, retaining the LR line profile in an alternate view. v17 remains byte-identical.
+
+v17: 14 main slides / 31 minutes + 9 minutes discussion. v18: 16 main slides / 34 minutes + 6 minutes discussion. Both have seven appendices and the same frozen findings and same-checkpoint continuous L-SML result placeholders. No new metric, fit or inference. v18 static/source checks and desktop/narrow-layout navigation, notes and view switching passed across all 23 sections. Claude is asked to compare and recommend what to present, not to overwrite the preserved alternatives automatically.
+
+---
+
+## 2026-10-14 — Advisor v17 reading delivery (Codex)
+
+Start with [the Claude review guide](results/advisor_page_v17_2026-10-15/CLAUDE_REVIEW_GUIDE.md). The standalone v17 HTML, 14-slide/31-minute story, seven appendices, Hebrew speaker notes and old-to-new mapping are in `results/advisor_page_v17_2026-10-15/`. Publication branch: `codex/advisor-v17-2026-10-15`, based on v16 commit `2cf1209c`.
+
+The delivered HTML is byte-identical to the original validated local page (SHA256 `0117d91120c6e2c96f23dfd9f26c87fc1f5835d116318ebe79a9a7404f03c522`). Frozen JSON/CSVs and builder assets are included; large raw NPZ/PKL replay inputs are hash-catalogued outside Git. Saved fresh LR OOF predictions supply matched Q80 PRMScore; the exact fixed z>0.5 diagnostic and length-count curve are included. No inference, fusion refit or package install was launched for this delivery.
+
+PRM slides intentionally retain result placeholders: head and three backbone features from the same checkpoint, continuous L-SML. The older 69.38 fixed-average result and mixed-Qwen3 channels are not presented as this result. Cross-PRM runs need recipe alignment before their results can fill the placeholders. This package asks Claude for review and suggestions; no Claude Artifact or hosted website is updated.
+
+---
+
 ## 2026-10-13: Codex PRM boosting transfer code delivery
 
 Start with `results/prm_boosting_generalization_v1/README.md`,
