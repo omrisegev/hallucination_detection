@@ -1,3 +1,13 @@
+## 2026-10-17: post-advisor consolidation, voters full run submitted, refactor stage 0 (Claude)
+
+**START HERE:** [post-advisor docs](docs/post_advisor_2026-10-17/) (branch consolidation, research-direction review, refactor plan; Hebrew).
+
+- `claude/integration-2026-10-17` is the single development branch. Gemini's two voters commits are merged (c0e436e6a); `codex/integration-completion-2026-10-17` is an older alias of the same line.
+- PRMBench step voters full run submitted with Omri's approval: AIRCC jobs 287340-287361 (Qwen3-8B and Qwen2.5-14B judges, 2-link chains; Qwen2.5-72B critic, 6 shards x 3-link linear chains), code `code_prm_voters_v1` = 246ebb4 (hash-verified). Next: fetch, then `scripts/run_prm_voters_prmbench.py` with the go/no-go rule in the direction review.
+- Direction verdicts: continue PRM boosting (primary); voters one bounded run; freeze telemetry-only PRMBench as a component; drop step-count and Jev; pause agent rewards pending a CPU judge+length/position control on APB.
+- Refactor stage 0: `scripts/verify_current_line.py` + `configs/current_line_registry.json` pin 9 headline numbers (N16 L-SML / IU-PCR / MEAN_MOM_ga mask1, 5-PRM boosting); all PASS, with a positive-control test. Raw re-fit replay is stage 1.
+- Local test run: 161 tests; two environment errors unrelated to this change (Windows cp1252 write in test_error_count_evaluation; offline tokenizer download in test_prm_adapters).
+
 ## 2026-10-17: integration review corrections and verified cloud preservation (Codex)
 
 **START HERE:** [completion record](docs/reviews/integration_completion_20261017/README.md) and [verified archive/restore index](docs/archives/integration_completion_20261017/README.md).

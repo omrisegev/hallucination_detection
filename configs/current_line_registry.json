@@ -1,0 +1,30 @@
+{
+  "_doc": "Refactor stage 0 (docs/post_advisor_2026-10-17/03_REPO_REFACTOR_PLAN_HE.md). Headline numbers of the active PRMBench line, each pinned to the frozen file that produced it. scripts/verify_current_line.py checks every refactor against this table. Values are copied from the files, not recomputed; level B (raw re-fit replay) is added in stage 1 when the canonical package exists.",
+  "created": "2026-10-17",
+  "tolerance": 1e-9,
+  "entries": [
+    {"id": "n16_lsml_cont_within_auc_mask1", "what": "N16 continuous L-SML, PRMBench within-answer AUC, thinkfix_mask1 telemetry",
+     "file": "results/thinkfix_rescore_v1/thinkfix_mask1/cont_baselines/ABSOLUTE.csv", "match": {"bank": "N16", "scorer": "LSML_CONT"}, "column": "prmb_within_auc", "expected": 0.7791929100858696},
+    {"id": "n16_iupcr_within_auc_mask1", "what": "N16 IU-PCR, PRMBench within-answer AUC, thinkfix_mask1",
+     "file": "results/thinkfix_rescore_v1/thinkfix_mask1/cont_baselines/ABSOLUTE.csv", "match": {"bank": "N16", "scorer": "IU_PCR"}, "column": "prmb_within_auc", "expected": 0.7804586557462002},
+    {"id": "n16_mean_mom_ga_within_auc_mask1", "what": "N16 MEAN_MOM_ga within-answer AUC after the think-block fix (mask1)",
+     "file": "results/thinkfix_rescore_v1/PRMBENCH_COMPARISON.csv", "match": {"table": "panel_a", "bank": "N16", "scorer": "MEAN_MOM_ga", "metric": "prmb_within_auc"}, "column": "thinkfix_mask1", "expected": 0.7767368147204454},
+    {"id": "boost_qwen_prm_7b", "what": "PRM boosting, Qwen2.5-Math-PRM-7B, CONT L-SML official PRMScore",
+     "file": "results/prm_boosting_generalization_v1/run_v1/eval_lsml4/LSML4_RESULTS_qwen_prm_7b.csv", "match": {"arm": "LSML_CONT"}, "column": "prmscore", "expected": 69.48257990072356},
+    {"id": "native_qwen_prm_7b", "what": "Qwen2.5-Math-PRM-7B native PRMScore",
+     "file": "results/prm_boosting_generalization_v1/run_v1/eval_lsml4/LSML4_RESULTS_qwen_prm_7b.csv", "match": {"arm": "PRM_native"}, "column": "prmscore", "expected": 65.48848312882983},
+    {"id": "boost_qwen_prm_72b", "what": "PRM boosting, Qwen2.5-Math-PRM-72B, CONT L-SML PRMScore",
+     "file": "results/prm_boosting_generalization_v1/run_v1/eval_lsml4/LSML4_RESULTS_qwen_prm_72b.csv", "match": {"arm": "LSML_CONT"}, "column": "prmscore", "expected": 69.84229376533564},
+    {"id": "boost_pure_prm", "what": "PRM boosting, PURE-PRM-7B, CONT L-SML PRMScore",
+     "file": "results/prm_boosting_generalization_v1/run_v1/eval_lsml4/LSML4_RESULTS_pure_prm.csv", "match": {"arm": "LSML_CONT"}, "column": "prmscore", "expected": 66.68958099346494},
+    {"id": "boost_rlhflow_prm", "what": "PRM boosting, RLHFlow Llama-3.1-8B PRM, CONT L-SML PRMScore",
+     "file": "results/prm_boosting_generalization_v1/run_v1/eval_lsml4/LSML4_RESULTS_rlhflow_prm.csv", "match": {"arm": "LSML_CONT"}, "column": "prmscore", "expected": 63.53309104519707},
+    {"id": "boost_math_shepherd", "what": "PRM boosting, MathShepherd Mistral-7B, CONT L-SML PRMScore",
+     "file": "results/prm_boosting_generalization_v1/run_v1/eval_lsml4/LSML4_RESULTS_math_shepherd.csv", "match": {"arm": "LSML_CONT"}, "column": "prmscore", "expected": 63.68170661877186}
+  ],
+  "raw_inputs": [
+    {"what": "PRMBench thinkfix_mask1 per-answer scores (cont baselines)", "path": "results/thinkfix_rescore_v1/thinkfix_mask1/cont_baselines/PER_ANSWER.npz"},
+    {"what": "PRMBench N16 bank export (unmasked thinkfix)", "path": "results/thinkfix_rescore_v1/prmscore_inputs/bank_N16.npz"},
+    {"what": "PRM boosting telemetry (5 PRMs)", "path": "AIRCC:$SH/results/prm_boost_gen_v1/full_*/prmbench_telemetry.pkl and $SH/results/prm_boost_v1/full_prm/prmbench_telemetry.pkl", "remote": true}
+  ]
+}
