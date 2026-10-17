@@ -1,0 +1,93 @@
+{
+  "files": {
+    "fixed/backgrounds.npy": {
+      "sha256": "7022ca82ec395f7312f72d2156e523e2bcd1803c8401c8fa5c7e8e294fe8fddc",
+      "size": 446001984
+    },
+    "fixed/completion.npy": {
+      "sha256": "7ff2797433ba6448ec73d88df1779dc1331c258764b786c1ec14fff84a3657ba",
+      "size": 13897
+    },
+    "learned_inner/MANIFEST.json": {
+      "sha256": "59eb49ba9003d37ee3eb541b76353e6f846873c19ec0c1e079834a570139fc97",
+      "size": 2660
+    },
+    "learned_inner/active.npy": {
+      "sha256": "30376aec3eca6fbadd883dc8027339b64e5003b10d4d7c3524e00f5c6fd4ec1a",
+      "size": 34844023
+    },
+    "learned_inner/backgrounds.npy": {
+      "sha256": "f0ceba1b1421aa366ad5906caa6bc1a24fa2f1289a1b91c91b22dff71a1913d3",
+      "size": 1115004768
+    },
+    "learned_inner/completion.npy": {
+      "sha256": "7ff2797433ba6448ec73d88df1779dc1331c258764b786c1ec14fff84a3657ba",
+      "size": 13897
+    },
+    "learned_inner/completion.npy.json": {
+      "sha256": "1e0f026e9b30e889da7b2bab96ed9a8e65345331ca8630e19d22d20b0d8e656b",
+      "size": 155
+    },
+    "learned_oof/active.npy": {
+      "sha256": "db82abc58915e808c1ab8e14cfee917fbfa72e63acd5fefbf10052ecca14e0f9",
+      "size": 6968907
+    },
+    "learned_oof/backgrounds.npy": {
+      "sha256": "bcc45845e8b3d976901b5dda6944562ca56f970949d0e81917b931f0b607a2d9",
+      "size": 223001056
+    },
+    "learned_oof/completion.npy": {
+      "sha256": "7ff2797433ba6448ec73d88df1779dc1331c258764b786c1ec14fff84a3657ba",
+      "size": 13897
+    },
+    "ridge/INDEX.json": {
+      "sha256": "378d5eea313f5ece22fa83416600786d721317c59973e71af27d8c171535e6c3",
+      "size": 4705
+    },
+    "tcn/INDEX.json": {
+      "sha256": "7c872a4105c8af44a8e3582d7e8b4caf8e6e3d6472f0aa8e358e025d7161ee2f",
+      "size": 7936
+    }
+  },
+  "first_token_inactive": true,
+  "fixed_background_axis": [
+    "prefix",
+    "mean16",
+    "noreset",
+    "bocpd"
+  ],
+  "implementation_sha256": "8498e882b17f92caaedefa70d9eb16b16806f1eed3d3aee2d97611cb4510e261",
+  "labels_used": false,
+  "learned_background_axis": [
+    "ridge_source_excluded",
+    "tcn_source_excluded"
+  ],
+  "learned_inner_axes": {
+    "0": "token",
+    "1": "inner_fold_f",
+    "2": [
+      "ridge",
+      "tcn"
+    ],
+    "3": [
+      "H0lim",
+      "VE0",
+      "VE0.75",
+      "VE1"
+    ]
+  },
+  "learned_inner_rule": "answer fold g uses exclude_sorted(f,g); f == g inactive",
+  "learned_inner_shape": [
+    6968779,
+    5,
+    2,
+    4
+  ],
+  "schema": "fusion-independence-atlas-v1/predictors-freeze-v2",
+  "targets": [
+    "H0lim",
+    "VE0",
+    "VE0.75",
+    "VE1"
+  ]
+}

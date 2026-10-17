@@ -1,0 +1,90 @@
+﻿{
+  "checked_at_utc": "2026-09-13T19:39:21Z",
+  "status": "ALL_THREE_SMOKES_REVIEWED_FULL_PROCESSING_STARTED",
+  "remote_directory": "/shared/cycle2_tau_averbuch_prj/omrisegev1/experiments/conditional_iu_20260913_dc12221d2",
+  "read_only_source": "/shared/cycle2_tau_averbuch_prj/omrisegev1/experiments/answer_position_20260913_0be12cc23/source",
+  "archive": {
+    "bytes": 5331678,
+    "sha256": "1ab109378e4871786a818dfdfd0741e07a3d04271f50bea49f35ebd2bda7bf56",
+    "local_verification": "PASS",
+    "remote_verification": "PASS",
+    "extraction_completed_before_submission": true
+  },
+  "per_job_common": {
+    "scheduler_state": "RUNNING",
+    "requested_memory": "64G",
+    "allocated_cpus": 2,
+    "node": "gpu-node-01",
+    "transfer_review": {
+      "status": "PASS",
+      "code_files": 1237,
+      "source_files": 22,
+      "independent_review": "PASS",
+      "source_data_mutations": false
+    },
+    "fixtures": {
+      "status": "PASS",
+      "core": 11,
+      "graph": 15,
+      "driver": 10,
+      "total": 36
+    },
+    "linux_lifecycle": {
+      "status": "PASS",
+      "terminated_owned_worker": true,
+      "released_owned_locks": true,
+      "preserved_checkpoint": true,
+      "scientific_training": false
+    },
+    "smoke_review": "PASS",
+    "smoke_completed": 27,
+    "smoke_expected": 27,
+    "smoke_stderr_bytes": 0,
+    "full_stderr_bytes": 0,
+    "program_status": "RUNNING_FULL",
+    "full_stage": "EXTRACTING_REGIONAL_COVARIANCES",
+    "full_expected": 13769,
+    "benchmark_complete": false
+  },
+  "jobs": [
+    {
+      "family": "position",
+      "job_id": 255752,
+      "slurm_elapsed": "00:03:49",
+      "supervisor_pid": 3050036,
+      "full_worker_pid": 3052432,
+      "smoke_seconds": 17.234052154934034,
+      "full_stage_completed": 1000,
+      "full_elapsed_seconds": 62.693552921991795
+    },
+    {
+      "family": "graph_local",
+      "job_id": 255753,
+      "slurm_elapsed": "00:03:48",
+      "supervisor_pid": 3050035,
+      "full_worker_pid": 3052430,
+      "smoke_seconds": 18.060654554050416,
+      "full_stage_completed": 900,
+      "full_elapsed_seconds": 63.18156324583106
+    },
+    {
+      "family": "graph_tv",
+      "job_id": 255754,
+      "slurm_elapsed": "00:03:48",
+      "supervisor_pid": 3050034,
+      "full_worker_pid": 3052475,
+      "smoke_seconds": 32.580749101005495,
+      "full_stage_completed": 700,
+      "full_elapsed_seconds": 50.06479241303168
+    }
+  ],
+  "authorized_actions": [
+    "created new isolated directory",
+    "uploaded and hash-verified immutable archive",
+    "extracted archive",
+    "submitted exactly three reviewed jobs"
+  ],
+  "old_jobs_or_sources_mutated": false,
+  "cluster_jobs_json_written": false,
+  "monitoring_stop_reason": "All three smoke reviews passed and real full-data extraction progress was observed"
+}

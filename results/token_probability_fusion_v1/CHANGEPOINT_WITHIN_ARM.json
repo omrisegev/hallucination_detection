@@ -1,0 +1,335 @@
+{
+ "schema": "changepoint-within-arm-contrast-v1",
+ "development_only": true,
+ "note": "each rule against its OWN arm's argmax; the best-rule row is label-selected within the arm and is a ceiling, not a candidate",
+ "anchor_mean_sla": 35.92368825176495,
+ "arms": {
+  "level__step": {
+   "argmax_sla": 35.92368825176495,
+   "best_rule_label_selected": "argmax",
+   "rules": {
+    "argmax": {
+     "sla": 35.92368825176495,
+     "point_pp": 0.0,
+     "ci95_pp": [
+      0.0,
+      0.0
+     ],
+     "excludes_zero": false
+    },
+    "first_q0.9": {
+     "sla": 35.813552769910075,
+     "point_pp": -0.10939223463890073,
+     "ci95_pp": [
+      -0.6840355849837138,
+      0.46415555317047164
+     ],
+     "excludes_zero": false
+    },
+    "cusum_alarm_k0.5_h5": {
+     "sla": 30.004534868295313,
+     "point_pp": -5.92104179900797,
+     "ci95_pp": [
+      -7.615339285537841,
+      -4.247294661158215
+     ],
+     "excludes_zero": true
+    },
+    "cusum_onset_k0.5_h5": {
+     "sla": 34.664947397631735,
+     "point_pp": -1.2524970500361265,
+     "ci95_pp": [
+      -2.8183098588778885,
+      0.29182006715666653
+     ],
+     "excludes_zero": false
+    },
+    "bocpd_rise_hz32": {
+     "sla": 34.884545647224066,
+     "point_pp": -1.031925033094923,
+     "ci95_pp": [
+      -2.4091704364606144,
+      0.30097934806810045
+     ],
+     "excludes_zero": false
+    },
+    "bocpd_reset_hz32": {
+     "sla": 16.563896435467836,
+     "point_pp": -19.35328435164032,
+     "ci95_pp": [
+      -21.66641318608897,
+      -17.021052177798637
+     ],
+     "excludes_zero": true
+    }
+   }
+  },
+  "level__token": {
+   "argmax_sla": 20.386918307147866,
+   "best_rule_label_selected": "cusum_onset_k1_h8",
+   "rules": {
+    "argmax": {
+     "sla": 20.386918307147866,
+     "point_pp": 0.0,
+     "ci95_pp": [
+      0.0,
+      0.0
+     ],
+     "excludes_zero": false
+    },
+    "first_q0.9": {
+     "sla": 14.38374902082723,
+     "point_pp": -6.0088601402335335,
+     "ci95_pp": [
+      -8.463596543245352,
+      -3.5378568444370586
+     ],
+     "excludes_zero": true
+    },
+    "cusum_alarm_k0.5_h5": {
+     "sla": 24.16017456017785,
+     "point_pp": 3.7556506558362326,
+     "ci95_pp": [
+      1.4246266046013776,
+      6.117706324051604
+     ],
+     "excludes_zero": true
+    },
+    "cusum_onset_k0.5_h5": {
+     "sla": 23.69561286304692,
+     "point_pp": 3.297155894990014,
+     "ci95_pp": [
+      0.9533066559267611,
+      5.729466454469225
+     ],
+     "excludes_zero": true
+    },
+    "bocpd_rise_hz32": {
+     "sla": 19.590903720269637,
+     "point_pp": -0.7960609464183295,
+     "ci95_pp": [
+      -2.472859401979114,
+      0.8938447483091092
+     ],
+     "excludes_zero": false
+    },
+    "bocpd_reset_hz32": {
+     "sla": 20.400642505654673,
+     "point_pp": 0.01945383218163935,
+     "ci95_pp": [
+      -1.6518598731494476,
+      1.726144214076037
+     ],
+     "excludes_zero": false
+    },
+    "cusum_onset_k1_h8": {
+     "sla": 28.817788266581267,
+     "point_pp": 8.425960495943388,
+     "ci95_pp": [
+      6.36234348798181,
+      10.490775754752754
+     ],
+     "excludes_zero": true
+    }
+   }
+  },
+  "drop_m5__step": {
+   "argmax_sla": 33.2342962502306,
+   "best_rule_label_selected": "bocpd_rise_hz32",
+   "rules": {
+    "argmax": {
+     "sla": 33.2342962502306,
+     "point_pp": 0.0,
+     "ci95_pp": [
+      0.0,
+      0.0
+     ],
+     "excludes_zero": false
+    },
+    "first_q0.9": {
+     "sla": 33.07659462036888,
+     "point_pp": -0.15505963783831864,
+     "ci95_pp": [
+      -0.6613590555749439,
+      0.34566710725370003
+     ],
+     "excludes_zero": false
+    },
+    "cusum_alarm_k0.5_h5": {
+     "sla": 28.204448783035247,
+     "point_pp": -5.023509580746098,
+     "ci95_pp": [
+      -6.478552578411301,
+      -3.578622860681012
+     ],
+     "excludes_zero": true
+    },
+    "cusum_onset_k0.5_h5": {
+     "sla": 31.633056706644158,
+     "point_pp": -1.6015203263326936,
+     "ci95_pp": [
+      -3.1176973419898535,
+      -0.06573717089575805
+     ],
+     "excludes_zero": true
+    },
+    "bocpd_rise_hz32": {
+     "sla": 33.6749918222325,
+     "point_pp": 0.43798422065216464,
+     "ci95_pp": [
+      -0.8583214718229559,
+      1.7450179196543736
+     ],
+     "excludes_zero": false
+    },
+    "bocpd_reset_hz32": {
+     "sla": 17.426426668845927,
+     "point_pp": -15.80747604759459,
+     "ci95_pp": [
+      -17.96608046045405,
+      -13.709186153443959
+     ],
+     "excludes_zero": true
+    }
+   }
+  },
+  "drop_worst__step": {
+   "argmax_sla": 22.645083949185114,
+   "best_rule_label_selected": "first_q0.7",
+   "rules": {
+    "argmax": {
+     "sla": 22.645083949185114,
+     "point_pp": 0.0,
+     "ci95_pp": [
+      0.0,
+      0.0
+     ],
+     "excludes_zero": false
+    },
+    "first_q0.9": {
+     "sla": 23.043383305749288,
+     "point_pp": 0.39341188545538386,
+     "ci95_pp": [
+      -0.0501418410992322,
+      0.8428880321702905
+     ],
+     "excludes_zero": false
+    },
+    "cusum_alarm_k0.5_h5": {
+     "sla": 20.634913120771177,
+     "point_pp": -2.0125072365544527,
+     "ci95_pp": [
+      -3.0898578282926237,
+      -0.9169607415288253
+     ],
+     "excludes_zero": true
+    },
+    "cusum_onset_k0.5_h5": {
+     "sla": 22.95340433207959,
+     "point_pp": 0.3125354835624812,
+     "ci95_pp": [
+      -0.8584443953987029,
+      1.521010848063074
+     ],
+     "excludes_zero": false
+    },
+    "bocpd_rise_hz32": {
+     "sla": 22.844222553983787,
+     "point_pp": 0.21059983715304548,
+     "ci95_pp": [
+      -0.8096493060913021,
+      1.2433470780232532
+     ],
+     "excludes_zero": false
+    },
+    "bocpd_reset_hz32": {
+     "sla": 15.351294634166434,
+     "point_pp": -7.293793649740067,
+     "ci95_pp": [
+      -9.155766486251784,
+      -5.448596171880185
+     ],
+     "excludes_zero": true
+    },
+    "first_q0.7": {
+     "sla": 25.301195980502694,
+     "point_pp": 2.6559965882049448,
+     "ci95_pp": [
+      0.9878236711308986,
+      4.2983318266409505
+     ],
+     "excludes_zero": true
+    }
+   }
+  },
+  "drop__token": {
+   "argmax_sla": 22.666127720228886,
+   "best_rule_label_selected": "cusum_onset_k0.25_h8",
+   "rules": {
+    "argmax": {
+     "sla": 22.666127720228886,
+     "point_pp": 0.0,
+     "ci95_pp": [
+      0.0,
+      0.0
+     ],
+     "excludes_zero": false
+    },
+    "first_q0.9": {
+     "sla": 13.479170002553545,
+     "point_pp": -9.192690705416389,
+     "ci95_pp": [
+      -11.52241188533255,
+      -6.821131626929415
+     ],
+     "excludes_zero": true
+    },
+    "cusum_alarm_k0.5_h5": {
+     "sla": 25.242088494407117,
+     "point_pp": 2.5697396083875117,
+     "ci95_pp": [
+      0.45540784063028583,
+      4.6334510208360555
+     ],
+     "excludes_zero": true
+    },
+    "cusum_onset_k0.5_h5": {
+     "sla": 26.335736168499434,
+     "point_pp": 3.6688125595905454,
+     "ci95_pp": [
+      1.5425172478383526,
+      5.725990264808805
+     ],
+     "excludes_zero": true
+    },
+    "bocpd_rise_hz32": {
+     "sla": 22.465743348546084,
+     "point_pp": -0.19841225121857722,
+     "ci95_pp": [
+      -1.3079121930735145,
+      0.8880943567717958
+     ],
+     "excludes_zero": false
+    },
+    "bocpd_reset_hz32": {
+     "sla": 24.161812051537765,
+     "point_pp": 1.49965439053475,
+     "ci95_pp": [
+      -0.01835345631120952,
+      3.0221322954316094
+     ],
+     "excludes_zero": false
+    },
+    "cusum_onset_k0.25_h8": {
+     "sla": 28.402936820683315,
+     "point_pp": 5.740048995434515,
+     "ci95_pp": [
+      3.5563684545442,
+      7.904633771590765
+     ],
+     "excludes_zero": true
+    }
+   }
+  }
+ }
+}

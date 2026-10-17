@@ -1,0 +1,11 @@
+{
+ "incident_date": "2026-09-12",
+ "observed_unix": 1789244953.878047,
+ "driver": "scripts/run_full_sampling_v3.py --phase run (unchanged)",
+ "records_at_failure": 5340,
+ "records_verified_after": 5343,
+ "error": "PermissionError [WinError 5] on os.replace(RUN_STATE.json.tmp -> RUN_STATE.json) inside state(); a concurrent reader of RUN_STATE.json (supervisor poll every 30 s / manual status reads) held the target open without FILE_SHARE_DELETE",
+ "classification": "implementation/OS race in status-file writing, not a scoring or checkpoint fault; all committed score files verified (RESUME_20260912_REVIEW.json rerun: 357 manifest hashes match, 0 bad records)",
+ "recovery": "relaunch the unchanged driver under a minimal execution loop (results/research_consolidation_v1/sampling_loop_20260912.sh) that reads RUN_STATE.json only after the driver exits: relaunch on CHECKPOINTED_INVOCATION_CAP, stop on FAILED, run the unchanged supervisor once the driver reports COMPLETE_REVIEWED_FULL_SAMPLING so it builds the reflection and documentation. No status polling of RUN_STATE.json while the driver runs.",
+ "scientific_change": "none"
+}

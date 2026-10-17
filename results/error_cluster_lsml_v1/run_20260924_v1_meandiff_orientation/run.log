@@ -1,0 +1,79 @@
+err70 K = 28 sizes [12, 4, 3, 3, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+err50 K = 19 sizes [16, 5, 4, 3, 3, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+err30 K = 11 sizes [17, 6, 5, 4, 3, 3, 3, 3, 2, 1, 1]
+fold 0: err70 K=7, err50 K=7, err30 K=4, all48_oriented K=7, all48 K=7, B11 K=6  (4s)
+fold 1: err70 K=7, err50 K=7, err30 K=4, all48_oriented K=7, all48 K=7, B11 K=6  (2s)
+fold 2: err70 K=7, err50 K=7, err30 K=4, all48_oriented K=8, all48 K=8, B11 K=6  (2s)
+fold 3: err70 K=7, err50 K=7, err30 K=4, all48_oriented K=7, all48 K=7, B11 K=6  (2s)
+fold 4: err70 K=7, err50 K=7, err30 K=4, all48_oriented K=7, all48 K=7, B11 K=6  (2s)
+metric                pb_sla_macro8  prm_within_auc  prmscore
+method                                                       
+B11_equal                    0.3495          0.7496    0.6333
+B11_lsml                     0.3480          0.7645    0.6412
+all48_equal                  0.3464          0.7372    0.6238
+all48_lsml                   0.3285          0.7017    0.5965
+all48_oriented_equal         0.3702          0.7669    0.6401
+all48_oriented_lsml          0.3285          0.7017    0.5965
+ct7                          0.3989          0.7724    0.6458
+err30_equal                  0.3616          0.7254    0.6095
+err30_lsml                   0.2431          0.5510    0.5137
+err50_equal                  0.3527          0.7118    0.6059
+err50_lsml                   0.2991          0.6293    0.5538
+err70_equal                  0.3681          0.7443    0.6272
+err70_lsml                   0.3059          0.6619    0.5754
+                                      contrast        endpoint   delta  ci95_lo  ci95_hi
+0                     err70_lsml - err70_equal  prm_within_auc -0.0823  -0.0870  -0.0777
+1                     err70_lsml - err70_equal        prmscore -0.0518  -0.0565  -0.0471
+2                     err70_lsml - err70_equal   pb_sla_pooled -0.0738  -0.0916  -0.0558
+3                     err50_lsml - err50_equal  prm_within_auc -0.0826  -0.0870  -0.0781
+4                     err50_lsml - err50_equal        prmscore -0.0522  -0.0562  -0.0481
+5                     err50_lsml - err50_equal   pb_sla_pooled -0.0522  -0.0670  -0.0376
+6                     err30_lsml - err30_equal  prm_within_auc -0.1744  -0.1811  -0.1676
+7                     err30_lsml - err30_equal        prmscore -0.0958  -0.1015  -0.0902
+8                     err30_lsml - err30_equal   pb_sla_pooled -0.1216  -0.1413  -0.1012
+9             err70_lsml - all48_oriented_lsml  prm_within_auc -0.0397  -0.0434  -0.0360
+10            err70_lsml - all48_oriented_lsml        prmscore -0.0211  -0.0242  -0.0179
+11            err70_lsml - all48_oriented_lsml   pb_sla_pooled -0.0234  -0.0338  -0.0132
+12            err50_lsml - all48_oriented_lsml  prm_within_auc -0.0724  -0.0771  -0.0676
+13            err50_lsml - all48_oriented_lsml        prmscore -0.0427  -0.0467  -0.0387
+14            err50_lsml - all48_oriented_lsml   pb_sla_pooled -0.0252  -0.0386  -0.0118
+15            err30_lsml - all48_oriented_lsml  prm_within_auc -0.1507  -0.1574  -0.1438
+16            err30_lsml - all48_oriented_lsml        prmscore -0.0828  -0.0884  -0.0774
+17            err30_lsml - all48_oriented_lsml   pb_sla_pooled -0.0862  -0.1011  -0.0712
+18           err70_lsml - all48_oriented_equal  prm_within_auc -0.1050  -0.1122  -0.0979
+19           err70_lsml - all48_oriented_equal        prmscore -0.0647  -0.0707  -0.0588
+20           err70_lsml - all48_oriented_equal   pb_sla_pooled -0.0723  -0.0932  -0.0511
+21           err50_lsml - all48_oriented_equal  prm_within_auc -0.1377  -0.1457  -0.1296
+22           err50_lsml - all48_oriented_equal        prmscore -0.0863  -0.0927  -0.0801
+23           err50_lsml - all48_oriented_equal   pb_sla_pooled -0.0741  -0.0951  -0.0526
+24           err30_lsml - all48_oriented_equal  prm_within_auc -0.2159  -0.2253  -0.2063
+25           err30_lsml - all48_oriented_equal        prmscore -0.1264  -0.1339  -0.1190
+26           err30_lsml - all48_oriented_equal   pb_sla_pooled -0.1351  -0.1582  -0.1115
+27                       err70_lsml - B11_lsml  prm_within_auc -0.1026  -0.1103  -0.0948
+28                       err70_lsml - B11_lsml        prmscore -0.0658  -0.0718  -0.0598
+29                       err70_lsml - B11_lsml   pb_sla_pooled -0.0455  -0.0649  -0.0257
+30                       err50_lsml - B11_lsml  prm_within_auc -0.1352  -0.1441  -0.1262
+31                       err50_lsml - B11_lsml        prmscore -0.0874  -0.0940  -0.0809
+32                       err50_lsml - B11_lsml   pb_sla_pooled -0.0473  -0.0679  -0.0264
+33                       err30_lsml - B11_lsml  prm_within_auc -0.2135  -0.2236  -0.2032
+34                       err30_lsml - B11_lsml        prmscore -0.1275  -0.1350  -0.1200
+35                       err30_lsml - B11_lsml   pb_sla_pooled -0.1083  -0.1301  -0.0861
+36                            err70_lsml - ct7  prm_within_auc -0.1105  -0.1184  -0.1026
+37                            err70_lsml - ct7        prmscore -0.0704  -0.0768  -0.0643
+38                            err70_lsml - ct7   pb_sla_pooled -0.1015  -0.1223  -0.0806
+39                            err50_lsml - ct7  prm_within_auc -0.1431  -0.1520  -0.1343
+40                            err50_lsml - ct7        prmscore -0.0921  -0.0989  -0.0855
+41                            err50_lsml - ct7   pb_sla_pooled -0.1033  -0.1251  -0.0815
+42                            err30_lsml - ct7  prm_within_auc -0.2214  -0.2315  -0.2112
+43                            err30_lsml - ct7        prmscore -0.1322  -0.1400  -0.1245
+44                            err30_lsml - ct7   pb_sla_pooled -0.1643  -0.1868  -0.1414
+45  all48_oriented_lsml - all48_oriented_equal  prm_within_auc -0.0653  -0.0705  -0.0601
+46  all48_oriented_lsml - all48_oriented_equal        prmscore -0.0436  -0.0485  -0.0388
+47  all48_oriented_lsml - all48_oriented_equal   pb_sla_pooled -0.0489  -0.0679  -0.0290
+48            all48_oriented_lsml - all48_lsml  prm_within_auc  0.0000   0.0000   0.0000
+49            all48_oriented_lsml - all48_lsml        prmscore  0.0000   0.0000   0.0000
+50            all48_oriented_lsml - all48_lsml   pb_sla_pooled  0.0000   0.0000   0.0000
+51          all48_oriented_equal - all48_equal  prm_within_auc  0.0298   0.0265   0.0330
+52          all48_oriented_equal - all48_equal        prmscore  0.0163   0.0128   0.0198
+53          all48_oriented_equal - all48_equal   pb_sla_pooled  0.0277   0.0107   0.0443
+{"status": "COMPLETE", "started": "2026-09-24T12:11:12", "finished": "2026-09-24T12:12:09", "failures": [], "methods": ["err70_lsml", "err70_equal", "err50_lsml", "err50_equal", "err30_lsml", "err30_equal", "all48_oriented_lsml", "all48_oriented_equal", "all48_lsml", "all48_equal", "B11_lsml", "B11_equal", "ct7"], "seconds": 57.46935300000041}

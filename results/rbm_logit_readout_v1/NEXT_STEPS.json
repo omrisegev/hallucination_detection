@@ -1,0 +1,33 @@
+{
+  "scope": "Full cached development evidence, not untouched confirmation. No next experiment started.",
+  "rows": [
+    {
+      "priority": 1,
+      "finding": "Score/readout interaction is real, especially in bank12. Raw logits restore most near-max losses, but do not beat the original PB result.",
+      "evidence": "RBM12 PB27.5159 to36.3998 with near-max; original36.3750. Primary delta+0.0247pp,97.5%CI[-1.2677,1.3213]. Within-answer AUC+.010079,CI[.007569,.012683]. PRMScore falls .629276 to .624156.",
+      "recommendation": "Keep RBM6 posterior/max reference. Use bank12 logit as a candidate score interface, not a universal promoted winner. Preserve both fixed readouts.",
+      "alternative": "Sigmoid changes top10 aggregation as well as near-max distances; correcting a harmful interface is not a new PB gain."
+    },
+    {
+      "priority": 2,
+      "finding": "Training has substantial value with the same logit readout. Earlier posterior comparisons hid this dependence.",
+      "evidence": "Logit/max initial to trained PB: bank6 21.7316 to34.9708; bank12 20.1812 to36.2712. Within-answer AUC improves .029540/.056100. Posterior/max initial remains a much stronger comparator.",
+      "recommendation": "Do not discard learned weights or switch to CD based on initialization comparisons across different score interfaces.",
+      "alternative": "This does not show an overall gain over the best initial posterior or over IU-PCR; training benefit is readout-specific."
+    },
+    {
+      "priority": 3,
+      "finding": "Prior matched feature reliability switches between early/late positions; new bank12 logits now provide a less compressed interface.",
+      "evidence": "Prior chosen-surprisal minus entropy AUC: early-.1061,late+.04236 on1672 same answers; interaction95%CI[.12459,.17245]. New RBM12 versus Var15/IU with near-max has no clear PB or within-AUC advantage.",
+      "recommendation": "Discuss one position-conditioned bank12 fusion versus fixed weights. Prefer logit/max as the mechanism-isolation control and keep the frozen near-max path as a secondary readout. Define a proper answer-local label-free objective and shrinkage before implementation. Include Var15/IU and Varentropy controls.",
+      "alternative": "The feature-reliability interaction is diagnostic, not a measured adaptive-fusion gain; coverage is conditional and labels were used only to diagnose."
+    },
+    {
+      "priority": 4,
+      "finding": "Residual/variance/serial structure exists but is not sufficient task-linked evidence for more model capacity.",
+      "evidence": "Prior bank6 residual excess on PB hits .34677 versus misses .34652. Error-step variance often lower, geometric entropy variance ratio about.447 on4030 eligible PRMB answers. Lag1 residual excess .1571/.1366, but coarse strata do not establish causal onset information.",
+      "recommendation": "Defer CD, extra units/layers, separate class variance and sequence-model sweeps. Do not alter DUFS.",
+      "alternative": "Better likelihood or less residual correlation can model harmless feature dependence without improving localization."
+    }
+  ]
+}

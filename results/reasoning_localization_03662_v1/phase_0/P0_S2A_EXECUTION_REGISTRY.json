@@ -1,0 +1,120 @@
+{
+  "schema": "reasoning_localization_p0_s2a_execution_registry_v1",
+  "state_id": "P0_S2A_MODERN_DETECTOR_BRIDGE",
+  "status": "FROZEN_BEFORE_RUN",
+  "purpose": "First detector-only retrospective bridge from P0-S1. Keep the exact historical rows, 40/20 roles, family6-level local representation, fitted local-head contract, step-max locator, threshold objective, access tier and grouped bootstrap while replacing only RegisteredGlobal ordinary IU answer risk with the modern mixed-v2 DUFS-LIU answer detector fitted on calibration rows. The purely local detector remains unopened for P0-S2B.",
+  "source_commit": "e2123168ddd0a0c07ebee7e904c94a4610615eed",
+  "runner": "scripts/reasoning_localization/run_phase0_detector_bridge.py",
+  "runner_sha256": "1d3fddf7d75bacbc848ba9cd9d6d1230b6b1010d84ed624545d88acc9ec78082",
+  "variant_id": "P0_S2A_FAMILY6_STEP_MAX_DUFS_DETECTOR",
+  "parent_variant_id": "P0_S1_FAMILY6_STEP_MAX",
+  "single_changed_factor": {
+    "factor": "answer_detector",
+    "from": "RegisteredGlobal mixed-v2 ordinary IU",
+    "to": "calibration-only answer_dufs_liu_mixed"
+  },
+  "fixed_factors": {
+    "models": ["qwen3_8b", "llama31_8b"],
+    "families": ["gsm8k", "math", "olympiadbench", "omnimath"],
+    "population": "historical_stage4_eight_cell_audit",
+    "calibration_role": "historical deterministic 40 percent per family",
+    "evaluation_role": "historical deterministic 20 percent audit per family",
+    "representation": "family6",
+    "transform": "level",
+    "local_head_fit": "historical calibration-only family6 trajectory head",
+    "step_reducer": "step_max_token_argmax",
+    "threshold_objective": "historical calibration-role ProcessBench macro F1 within each scorer cell",
+    "threshold_tie_break": "first maximum in stable descending risk sweep",
+    "scorer_copy_grouping": "same source-question draw carries both scorer copies",
+    "access_tier": "A",
+    "supervision": "labels only for the unchanged historical threshold and metrics"
+  },
+  "modern_detector": {
+    "feature_contract": "mixed-v2",
+    "fit_population": "historical calibration rows only",
+    "include_elapsed_length": false,
+    "k": 7,
+    "lambda": 0.1,
+    "dufs_seeds": [11, 23, 37],
+    "dufs_epochs": 80,
+    "labels_seen_during_fit": false
+  },
+  "bootstrap_draws": 20000,
+  "bootstrap_seed": 2026082901,
+  "bootstrap_contract": "Paired source-question bootstrap. A family-unit draw carries both scorer copies and both detectors; family estimates are averaged before the four-family macro contrast.",
+  "s1_execution_registry": {
+    "path": "results/reasoning_localization_03662_v1/phase_0/P0_S1_EXECUTION_REGISTRY.json",
+    "sha256": "b86479d6308fc389d9d84587f3d6bda8b83facd620e1186e9c7b0e1f82b2e7b4"
+  },
+  "s1_artifacts": [
+    {
+      "role": "per_question",
+      "path": "results/reasoning_localization_03662_v1/phase_0/p0_s1_reducer_bridge/P0_S1_LOCAL_PER_QUESTION.csv",
+      "sha256": "dab19e4cdeebcf172184f829dc89fb8e2d546674253b0a0bfd5b8e761312a366"
+    },
+    {
+      "role": "cell_metrics",
+      "path": "results/reasoning_localization_03662_v1/phase_0/p0_s1_reducer_bridge/P0_S1_LOCAL_CELL_METRICS.csv",
+      "sha256": "071822af570e92ca21dd591e55862a3b12edf79fc1e580bf9bc9e94d067616a1"
+    },
+    {
+      "role": "population",
+      "path": "results/reasoning_localization_03662_v1/phase_0/p0_s1_reducer_bridge/P0_S1_POPULATION.json",
+      "sha256": "361efd3f52772346effb0ba0ac1a3ba6c9003f6a88a02a3255e8bb37139a2abb"
+    },
+    {
+      "role": "verification",
+      "path": "results/reasoning_localization_03662_v1/phase_0/p0_s1_reducer_bridge/P0_S1_VERIFICATION.json",
+      "sha256": "5264403eacb6f570ad7deed991c5cd1363d9cbe1102222138e7bc8cf5e399b58"
+    },
+    {
+      "role": "run_manifest",
+      "path": "results/reasoning_localization_03662_v1/phase_0/p0_s1_reducer_bridge/RUN_MANIFEST.json",
+      "sha256": "63a583d0bb73bf5fe1dcd4b720dda7fd9af1bdca4f6a31749c87b82ac61277ba"
+    }
+  ],
+  "code_dependencies": [
+    {
+      "path": "scripts/reasoning_localization/run_phase0_reducer_bridge.py",
+      "sha256": "8dab5e1d07a44ccd651da99f3578f58233df6bd07be30841036dd8b383b9d870"
+    },
+    {
+      "path": "spectral_utils/online_localization_fusion.py",
+      "sha256": "867b6337e9471fbb6e654eb026b5f0af8e810f35f9dde1a2dbe5090b2c123687"
+    },
+    {
+      "path": "spectral_utils/adapted_dufs.py",
+      "sha256": "eb2328fc88de575bec9fb335f6cad94ef148d1507858d23a7765a3dff05fb5a3"
+    },
+    {
+      "path": "spectral_utils/laplacian_upcr.py",
+      "sha256": "ecf2c387bbba48906dcb2e0a7d56561101cffcd24fb9bd2d32033d471347953a"
+    }
+  ],
+  "expected_population": {
+    "n_cells": 8,
+    "n_scorer_rows": 1270,
+    "n_source_question_groups": 635,
+    "source_question_group_sha256": "d12d651cad9bec326686c2c83070644d22ca058ed57e942f683452050e757a05"
+  },
+  "expected_parent": {
+    "macro_f1": 0.33007771561392063,
+    "reconstruction_tolerance": 1e-12
+  },
+  "hard_fail_conditions": [
+    "any registered S1 source, checkpoint, artifact, dependency, runner or registry hash differs",
+    "any S1 unit, target, locator, prediction, score, threshold or metric fails reconstruction within 1e-12",
+    "the 1270-row, 635-source-question population or its grouping hash changes",
+    "any factor besides the answer detector changes",
+    "the modern detector sees labels during its fit or departs from the frozen k/lambda/seeds/epochs contract",
+    "P0-S2B or any later bridge is opened in the same run"
+  ],
+  "mutation_boundary": {
+    "new_model_inference": false,
+    "gpu": false,
+    "source_mutation": false,
+    "method_fit": "CPU label-free calibration-only DUFS-LIU",
+    "allowed_write_root": "results/reasoning_localization_03662_v1/phase_0/p0_s2a_detector_bridge"
+  },
+  "promotion": "AUDIT_ONLY_NO_PROMOTION"
+}

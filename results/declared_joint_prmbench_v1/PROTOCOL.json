@@ -1,0 +1,43 @@
+{
+  "protocol_id": "declared_joint_prmbench_v1",
+  "version": "1.0",
+  "frozen_before_scoring": "2026-09-24",
+  "status": "development_only",
+  "requested_by": "Omri, 2026-09-24, two questions answered by one design: (1) what happens if the four strong-but-entropy-independent channels are added to bank11 one by one rather than as a 21-channel block; (2) is the clustering the bottleneck, and can Joint L-SML do better here",
+  "question": "On the 11-channel step bank and its four-channel extension, does a DECLARED provenance partition (with one vote per family, or with Joint L-SML on it) beat plain equal, discovered-partition L-SML, and CT7 on PRMBench?",
+  "history_that_shaped_this_design": {
+    "declared_beats_discovered": "Step 434 CT7 fam421 .7801 vs ct7 .7724 (+.0077 [+.0055,+.0100], Holm .005) while the discovered residual-affinity partition gives .7746 (-.0052 vs declared); Step 395 family-equal on the new7 and aug12 step banks +.0054 and +.0047 over equal; Step 413 discovered partitions on the 20-stream bank give nothing on within-AUC",
+    "joint_never_run_here": "fit_joint_lsml has never been run on the 11-channel step bank or on CT7's seven views; run_step_level_bank_baseline_v1.py skips it because the DISCOVERED partition is K=6 with sizes [1,3,3,2,1,1] (three singletons), violating K>=3 with every group >=3. A declared partition removes that obstacle",
+    "not_rerun_shrinkage": "Step 395 already ran diagonal- and block-shrunk IU on the new7/aug12 STEP banks: .7632/.7632/.7629 vs equal .7655, IU-equal -.0023 excluding zero; Step 436's answer-local window arm has median alpha 1.0 and buys nothing. Shrinkage is not an arm here",
+    "not_rerun_readout": "Step 429 searched per-channel readout assignment over 7 and over 17 readouts; the LABEL-SELECTED ceiling is .7605/.7607 within-AUC, below bank11 L-SML at fixed Top10 (.7645), and selected_all-selected is +.000 [-.002,+.002]. The readout stays Top10 for every arm"
+  },
+  "channels_added": {
+    "list": ["ct7_chosen_std_excess", "hist_spilled_sw_var_series", "hist_energy_cusum_abs_series", "hist_entropy_rolling_tail_ratio"],
+    "why_these_four": "they are the only channels in the 52-column materialized pool that are outside bank11, have single-stream within-AUC >= 0.60, |r| < 0.45 with the level family and max |r| < 0.8 with any bank11 channel (POOL_STRUCTURE.csv of indbank_lsml_prmbench_v1). Omri named five; the fifth, bocpd_p0, is already in bank11",
+    "measured_structure_before_the_run": "conditional corr on 94,203 labelled PRMBench steps: chosen_std_excess and spilled_sw_var are 0.92 with each other and 0.70/0.71 with chosen_surprisal (already in bank11); tail_ratio is 0.56 with bocpd_p0 (already in bank11); energy_cusum is an orphan (max 0.31 with anything). The four together are 2.56 effective dimensions"
+  },
+  "declared_partitions": {
+    "rule": "by provenance, not by data: the family a channel belongs to is decided by what quantity it is computed from, exactly as CT7's 4/2/1 was declared. Fixed before scoring, identical in every fold, never refitted",
+    "B11 (5/3/3)": {"A_level": ["q15_H1", "q15_VE1", "logprob_margin", "true_tail50", "energy_level"], "B_churn": ["energy_innovation", "top15_turnover", "top50_js"], "C_token_temporal": ["chosen_surprisal", "bocpd_p0", "dominant_freq16"]},
+    "B15 (5/4/3/3)": {"A_level": ["q15_H1", "q15_VE1", "logprob_margin", "true_tail50", "energy_level"], "B_churn": ["energy_innovation", "top15_turnover", "top50_js", "hist_energy_cusum_abs_series"], "C_token": ["chosen_surprisal", "ct7_chosen_std_excess", "hist_spilled_sw_var_series"], "D_temporal": ["bocpd_p0", "dominant_freq16", "hist_entropy_rolling_tail_ratio"]},
+    "both_admissible_for_joint": "K>=3 and every group >=3, so fit_joint_lsml's identifiability precondition holds without inventing a partition to satisfy the API"
+  },
+  "arms_per_bank": {
+    "equal": "unweighted mean of the answer-standardized columns",
+    "lsml": "CONT L-SML with the DISCOVERED partition (lsml_continuous, method='residual', automatic K, small_m_guard=True) - the Step 438 incumbent",
+    "declared_equal": "mean within each declared family, then equal weight per family: w_j = 1/(K |g_j|). The rule that won on CT7",
+    "declared_joint": "fit_joint_lsml on the declared partition + hierarchical_joint_weights (group virtual = global loading, cross-group SML over the virtuals), anchor q15_H1, seed 20260919, starts=5",
+    "discovered_group_equal": "1/(K|g|) on the DISCOVERED partition - isolates 'declared vs discovered' from 'partition vs no partition'"
+  },
+  "recipe_frozen": "identical to bank20_lsml_prmbench_v1 and indbank_lsml_prmbench_v1: Top10 step readout, answer-local z per column, anchor q15_H1, L1-normalized weights, fusion code imported unchanged from .worktrees/depth-feature-fusion-v1",
+  "splits": "source_groups_v2, five outer folds; eval fold k, calibration (k+1) mod 5 for the q80 PRMScore threshold only, fit on the other three folds; B11 fit-on-4 L-SML replay asserted against the saved step_level_bank_baseline_v1 scores at 1e-9",
+  "failure_policy": "a Joint fit that does not converge, or a non-finite weight, is a visible failure per (bank, fold); the affected evaluation answers are reported as a separate row and never silently fall back to equal",
+  "primary_endpoints": ["prm_within_answer_auc (6,030 eligible answers)", "prmscore_answer_z_q80 (official evaluator)"],
+  "primary_family": {"contrasts": ["B11_declared_equal - B11_equal", "B11_declared_joint - B11_declared_equal", "B15_declared_equal - B11_declared_equal"], "K": 6, "ci": "95% and Bonferroni 1-0.05/6"},
+  "secondary": ["every arm minus its bank's equal", "declared_equal - discovered_group_equal and declared_equal - lsml on each bank (declared vs discovered)", "B15 - B11 for each arm (what the four channels are worth)", "each arm vs ct7 and vs the fam421 context value .7801", "per-fold Joint convergence, relative off-diagonal misfit, Jacobian audit, cross-group weights", "per-fold discovered K and groups", "effective rank per bank", "within-AUC by PRMBench classification", "ProcessBench macro8 SLA as context only"],
+  "predictions_frozen": ["P1 B11 L-SML replay exact", "P2 declared_equal beats equal on both banks (the CT7 and new7/aug12 pattern transfers)", "P3 declared_equal beats discovered group_equal on both banks", "P4 Joint converges in every fold on both banks and lands within +-0.004 of declared_equal (Step 399: within-group directions are near-uniform, so Joint mostly reproduces block-equal)", "P5 the four added channels are worth less than +0.005 to declared_equal", "P6 no arm reaches fam421's .7801"],
+  "bootstrap": {"unit": "PRMBench source_group", "draws": 100000, "seed": 20260924, "paired": true},
+  "budget": "<= 1 CPU-hour",
+  "labels": "v3, evaluation only", "digit_features": false, "new_raw_inference": false, "gpu": false,
+  "interpretation": "If declared_equal beats equal and discovered L-SML, the bottleneck is the partition rule and provenance knowledge is the lever - a transferable finding. If Joint adds nothing over declared_equal, the active ingredient is the partition and not the factor model, consistent with the Step 399 correction. If the four channels add nothing, the bank is saturated regardless of how the weights are chosen. Development evidence; nothing promoted."
+}

@@ -1,0 +1,16 @@
+{
+  "reviewer": "temporal_v3_preflight",
+  "context": "clean-context read-only agent",
+  "verdict": "PASS for feasibility smoke; full first-stage run conditional on successful smoke",
+  "smoke_condition": "met: 27 answers, 18 arms, no failures, v2 replay exact",
+  "issues_resolved": [
+    "frozen benchmark/fold/gate hashes enforced",
+    "saved-v2 fallback reference separated from pure v3 failures",
+    "chain connectivity eigenvalue diagnostic removed; projected weights tested",
+    "null intervals for absent common PRMB coverage",
+    "fixed 10000 bootstrap draws",
+    "explicit failed/interrupted state",
+    "checkpoint rollback/resume and scalar metric tests"
+  ],
+  "optimization_review": "Later complete-pair solver optimization was checked by the main agent with 60 synthetic covariances, 27 real smoke answers and 1072 preserved original checkpoint rows; the clean-context agent did not independently review that later optimization."
+}

@@ -1,0 +1,201 @@
+{
+  "status": "PASS",
+  "counts": {
+    "tokens": 6968779,
+    "censored_tokens": 4930517,
+    "old_disagreements": 38266,
+    "positive_alternative_tokens": 2038262,
+    "answers": 13769,
+    "steps": 145597
+  },
+  "source_inputs": {
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_full_benchmark_v3\\evaluation\\JOINED.json": "22fcbfd346db6565665b5358ac74393a4188e9047565ca2af44908a9e8d3f49d",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_full_benchmark_v3\\evaluation\\JOINED.npz": "31c1fe06ac62f7dbd3f3e9fe5653148db718f32258bb45a246992476da0cb2c2",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\dataset_cache\\four_localization\\prmbench_qwen25math7b_full\\prmbench_prm.pkl": "95be425c66d4dadc6a8e03567ad66ef2933aee27eb7967bf7200139c56518232",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\.worktrees\\digit-alternative-probability-v1\\results\\digit_alternative_probability_v1\\SPAN_AUDIT.json": "74855c60fec43a687436b89d396704376c7a68184753d517328907a173c87fbc",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\dataset_cache\\repgrid\\pb_qwen3_4b\\processbench_gsm8k.pkl": "549843b11a99f41b60ccb13eb6a65c5583527402602e6e40d1a417699e64b02b",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\dataset_cache\\repgrid\\pb_qwen3_4b\\processbench_math.pkl": "807292c490012b68c7a20cc3d093cda637866227940b9024b258b6a201657c32",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\dataset_cache\\repgrid\\pb_qwen3_4b\\processbench_olympiadbench.pkl": "e5e73f044247e0fb4081fea1c3a77793aab182485daebce48cf7a3f7809eb0ae",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\dataset_cache\\repgrid\\pb_qwen3_4b\\processbench_omnimath.pkl": "ec20e56553acee15c0646ad266f5d5d8d24ef22ba87289b6ffe013b0c639ba67",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\dataset_cache\\repgrid\\pb_qwen3_8b\\processbench_gsm8k.pkl": "c258e8a37fad43216290fef2f70c88735f413f8c0ceb5cce39dfefe67d66955d",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\dataset_cache\\repgrid\\pb_qwen3_8b\\processbench_math.pkl": "19cbbb2b4f90e073f2793360f142bc25334f88bbc4ec01fd78807f9f1ad2836d",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\dataset_cache\\repgrid\\pb_qwen3_8b\\processbench_olympiadbench.pkl": "2083c4f9d0cc8d84657b02558d0720f726db4288e39e7557be4c55f78f4d4e60",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\dataset_cache\\repgrid\\pb_qwen3_8b\\processbench_omnimath.pkl": "561b96c5e96a25256e7e51a62c7ef01bcb2fd87ea1adcfc36e2c758807f559a0",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\dataset_cache\\four_localization\\prmbench_qwen3_8b_telemetry_full\\prmbench_telemetry.pkl": "b934afad0889ffacf0f4420f885ad52ddcf08f2124e506a21cd24f216bd170be"
+  },
+  "tokenizers": {
+    "qwen3-4b-af6dbfa600adb28c6de90368ffc5f9ae2b6a94a95feab68f8cbbb93d70230d1d": {
+      "digit_ids": [
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24
+      ],
+      "sha256": "cdd40b08814d626d2ab1eb36c7ca66521a96bce4d478cf1375a4d45fe03e1cf9"
+    },
+    "qwen3-8b-740652e1fde0b4d37cd45057f5ee491715c2819cac31c81c9210edc49b2b64d7": {
+      "digit_ids": [
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24
+      ],
+      "sha256": "cdd40b08814d626d2ab1eb36c7ca66521a96bce4d478cf1375a4d45fe03e1cf9"
+    }
+  },
+  "schema": [
+    {
+      "cell": "pb_gsm8k_q4",
+      "bytes": 49801034,
+      "sha256": "549843b11a99f41b60ccb13eb6a65c5583527402602e6e40d1a417699e64b02b",
+      "rows": 400,
+      "checks": {
+        "validated_rows": 400
+      },
+      "saved_k": [
+        50
+      ],
+      "min_tokens": 71,
+      "max_tokens": 1167,
+      "status": "PASS"
+    },
+    {
+      "cell": "pb_math_q4",
+      "bytes": 227049038,
+      "sha256": "807292c490012b68c7a20cc3d093cda637866227940b9024b258b6a201657c32",
+      "rows": 1000,
+      "checks": {
+        "validated_rows": 1000
+      },
+      "saved_k": [
+        50
+      ],
+      "min_tokens": 55,
+      "max_tokens": 2028,
+      "status": "PASS"
+    },
+    {
+      "cell": "pb_olympiadbench_q4",
+      "bytes": 338485050,
+      "sha256": "e5e73f044247e0fb4081fea1c3a77793aab182485daebce48cf7a3f7809eb0ae",
+      "rows": 1000,
+      "checks": {
+        "validated_rows": 1000
+      },
+      "saved_k": [
+        50
+      ],
+      "min_tokens": 163,
+      "max_tokens": 1923,
+      "status": "PASS"
+    },
+    {
+      "cell": "pb_omnimath_q4",
+      "bytes": 335250837,
+      "sha256": "ec20e56553acee15c0646ad266f5d5d8d24ef22ba87289b6ffe013b0c639ba67",
+      "rows": 1000,
+      "checks": {
+        "validated_rows": 1000
+      },
+      "saved_k": [
+        50
+      ],
+      "min_tokens": 103,
+      "max_tokens": 1997,
+      "status": "PASS"
+    },
+    {
+      "cell": "pb_gsm8k_q8",
+      "bytes": 49801034,
+      "sha256": "c258e8a37fad43216290fef2f70c88735f413f8c0ceb5cce39dfefe67d66955d",
+      "rows": 400,
+      "checks": {
+        "validated_rows": 400
+      },
+      "saved_k": [
+        50
+      ],
+      "min_tokens": 71,
+      "max_tokens": 1167,
+      "status": "PASS"
+    },
+    {
+      "cell": "pb_math_q8",
+      "bytes": 227049038,
+      "sha256": "19cbbb2b4f90e073f2793360f142bc25334f88bbc4ec01fd78807f9f1ad2836d",
+      "rows": 1000,
+      "checks": {
+        "validated_rows": 1000
+      },
+      "saved_k": [
+        50
+      ],
+      "min_tokens": 55,
+      "max_tokens": 2028,
+      "status": "PASS"
+    },
+    {
+      "cell": "pb_olympiadbench_q8",
+      "bytes": 338485050,
+      "sha256": "2083c4f9d0cc8d84657b02558d0720f726db4288e39e7557be4c55f78f4d4e60",
+      "rows": 1000,
+      "checks": {
+        "validated_rows": 1000
+      },
+      "saved_k": [
+        50
+      ],
+      "min_tokens": 163,
+      "max_tokens": 1923,
+      "status": "PASS"
+    },
+    {
+      "cell": "pb_omnimath_q8",
+      "bytes": 335250837,
+      "sha256": "561b96c5e96a25256e7e51a62c7ef01bcb2fd87ea1adcfc36e2c758807f559a0",
+      "rows": 1000,
+      "checks": {
+        "validated_rows": 1000
+      },
+      "saved_k": [
+        50
+      ],
+      "min_tokens": 103,
+      "max_tokens": 1997,
+      "status": "PASS"
+    },
+    {
+      "cell": "prmbench_qwen3_8b",
+      "bytes": 1120907121,
+      "sha256": "b934afad0889ffacf0f4420f885ad52ddcf08f2124e506a21cd24f216bd170be",
+      "rows": 6969,
+      "checks": {
+        "validated_rows": 6969
+      },
+      "saved_k": [
+        50
+      ],
+      "min_tokens": 20,
+      "max_tokens": 3412,
+      "status": "PASS"
+    }
+  ],
+  "independent_scalar_tokens_checked": 6968779,
+  "scalar_max_error": 0.0,
+  "seconds": 142.34252410000772,
+  "scores_sha256": "bf70a7c42ec0f9566faa0a2e66d0af17a8741bf127bc28145d93d4c87c773394",
+  "label_contract": "corrected v3; PRMB one-based errors verified for all rows",
+  "alignment": "saved per-token/per-step layout verified; no new forward pass"
+}

@@ -1,0 +1,102 @@
+{
+  "composable": false,
+  "derivable_uniquely_from_current_incumbent": false,
+  "factorial_results_emitted": false,
+  "forbidden_fallback": "flat fusion of alternative targets or resolutions",
+  "independent_recipes": {
+    "step_post_readout": {
+      "callables": [
+        "apply_label_free_fusion_weights",
+        "_fusion_model_metrics"
+      ],
+      "execution": "per-view readout -> answer-local step rank fusion -> argmax",
+      "families": [
+        "digit"
+      ],
+      "head": "singleton",
+      "input_type": "aligned_step_readout_matrix",
+      "labels_used_for_weights": false,
+      "member_columns": [
+        68
+      ],
+      "members": [
+        "step::digit.token_clock_innovation::top1"
+      ],
+      "model": "step_post_readout::step::digit.token_clock_innovation::top1::singleton",
+      "output_type": "step_risk_trajectory_and_peak",
+      "point": "step_post_readout",
+      "step_store": "dependence/CONSOLIDATED.npz::step_scores",
+      "tie_break": "lowest_step_index",
+      "weight_fit": {
+        "head": "singleton",
+        "live_members": 1,
+        "status": "FIT",
+        "weights_sum": 1.0
+      },
+      "weights": [
+        1.0
+      ]
+    },
+    "token_pre_readout": {
+      "callables": [
+        "apply_label_free_fusion_weights",
+        "_apply_token_model"
+      ],
+      "execution": "answer-local token rank fusion -> step readout -> argmax",
+      "families": [
+        "digit"
+      ],
+      "head": "singleton",
+      "input_type": "aligned_token_signal_matrix",
+      "labels_used_for_weights": false,
+      "member_columns": [
+        92
+      ],
+      "members": [
+        "token::digit.token_clock_innovation::top1"
+      ],
+      "model": "token_pre_readout::token::digit.token_clock_innovation::top1::singleton",
+      "output_type": "step_risk_trajectory_and_peak",
+      "point": "token_pre_readout",
+      "readout": "top1",
+      "tie_break": "lowest_step_index",
+      "token_signals": [
+        "digit.token_clock_innovation"
+      ],
+      "token_store": "dependence/TOKEN_VALUES.npy",
+      "weight_fit": {
+        "head": "singleton",
+        "live_members": 1,
+        "status": "FIT",
+        "weights_sum": 1.0
+      },
+      "weights": [
+        1.0
+      ]
+    }
+  },
+  "judgment": "The current artifacts define five independently evaluated interventions, not five serial ports. Background, token, step and decoder finalists each emit an alternative locator representation, so the incumbent code does not determine how one finalist replaces or augments the next.",
+  "minimal_implementable_resolution": "Choose mutually_exclusive_locator and run four locator alternatives plus the gate as a two-stage experiment; a 2^5 factorial is not defined under that choice.",
+  "missing_rules": [
+    "routing of a background residual into the selected token-fusion member bank",
+    "precedence or typed merge rule among background, token and post-readout step locators",
+    "rule for reapplying the selected decoder to an upstream fused step trajectory"
+  ],
+  "schema": "fusion-independence-atlas-v1/composition-contract-v1",
+  "smallest_material_user_decisions": [
+    {
+      "id": "locator_composition_topology",
+      "options": [
+        "mutually_exclusive_locator",
+        "serial_augmentation"
+      ],
+      "question": "Are background, token, step and decoder finalists mutually exclusive locator alternatives, or a serial augmentation pipeline?"
+    },
+    {
+      "id": "serial_replacement_port",
+      "question": "At each downstream stage, which registered member is replaced by the upstream fused output (or is it appended as a new member), and are downstream label-free weights refit?",
+      "required_if": "locator_composition_topology=serial_augmentation"
+    }
+  ],
+  "status": "BLOCKED_MISSING_TYPED_PIPELINE_COMPOSITION"
+}

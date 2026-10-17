@@ -1,0 +1,30 @@
+# Red team: algorithm_decisions_v1 run_20260928 (outputs 7ec9205b2, runner ec3ec5e42, protocol a70dfc591)
+
+- **A** independent recomputation: fresh within-AUC of every arm, own 10,000-draw paired source-group bootstrap (seeds 424242, 1-3),
+  P0__BASE of B23 rebuilt from raw inputs (fold 0, max diff 3.1e-10, 0 ranking changes), P0__EQ_DSM of B13 rebuilt with own
+  marks and weights (4.4e-16), stage-B2 replay checked on all rows.
+- **B** coverage: 331/331 arms finite on all 145,597 steps, 6,030/6,030 PRMBench and 4,442/4,442 ProcessBench answers, 5/5 folds;
+  per fold / class / length tertile / ProcessBench cell; concentration; activity records of 80 learning runs; selection recomputed.
+- **C** nulls and math: own within-answer shuffle and same-length swap nulls (300 permutations), permuted-feature control, the
+  algebra and the data of the DS group weights.
+
+Scripts in the session scratchpad (`rt_ad_A`, `rt_ad_B`, `rt_ad_C`).
+
+| CLAIM | VERDICT | EVIDENCE |
+|---|---|---|
+| 1. By the frozen rule no variant is eligible, so the candidate is the DS-filtered plain average (8-bank mean 0.7656); the best variant P0__HEM_DSM (0.7670) wins on B13, B32, B35, B54 and loses on B23 (-0.0097) and B51 (-0.0074) | **confirmed, with qualifications** | **A**: every number and the selection reproduce (0 eligible; top-5 losses/wins match). **B**: selection recomputed from CONTRASTS with 0 mismatches. Qualifications: the B13 and B54 wins are concentrated (without the top 1% of answers +0.0003 / -0.0004); the B32/B35 wins are broad (5/5 folds, 3/3 tertiles, 6-7/8 classes; trimmed +0.0136 / +0.0097); the B23/B51 losses are broad; the B20 upper bound is about 0 (third loss or not, depending on the bootstrap seed) |
+| 2. L-SML with merge is below the plain average on all 8 banks, raw and learned without position | **confirmed** | **A/B**: 16/16 points below; P1 8/8 intervals below 0; P0 7/8 (B13 -0.0014, upper bound +0.0003, not significant) |
+| 3. DS-estimate between-group weights beat equal group weights on 8/8 banks and the plain average on B13, B32, B35; the B32/B35 gains are content | **confirmed, refined** | **A**: EQ_DSM above EQ_EQ 8/8. **C**: B32/B35 gains are content (EQ_DSM +0.0097 / +0.0081, HEM_DSM +0.0171 / +0.0146 after the swap null; z 5.4-9.0). DSM beats equal group weights on CONTENT on 6/8 banks (B16 n.s.; the B20 gain equals its swap null; B23 below its swap null) |
+| 4. Adding the three digit features raises the plain average on every bank (+0.0093 to +0.0152; ProcessBench +0.022 to +0.038); roughly half to 80% positional | **confirmed, with one caveat** | **B**: positive in 20/20 fold cells, 12/12 tertile cells, 32/32 ProcessBench cells; negative in 4/32 PRMBench class cells (domain_inconsistency 3, redundency 1). **C**: positional share 81 / 54 / 54 / 48%; content +0.0022 on B13 (z 1.6, not significant), +0.0070 / +0.0067 / +0.0048 on B20 / B32 / B51 (z 5.9-6.8); permuting the digit channels within answer removes the gain |
+| 5. Removing position fully lowers every bank because position carries signal; learning without position changes the plain average by at most +0.0015 and lowers B32/B35 | **confirmed** | **C**: P2 swap null more negative than the observed drop on 8/8 (content improves, positional signal lost); P1 losses on B32/B35 are content (z -5.9, -3.4) |
+| 6. Prevalence: DS channels 0.28-0.41, DS groups 0.19-0.26, hem 0.21-0.30 (true 0.14); the level group is the most influential group on every bank; removing it moves the DS prevalence toward the truth on 6/8 banks and worsens the other channels' accuracy estimates on 8/8 | **weakened** | **C**: ranges hold per bank mean (per fold DS groups 0.17-0.27). "Most influential" holds on 40/40 folds only by the shift of the other channels' estimates; by prevalence it fails on B35 (0/5 folds; a cusum group moves it more) and B51 (1/5). "Toward the truth": 5/8 banks by mean, 28/40 folds (not 6/8). Worsens the others' estimates: 40/40 confirmed |
+| 7. Component activity: the merge fired wherever the level family was split; the L-SML 3-group guard only at 3 groups; DSM zero weights; hem small groups | **weakened** | **B**: raw learning 24/24 merged, but position-adjusted learning only 10/14 (B23 fold 0, B51 folds 0 and 4 not merged; B20 fold 0 left 2 level groups); guard 5/5 at 3 groups and nowhere else; DSM zero weights 24 events, ALL under SML within - none in EQ_DSM or HEM_DSM; hem small groups only on B20/B23/B54 raw (none where HEM_DSM gains most); hem boundary emissions in 40/80 runs |
+| 8. Mechanism (author's hypothesis): DSM beats equal group weights because it gives about 0 weight to chance groups; it loses where the partition itself loses | **refuted** | **C**: 0/226 groups under EQ within have DSM weight 0; no group is at chance (true accuracy 0.52-0.67). DSM's actual effect: the level group gets the top weight in 40/40 bank-folds (share 0.30-0.51 vs 0.14-0.33 equal). DS inflates psi by 0.11-0.19 and eta by 0.04-0.09, which stretches weight ratios (top/second 1.2-7.7 vs 1.1-1.5 from true accuracies); Spearman(DSM weights, true-accuracy weights) median 0.82, but 0.50-0.60 on B13/B16 and 0.26-0.54 on B23. Where DSM does well (B32/B35) the label-using oracle weights score about the same (0.7590 / 0.7730 vs 0.7604 / 0.7713) |
+
+## What the author's claims got wrong
+- The mechanism "DSM zero-weights chance groups" was written into the claims without looking at the recorded weights; the weights
+  show no zeros under EQ/HEM within. What DSM does is up-weight the level group, with ratios stretched by the inflated estimates.
+- "The merge fired wherever the level family was split" was claimed for all learning banks although Step 456 had already shown it
+  fails on position-adjusted partitions; it holds on raw learning only.
+- "The level group is the most influential on every bank" holds for one influence measure only; "toward the truth on 6/8" is 5/8.
+- The P0__HEM_DSM wins on B13 and B54 are concentrated in 1% of answers; only the B32/B35 wins are broad.

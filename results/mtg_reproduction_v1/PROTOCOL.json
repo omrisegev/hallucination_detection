@@ -1,0 +1,48 @@
+{
+  "protocol_id": "mtg_reproduction_v1",
+  "version": "1.0",
+  "frozen_before_scoring": "2026-09-27",
+  "status": "reproduction study; development data",
+  "requested_by": "Omri, 2026-09-27: try to reproduce Chen et al.'s ProcessBench SLA results (Mind the Gap, ICML 2026, Table 3)",
+  "question": "With the paper's published statistic and with the released code's statistic, under a pre-declared finite set of token-to-step readings and decision rules, how close does our ProcessBench telemetry come to Table 3, and does its qualitative pattern reproduce?",
+  "facts_recorded_before_scoring": {
+    "code_audit": "docs/reviews/MIND_THE_GAP_CODE_AUDIT_20260927.md: the release has no ProcessBench/SLA code; its statistic is the top-1 log-probability passed through an undocumented running mean before the EMA",
+    "denominator_forensics": "No single denominator reproduces all six values of any Table 3 row as k/N with 2-decimal rounding for N up to the cell size: the full erroneous set (207/594/661/759) fits 0-2 of 6 values per cell (chance level), N_err-40..N_err never fits more than 2 of 6, and the smallest N fitting all six exceeds the whole cell (>=1208 against 400 or 1000 traces). Table 3 is therefore not 'correct localizations / erroneous traces' over one shared population per cell. EXACT numeric reproduction is impossible in principle; the target is closeness and pattern",
+    "internal_inconsistency": "The paper's text says Drop beats Avg 'across all datasets and uncertainty measures on Qwen3-8B'; its own Table 3 has LN-S Drop below LN-S Avg on 3 of 4 Qwen3-8B datasets and LogTokU Drop below Avg on MATH. Two cells are duplicated (LN-S Drop == Shannon Avg on Qwen3-4B GSM8K 27.94 and MATH 24.17)",
+    "telemetry": "dataset_cache/repgrid/pb_qwen3_{4b,8b}: Qwen3-4B/8B, teacher-forced single pass over ProcessBench's provided chains, thinking off, top-50 log-probs saved. The prompt is OURS (data_loaders.math_prompt + ' /no_think'); the paper's ProcessBench prompt is published nowhere. This is the one known difference that re-scoring cannot remove"
+  },
+  "target_table3": {
+    "columns": ["LN-S Avg", "LN-S Drop", "LogTokU Avg", "LogTokU Drop", "Shannon Avg", "Shannon Drop"],
+    "Qwen3-4B": {"gsm8k": [31.24, 27.94, 28.76, 23.19, 27.94, 43.42], "math": [28.39, 24.17, 21.77, 23.93, 24.17, 32.03], "olympiadbench": [26.22, 24.93, 28.57, 22.62, 24.95, 43.06], "omnimath": [23.21, 23.60, 26.87, 22.96, 23.67, 38.04]},
+    "Qwen3-8B": {"gsm8k": [32.34, 34.14, 27.87, 29.45, 27.66, 46.11], "math": [26.91, 25.71, 21.77, 20.27, 24.62, 32.90], "olympiadbench": [26.48, 26.29, 18.74, 18.75, 26.30, 41.52], "omnimath": [23.35, 23.33, 21.10, 21.15, 23.40, 37.04]},
+    "source": "papers/extracted/mind-the-gap-catching-hallucinations-via-evidence-drop.md, Table 3"
+  },
+  "population": "our eight ProcessBench cells (pb_{gsm8k,math,olympiadbench,omnimath}_q{4,8}), erroneous traces only (207/594/661/759 per model, 4,442 in all); SLA = predicted step equals the annotated first erroneous step",
+  "signals_per_token_evidence_oriented": {
+    "shannon": "-H of the renormalized top-20 distribution (paper Eq. 9-10)",
+    "logtoku": "sum of the top-20 log-probabilities (paper Eq. 47)",
+    "lns_top1": "max over the top-20 log-probabilities = what the released get_logprob_curve returns under teacher forcing",
+    "lns_provided": "log-probability of the provided token = the reading under which LN-S is 'log p of the generated token'"
+  },
+  "avg_variants": "step score = minus the mean of the signal over the step's tokens",
+  "drop_variants": {
+    "transform": {"paper": "EMA span 5 over the raw per-token series (Eq. 11)", "code": "EMA span 5 over the running mean of the series (utils/metrics.py)"},
+    "series_scope": "one series per answer over all its tokens, as both paper and code do per response; EMA alpha 2/(span+1) seeded with the first value",
+    "flux": "Delta_j = s~_j - s~_{j-1}; risk = -Delta",
+    "attribution": {"later": "Delta_j goes to the step containing token j", "earlier": "Delta_j goes to the step containing token j-1"},
+    "step_aggregation": {"max": "largest single drop in the step", "m5": "mean of the up-to-5 largest drops in the step (paper M=5)", "sum": "sum of the positive drops in the step"}
+  },
+  "decision_rules": {
+    "argmax": "step with the largest score, earliest on ties",
+    "first_z": "first step whose within-answer z-score exceeds c, c in {0, 0.5, 1.0, 1.5, 2.0}",
+    "first_q": "first step whose score exceeds the q-quantile of ALL step scores of that cell (all traces, so no label is used), q in {0.5, 0.7, 0.8, 0.9, 0.95}",
+    "no_crossing": "reported two ways: counted as a failure (denominator = all erroneous traces), and excluded from the denominator (the method-specific denominator hypothesis)"
+  },
+  "grid_size": "Drop: 4 signals x 2 transforms x 2 attributions x 3 aggregations x 21 decision/denominator settings; Avg: 4 signals x 21 settings",
+  "replay_checks": ["shannon/paper/later with aggregations m5 and max must reproduce EVIDENCE_DROP.npz step_m5 and step_worst to 1e-5 (float32 source)", "released-code risk on a synthetic curve must equal calculate_risk_with_running_mean_drop from the vendored snapshot"],
+  "match_metrics": ["per method and configuration: mean absolute deviation from Table 3 over the 8 cells, in SLA points", "ONE SHARED configuration for all six columns (the paper presumably ran one pipeline): mean of the six MADs", "pattern under the shared configuration: Shannon Drop minus Shannon Avg per cell (paper: positive in 8 of 8); Shannon Drop best of the six per cell (paper: 8 of 8); 8-cell mean of Shannon Drop against the paper's 39.27"],
+  "reporting": "the full grid is reported, not only the best row; the best-matching configuration is selected to MATCH THEIR TABLE, which overfits eight numbers per column, and is labelled that way",
+  "predictions_frozen": ["P1 no configuration brings every column within 2 SLA points of Table 3 in every cell", "P2 under the best shared configuration Shannon Drop exceeds Shannon Avg in at least 6 of 8 cells", "P3 the best-matching Shannon Drop configuration uses the PAPER transform, not the released code's running mean", "P4 the best 8-cell Shannon Drop mean stays at least 3 points below 39.27", "P5 excluding no-crossing traces from the denominator raises SLA toward Table 3 more than any other single choice"],
+  "budget": "<= 1 CPU-hour", "labels": "v3 ProcessBench first-error annotations, evaluation only", "new_inference": false, "gpu": false,
+  "interpretation": "This is a reproduction study, not a method search. A close shared-configuration match would identify the paper's undisclosed aggregation; a failure bounds how much of the gap the aggregation can explain, leaving the prompt and the non-ratio numbers as the remaining causes."
+}

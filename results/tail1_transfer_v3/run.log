@@ -1,0 +1,34 @@
+[    15s] inputs and top-1 marks built {'F15': {'answer_columns': 206535, 'constant_rate': 0.0116, 'boundary_tie_rate': 0.0437}, 'B11': {'answer_columns': 151459, 'constant_rate': 0.0376, 'boundary_tie_rate': 0.1769}, 'B11o': {'answer_columns': 151459, 'constant_rate': 0.0376, 'boundary_tie_rate': 0.13}}
+[    24s] fold 0 done; K std {'F15': 5, 'B11': 2, 'B11o': 8} raw {'F15': 2, 'B11': 2, 'B11o': 6}
+[    29s] fold 1 done; K std {'F15': 5, 'B11': 2, 'B11o': 5} raw {'F15': 2, 'B11': 2, 'B11o': 2}
+[    35s] fold 2 done; K std {'F15': 5, 'B11': 5, 'B11o': 8} raw {'F15': 2, 'B11': 2, 'B11o': 2}
+[    40s] fold 3 done; K std {'F15': 5, 'B11': 5, 'B11o': 5} raw {'F15': 2, 'B11': 2, 'B11o': 2}
+[    45s] fold 4 done; K std {'F15': 5, 'B11': 5, 'B11o': 5} raw {'F15': 2, 'B11': 2, 'B11o': 5}
+[    45s] replay {'F15_equal': 0.0, 'F15_cov_lsml': 0.0, 'B11_lsml': 0.0, 'ct7': 0.0, 'F15_tailstd_lsml': 0.0, 'status': 'PASS'}
+[    47s] bundle PASS
+          method  prmscore_P1  within_auc  pb_sla_macro8
+             ct7       0.6462      0.7724         0.3989
+       F15_equal       0.6433      0.7659         0.3651
+        B11_lsml       0.6417      0.7645         0.3480
+F15_tailstd_lsml       0.6417      0.7617         0.3638
+    F15_cov_lsml       0.6391      0.7615         0.3650
+ F15_tail1s_lsml       0.6376      0.7629         0.3550
+B11o_tail1s_lsml       0.6375      0.7592         0.3441
+      B11o_equal       0.6335      0.7552         0.3434
+       B11_equal       0.6333      0.7496         0.3495
+ B11_tail1s_lsml       0.6325      0.7530         0.3500
+     family                a                b   delta  ci95_lo  ci95_hi  p_holm_primary  folds_a_gt_b
+    primary  F15_tail1s_lsml F15_tailstd_lsml -0.0041  -0.0060  -0.0022          0.0000           0.0
+    primary  F15_tail1s_lsml        F15_equal -0.0058  -0.0079  -0.0037          0.0000           0.0
+    primary  B11_tail1s_lsml         B11_lsml -0.0092  -0.0118  -0.0067          0.0000           0.0
+    primary B11o_tail1s_lsml         B11_lsml -0.0042  -0.0060  -0.0025          0.0000           0.0
+    primary  B11_tail1s_lsml        B11_equal -0.0008  -0.0032   0.0016          0.5084           3.0
+descriptive B11o_tail1s_lsml       B11o_equal  0.0040   0.0017   0.0062             NaN           4.0
+descriptive  B11_tail1s_lsml B11o_tail1s_lsml -0.0050  -0.0073  -0.0028             NaN           2.0
+descriptive  F15_tail1s_lsml     F15_cov_lsml -0.0015  -0.0038   0.0008             NaN           2.0
+descriptive  F15_tail1s_lsml              ct7 -0.0086  -0.0125  -0.0047             NaN           0.0
+descriptive  B11_tail1s_lsml              ct7 -0.0137  -0.0176  -0.0098             NaN           0.0
+descriptive B11o_tail1s_lsml              ct7 -0.0087  -0.0125  -0.0049             NaN           0.0
+deployment {'F15_tail1s_lsml': (5, 0.8823), 'B11_tail1s_lsml': (5, 0.864), 'B11o_tail1s_lsml': (8, 0.8755)}
+[    65s] lock v3 sha256 0fc561b7e382814cacdaa3a6425916cdba5119d03b48f2839729459a7e58c8ee
+EXIT 0

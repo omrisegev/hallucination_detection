@@ -1,0 +1,84 @@
+{
+  "criteria": {
+    "performance_pb": {
+      "lower_ci_above": 0.0,
+      "point_delta": 0.01,
+      "within_noninferiority": -0.002
+    },
+    "performance_within": {
+      "lower_ci_above": 0.0,
+      "pb_noninferiority": -0.01,
+      "point_delta": 0.005
+    },
+    "simplification": "requires a separately frozen incumbent family/stage complexity ledger"
+  },
+  "draws": 10000,
+  "gate_reranked_within_every_draw": false,
+  "interval_error": null,
+  "paired_source_group_draws": true,
+  "points": {
+    "step_post_readout": {
+      "baseline": {
+        "pb": 0.43254581458492525,
+        "within": 0.7760680834265197
+      },
+      "candidate": {
+        "pb": 0.42004660296524726,
+        "within": 0.6008208397011566
+      },
+      "delta": {
+        "pb": -0.012499211619677986,
+        "within": -0.17524724372536304
+      },
+      "finite_draws": {
+        "pb": 10000,
+        "within": 10000
+      },
+      "promotion": "NO_SUCCESSOR",
+      "simplification": "UNRESOLVED_BASELINE_COMPLEXITY_NOT_BOUND",
+      "simultaneous_95_ci": {
+        "pb": [
+          -0.03637088044418047,
+          0.011880502632934711
+        ],
+        "within": [
+          -0.1864833951656186,
+          -0.16374746715038885
+        ]
+      }
+    },
+    "token_pre_readout": {
+      "baseline": {
+        "pb": 0.43254581458492525,
+        "within": 0.7760680834265197
+      },
+      "candidate": {
+        "pb": 0.42004660296524726,
+        "within": 0.6008208397011566
+      },
+      "delta": {
+        "pb": -0.012499211619677986,
+        "within": -0.17524724372536304
+      },
+      "finite_draws": {
+        "pb": 10000,
+        "within": 10000
+      },
+      "promotion": "NO_SUCCESSOR",
+      "simplification": "UNRESOLVED_BASELINE_COMPLEXITY_NOT_BOUND",
+      "simultaneous_95_ci": {
+        "pb": [
+          -0.03637088044418047,
+          0.011880502632934711
+        ],
+        "within": [
+          -0.1864833951656186,
+          -0.16374746715038885
+        ]
+      }
+    }
+  },
+  "schema": "fusion-independence-atlas-v1/finalist-uncertainty-v1",
+  "seed": 69615,
+  "simultaneous_across_insertion_points_and_metrics": true
+}

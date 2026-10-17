@@ -1,0 +1,71 @@
+{
+  "quality_evaluation": false,
+  "results": {
+    "fm": {
+      "scores_sha256": "21f2f4d3647955c8766d53f196d7f270e90e3a3232c870d3629378a84a07c105",
+      "comparisons": {
+        "dot__zero": {
+          "steps": 29993,
+          "correlation": 0.9921342315665641,
+          "rms_difference_over_real_std": 0.13453554645747973
+        },
+        "dot__shuffled": {
+          "steps": 29993,
+          "correlation": 0.9945884613797998,
+          "rms_difference_over_real_std": 0.10894533692663054
+        }
+      }
+    },
+    "diflo": {
+      "scores_sha256": "a9e4d9069d0bb66f5bdbe22241cf94333445b5fb4f51470ef168480d62a23698",
+      "comparisons": {
+        "dot__zero": {
+          "steps": 29993,
+          "correlation": 0.9919015310264246,
+          "rms_difference_over_real_std": 0.1359910523521518
+        },
+        "dot__shuffled": {
+          "steps": 29993,
+          "correlation": 0.99434039151765,
+          "rms_difference_over_real_std": 0.11140762870942784
+        }
+      }
+    },
+    "tcn": {
+      "scores_sha256": "32bfeedfc2843705f635ce9345e66ddb9659dd0126b80332078138abf512c518",
+      "comparisons": {
+        "signed__zero": {
+          "steps": 29993,
+          "correlation": 0.866296716045224,
+          "rms_difference_over_real_std": 1.4419833867104135
+        },
+        "signed__shuffled": {
+          "steps": 29993,
+          "correlation": 0.9103114716121771,
+          "rms_difference_over_real_std": 0.8782261106754281
+        },
+        "squared__zero": {
+          "steps": 29993,
+          "correlation": 0.8119325569450845,
+          "rms_difference_over_real_std": 1.8087057126555475
+        },
+        "squared__shuffled": {
+          "steps": 29993,
+          "correlation": 0.8514219378662563,
+          "rms_difference_over_real_std": 1.5370523716143494
+        },
+        "variance_fusion__zero": {
+          "steps": 29993,
+          "correlation": 0.8433917007062324,
+          "rms_difference_over_real_std": 0.6962349295533271
+        },
+        "variance_fusion__shuffled": {
+          "steps": 29993,
+          "correlation": 0.9685321735604923,
+          "rms_difference_over_real_std": 0.2908111953903373
+        }
+      }
+    }
+  },
+  "warning": "Inference interventions only; zero preserves current innovation, masks and position. Pooled step correlation does not establish task utility or absence of within-answer effects."
+}

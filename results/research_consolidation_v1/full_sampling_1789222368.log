@@ -1,0 +1,94 @@
+Full sampling 3550 / 13769
+Full sampling 3575 / 13769
+Full sampling 3600 / 13769
+Full sampling 3625 / 13769
+Full sampling 3650 / 13769
+Full sampling 3675 / 13769
+Full sampling 3700 / 13769
+Full sampling 3725 / 13769
+Full sampling 3750 / 13769
+Full sampling 3775 / 13769
+Full sampling 3800 / 13769
+Full sampling 3825 / 13769
+Full sampling 3850 / 13769
+Full sampling 3875 / 13769
+Full sampling 3900 / 13769
+Full sampling 3925 / 13769
+Full sampling 3950 / 13769
+Full sampling 3975 / 13769
+Full sampling 4000 / 13769
+Full sampling 4025 / 13769
+Full sampling 4050 / 13769
+Full sampling 4075 / 13769
+Full sampling 4100 / 13769
+Full sampling 4125 / 13769
+Full sampling 4150 / 13769
+Full sampling 4175 / 13769
+Full sampling 4200 / 13769
+Full sampling 4225 / 13769
+Full sampling 4250 / 13769
+Full sampling 4275 / 13769
+Full sampling 4300 / 13769
+Full sampling 4325 / 13769
+Full sampling 4350 / 13769
+Full sampling 4375 / 13769
+Full sampling 4400 / 13769
+Full sampling 4425 / 13769
+Full sampling 4450 / 13769
+Full sampling 4475 / 13769
+Full sampling 4500 / 13769
+Full sampling 4525 / 13769
+Full sampling 4550 / 13769
+Full sampling 4575 / 13769
+Full sampling 4600 / 13769
+Full sampling 4625 / 13769
+Full sampling 4650 / 13769
+Full sampling 4675 / 13769
+Full sampling 4700 / 13769
+Full sampling 4725 / 13769
+Full sampling 4750 / 13769
+Full sampling 4775 / 13769
+Full sampling 4800 / 13769
+Full sampling 4825 / 13769
+Full sampling 4850 / 13769
+Full sampling 4875 / 13769
+Full sampling 4900 / 13769
+Full sampling 4925 / 13769
+Full sampling 4950 / 13769
+Full sampling 4975 / 13769
+Full sampling 5000 / 13769
+Full sampling 5025 / 13769
+Full sampling 5050 / 13769
+Full sampling 5075 / 13769
+Full sampling 5100 / 13769
+Full sampling 5125 / 13769
+Full sampling 5150 / 13769
+Full sampling 5175 / 13769
+Full sampling 5200 / 13769
+Full sampling 5225 / 13769
+Full sampling 5250 / 13769
+Full sampling 5275 / 13769
+Full sampling 5300 / 13769
+Full sampling 5325 / 13769
+Traceback (most recent call last):
+  File "C:\Users\omris\TAU\hallucination_detection\scripts\run_full_sampling_v3.py", line 166, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "C:\Users\omris\TAU\hallucination_detection\scripts\run_full_sampling_v3.py", line 161, in main
+    elif score(manifest):evaluate()
+         ~~~~~^^^^^^^^^^
+  File "C:\Users\omris\TAU\hallucination_detection\scripts\run_full_sampling_v3.py", line 127, in score
+    state('SCORING' if time.time()-started<cap else 'DRAINING_INVOCATION_CAP',
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        completed=completed,total=n,active=len(active),seconds=time.time()-started)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\omris\TAU\hallucination_detection\scripts\run_full_sampling_v3.py", line 25, in state
+    save(OUT/'RUN_STATE.json',dict(phase=phase,pid=os.getpid(),updated_unix=time.time(),**extra))
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\omris\TAU\hallucination_detection\scripts\preflight_full_sampling_v3.py", line 36, in save
+    tmp.write_text(json.dumps(json_safe(value),indent=2,allow_nan=False),encoding='utf-8');tmp.replace(path)
+                                                                                           ~~~~~~~~~~~^^^^^^
+  File "C:\Users\DELL\AppData\Local\Programs\Python\Python313\Lib\pathlib\_local.py", line 780, in replace
+    os.replace(self, target)
+    ~~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 5] Access is denied: 'C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_full_sampling_v3\\RUN_STATE.json.tmp' -> 'C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_full_sampling_v3\\RUN_STATE.json'

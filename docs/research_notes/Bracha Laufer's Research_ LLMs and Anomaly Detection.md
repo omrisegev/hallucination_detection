@@ -1,5 +1,11 @@
 # **The Convergence of Statistical Reliability and Generative Artificial Intelligence: A Comprehensive Analysis of the Research of Bracha Laufer-Goldshtein**
 
+> Correction (2026-09-15): the earlier version incorrectly attributed Diverging
+> Flows to Bracha Laufer-Goldshtein. Its authors are Constantinos Tsakonas,
+> Serena Ivaldi and Jean-Baptiste Mouret, [arXiv:2602.13061v2](https://arxiv.org/abs/2602.13061).
+> The section below is related work, not part of her publication record. This
+> targeted correction does not independently validate the rest of this historical note.
+
 The academic trajectory of Bracha Laufer-Goldshtein represents a sophisticated evolution from classical statistical signal processing to the frontier of reliable machine learning and large language model (LLM) optimization. While her foundational work was rooted in the geometry of acoustic environments and multi-microphone processing, her recent contributions have established her as a pivotal figure in the development of uncertainty quantification (UQ) and risk-control frameworks for natural language processing (NLP). The transition from analyzing the physics of sound waves to the statistical behavior of transformers underscores a broader shift in the field, where the demand for efficiency in large-scale models must be balanced against rigorous safety and reliability guarantees. This report examines her research across three primary pillars: acoustic manifold learning, risk-controlled natural language generation, and anomaly detection in high-dimensional distributions.
 
 ## **Foundations in Acoustic Manifold Learning and Source Localization**
@@ -77,7 +83,7 @@ The eMOSAIC framework addresses three major challenges in deep learning for drug
 
 ### **Extrapolation Detection and Diverging Flows**
 
-Another key contribution to the field of anomaly detection is the "Diverging Flows" approach.11 This method enables a single model to simultaneously perform conditional generation and native extrapolation detection. It achieves this by structurally enforcing "inefficient transport" for off-manifold inputs. In simpler terms, when the model encounters data that is far from its training manifold, the "flow" of the model diverges, providing a natural signal that the input is an anomaly. This technique was evaluated on synthetic manifolds, cross-domain style transfer, and weather forecasting, demonstrating effective detection without compromising the model's primary predictive fidelity.11
+Related work by Tsakonas, Ivaldi and Mouret, "Native Extrapolation Awareness in Flow-Based Conditional Generation," introduces Diverging Flows. Repel and curve losses encourage inefficient generated transport under synthetic negative conditioning inputs. Deviation from a straight path to the generated endpoint supplies an extrapolation score. The reported applications include synthetic manifolds, weather prediction and cross-domain style transfer. The paper does not establish that extrapolation scores detect incorrect reasoning. See the [verified project digest](../../papers/digests/diverging-flows-2602-13061v2.md).
 
 ### **Outlier Detection in Acoustic Systems**
 
@@ -120,7 +126,7 @@ Moreover, her expansion into drug discovery and medicine through the eMOSAIC fra
 
 ## **Conclusion**
 
-Bracha Laufer-Goldshtein has established a comprehensive research portfolio that bridges the gap between the physical reality of acoustic signals and the statistical complexity of modern machine learning. Her recent work definitively answers the user’s query: she is actively involved in the fields of Large Language Models and Natural Language Processing, particularly in the areas of inference acceleration, generative error correction, and hallucination mitigation. Her work in anomaly detection, exemplified by the eMOSAIC and Diverging Flows frameworks, provides essential tools for maintaining model robustness in open-world scenarios.
+This historical note connects work on acoustic signal processing with uncertainty and reliability in language modeling. Its original concluding attribution of Diverging Flows to Bracha Laufer-Goldshtein was incorrect and has been removed; that paper is related work by Tsakonas, Ivaldi and Mouret.
 
 Through the development of risk-control frameworks and the application of conformal prediction, she has provided a path toward safer and more efficient AI deployment. Whether through identifying a speaker on a manifold or calibrating a transformer's generation, her research emphasizes that the success of AI in high-stakes environments depends on its ability to "know when it does not know".31 This dedication to statistical rigor, combined with an understanding of complex data modalities, positions her work at the forefront of the next generation of reliable artificial intelligence.
 

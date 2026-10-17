@@ -1,0 +1,84 @@
+{
+ "protocol_id": "lsml_merge_step_v1",
+ "version": 1,
+ "frozen_before_scoring": true,
+ "status": "FROZEN",
+ "requested_by": "Omri 2026-09-28: 'it makes no sense that the clustering does not work for us; it has to be improved' - do not replace the L-SML rule, 'only maybe add another step'; focus on clustering and on the use of the estimates; run the proposed experiment after the diagnosis.",
+ "question": "Does one label-free step added between L-SML's grouping and its weights (merge groups by the absorption ratio) repair the split of the level family and make L-SML at least as good as plain averaging of the same channels, on five banks? Separately: does Omri's band rule for the Dawid-Skene estimates (drop channels with estimated balanced accuracy in [0.45, 0.55], flip those below 0.45) improve on the current DS filter (keep > 0.5)?",
+ "provenance_of_the_merge_rule": "The rule (rho < 0.5, smallest rho first, repeated) was designed on 2026-09-28 AFTER a label-free diagnosis on these same five banks (folds 0, 2, 4; results/expectation_realization_v1/stage_b_diagnostics/clustering_merge_diag_label_free.py, commit 045866f1f), after seeing that the Kaiser/VARCLUS rule (lambda_2 < 1) depends on group size. It used no labels, but it is not blind to these banks; this run is development evidence for a label-free rule, not a confirmation. External benchmarks are the later test.",
+ "banks": {
+  "B13": "stage A/B bank (bank11 + realized_z + realized_drv), as er_generality_v1",
+  "B16": "B13 + the three decoding-independent digit features of Codex (digit_alternative, digit_spread, digit_alternative_innovation; results/digit_family_extension_v1/FEATURES.npz, masked per-answer z-score = spectral_utils/digit_feature_family.answer_standardize; active on every step). They do not use disagreement with the chosen token (not covered by the 2026-09-17 exclusion). New bank.",
+  "B20": "Step 438 bank20, as er_generality_v1",
+  "B32": "Step 439 B11_IND_lf, as er_generality_v1",
+  "B51": "52-channel step pool minus the constant channel, native orientation, as er_generality_v1",
+  "hygiene": "channels with zero variance over all steps are removed (only hist_trace_length_series in B51, as before)"
+ },
+ "chain": {
+  "marks_DS_filter_binary_partition_folds": "unchanged from er_generality_v1 (top-20% random-tie marks, key default_rng(20260928); DS em_estimate 'ds' on the PRMBench fit-fold steps; binary partition = tail_calib_common.lsml_fit_scaled on tie-aware centred marks over all fit-fold steps; eval k, calibration (k+1)%5, fit on the other three; write-once; failed fits unscored)",
+  "lsml_as_is": "fit_fusion_weights mode 'continuous' (CONT L-SML: its own group search, within-group SML, cross-group SML, small_m_guard, anchor q15_H1 orientation) - unchanged",
+  "added_step_merge": "lsml_merge_step.absorb_merge(R, partition, thr=0.5, min_groups=3): R = Pearson correlation over all fit-fold steps of the same matrix the partition was found on (continuous values of the channels for L-SML's own partition; tie-aware centred marks for the binary partition). rho(A,B) = lambda_2(R[A u B]) / min(lambda_1(R[A]), lambda_1(R[B])); merge the pair with the smallest rho while rho < 0.5; never fewer than 3 groups. Ties: first pair in label order.",
+  "lsml_weights_on_a_given_partition": "fit_fusion_weights mode 'continuous' with groups = the (merged) partition: L-SML's own within-group and cross-group SML on the continuous values, unchanged",
+  "band_rule": "on the same DS estimate pi_hat: keep pi_hat > 0.55; flip (multiply by -1; marks recomputed on the flipped values) pi_hat < 0.45; drop 0.45 <= pi_hat <= 0.55",
+  "position_adjusted_bank": "stage-B definition: V - position profile (mean by answer length and step index on the PRMBench fit-fold steps), answer re-standardized; marks, DS filter, partitions and merge recomputed on it (suffix _pos)"
+ },
+ "arms_per_bank": {
+  "ALL_equal": "average of all channels (reference)",
+  "ALL_lsml": "L-SML as is on all channels (reference; its weights are the answer to Omri's question whether SML gives reversed channels a negative weight)",
+  "DSF_equal": "DS filter (pi_hat > 0.5), then average - THE comparator for the central question",
+  "DSF_lsml": "DS filter, L-SML as is (no added step)",
+  "DSF_lsml_mC": "DS filter, L-SML's own partition, merge step, L-SML weights on the merged partition",
+  "DSF_lsml_B": "DS filter, binary partition, L-SML weights on it (no merge) - isolates the partition source",
+  "DSF_lsml_mB": "DS filter, binary partition, merge step, L-SML weights on the merged partition",
+  "DSF_Gbin": "DS filter, binary partition, equal group weights (reference, er_generality_v1)",
+  "DSF_GmB": "DS filter, merged binary partition, equal group weights",
+  "DSF_GmC": "DS filter, merged L-SML partition, equal group weights",
+  "BD_equal": "band rule without flipping (keep pi_hat > 0.55 only), then average",
+  "BF_equal": "band rule with flipping, then average",
+  "BF_lsml": "band rule with flipping, L-SML as is",
+  "BF_lsml_mB": "band rule with flipping, binary partition, merge step, L-SML weights",
+  "position_replicate": "DSF_equal, DSF_lsml, DSF_lsml_mC, DSF_lsml_mB, BF_equal on the position-adjusted bank (suffix _pos)",
+  "references": "ct7, fam421, step_index"
+ },
+ "endpoints": "PRMBench within-answer AUC and official PRMScore (primary); ProcessBench gate-free SLA macro 8 cells (reported beside; q4/q8 cells share answers)",
+ "contrasts": {
+  "primary": [
+   ["DSF_lsml_mC", "DSF_lsml", "C1: does the added step improve L-SML on its own partition"],
+   ["DSF_lsml_mB", "DSF_lsml", "C2: binary partition + added step vs L-SML as is"],
+   ["DSF_lsml_mB", "DSF_equal", "C3 (central): L-SML with the added step vs plain averaging of the same channels"],
+   ["BF_equal", "DSF_equal", "C4: Omri's band rule with flipping vs the current DS filter"]
+  ],
+  "primary_banks": ["B13", "B16", "B20", "B32", "B51"],
+  "primary_family": "4 contrasts x 5 banks x 2 PRMBench endpoints = 40, Bonferroni, 100,000 paired source-group draws (seed 20260927)",
+  "secondary": "per bank: DSF_lsml_mC - DSF_equal; DSF_lsml_B - DSF_lsml; DSF_lsml_mB - DSF_lsml_B; DSF_GmB - DSF_Gbin; DSF_GmB - DSF_equal; DSF_GmC - DSF_equal; BD_equal - DSF_equal; BF_equal - BD_equal; BF_lsml - DSF_lsml; BF_lsml_mB - DSF_lsml_mB; BF_lsml_mB - BF_equal; ALL_lsml - ALL_equal; position replicate of C1-C4; DSF_equal, DSF_lsml_mB, DSF_lsml_mC, BF_equal, BF_lsml_mB vs ct7 and fam421; 95% intervals; ProcessBench SLA of every contrast"
+ },
+ "nulls_and_robustness": "for the 20 primary within-AUC contrasts: within-answer label shuffle and whole-answer same-length label swap, 200 permutations each (seeds 11, 12); concentration of every primary within-AUC gain: share from the top 1% of answers, the gain without them, 5%-trimmed mean of per-answer deltas, per-fold deltas",
+ "diagnostics_label_free": "per bank, fold and partition source: partition before and after the merge, merge log with rho, number of groups, whether the level family (q15_H1, q15_VE1, logprob_margin, true_tail50, energy_level; names used for reporting only) sits in one group, partition identity across folds; L-SML weights of every arm",
+ "diagnostics_label_using_for_diagnosis_only": "true balanced accuracy of every channel on the same rows; band decisions vs truth; class-conditional correlations on the PRMBench fit-fold steps split into pairs between and within groups, before and after the merge (the merge should move conditionally dependent pairs out of the between-group set, which is what L-SML's cross-group SML assumes); single-channel within-AUC; sign of ALL_lsml weights on truly reversed channels",
+ "interpretation_rule_frozen": {
+  "per_contrast_and_bank": "gain = Bonferroni interval above 0 on within-AUC; loss = below 0; otherwise no established difference",
+  "general": "gain on at least 3 of the 5 banks and loss on none",
+  "C1_scope": "C1 is counted only on banks where the step changed L-SML's own partition in at least 3 of 5 folds; elsewhere C1 is reported as 'step inactive'",
+  "central_answer": "L-SML with the added step beats averaging iff C3 is general; it is 'at least as good as averaging' iff the C3 Bonferroni lower bound is above -0.002 on all five banks",
+  "band_answer": "the band rule improves on the DS filter iff C4 is general",
+  "otherwise": "not established; PRMScore, ProcessBench and position-adjusted results reported beside and never used to rescue a within-AUC failure; any gain whose same-length swap null mean is at least half of it is called mostly positional"
+ },
+ "predictions_frozen": {
+  "P1": "label-free: the merge changes the binary partition in every fold on B13, B16, B20, B51 and in no fold on B32; it changes L-SML's own partition on B13 and B16 only",
+  "P2": "B13: the automatic merge of the binary partition equals the stage-B2 manual level merge in all 5 folds, so DSF_lsml_mB equals stage-B2 L_grp__merge (0.7788) exactly",
+  "P3": "C1 and C2 points > 0 on B13 and B16",
+  "P4": "C3 point < 0 on at least 3 of 5 banks (the step repairs the partition but L-SML's weights still do not beat averaging; stage B2: 0.7788 vs 0.7802)",
+  "P5": "C4 point > 0 on B51 (reversed channels informative when flipped) and |C4| < 0.002 on B13 and B20",
+  "P6": "after the merge, the mean |class-conditional correlation| between groups falls on every bank and fold where the merge fires"
+ },
+ "hard_stops": [
+  "input hashes differ from the stage-A / Step 439 manifests",
+  "B13, B20, B32, B51 arms ALL_equal, ALL_lsml, DSF_equal, DSF_lsml, DSF_Gbin, DSF_equal_pos differ from er_generality_v1 run_20260927 evaluation rows by > 1e-9",
+  "B13: in a fold where the automatic merged binary partition equals the manual stage-B2 level merge, DSF_lsml_mB / DSF_GmB / DSF_lsml_B differ from stage-B2 L_grp__merge / B_equal__merge / L_grp__base by > 1e-9",
+  "where the merge leaves L-SML's own partition unchanged, DSF_lsml_mC differs from DSF_lsml by > 1e-8 (the given-partition path must reproduce L-SML)",
+  "mark counts not ceil(0.2 n); any evaluation row written twice"
+ ],
+ "review": "independent pre-run code review of the fold-0 smoke; after the run a red team of three agents (recomputation, coverage, nulls/math)",
+ "budget": "CPU only, <= 1.5 hours",
+ "outputs": "results/lsml_merge_step_v1/run_20260928/: RUN_STATUS, INPUT_MANIFEST, CODE_MANIFEST, FIT_MANIFEST.jsonl, METRICS.csv, CONTRASTS.csv, PB_CONTRASTS.csv, CHANNELS.csv, PARTITIONS.json, DEPENDENCE.csv, NULLS.json, CONCENTRATION.json, FAILURES.csv, TIMING.json; SUMMARY.md; npz kept locally"
+}

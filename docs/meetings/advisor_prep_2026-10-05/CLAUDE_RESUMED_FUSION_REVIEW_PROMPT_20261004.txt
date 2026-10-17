@@ -1,0 +1,45 @@
+Please independently review the resumed Monday fusion analysis. Review only; do not change Codex's branch, code, protocols or outputs, and do not stop an active runner.
+
+Workspace: C:\Users\omris\TAU\hallucination_detection
+Branch: codex/monday-fusion-analysis-20261003
+Resume correction commit: 203a0f849058cbe62b4fdbdf6b7236fe5beef5cb
+Code export: results/monday_fusion_analysis_v1/code/
+Runbook / implementation plan: results/monday_fusion_analysis_v1/code/docs/experiments/MONDAY_FUSION_ANALYSIS_20261003.md
+Omri's requested presentation findings: docs/meetings/advisor_prep_2026-10-05/FUSION_GRAPH_TAKEAWAYS_20261004_HE.html and matching JSON.
+
+Preserved original runs (the outputs you reviewed earlier):
+  results/level_reduction_v1/run_20261003/
+  results/estimator_input_v1/run_20261003/
+Your original review: results/monday_fusion_review_claude_20261004/REVIEW.md
+
+Active resumed runs:
+  results/level_reduction_v1/run_20261004_resume/
+  results/estimator_input_v1/run_20261004_resume/
+Each contains the unchanged original PROTOCOL.json / INPUT_MANIFEST.json plus REVIEW_CORRECTIONS_V2.json. Sealed completed chunks are reused by immutable hardlinks. Mutable aggregate files are independent copies. Verify the original top-level hashes recorded in the revision notes; never rewrite a shared checkpoint.
+
+Check liveness before interpreting completeness:
+  results/monday_fusion_analysis_v1/WORKFLOW_STATUS.json
+  results/monday_fusion_analysis_v1/RESUME_20261004.log
+  results/monday_fusion_analysis_v1/RESUME_SESSION_20261004.json
+The last file records PID/session, not a guarantee that the process is still alive.
+Expected sequence: completed content -> corrected contrasts -> position/decision -> LR -> secondary contrasts -> packages/figures/reports -> full-population combined check -> AWAITING_OMRI_DECISION_RULE.
+Do not label unfinished stages as failures or completed findings. F11/F12 require Omri's explicit rule choice and the final recipe lock.
+
+Specific questions to resolve:
+1. Selection correction: exclude random LEVEL controls; keep the original equal-weight eight-bank matched-EQ advantage rule; remove the artificial zero-gain DS_FILTER_EQ candidate. Verify all 54 original candidate statistics reproduce exactly, and distinguish direct intervention effects from weighting gains. Evidence: results/monday_fusion_analysis_v1/SELECTION_REVISION_CHECKS_20261004.json.
+2. Omri specifically wants the HEM_MOM input result shown: original feature banks, channels_cell versus groups_answer, PB argmax first-error accuracy +0.010620. Independently recompute the paired source-question uncertainty, equal banks/cells, full coverage, and all direct comparisons. Codex's 95% interval is approximately [0.004753,0.016443], with exploratory family-40 Bonferroni interval [0.001183,0.020615]. Confirm or correct; do not describe this as preregistered confirmation or superiority to competing detectors. PRMB within-answer AUC is +0.000649 with an interval including zero.
+3. On that same HEM_MOM comparison, verify q80 official F1 delta about -0.005291 and clean-answer flag-rate delta +0.004413. Distinguish highest-scoring step from earliest flagged step. Review the eventual three-rule table on the same scores, with separate PRMScore, F1, clean flags and answer AUROC. Omri chooses the final rule.
+4. Anchor correction: inspect the callee, not just its signature. tail_calib_common.lsml_fit_scaled does not pass the anchor into group discovery; it orients returned weights that fit_content discards. Across 720 saved group SML fits, anchor_flipped is false; across 720 MoM fits, t has both positive sum and positive majority. See results/monday_fusion_review_response_20261004/ANCHOR_CLARIFICATION_20261004.json. Verify whether there is any actual anchor-specific sign effect before repeating the prior grouping-confound claim.
+5. Marks histograms flatten answer-by-column counts. Check n_answers*n_columns, and do not interpret zero-count proportions as whole answers with no marks anywhere.
+6. Position/decision: replay gate, group-preserving crossfit, explicit invalid halves, position-only and equal-share controls, shuffled/whole-answer same-length nulls with valid PB first-error targets, singleton coverage. Null results are diagnostic, not causal attribution.
+7. LR: source-question folds, class_weight balanced, scaler/C fit only in training folds, unknown PB post-error steps excluded from training, OOF reporting without pooling calibrated fold probabilities, explicit failures and separate in-sample diagnostics.
+8. Full-population final/combined check: same recipe and matched controls, no forced LEVEL removal; no arbitrary promotion of the interesting HEM result. F11/F12, when available, must use the same locked recipe. Current code conditions input selection on the chosen within/between recipe rather than stitching different independent winners.
+
+New numerical evidence and independent audit scripts:
+  results/monday_fusion_review_response_20261004/recheck.py
+  results/monday_fusion_review_response_20261004/DIRECT_CONTRASTS.csv
+  results/monday_fusion_review_response_20261004/ABSOLUTE_METRICS.csv
+  results/monday_fusion_review_response_20261004/AUDIT.json
+The resumed experiments also carry DIRECT_INTERVENTION_CONTRASTS_REVIEW.csv with explicit post-review exploratory provenance. The original review-response HTML's anchor explanation was corrected in its render source; consult ANCHOR_CLARIFICATION for the authoritative follow-up.
+
+Deliver a separate Hebrew review with a claim / verdict / numerical evidence / file / N / completion-status table. Recompute headline scores and source-group intervals independently, inspect full population coverage, and run the shuffled-label null before approving a final slide claim. Preserve all inputs and record hashes before and after. Separate code defects from proposals to change Omri's research question. Do not send messages or modify the Monday deck automatically.

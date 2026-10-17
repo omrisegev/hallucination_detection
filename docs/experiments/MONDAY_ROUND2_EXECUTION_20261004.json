@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "date": "2026-10-04",
+  "status": "IMPLEMENTING_USER_REQUESTED_REVIEW_FOLLOWUP",
+  "sources": [
+    "results/monday_fusion_review_claude_20261004_round2/MESSAGE_TO_CODEX_1_LR_HELPER.md",
+    "results/monday_fusion_review_claude_20261004_round2/MESSAGE_TO_CODEX_2_CANDIDATE_PANEL.md"
+  ],
+  "assumption": "Omri's forwarded instructions authorize the specified parallel LR computation and replace automatic combined selection with his candidate/rule choice.",
+  "preserve": ["frozen protocols", "input manifests", "sealed content and layer checkpoints", "running preceding stages", "labels and folds", "LR algorithm and C grid"],
+  "changes": {
+    "lr": "Standalone two-thread helper computes the identical original LR fits early from completed content. Exact deterministic replay gate, per-bank memory bounds, immutable final sentinel, conservative runner-distance collision checks and stop file. Main run consumes verified completed stems.",
+    "combined": "The loaded legacy workflow cannot acquire a new stop flag by editing its source. A small identity-checked guardian will terminate only the original continue PID at its completed input_report / combined boundary. Earlier stages are preserved. Guardian status is authoritative if legacy ledger remains RUNNING after termination.",
+    "selection": "A four-candidate original-bank panel replaces automatic combined-recipe adoption: MEAN_MOM and HEM_MOM, each with groups_answer and channels_cell. Omri selects candidate and rule; no freeze-rule or final comparator pass before that choice.",
+    "comparators": "Cached preselection descriptive development forensics are allowed for the panel and must identify all viewed candidates/rules. They are neither a locked final recipe nor untouched confirmation. No new inference or external evaluation."
+  },
+  "success_checks": [
+    "One small PB LR stem reproduces in two fresh processes excluding runtime",
+    "Helper computational source hashes equal the pinned committed export",
+    "Every restored content recipe preserves the sealed per-answer argmax",
+    "No completed LR stem is overwritten; final artifact hashes verify",
+    "Panel reproduces sealed content/layers and independently cross-checks Claude's table",
+    "Missing layers or LR references are explicit; no partial-population headline",
+    "No automatic candidate selection or recipe lock is emitted"
+  ],
+  "stop_conditions": ["source mismatch", "restored-score replay mismatch", "checkpoint hash mismatch", "insufficient disk", "unverifiable writer ownership"]
+}

@@ -1,0 +1,157 @@
+Loading 25 in-scope cells...
+[iter_cells] qa/spectral_phase9_cache_webq_traces_T1.0: single-class labels — skipped
+Loaded 24/25 cells for Stage 2 Anchor Audit.
+VALIDITY: GOOD_6 macro = 0.7733 (expected 0.7733 +/- 0.002) -> PASS
+VALIDITY: U-PCR + sign(rho) macro = 0.7741 (expected 0.7741 +/- 0.002) -> PASS
+
+=== What is getting EVERY feature's direction right worth? ===
+  GSM8K / R1-Distill-8B              0.7385 -> 0.7392 (+0.07pp)
+  TriviaQA / Mistral-24B             0.7457 -> 0.7457 (+0.00pp)   [exactly unchanged]
+  GSM8K / Qwen2.5-7B                 0.7082 -> 0.7082 (+0.00pp)   [exactly unchanged]
+  GSM8K / Llama-3B                   0.6992 -> 0.6992 (+0.00pp)   [exactly unchanged]
+  GSM8K / Llama-8B                   0.8108 -> 0.8108 (+0.00pp)   [exactly unchanged]
+  GSM8K / Mistral-24B                0.8486 -> 0.8486 (+0.00pp)   [exactly unchanged]
+  GSM8K / Nemo                       0.7973 -> 0.7973 (+0.00pp)   [exactly unchanged]
+  GSM8K / Phi-3.5                    0.8088 -> 0.8088 (+0.00pp)   [exactly unchanged]
+  HotpotQA / Mistral-7B              0.5696 -> 0.5750 (+0.54pp)
+  MATH-500 / DeepSeek-Math-7B        0.7865 -> 0.7865 (+0.00pp)   [exactly unchanged]
+  MATH-500 / Qwen-Math-7B            0.9155 -> 0.8924 (-2.31pp)
+  MATH-500 / R1-Distill-8B           0.8386 -> 0.8386 (+0.00pp)   [exactly unchanged]
+  MATH-500 / R1-Distill-8B (long)    0.8358 -> 0.8358 (+0.00pp)   [exactly unchanged]
+  GSM8K / Mistral-7B                 0.7831 -> 0.7831 (+0.00pp)   [exactly unchanged]
+  GSM8K / Phi-3-mini                 0.6831 -> 0.6820 (-0.11pp)
+  SciQ / Llama-8B                    0.7390 -> 0.7434 (+0.44pp)
+  NQ-Open / Llama-8B                 0.7469 -> 0.7469 (+0.00pp)   [exactly unchanged]
+  SQuAD-v2 / Llama-8B                0.8103 -> 0.8103 (+0.00pp)   [exactly unchanged]
+  TriviaQA / OPT-30B                 0.8119 -> 0.8119 (+0.00pp)   [exactly unchanged]
+  TriviaQA / Qwen3-8B                0.8103 -> 0.8103 (+0.00pp)
+  TriviaQA / Llama-8B                0.9300 -> 0.9300 (+0.00pp)   [exactly unchanged]
+  GSM8K / Llama-8B (10 samples)      0.8113 -> 0.8098 (-0.16pp)
+  MATH-500 / Qwen-Math-1.5B (10 samp 0.6861 -> 0.6861 (+0.00pp)   [exactly unchanged]
+  TruthfulQA / Llama-8B              0.6634 -> 0.6634 (+0.00pp)   [exactly unchanged]
+  saved results\upcr_study\11_posthoc_controls\sign_ceiling.csv  (24 rows)
+
+  oracle sign vs deployed: -0.06pp mean / +0.00pp median, 95% CI [-0.29, +0.08], 4W/3L over 24, p=1.0000
+
+=== The blend ceiling, held out across rows ===
+  GSM8K / R1-Distill-8B              0.7216 -> 0.7473 (+2.57pp)
+  TriviaQA / Mistral-24B             0.7291 -> 0.7255 (-0.36pp)
+  GSM8K / Qwen2.5-7B                 0.7138 -> 0.7177 (+0.39pp)
+  GSM8K / Llama-3B                   0.6913 -> 0.6938 (+0.25pp)
+  GSM8K / Llama-8B                   0.8064 -> 0.8151 (+0.87pp)
+  GSM8K / Mistral-24B                0.8608 -> 0.8574 (-0.34pp)
+  GSM8K / Nemo                       0.8016 -> 0.8003 (-0.14pp)
+  GSM8K / Phi-3.5                    0.8086 -> 0.8076 (-0.10pp)
+  HotpotQA / Mistral-7B              0.5618 -> 0.5583 (-0.35pp)
+  MATH-500 / DeepSeek-Math-7B        0.7911 -> 0.7885 (-0.26pp)
+  MATH-500 / Qwen-Math-7B            0.9206 -> 0.9221 (+0.14pp)
+  MATH-500 / R1-Distill-8B           0.8258 -> 0.8166 (-0.92pp)
+  MATH-500 / R1-Distill-8B (long)    0.8316 -> 0.8316 (-0.00pp)
+  GSM8K / Mistral-7B                 0.7890 -> 0.7881 (-0.10pp)
+  GSM8K / Phi-3-mini                 0.6696 -> 0.6691 (-0.05pp)
+  SciQ / Llama-8B                    0.7496 -> 0.7439 (-0.57pp)
+  NQ-Open / Llama-8B                 0.7511 -> 0.7570 (+0.59pp)
+  SQuAD-v2 / Llama-8B                0.8107 -> 0.8118 (+0.11pp)
+  TriviaQA / OPT-30B                 0.8113 -> 0.8263 (+1.50pp)
+  TriviaQA / Qwen3-8B                0.8135 -> 0.8173 (+0.38pp)
+  TriviaQA / Llama-8B                0.9476 -> 0.9440 (-0.36pp)
+  GSM8K / Llama-8B (10 samples)      0.8105 -> 0.8125 (+0.20pp)
+  MATH-500 / Qwen-Math-1.5B (10 samp 0.6902 -> 0.6878 (-0.24pp)
+  TruthfulQA / Llama-8B              0.6645 -> 0.6787 (+1.42pp)
+  saved results\upcr_study\11_posthoc_controls\mix_splithalf.csv  (24 rows)
+
+  best angle (split-half) vs deployed: +0.19pp mean / -0.03pp median, 95% CI [-0.08, +0.51], 11W/13L over 24, p=0.5646
+
+=== The honest floor: random subsets of the oracle's own size ===
+  GSM8K / R1-Distill-8B              k=12 deployed 0.7418 | random +0.45pp | shallow +3.06pp
+  TriviaQA / Mistral-24B             k=13 deployed 0.7357 | random -0.85pp | shallow +0.04pp
+  GSM8K / Qwen2.5-7B                 k= 7 deployed 0.7247 | random -1.96pp | shallow +3.83pp
+  GSM8K / Llama-3B                   k=13 deployed 0.7011 | random -1.12pp | shallow +0.66pp
+  GSM8K / Llama-8B                   k= 8 deployed 0.8142 | random -1.31pp | shallow -0.59pp
+  GSM8K / Mistral-24B                k=13 deployed 0.8424 | random -0.84pp | shallow +0.30pp
+  GSM8K / Nemo                       k= 9 deployed 0.7992 | random -1.76pp | shallow +0.01pp
+  GSM8K / Phi-3.5                    k=12 deployed 0.8191 | random -1.99pp | shallow +0.04pp
+  HotpotQA / Mistral-7B              k= 5 deployed 0.5611 | random -0.86pp | shallow -0.10pp
+  MATH-500 / DeepSeek-Math-7B        k=15 deployed 0.7827 | random -1.24pp | shallow +0.93pp
+  MATH-500 / Qwen-Math-7B            k= 5 deployed 0.9137 | random -3.05pp | shallow +0.48pp
+  MATH-500 / R1-Distill-8B           k= 7 deployed 0.8212 | random -2.29pp | shallow +0.91pp
+  MATH-500 / R1-Distill-8B (long)    k= 8 deployed 0.8344 | random -2.80pp | shallow -0.19pp
+  GSM8K / Mistral-7B                 k= 8 deployed 0.7781 | random -2.31pp | shallow +0.62pp
+  GSM8K / Phi-3-mini                 k=13 deployed 0.6936 | random -0.93pp | shallow -0.15pp
+  SciQ / Llama-8B                    k=15 deployed 0.7587 | random +0.12pp | shallow +0.47pp
+  NQ-Open / Llama-8B                 k=11 deployed 0.7465 | random -1.15pp | shallow +0.41pp
+  SQuAD-v2 / Llama-8B                k=13 deployed 0.8232 | random -1.37pp | shallow +1.11pp
+  TriviaQA / OPT-30B                 k=11 deployed 0.8141 | random +0.41pp | shallow +1.72pp
+  TriviaQA / Qwen3-8B                k=15 deployed 0.8094 | random -2.69pp | shallow +0.57pp
+  TriviaQA / Llama-8B                k= 9 deployed 0.9301 | random -4.75pp | shallow -0.13pp
+  GSM8K / Llama-8B (10 samples)      k=10 deployed 0.8173 | random -1.40pp | shallow -0.16pp
+  MATH-500 / Qwen-Math-1.5B (10 samp k= 4 deployed 0.6791 | random -0.72pp | shallow +1.12pp
+  TruthfulQA / Llama-8B              k= 7 deployed 0.6668 | random -2.88pp | shallow +1.70pp
+  saved results\upcr_study\11_posthoc_controls\random_control.csv  (24 rows)
+
+  random same-size vs deployed: -1.55pp mean / -1.34pp median, 95% CI [-2.03, -1.10], 3W/21L over 24, p=0.0000
+
+  shallow label search vs deployed: +0.69pp mean / +0.48pp median, 95% CI [+0.33, +1.13], 18W/6L over 24, p=0.0016
+
+=== Does the good feature set transfer between test sets? ===
+  GSM8K / R1-Distill-8B              deployed 0.7385 | LOCO top10 -3.18pp | LOCO own-size -1.24pp
+  TriviaQA / Mistral-24B             deployed 0.7457 | LOCO top10 -0.32pp | LOCO own-size +0.25pp
+  GSM8K / Qwen2.5-7B                 deployed 0.7082 | LOCO top10 +2.46pp | LOCO own-size +3.55pp
+  GSM8K / Llama-3B                   deployed 0.6992 | LOCO top10 +1.95pp | LOCO own-size -0.28pp
+  GSM8K / Llama-8B                   deployed 0.8108 | LOCO top10 -0.17pp | LOCO own-size +1.36pp
+  GSM8K / Mistral-24B                deployed 0.8486 | LOCO top10 +1.69pp | LOCO own-size +1.20pp
+  GSM8K / Nemo                       deployed 0.7973 | LOCO top10 +2.12pp | LOCO own-size +2.99pp
+  GSM8K / Phi-3.5                    deployed 0.8088 | LOCO top10 -0.12pp | LOCO own-size +0.31pp
+  HotpotQA / Mistral-7B              deployed 0.5696 | LOCO top10 +0.48pp | LOCO own-size +0.95pp
+  MATH-500 / DeepSeek-Math-7B        deployed 0.7865 | LOCO top10 +0.88pp | LOCO own-size +1.39pp
+  MATH-500 / Qwen-Math-7B            deployed 0.9155 | LOCO top10 -26.26pp | LOCO own-size -21.10pp
+  MATH-500 / R1-Distill-8B           deployed 0.8386 | LOCO top10 -2.45pp | LOCO own-size -0.82pp
+  MATH-500 / R1-Distill-8B (long)    deployed 0.8358 | LOCO top10 +2.09pp | LOCO own-size -3.28pp
+  GSM8K / Mistral-7B                 deployed 0.7831 | LOCO top10 +0.89pp | LOCO own-size +1.68pp
+  GSM8K / Phi-3-mini                 deployed 0.6831 | LOCO top10 -0.92pp | LOCO own-size -0.42pp
+  SciQ / Llama-8B                    deployed 0.7390 | LOCO top10 +1.91pp | LOCO own-size +0.99pp
+  NQ-Open / Llama-8B                 deployed 0.7469 | LOCO top10 -0.03pp | LOCO own-size -0.11pp
+  SQuAD-v2 / Llama-8B                deployed 0.8103 | LOCO top10 +1.91pp | LOCO own-size +1.37pp
+  TriviaQA / OPT-30B                 deployed 0.8119 | LOCO top10 -1.22pp | LOCO own-size -1.37pp
+  TriviaQA / Qwen3-8B                deployed 0.8103 | LOCO top10 -39.23pp | LOCO own-size -9.90pp
+  TriviaQA / Llama-8B                deployed 0.9300 | LOCO top10 +0.47pp | LOCO own-size +1.87pp
+  GSM8K / Llama-8B (10 samples)      deployed 0.8113 | LOCO top10 -0.17pp | LOCO own-size -0.17pp
+  MATH-500 / Qwen-Math-1.5B (10 samp deployed 0.6861 | LOCO top10 +0.85pp | LOCO own-size -0.20pp
+  TruthfulQA / Llama-8B              deployed 0.6634 | LOCO top10 -0.40pp | LOCO own-size +1.44pp
+  saved results\upcr_study\11_posthoc_controls\loco_transfer.csv  (24 rows)
+
+  LOCO top-10 vs deployed: -2.37pp mean / +0.22pp median, 95% CI [-6.73, +0.65], 12W/12L over 24, p=0.6840
+
+  LOCO at own size vs deployed: -0.81pp mean / +0.28pp median, 95% CI [-3.10, +0.78], 13W/11L over 24, p=0.4223
+
+=== Does U-PCR's own ranking find the good features? ===
+  GSM8K / R1-Distill-8B              k=12 overlap 0.250 (random 0.398)  top10 -4.01pp
+  TriviaQA / Mistral-24B             k=13 overlap 0.462 (random 0.470)  top10 +0.13pp
+  GSM8K / Qwen2.5-7B                 k= 7 overlap 0.143 (random 0.243)  top10 -4.37pp
+  GSM8K / Llama-3B                   k=13 overlap 0.538 (random 0.435)  top10 +1.07pp
+  GSM8K / Llama-8B                   k= 8 overlap 0.125 (random 0.286)  top10 -1.15pp
+  GSM8K / Mistral-24B                k=13 overlap 0.615 (random 0.434)  top10 +0.50pp
+  GSM8K / Nemo                       k= 9 overlap 0.222 (random 0.313)  top10 -2.76pp
+  GSM8K / Phi-3.5                    k=12 overlap 0.417 (random 0.412)  top10 -1.80pp
+  HotpotQA / Mistral-7B              k= 5 overlap 0.000 (random 0.176)  top10 -0.08pp
+  MATH-500 / DeepSeek-Math-7B        k=15 overlap 0.600 (random 0.498)  top10 -0.43pp
+  MATH-500 / Qwen-Math-7B            k= 5 overlap 0.400 (random 0.180)  top10 -2.97pp
+  MATH-500 / R1-Distill-8B           k= 7 overlap 0.286 (random 0.249)  top10 -0.35pp
+  MATH-500 / R1-Distill-8B (long)    k= 8 overlap 0.250 (random 0.281)  top10 -0.51pp
+  GSM8K / Mistral-7B                 k= 8 overlap 0.000 (random 0.280)  top10 -3.83pp
+  GSM8K / Phi-3-mini                 k=13 overlap 0.308 (random 0.445)  top10 -2.24pp
+  SciQ / Llama-8B                    k=15 overlap 0.467 (random 0.498)  top10 -0.67pp
+  NQ-Open / Llama-8B                 k=11 overlap 0.636 (random 0.408)  top10 -0.06pp
+  SQuAD-v2 / Llama-8B                k=13 overlap 0.538 (random 0.482)  top10 -3.06pp
+  TriviaQA / OPT-30B                 k=11 overlap 0.636 (random 0.575)  top10 +0.64pp
+  TriviaQA / Qwen3-8B                k=15 overlap 0.733 (random 0.553)  top10 -2.35pp
+  TriviaQA / Llama-8B                k= 9 overlap 0.333 (random 0.325)  top10 -3.40pp
+  GSM8K / Llama-8B (10 samples)      k=10 overlap 0.200 (random 0.342)  top10 -1.02pp
+  MATH-500 / Qwen-Math-1.5B (10 samp k= 4 overlap 0.000 (random 0.128)  top10 -1.03pp
+  TruthfulQA / Llama-8B              k= 7 overlap 0.000 (random 0.240)  top10 -4.59pp
+  saved results\upcr_study\11_posthoc_controls\rho_ranking.csv  (24 rows)
+
+  overlap with the |rho| ranking 0.340 vs random 0.360 -> AT OR BELOW chance
+  saved results\upcr_study\11_posthoc_controls\summary.json
+
+Wrote -> C:\Users\omris\TAU\hallucination_detection\results\upcr_study\11_posthoc_controls

@@ -1,0 +1,95 @@
+{
+ "stage": "pb_tail_weights_v1",
+ "date": "2026-09-27",
+ "written": "before any fit, score or metric of this stage; committed together with the script before the run",
+ "requested_by": "Omri, 2026-09-27: learn the fusion weights from the binary top-20% tail marks (the binary learning object), apply them to the continuous signals, and check whether this works on ProcessBench with the leading representations. Plan approved in the conversation ('execute').",
+ "question": "On ProcessBench, do L-SML weights learned from tie-aware top-20% tail marks and applied to the continuous step signals beat equal weights on the SAME representation, and does fitting the weights on ProcessBench rows only change that?",
+
+ "prior_evidence_read_before_this_protocol": {
+  "note": "all ProcessBench numbers below are argmax first-error hits on the 4,442 erroneous PB answers, macro over 8 cells, weights fitted on pooled PB+PRMB fit rows",
+  "family15": "results/family_tail_calfix_v1 (ssl worktree): F15_equal 36.51, F15_cov_lsml 36.50, F15_tailtie_lsml 37.18 (unstandardized marks, K=2 artefact); results/tail_threshold_calibration_v1: corrected standardized-mark row T20s 36.38",
+  "bank11": "B11_equal 34.95, B11_lsml 34.80, B11_tailtie_lsml 34.67 (unstandardized marks)",
+  "ct7_token_level": "results/ct7_token_tail_lsml_calfix_v1 (this worktree): token-level fusion then Top10: equal_r10 38.30, cov_lsml_r10 37.19, tailtie20_lsml_r10 37.65 (tail vs equal -0.65 [-1.20,-0.11]); readout_then_equal_matched_r10 41.36; CT7 39.89",
+  "never_run": "tail-mark weights on the Top10-per-stream CT7 step readouts (the ProcessBench leader); any PB-only fit scope; official ProcessBench F1 for these rows"
+ },
+
+ "population": {
+  "answers": "13,769 development answers (6,800 ProcessBench: 4,442 erroneous + 2,358 clean, 8 cells = 4 subsets x 2 scoring backbones; 6,969 PRMBench), v3 labels, source folds v2 (calfix_common.Population == ct7_levers_common.LightDataset, asserted)",
+  "roles": "calfix contract: outer fold k fits on the three folds other than k and (k+1)%5, calibrates on (k+1)%5, evaluates k; one model per (row, outer fold) scores its calibration and evaluation folds into write-once arrays (calfix_common.ScoreBundle)",
+  "status": "exposed development data; CT7 was developed on these data. No result of this stage is confirmation."
+ },
+
+ "representations": {
+  "ct7r": "the seven CT7 token streams (spectral_utils.ct7_token_streams.STREAMS), step-0 despike on the chosen-token column, answer-local masked z per stream, donor token standardizer fitted on the fit folds (60,000-token deterministic sample), Top10 mean per stream per step over the all-valid token mask (ct7_token_tail_lsml_calfix_v1.topk_readout). This is exactly the input of readout_then_equal_matched_r10 (41.36). For the learned rows the seven step readouts are column-standardized with the mean/sd of the POOLED fit-fold rows of outer fold k (a positive affine map per column, same for every answer): X = (R_k - mu_k) / sd_k.",
+  "f15": "family15 exactly as results/tail1_transfer_v3: 48 answer-standardized channels from pool_z.npy (sha d9abccfb...), source signs and 15 families from TRANSFER_LOCK_V2 (sha 0c5c5599...), equal mean of oriented members, answer-standardized. Anchor family level_entropy.",
+  "b11": "bank11 exactly as the frozen bank11 row: the 11 unoriented answer-standardized channels of TRANSFER_LOCK_V2 recipe.bank11. Anchor column 0."
+ },
+
+ "rules": {
+  "equal": "equal mean of the representation's columns (ct7r: of X; f15/b11: of the answer-standardized columns)",
+  "cov_lsml": "continuous L-SML fitted on the continuous columns of the scope's fit rows, applied to the continuous columns. f15/b11: calfix_common.lsml_fit (the frozen recipe, no re-standardization). ct7r: tail_calib_common.lsml_fit_scaled(standardize=True, loading_scale='unit').",
+  "tail": "THE TESTED IDEA. Marks = calfix_common.tail_marks(columns, frac=0.20, tie_aware=True, centred=True): per answer and column the top ceil(0.2 n) steps, boundary ties share the remaining mass, centred within answer. tail_calib_common.lsml_fit_scaled(marks[fit rows], anchor, orient_X=continuous[fit rows], standardize=True, loading_scale='unit') (the Step 443 input contract; without it K collapses to 2). The weights are applied to the continuous columns (continuous @ w), as in the frozen V2/V3 tail rows.",
+  "votes": "control: the same tail weights applied to the standardized marks themselves (marks @ (w / fit_sd); differs from standardized-marks @ w by a global constant removed by answer-z). Checks whether the continuous application is what helps.",
+  "part_equal": "control: equal weight per group discovered by the tail fit, equal within group (extgen partition_equal), applied to the continuous columns. Checks whether the learned weights add anything beyond the learned partition.",
+  "extra_rows": {"ct7r_leader": "readout_then_equal_matched_r10 replayed exactly (mean of the unstandardized readouts R_k, then answer-z): the ProcessBench leader row", "ct7": "frozen CT7 step scores, answer-z (reference)"}
+ },
+
+ "fit_scopes": {
+  "pooled": "fit rows = all steps of the fit-fold answers (PB+PRMB), as every earlier tail run; row names without suffix",
+  "pb": "NEW: fit rows = steps of the fit-fold PROCESSBENCH answers only; suffix '_pb'. Applies to cov_lsml, tail, votes, part_equal. The ct7r token standardizer and the ct7r column standardization stay on the pooled fit folds (identical representation in both scopes); only the weight-fitting rows change."
+ },
+
+ "final_normalization": "every row answer-z (f15/b11/ct7 rows with calfix_common.Population.answer_z, ct7r rows with ct7_levers_common.answer_z, each chosen so that its replay row is bit-exact; both are within-answer mean/sd standardization, constant answers -> 0)",
+
+ "endpoints": {
+  "primary": "pb_sla_macro8: first-error hit of the within-answer argmax (first step within 8 eps of the maximum, calfix_evaluate rule) on the 4,442 erroneous PB answers, macro over 8 cells. Isolates the effect of the weights on localization; comparable with every earlier row.",
+  "secondary": "pb_f1_q80: official ProcessBench F1 under the official PRM protocol: threshold tau = q80 of the model's pooled (PB+PRMB) calibration-fold scores (the label-free P1 threshold of the PRMScore contract), predicted first error = first step with score >= tau, none -> 'no error'. Per cell F1 = harmonic mean of accuracy on erroneous answers (prediction == first error) and accuracy on clean answers (prediction == no error); macro over 8 cells. Measures weights and decision rule together.",
+  "descriptive": {
+   "pb_f1_common_gate": "the project's standing PB F1 (cvf_v2.scoring.pb_metrics): the frozen CT7 gate (CT7_DEV_SCORES.npz 'gate', identical for every row) decides which answers are flagged, np.argmax locates the step. Differences between rows come from the locator only. Replay: CT7 = 0.41188745848863717.",
+   "pb_f1_label": "LABEL-USING PANEL: tau chosen from the 50 pooled calibration-fold quantiles 0.50..0.99 by the calibration fold's PB macro F1 (calibration labels only), applied to the evaluation fold. Same access for every row; reported separately.",
+   "prmscore": "PRMBench PRMScore P1/P1b/P2 and within-answer AUC from calfix_evaluate.evaluate (unchanged frozen evaluator). PRMScore P1 is the GUARD: Holm over the same 10 primary contrasts."
+  }
+ },
+
+ "primary_contrasts_holm10": [
+  ["ct7r_tail", "ct7r_equal", "CT7 readouts: tail weights vs matched equal"],
+  ["ct7r_tail", "ct7r_cov_lsml", "CT7 readouts: tail vs continuous L-SML"],
+  ["ct7r_tail_pb", "ct7r_tail", "CT7 readouts: PB-only fit vs pooled fit"],
+  ["ct7r_tail", "ct7r_leader", "CT7 readouts: tail vs the ProcessBench leader row (unstandardized equal mean)"],
+  ["f15_tail", "f15_equal", "family15: tail vs matched equal"],
+  ["f15_tail", "f15_cov_lsml", "family15: tail vs continuous L-SML"],
+  ["f15_tail_pb", "f15_tail", "family15: PB-only fit vs pooled fit"],
+  ["b11_tail", "b11_equal", "bank11: tail vs matched equal"],
+  ["b11_tail", "b11_cov_lsml", "bank11: tail vs continuous L-SML (the frozen bank11 L-SML)"],
+  ["b11_tail_pb", "b11_tail", "bank11: PB-only fit vs pooled fit"]
+ ],
+ "descriptive_contrasts_rule": "for each representation r: r_tail vs r_votes, r_tail vs r_part_equal, r_tail_pb vs r_equal, r_tail_pb vs r_cov_lsml_pb, r_cov_lsml_pb vs r_cov_lsml, r_tail_pb vs r_votes_pb, r_tail_pb vs r_part_equal_pb, r_tail vs ct7; plus ct7r_equal vs ct7r_leader (scaling bridge), ct7r_leader vs ct7, ct7r_tail vs f15_tail, ct7r_tail_pb vs ct7r_leader",
+
+ "statistics": "paired source-group bootstrap, 20,000 multinomial draws. SLA and PRMScore/within-AUC from calfix_evaluate.evaluate (seed 20260924; SLA draws over the source groups of the erroneous PB answers). F1 endpoints: draws over the source groups of ALL 6,800 PB answers (seed 20260927), per-cell F1 recomputed from the resampled counts in each draw. Two-sided bootstrap p = min(1, 2 min(P(d<=0), P(d>=0))). Holm over the 10 primary contrasts separately for the primary endpoint (SLA), the secondary endpoint (F1 q80) and the guard (PRMScore P1).",
+
+ "replay_gates_stop_on_failure": {
+  "anchors": "ct7_levers_common.light_dataset replays CT7 gated macro-F1 0.41188745848863717 and within-AUC 0.7723966352864217",
+  "frozen_code": "calfix_common, calfix_evaluate, tail_calib_common sha256 equal to results/tail1_transfer_v3/run_20260924_2259/INPUT_MANIFEST.json; TRANSFER_LOCK_V2 and pool_z.npy sha as recorded",
+  "scores": "max |difference| < 1e-12 over eval and cal roles: ct7r_leader == readout_then_equal_matched_r10 (ct7_token_tail_lsml_calfix_v1/run_20260924_1550); f15_equal, f15_cov_lsml, f15_tail (== F15_tailstd_lsml), b11_equal, b11_cov_lsml (== B11_lsml), ct7 == the same rows of tail1_transfer_v3/run_20260924_2259",
+  "pb_f1_common_gate": "ct7 row reproduces 0.41188745848863717 to 1e-12"
+ },
+
+ "decision_rule": "The tail rule advances as a ProcessBench candidate on a representation only if (i) tail beats matched equal on pb_sla_macro8 with Holm-adjusted p < 0.05 over the 10 primary contrasts, and (ii) its PRMScore P1 is not below matched equal with Holm-adjusted p < 0.05. On ct7r it must also be compared with the leader row (contrast 4); a gain over ct7r_equal that does not exceed the leader is reported as such. The PB-only scope advances only if its contrast vs the pooled fit is positive with Holm-adjusted p < 0.05 on SLA. Anything else is reported as no established gain. The F1 endpoints do not override the primary decision; a disagreement between SLA and F1 is reported.",
+
+ "predictions": {
+  "ct7r": "tail within 1 point of ct7r_equal, not significant (token-level tail lost to equal; continuous L-SML below equal on PB in every CT7 run)",
+  "f15": "tail within 0.5 point of equal, not significant (the corrected recipe 36.38 vs 36.51)",
+  "b11": "tail not significantly different from equal",
+  "pb_scope": "no directional prediction"
+ },
+
+ "access_statement": {
+  "label_free": ["token standardizer, column standardization, tail marks, all L-SML weights and groups", "q80 thresholds", "answer-z", "the frozen CT7 gate (shared by every row)"],
+  "label_using_earlier": ["the seven CT7 streams, their orientation, step-0 despike and the Top10 readout (developed on these data)", "family15/bank11 channel orientation, the 48->28 filter and the families (chosen with PRMBench labels, Steps 441-442)", "the 20% fraction"],
+  "label_using_here": ["pb_f1_label threshold (calibration-fold PB labels only)"],
+  "fitting_scope": "weights are fitted across answers (donor fitting), not answer-local"
+ },
+ "failure_policy": "no fallback: any L-SML numerical failure, non-finite score, replay mismatch or bundle check failure stops the run; a stopped run is reported, not rerun with changes, unless the change is a declared amendment",
+ "compute": "CPU only, no inference, no GPU; expected under 30 minutes",
+ "outputs": "results/pb_tail_weights_v1/run_*/: SCORES.npz, MODELS.jsonl (weights, K, groups per row and fold), BUNDLE_CHECKS.json, REPLAY.json, DIAGNOSIS.json (K, partitions, fit rows per scope), METRICS.csv/CONTRASTS.csv/THRESHOLDS.json/EVAL_CHECKS.json (frozen evaluator), PB_METRICS.csv, PB_CELLS.csv, PB_CONTRASTS.csv, PB_THRESHOLDS.json, SUMMARY.json, RUN_STATUS.json; REPORT_HE.md in the stage folder"
+}

@@ -1,0 +1,146 @@
+Full sampling 350 / 13769
+Full sampling 375 / 13769
+Full sampling 400 / 13769
+Full sampling 425 / 13769
+Full sampling 450 / 13769
+Full sampling 475 / 13769
+Full sampling 500 / 13769
+Full sampling 525 / 13769
+Full sampling 550 / 13769
+Full sampling 575 / 13769
+Full sampling 600 / 13769
+Full sampling 625 / 13769
+Full sampling 650 / 13769
+Full sampling 675 / 13769
+Full sampling 700 / 13769
+Full sampling 725 / 13769
+Full sampling 750 / 13769
+Full sampling 775 / 13769
+Full sampling 800 / 13769
+Full sampling 825 / 13769
+Full sampling 850 / 13769
+Full sampling 875 / 13769
+Full sampling 900 / 13769
+Full sampling 925 / 13769
+Full sampling 950 / 13769
+Full sampling 975 / 13769
+Full sampling 1000 / 13769
+Full sampling 1025 / 13769
+Full sampling 1050 / 13769
+Full sampling 1075 / 13769
+Full sampling 1100 / 13769
+Full sampling 1125 / 13769
+Full sampling 1150 / 13769
+Full sampling 1175 / 13769
+Full sampling 1200 / 13769
+Full sampling 1225 / 13769
+Full sampling 1250 / 13769
+Full sampling 1275 / 13769
+Full sampling 1300 / 13769
+Full sampling 1325 / 13769
+Full sampling 1350 / 13769
+Full sampling 1375 / 13769
+Full sampling 1400 / 13769
+Full sampling 1425 / 13769
+Full sampling 1450 / 13769
+Full sampling 1475 / 13769
+Full sampling 1500 / 13769
+Full sampling 1525 / 13769
+Full sampling 1550 / 13769
+Full sampling 1575 / 13769
+Full sampling 1600 / 13769
+Full sampling 1625 / 13769
+Full sampling 1650 / 13769
+Full sampling 1675 / 13769
+Full sampling 1700 / 13769
+Full sampling 1725 / 13769
+Full sampling 1750 / 13769
+Full sampling 1775 / 13769
+Full sampling 1800 / 13769
+Full sampling 1825 / 13769
+Full sampling 1850 / 13769
+Full sampling 1875 / 13769
+Full sampling 1900 / 13769
+Full sampling 1925 / 13769
+Full sampling 1950 / 13769
+Full sampling 1975 / 13769
+Full sampling 2000 / 13769
+Full sampling 2025 / 13769
+Full sampling 2050 / 13769
+Full sampling 2075 / 13769
+Full sampling 2100 / 13769
+Full sampling 2125 / 13769
+Full sampling 2150 / 13769
+Full sampling 2175 / 13769
+Full sampling 2200 / 13769
+Full sampling 2225 / 13769
+Full sampling 2250 / 13769
+Full sampling 2275 / 13769
+Full sampling 2300 / 13769
+Full sampling 2325 / 13769
+Full sampling 2350 / 13769
+Full sampling 2375 / 13769
+Full sampling 2400 / 13769
+Full sampling 2425 / 13769
+Full sampling 2450 / 13769
+Full sampling 2475 / 13769
+Full sampling 2500 / 13769
+Full sampling 2525 / 13769
+Full sampling 2550 / 13769
+Full sampling 2575 / 13769
+Full sampling 2600 / 13769
+Full sampling 2625 / 13769
+Full sampling 2650 / 13769
+Full sampling 2675 / 13769
+Full sampling 2700 / 13769
+Full sampling 2725 / 13769
+Full sampling 2750 / 13769
+Full sampling 2775 / 13769
+Full sampling 2800 / 13769
+Full sampling 2825 / 13769
+Full sampling 2850 / 13769
+Full sampling 2875 / 13769
+Full sampling 2900 / 13769
+Full sampling 2925 / 13769
+Full sampling 2950 / 13769
+Full sampling 2975 / 13769
+Full sampling 3000 / 13769
+Full sampling 3025 / 13769
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "C:\Users\DELL\AppData\Local\Programs\Python\Python313\Lib\concurrent\futures\process.py", line 254, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+  File "C:\Users\omris\TAU\hallucination_detection\scripts\preflight_full_sampling_fast_v3.py", line 31, in compute
+    save(target.with_suffix('.json'),meta)
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\omris\TAU\hallucination_detection\scripts\preflight_full_sampling_v3.py", line 36, in save
+    tmp.write_text(json.dumps(json_safe(value),indent=2,allow_nan=False),encoding='utf-8');tmp.replace(path)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\DELL\AppData\Local\Programs\Python\Python313\Lib\pathlib\_local.py", line 555, in write_text
+    return PathBase.write_text(self, data, encoding, errors, newline)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\DELL\AppData\Local\Programs\Python\Python313\Lib\pathlib\_abc.py", line 652, in write_text
+    return f.write(data)
+           ~~~~~~~^^^^^^
+OSError: [Errno 28] No space left on device
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\omris\TAU\hallucination_detection\scripts\run_full_sampling_v3.py", line 166, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "C:\Users\omris\TAU\hallucination_detection\scripts\run_full_sampling_v3.py", line 161, in main
+    elif score(manifest):evaluate()
+         ~~~~~^^^^^^^^^^
+  File "C:\Users\omris\TAU\hallucination_detection\scripts\run_full_sampling_v3.py", line 126, in score
+    active.pop(future);future.result();completed+=1;submit_next()
+                       ~~~~~~~~~~~~~^^
+  File "C:\Users\DELL\AppData\Local\Programs\Python\Python313\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\DELL\AppData\Local\Programs\Python\Python313\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+OSError: [Errno 28] No space left on device

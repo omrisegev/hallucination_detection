@@ -1,0 +1,166 @@
+channels ready (19s): ['q15_H1', 'q15_VE1', 'chosen_surprisal', 'logprob_margin', 'true_tail50', 'energy_level', 'energy_innovation', 'top15_turnover', 'top50_js', 'dominant_freq16', 'bocpd_p0', 'realized_z', 'realized_drv']; blocks [5, 5, 3]; checks {'joined_uid_order_equals_oof': True, 'joined_step_counts_equal_oof': True, 'ct7_profile_mean_vs_oof_ct7': 1.3322676295501878e-15, 'level_bank_vs_token_matrix_max_abs_diff': 0.0, 'derivative_vs_token_matrix_max_abs_diff': 0.0}
+fold 0: fit [2, 3, 4] cal 1; B11_lsml K=6; B13_lsml K=5; B13_joint_declared K=3; B13_joint_own K=3 (NOT SCORED); B13_tail K=3; stageA pass DS=False HEM=False SML=False (519s)
+fold 1: fit [0, 3, 4] cal 2; B11_lsml K=6; B13_lsml K=5; B13_joint_declared K=3; B13_joint_own K=3 (NOT SCORED); B13_tail K=3; stageA pass DS=False HEM=False SML=False (487s)
+fold 2: fit [0, 1, 4] cal 3; B11_lsml K=6; B13_lsml K=5; B13_joint_declared K=3; B13_joint_own K=3 (NOT SCORED); B13_tail K=3; stageA pass DS=False HEM=False SML=False (479s)
+fold 3: fit [0, 1, 2] cal 4; B11_lsml K=6; B13_lsml K=5; B13_joint_declared K=3; B13_joint_own K=3 (NOT SCORED); B13_tail K=3; stageA pass DS=False HEM=False SML=False (477s)
+fold 4: fit [1, 2, 3] cal 0; B11_lsml K=6; B13_lsml K=5; B13_joint_declared K=3; B13_joint_own K=3 (NOT SCORED); B13_tail K=3; stageA pass DS=False HEM=False SML=False (491s)
+checks: {'joined_uid_order_equals_oof': True, 'joined_step_counts_equal_oof': True, 'ct7_profile_mean_vs_oof_ct7': 1.3322676295501878e-15, 'level_bank_vs_token_matrix_max_abs_diff': 0.0, 'derivative_vs_token_matrix_max_abs_diff': 0.0, 'B11_replay4_max_abs_diff': 0.0, 'ct7_within_auc': 0.7723966352864217, 'fam421_within_auc': 0.7801274239837732, 'written_once_B13_equal': True, 'written_once_B13_block_equal': True, 'written_once_B13_lsml': True, 'written_once_B13_joint_declared': True, 'written_once_B13_joint_own': True, 'written_once_B13_tail': True, 'written_once_B11_lsml': True, 'written_once_B11_equal': True, 'written_once_ct7': True, 'written_once_fam421': True, 'replays_pass': True}
+controls: {"single_channel_within_auc": {"q15_H1": 0.7301113611124387, "q15_VE1": 0.7377863024015935, "chosen_surprisal": 0.6975067839657089, "logprob_margin": 0.707962599162882, "true_tail50": 0.7376342813603043, "energy_level": 0.7612372269897518, "energy_innovation": 0.40709629688151355, "top15_turnover": 0.6064368461230789, "top50_js": 0.4575207968593895, "dominant_freq16": 0.5835355682452537, "bocpd_p0": 0.6651960333935583, "realized_z": 0.7387372459881674, "realized_drv": 0.7957352082567445}, "token_shuffle_derivative_within_auc": 0.5660939182466981, "length": {"chosen_surprisal": {"median_within_answer_spearman_log_length": 0.1884172435872205, "answers": 6966, "within_auc_length_residualized": 0.6792332857344497}, "realized_z": {"median_within_answer_spearman_log_length": 0.13449591222574211, "answers": 6966, "within_auc_length_residualized": 0.7199607943654834}, "realized_drv": {"median_within_answer_spearman_log_length": 0.2608969660436018, "answers": 6966, "within_auc_length_residualized": 0.7713600243615322}}, "tail_mark_degeneracy": {"answer_columns": 178997, "constant_rate": 0.03217931026776985, "boundary_tie_rate": 0.13450504757062967}}
+metric              any_error_hit  prmscore     sla  within_auc
+method                                                         
+B11_equal                  0.5500    0.6333  0.3495      0.7496
+B11_lsml                   0.5394    0.6412  0.3480      0.7645
+B13_block_equal            0.6300    0.6577  0.3739      0.7805
+B13_equal                  0.6131    0.6527  0.3698      0.7749
+B13_joint_declared         0.6209    0.6557  0.3795      0.7801
+B13_joint_own                 NaN       NaN     NaN         NaN
+B13_lsml                   0.5675    0.6504  0.3579      0.7765
+B13_tail                   0.6204    0.6526  0.3689      0.7727
+ct7                        0.6114    0.6458  0.3989      0.7724
+fam421                     0.6409    0.6573  0.3980      0.7801
+                            contrast_id        endpoint      folds   delta  ci_adj_lo  ci_adj_hi
+0                   B13_lsml - B11_lsml  prm_within_auc  0,1,2,3,4  0.0119     0.0097     0.0142
+1                   B13_lsml - B11_lsml        prmscore  0,1,2,3,4  0.0093     0.0067     0.0119
+2                  B13_lsml - B13_equal  prm_within_auc  0,1,2,3,4  0.0015    -0.0021     0.0052
+3                  B13_lsml - B13_equal        prmscore  0,1,2,3,4 -0.0023    -0.0060     0.0015
+4  B13_joint_declared - B13_block_equal  prm_within_auc  0,1,2,3,4 -0.0004    -0.0033     0.0024
+5  B13_joint_declared - B13_block_equal        prmscore  0,1,2,3,4 -0.0021    -0.0052     0.0011
+6    B13_joint_own - B13_joint_declared             all        NaN     NaN        NaN        NaN
+7                  B13_tail - B13_equal  prm_within_auc  0,1,2,3,4 -0.0022    -0.0045    -0.0001
+8                  B13_tail - B13_equal        prmscore  0,1,2,3,4 -0.0001    -0.0027     0.0024
+{"SML": {"passes_all_folds": false, "spearman": [0.753, 0.747, 0.747, 0.753, 0.758]}, "DS": {"passes_all_folds": false, "spearman": [0.753, 0.747, 0.747, 0.753, 0.758]}, "HEM": {"passes_all_folds": false, "spearman": [0.78, 0.78, 0.78, 0.78, 0.775]}}
+{
+ "status": "COMPLETE_WITH_FAILED_FITS",
+ "started": "2026-09-27T12:32:05",
+ "run_id": "run_20260927",
+ "smoke_overrides": {},
+ "finished": "2026-09-27T13:14:42",
+ "fits": 25,
+ "failures": [
+  {
+   "fold": 0,
+   "arm": "B13_joint_own",
+   "reason": "joint not converged, starts=0"
+  },
+  {
+   "fold": 1,
+   "arm": "B13_joint_own",
+   "reason": "joint not converged, starts=0"
+  },
+  {
+   "fold": 2,
+   "arm": "B13_joint_own",
+   "reason": "joint not converged, starts=0"
+  },
+  {
+   "fold": 3,
+   "arm": "B13_joint_own",
+   "reason": "joint not converged, starts=0"
+  },
+  {
+   "fold": 4,
+   "arm": "B13_joint_own",
+   "reason": "joint not converged, starts=0"
+  }
+ ],
+ "checks": {
+  "joined_uid_order_equals_oof": true,
+  "joined_step_counts_equal_oof": true,
+  "ct7_profile_mean_vs_oof_ct7": 1.3322676295501878e-15,
+  "level_bank_vs_token_matrix_max_abs_diff": 0.0,
+  "derivative_vs_token_matrix_max_abs_diff": 0.0,
+  "B11_replay4_max_abs_diff": 0.0,
+  "ct7_within_auc": 0.7723966352864217,
+  "fam421_within_auc": 0.7801274239837732,
+  "written_once_B13_equal": true,
+  "written_once_B13_block_equal": true,
+  "written_once_B13_lsml": true,
+  "written_once_B13_joint_declared": true,
+  "written_once_B13_joint_own": true,
+  "written_once_B13_tail": true,
+  "written_once_B11_lsml": true,
+  "written_once_B11_equal": true,
+  "written_once_ct7": true,
+  "written_once_fam421": true,
+  "replays_pass": true
+ },
+ "fitted_folds": {
+  "B13_equal": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "B13_block_equal": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "B13_lsml": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "B13_joint_declared": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "B13_joint_own": [],
+  "B13_tail": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "B11_lsml": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "B11_equal": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "ct7": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "fam421": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ]
+ },
+ "stage_A_passes_all_folds": {
+  "SML": false,
+  "DS": false,
+  "HEM": false
+ }
+}
+{
+ "channels_s": 18.7661941999977,
+ "fit_s": 2479.4070347000015,
+ "controls_s": 19.6239127000008,
+ "eval_s": 8.875363999999536,
+ "bootstrap_s": 47.74959439999657,
+ "total_s": 2557.4300033000036
+}

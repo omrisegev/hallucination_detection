@@ -1,0 +1,808 @@
+{
+  "aggregate": [
+    {
+      "evidence_status": "RETROSPECTIVE",
+      "metric_id": "macro_f1",
+      "status": "COMPLETE",
+      "value": 0.32859546976358334,
+      "variant_id": "P0_S2A_FAMILY6_STEP_MAX_DUFS_DETECTOR"
+    },
+    {
+      "evidence_status": "RETROSPECTIVE",
+      "metric_id": "exact_error",
+      "status": "COMPLETE",
+      "value": 0.2320261569596676,
+      "variant_id": "P0_S2A_FAMILY6_STEP_MAX_DUFS_DETECTOR"
+    },
+    {
+      "evidence_status": "RETROSPECTIVE",
+      "metric_id": "clean_abstention",
+      "status": "COMPLETE",
+      "value": 0.5902902902902902,
+      "variant_id": "P0_S2A_FAMILY6_STEP_MAX_DUFS_DETECTOR"
+    },
+    {
+      "evidence_status": "RETROSPECTIVE",
+      "metric_id": "within_one",
+      "status": "COMPLETE",
+      "value": 0.43987884160756496,
+      "variant_id": "P0_S2A_FAMILY6_STEP_MAX_DUFS_DETECTOR"
+    }
+  ],
+  "contrasts": [
+    {
+      "bootstrap_draws": 20000,
+      "bootstrap_seed": 2026082901,
+      "ci_high": 0.00525866350827324,
+      "ci_low": -0.00871467835648367,
+      "delta": -0.001482245850337259,
+      "evidence_status": "RETROSPECTIVE",
+      "left_variant_id": "P0_S2A_FAMILY6_STEP_MAX_DUFS_DETECTOR",
+      "losses": 2,
+      "metric_id": "macro_f1",
+      "n_groups": 635,
+      "right_variant_id": "P0_S1_FAMILY6_STEP_MAX",
+      "status": "COMPLETE",
+      "ties": 1,
+      "wins": 1,
+      "worst_unit_delta": -0.013490784822629609
+    },
+    {
+      "bootstrap_draws": 20000,
+      "bootstrap_seed": 2026082901,
+      "ci_high": 0.008263692295577873,
+      "ci_low": -0.0012565871537979023,
+      "delta": 0.0032013396375098514,
+      "evidence_status": "RETROSPECTIVE",
+      "left_variant_id": "P0_S2A_FAMILY6_STEP_MAX_DUFS_DETECTOR",
+      "losses": 0,
+      "metric_id": "exact_error",
+      "n_groups": 635,
+      "right_variant_id": "P0_S1_FAMILY6_STEP_MAX",
+      "status": "COMPLETE",
+      "ties": 2,
+      "wins": 2,
+      "worst_unit_delta": 0.0
+    },
+    {
+      "bootstrap_draws": 20000,
+      "bootstrap_seed": 2026082901,
+      "ci_high": -0.02171650406760252,
+      "ci_low": -0.06541774191302986,
+      "delta": -0.04244661327994661,
+      "evidence_status": "RETROSPECTIVE",
+      "left_variant_id": "P0_S2A_FAMILY6_STEP_MAX_DUFS_DETECTOR",
+      "losses": 2,
+      "metric_id": "clean_abstention",
+      "n_groups": 635,
+      "right_variant_id": "P0_S1_FAMILY6_STEP_MAX",
+      "status": "COMPLETE",
+      "ties": 1,
+      "wins": 1,
+      "worst_unit_delta": -0.15555555555555556
+    },
+    {
+      "bootstrap_draws": 20000,
+      "bootstrap_seed": 2026082901,
+      "ci_high": 0.02127993059645836,
+      "ci_low": 0.005292749484365179,
+      "delta": 0.012837148076509777,
+      "evidence_status": "RETROSPECTIVE",
+      "left_variant_id": "P0_S2A_FAMILY6_STEP_MAX_DUFS_DETECTOR",
+      "losses": 0,
+      "metric_id": "within_one",
+      "n_groups": 635,
+      "right_variant_id": "P0_S1_FAMILY6_STEP_MAX",
+      "status": "COMPLETE",
+      "ties": 1,
+      "wins": 3,
+      "worst_unit_delta": 0.0
+    }
+  ],
+  "detector_audits": [
+    {
+      "dufs_effective_feature_count": 14.956255788479774,
+      "dufs_epochs": 80,
+      "dufs_seeds": [
+        11,
+        23,
+        37
+      ],
+      "family": "gsm8k",
+      "feature_names": [
+        "epr",
+        "spectral_entropy",
+        "low_band_power",
+        "high_band_power",
+        "hl_ratio",
+        "dominant_freq",
+        "spectral_centroid",
+        "stft_max_high_power",
+        "stft_spectral_entropy",
+        "rpdi",
+        "sw_var_peak",
+        "pe_mean",
+        "hurst_exponent",
+        "cusum_max",
+        "cusum_shift_idx",
+        "epr_spilled",
+        "sw_var_peak_spilled",
+        "cusum_max_spilled",
+        "epr_energy",
+        "min_energy",
+        "sw_var_peak_energy",
+        "cusum_max_energy",
+        "mean_top1_logprob",
+        "logprob_margin",
+        "mean_logprob_entropy",
+        "varentropy",
+        "renyi_entropy_2",
+        "topk_tail_mass"
+      ],
+      "head": "answer_dufs_liu_mixed",
+      "include_elapsed_length": false,
+      "k": 7,
+      "labels_seen_during_fit": false,
+      "lambda": 0.1,
+      "model": "qwen3_8b",
+      "n_features": 28,
+      "n_fit_traces": 171
+    },
+    {
+      "dufs_effective_feature_count": 16.757508740866758,
+      "dufs_epochs": 80,
+      "dufs_seeds": [
+        11,
+        23,
+        37
+      ],
+      "family": "math",
+      "feature_names": [
+        "epr",
+        "spectral_entropy",
+        "low_band_power",
+        "high_band_power",
+        "hl_ratio",
+        "dominant_freq",
+        "spectral_centroid",
+        "stft_max_high_power",
+        "stft_spectral_entropy",
+        "rpdi",
+        "sw_var_peak",
+        "pe_mean",
+        "hurst_exponent",
+        "cusum_max",
+        "cusum_shift_idx",
+        "epr_spilled",
+        "sw_var_peak_spilled",
+        "cusum_max_spilled",
+        "epr_energy",
+        "min_energy",
+        "sw_var_peak_energy",
+        "cusum_max_energy",
+        "mean_top1_logprob",
+        "logprob_margin",
+        "mean_logprob_entropy",
+        "varentropy",
+        "renyi_entropy_2",
+        "topk_tail_mass"
+      ],
+      "head": "answer_dufs_liu_mixed",
+      "include_elapsed_length": false,
+      "k": 7,
+      "labels_seen_during_fit": false,
+      "lambda": 0.1,
+      "model": "qwen3_8b",
+      "n_features": 28,
+      "n_fit_traces": 409
+    },
+    {
+      "dufs_effective_feature_count": 15.215015000349817,
+      "dufs_epochs": 80,
+      "dufs_seeds": [
+        11,
+        23,
+        37
+      ],
+      "family": "olympiadbench",
+      "feature_names": [
+        "epr",
+        "spectral_entropy",
+        "low_band_power",
+        "high_band_power",
+        "hl_ratio",
+        "dominant_freq",
+        "spectral_centroid",
+        "stft_max_high_power",
+        "stft_spectral_entropy",
+        "rpdi",
+        "sw_var_peak",
+        "pe_mean",
+        "hurst_exponent",
+        "cusum_max",
+        "cusum_shift_idx",
+        "epr_spilled",
+        "sw_var_peak_spilled",
+        "cusum_max_spilled",
+        "epr_energy",
+        "min_energy",
+        "sw_var_peak_energy",
+        "cusum_max_energy",
+        "mean_top1_logprob",
+        "logprob_margin",
+        "mean_logprob_entropy",
+        "varentropy",
+        "renyi_entropy_2",
+        "topk_tail_mass"
+      ],
+      "head": "answer_dufs_liu_mixed",
+      "include_elapsed_length": false,
+      "k": 7,
+      "labels_seen_during_fit": false,
+      "lambda": 0.1,
+      "model": "qwen3_8b",
+      "n_features": 28,
+      "n_fit_traces": 396
+    },
+    {
+      "dufs_effective_feature_count": 14.87973433166234,
+      "dufs_epochs": 80,
+      "dufs_seeds": [
+        11,
+        23,
+        37
+      ],
+      "family": "omnimath",
+      "feature_names": [
+        "epr",
+        "spectral_entropy",
+        "low_band_power",
+        "high_band_power",
+        "hl_ratio",
+        "dominant_freq",
+        "spectral_centroid",
+        "stft_max_high_power",
+        "stft_spectral_entropy",
+        "rpdi",
+        "sw_var_peak",
+        "pe_mean",
+        "hurst_exponent",
+        "cusum_max",
+        "cusum_shift_idx",
+        "epr_spilled",
+        "sw_var_peak_spilled",
+        "cusum_max_spilled",
+        "epr_energy",
+        "min_energy",
+        "sw_var_peak_energy",
+        "cusum_max_energy",
+        "mean_top1_logprob",
+        "logprob_margin",
+        "mean_logprob_entropy",
+        "varentropy",
+        "renyi_entropy_2",
+        "topk_tail_mass"
+      ],
+      "head": "answer_dufs_liu_mixed",
+      "include_elapsed_length": false,
+      "k": 7,
+      "labels_seen_during_fit": false,
+      "lambda": 0.1,
+      "model": "qwen3_8b",
+      "n_features": 28,
+      "n_fit_traces": 403
+    },
+    {
+      "dufs_effective_feature_count": 15.88694825787574,
+      "dufs_epochs": 80,
+      "dufs_seeds": [
+        11,
+        23,
+        37
+      ],
+      "family": "gsm8k",
+      "feature_names": [
+        "epr",
+        "spectral_entropy",
+        "low_band_power",
+        "high_band_power",
+        "hl_ratio",
+        "dominant_freq",
+        "spectral_centroid",
+        "stft_max_high_power",
+        "stft_spectral_entropy",
+        "rpdi",
+        "sw_var_peak",
+        "pe_mean",
+        "hurst_exponent",
+        "cusum_max",
+        "cusum_shift_idx",
+        "epr_spilled",
+        "sw_var_peak_spilled",
+        "cusum_max_spilled",
+        "min_spilled",
+        "epr_energy",
+        "min_energy",
+        "sw_var_peak_energy",
+        "cusum_max_energy",
+        "mean_top1_logprob",
+        "logprob_margin",
+        "mean_logprob_entropy",
+        "varentropy",
+        "renyi_entropy_2",
+        "topk_tail_mass"
+      ],
+      "head": "answer_dufs_liu_mixed",
+      "include_elapsed_length": false,
+      "k": 7,
+      "labels_seen_during_fit": false,
+      "lambda": 0.1,
+      "model": "llama31_8b",
+      "n_features": 29,
+      "n_fit_traces": 171
+    },
+    {
+      "dufs_effective_feature_count": 16.799448481836993,
+      "dufs_epochs": 80,
+      "dufs_seeds": [
+        11,
+        23,
+        37
+      ],
+      "family": "math",
+      "feature_names": [
+        "epr",
+        "spectral_entropy",
+        "low_band_power",
+        "high_band_power",
+        "hl_ratio",
+        "dominant_freq",
+        "spectral_centroid",
+        "stft_max_high_power",
+        "stft_spectral_entropy",
+        "rpdi",
+        "sw_var_peak",
+        "pe_mean",
+        "hurst_exponent",
+        "cusum_max",
+        "cusum_shift_idx",
+        "epr_spilled",
+        "sw_var_peak_spilled",
+        "cusum_max_spilled",
+        "min_spilled",
+        "epr_energy",
+        "min_energy",
+        "sw_var_peak_energy",
+        "cusum_max_energy",
+        "mean_top1_logprob",
+        "logprob_margin",
+        "mean_logprob_entropy",
+        "varentropy",
+        "renyi_entropy_2",
+        "topk_tail_mass"
+      ],
+      "head": "answer_dufs_liu_mixed",
+      "include_elapsed_length": false,
+      "k": 7,
+      "labels_seen_during_fit": false,
+      "lambda": 0.1,
+      "model": "llama31_8b",
+      "n_features": 29,
+      "n_fit_traces": 409
+    },
+    {
+      "dufs_effective_feature_count": 16.359178735376947,
+      "dufs_epochs": 80,
+      "dufs_seeds": [
+        11,
+        23,
+        37
+      ],
+      "family": "olympiadbench",
+      "feature_names": [
+        "epr",
+        "spectral_entropy",
+        "low_band_power",
+        "high_band_power",
+        "hl_ratio",
+        "dominant_freq",
+        "spectral_centroid",
+        "stft_max_high_power",
+        "stft_spectral_entropy",
+        "rpdi",
+        "sw_var_peak",
+        "pe_mean",
+        "hurst_exponent",
+        "cusum_max",
+        "cusum_shift_idx",
+        "epr_spilled",
+        "sw_var_peak_spilled",
+        "cusum_max_spilled",
+        "min_spilled",
+        "epr_energy",
+        "min_energy",
+        "sw_var_peak_energy",
+        "cusum_max_energy",
+        "mean_top1_logprob",
+        "logprob_margin",
+        "mean_logprob_entropy",
+        "varentropy",
+        "renyi_entropy_2",
+        "topk_tail_mass"
+      ],
+      "head": "answer_dufs_liu_mixed",
+      "include_elapsed_length": false,
+      "k": 7,
+      "labels_seen_during_fit": false,
+      "lambda": 0.1,
+      "model": "llama31_8b",
+      "n_features": 29,
+      "n_fit_traces": 396
+    },
+    {
+      "dufs_effective_feature_count": 15.05669894139772,
+      "dufs_epochs": 80,
+      "dufs_seeds": [
+        11,
+        23,
+        37
+      ],
+      "family": "omnimath",
+      "feature_names": [
+        "epr",
+        "spectral_entropy",
+        "low_band_power",
+        "high_band_power",
+        "hl_ratio",
+        "dominant_freq",
+        "spectral_centroid",
+        "stft_max_high_power",
+        "stft_spectral_entropy",
+        "rpdi",
+        "sw_var_peak",
+        "pe_mean",
+        "hurst_exponent",
+        "cusum_max",
+        "cusum_shift_idx",
+        "epr_spilled",
+        "sw_var_peak_spilled",
+        "cusum_max_spilled",
+        "min_spilled",
+        "epr_energy",
+        "min_energy",
+        "sw_var_peak_energy",
+        "cusum_max_energy",
+        "mean_top1_logprob",
+        "logprob_margin",
+        "mean_logprob_entropy",
+        "varentropy",
+        "renyi_entropy_2",
+        "topk_tail_mass"
+      ],
+      "head": "answer_dufs_liu_mixed",
+      "include_elapsed_length": false,
+      "k": 7,
+      "labels_seen_during_fit": false,
+      "lambda": 0.1,
+      "model": "llama31_8b",
+      "n_features": 29,
+      "n_fit_traces": 403
+    }
+  ],
+  "gpu_hours": 0,
+  "label_free_method_fit": true,
+  "new_model_inference": false,
+  "parent_variant_id": "P0_S1_FAMILY6_STEP_MAX",
+  "population_sha256": "d12d651cad9bec326686c2c83070644d22ca058ed57e942f683452050e757a05",
+  "prediction_flip_counts": {
+    "CLEAN_TO_FALSE_POSITIVE": 20,
+    "ERROR_ABSTENTION_TO_LOCALIZED": 18,
+    "ERROR_LOCALIZED_TO_ABSTENTION": 1,
+    "ERROR_TO_EXACT": 4,
+    "EXACT_TO_NONEXACT": 1,
+    "FALSE_POSITIVE_TO_CLEAN": 2,
+    "NO_FLIP": 1224
+  },
+  "s1_reconstruction_exact": true,
+  "s2b_opened": false,
+  "schema": "reasoning_localization_p0_s2a_verification_v1",
+  "single_changed_factor": {
+    "factor": "answer_detector",
+    "from": "RegisteredGlobal mixed-v2 ordinary IU",
+    "to": "calibration-only answer_dufs_liu_mixed"
+  },
+  "source_manifest": {
+    "inherited_s1_sources_sha256": "894524d27bef2eb99e6a49f7708f36e4b7417e740473ac6da4562520937418f1",
+    "sources": [
+      {
+        "bytes": 46533275,
+        "family": "gsm8k",
+        "model": "llama31_8b",
+        "path": "/Users/osegev/Desktop/hallucination_detection/dataset_cache/repgrid/pb_llama31_8b/processbench_gsm8k.pkl",
+        "role": "raw_source",
+        "sha256": "6749d1b846e29288e46536f9d9d8e63715b447576950d8e2131fe3420a16cead"
+      },
+      {
+        "bytes": 217743700,
+        "family": "math",
+        "model": "llama31_8b",
+        "path": "/Users/osegev/Desktop/hallucination_detection/dataset_cache/repgrid/pb_llama31_8b/processbench_math.pkl",
+        "role": "raw_source",
+        "sha256": "119c95ca5abc8d6f9e71bdd595db9b847373067d9aa8e4e9b349fa2b1f174953"
+      },
+      {
+        "bytes": 324953017,
+        "family": "olympiadbench",
+        "model": "llama31_8b",
+        "path": "/Users/osegev/Desktop/hallucination_detection/dataset_cache/repgrid/pb_llama31_8b/processbench_olympiadbench.pkl",
+        "role": "raw_source",
+        "sha256": "ea2592de68100aeb140ce1d3a373e87d36e00685863e0dfb8c6721fa05a1812d"
+      },
+      {
+        "bytes": 323707679,
+        "family": "omnimath",
+        "model": "llama31_8b",
+        "path": "/Users/osegev/Desktop/hallucination_detection/dataset_cache/repgrid/pb_llama31_8b/processbench_omnimath.pkl",
+        "role": "raw_source",
+        "sha256": "d1f9ad59eacbba64963b763e07209bdccb570f9875382f1b38c5573678ce81e4"
+      },
+      {
+        "bytes": 49801034,
+        "family": "gsm8k",
+        "model": "qwen3_8b",
+        "path": "/Users/osegev/Desktop/hallucination_detection/cache/localization/processbench/pb_qwen3_8b/processbench_gsm8k.pkl",
+        "role": "raw_source",
+        "sha256": "c258e8a37fad43216290fef2f70c88735f413f8c0ceb5cce39dfefe67d66955d"
+      },
+      {
+        "bytes": 227049038,
+        "family": "math",
+        "model": "qwen3_8b",
+        "path": "/Users/osegev/Desktop/hallucination_detection/cache/localization/processbench/pb_qwen3_8b/processbench_math.pkl",
+        "role": "raw_source",
+        "sha256": "19cbbb2b4f90e073f2793360f142bc25334f88bbc4ec01fd78807f9f1ad2836d"
+      },
+      {
+        "bytes": 338485050,
+        "family": "olympiadbench",
+        "model": "qwen3_8b",
+        "path": "/Users/osegev/Desktop/hallucination_detection/cache/localization/processbench/pb_qwen3_8b/processbench_olympiadbench.pkl",
+        "role": "raw_source",
+        "sha256": "2083c4f9d0cc8d84657b02558d0720f726db4288e39e7557be4c55f78f4d4e60"
+      },
+      {
+        "bytes": 335250837,
+        "family": "omnimath",
+        "model": "qwen3_8b",
+        "path": "/Users/osegev/Desktop/hallucination_detection/cache/localization/processbench/pb_qwen3_8b/processbench_omnimath.pkl",
+        "role": "raw_source",
+        "sha256": "561b96c5e96a25256e7e51a62c7ef01bcb2fd87ea1adcfc36e2c758807f559a0"
+      },
+      {
+        "bytes": 793049,
+        "family": "gsm8k",
+        "model": "llama31_8b",
+        "path": "/Users/osegev/Desktop/hallucination_detection/results/local_online_comprehensive_v1/stage4_checkpoints/llama31_8b__gsm8k.pkl",
+        "role": "checkpoint",
+        "sha256": "394febebbbc67ee3d07ba5474ee9775f0259c9b6e9fe69d34f28506207a78594"
+      },
+      {
+        "bytes": 2145137,
+        "family": "math",
+        "model": "llama31_8b",
+        "path": "/Users/osegev/Desktop/hallucination_detection/results/local_online_comprehensive_v1/stage4_checkpoints/llama31_8b__math.pkl",
+        "role": "checkpoint",
+        "sha256": "4774ad55f0dad42ea7b8e30027f20f5a65cf6be13cd615842083d2ee9da3663d"
+      },
+      {
+        "bytes": 2371622,
+        "family": "olympiadbench",
+        "model": "llama31_8b",
+        "path": "/Users/osegev/Desktop/hallucination_detection/results/local_online_comprehensive_v1/stage4_checkpoints/llama31_8b__olympiadbench.pkl",
+        "role": "checkpoint",
+        "sha256": "43ef3477447edc8ff91224d9e40248226fde3c49878e70db188c4785593140f0"
+      },
+      {
+        "bytes": 2355252,
+        "family": "omnimath",
+        "model": "llama31_8b",
+        "path": "/Users/osegev/Desktop/hallucination_detection/results/local_online_comprehensive_v1/stage4_checkpoints/llama31_8b__omnimath.pkl",
+        "role": "checkpoint",
+        "sha256": "c5f82f83c55b566553745075195b0dbae024c162f7b4bc932620bdbb0dc8927b"
+      },
+      {
+        "bytes": 805739,
+        "family": "gsm8k",
+        "model": "qwen3_8b",
+        "path": "/Users/osegev/Desktop/hallucination_detection/results/local_online_comprehensive_v1/stage4_checkpoints/qwen3_8b__gsm8k.pkl",
+        "role": "checkpoint",
+        "sha256": "b02ec0cf94591c8bce11d910368b51a7c4b1ab25f425a2df4477da94bf4c25b8"
+      },
+      {
+        "bytes": 2170684,
+        "family": "math",
+        "model": "qwen3_8b",
+        "path": "/Users/osegev/Desktop/hallucination_detection/results/local_online_comprehensive_v1/stage4_checkpoints/qwen3_8b__math.pkl",
+        "role": "checkpoint",
+        "sha256": "741c0ee3031355bcde51661ee0ae209a6f53dd46cb43063163e92d5d58a11444"
+      },
+      {
+        "bytes": 2376986,
+        "family": "olympiadbench",
+        "model": "qwen3_8b",
+        "path": "/Users/osegev/Desktop/hallucination_detection/results/local_online_comprehensive_v1/stage4_checkpoints/qwen3_8b__olympiadbench.pkl",
+        "role": "checkpoint",
+        "sha256": "cb7f7b559283681d42271d33cd67b259010932bfd24f4bdf5f71e497a75214a7"
+      },
+      {
+        "bytes": 2363405,
+        "family": "omnimath",
+        "model": "qwen3_8b",
+        "path": "/Users/osegev/Desktop/hallucination_detection/results/local_online_comprehensive_v1/stage4_checkpoints/qwen3_8b__omnimath.pkl",
+        "role": "checkpoint",
+        "sha256": "4c4b7dbe2c0df7f8c94730971835a5a301e654b23518f60b8eb84107face01f1"
+      },
+      {
+        "bytes": 1785826,
+        "path": "results/reasoning_localization_03662_v1/phase_0/p0_s0_historical_replay/P0_S0_LOCAL_PER_QUESTION.csv",
+        "role": "s0_artifact",
+        "sha256": "161c598f5e4d6fbddc52f66da55b8cc485a0c20111346b7fb5dd1f87e5ea0c77"
+      },
+      {
+        "bytes": 3272,
+        "path": "results/reasoning_localization_03662_v1/phase_0/p0_s0_historical_replay/P0_S0_POPULATION.json",
+        "role": "s0_artifact",
+        "sha256": "909f2fae0380132f0e85a35bfabcf3ba85a99a2284f28e04a8dd69819af7532a"
+      },
+      {
+        "bytes": 3845,
+        "path": "results/reasoning_localization_03662_v1/phase_0/p0_s0_historical_replay/P0_S0_VERIFICATION.json",
+        "role": "s0_artifact",
+        "sha256": "8b59fc2352e27633966b1ef0cc7117dec9e4d7a637515ef5c10f254cfe0bae5a"
+      },
+      {
+        "bytes": 1935,
+        "path": "results/reasoning_localization_03662_v1/phase_0/p0_s0_historical_replay/RUN_MANIFEST.json",
+        "role": "s0_artifact",
+        "sha256": "aa8a0fa6d3634b4a8fd45c2e66d6a4e253ee4bde600872a1322cf8e463424f47"
+      },
+      {
+        "bytes": 41876,
+        "path": "scripts/run_local_online_comprehensive_stage4.py",
+        "role": "code_dependencie",
+        "sha256": "69e8a897a5b6dec5ec367d87a62968682d0314d27c6a58d0173429e2ac15619b"
+      },
+      {
+        "bytes": 33073,
+        "path": "scripts/run_local_online_comprehensive_stage1.py",
+        "role": "code_dependencie",
+        "sha256": "86da57c3a1a857dcd449e5d75eaa8594cdfa016a365af460cc635c09b97855d0"
+      },
+      {
+        "bytes": 52542,
+        "path": "scripts/run_global_local_online_architecture_v2.py",
+        "role": "code_dependencie",
+        "sha256": "1cca6a1eb396be37630abc2de8836118d82633f08e9ad5a787091b6cae964285"
+      },
+      {
+        "bytes": 15437,
+        "path": "spectral_utils/local_online_comprehensive.py",
+        "role": "code_dependencie",
+        "sha256": "ce36f50d9052f6a02fa4407831dc5e057d9b19ced0fd02e92ffe62678cb8c9d7"
+      },
+      {
+        "bytes": 5702,
+        "path": "spectral_utils/feature_contract.py",
+        "role": "code_dependencie",
+        "sha256": "65ffba0bfc9bf4ded859d9ebffce9bd563a28652c47f5ed8d80ce91b64d4385d"
+      },
+      {
+        "bytes": 19078,
+        "path": "spectral_utils/multitask_trajectory.py",
+        "role": "code_dependencie",
+        "sha256": "6b618dac0964cbb09325b52dfbb772305c9e1fb037242d38bfa9edc9fd6b2383"
+      },
+      {
+        "bytes": 27920,
+        "path": "spectral_utils/online_convergence.py",
+        "role": "code_dependencie",
+        "sha256": "b11d857c003283cc40227f1286638b3b94b24892362c79497bb9160d78ae8d80"
+      },
+      {
+        "bytes": 16775,
+        "path": "spectral_utils/online_localization_fusion.py",
+        "role": "code_dependencie",
+        "sha256": "867b6337e9471fbb6e654eb026b5f0af8e810f35f9dde1a2dbe5090b2c123687"
+      },
+      {
+        "bytes": 9358,
+        "path": "spectral_utils/repeated_measurement_reliability.py",
+        "role": "code_dependencie",
+        "sha256": "9e4b975e0f890e06f7194e1bd81012253329093acdb664756fa60cdab4de0868"
+      },
+      {
+        "bytes": 14992,
+        "path": "spectral_utils/streaming_utils.py",
+        "role": "code_dependencie",
+        "sha256": "03b57d452a5408a5f801db3cb13dbf2a91c3e7d809db95675c13d682d3616529"
+      },
+      {
+        "bytes": 26806,
+        "path": "spectral_utils/token_feature_views.py",
+        "role": "code_dependencie",
+        "sha256": "3e86166ef75cd222ffbeedfa394b829739e05e4efd56b80eb6fe8f237b0752e7"
+      },
+      {
+        "bytes": 21739,
+        "path": "spectral_utils/upcr.py",
+        "role": "code_dependencie",
+        "sha256": "587d4b4699e8cd49d28315f70ffdabb4eb7ef9fd48e4df5436e121a71536c071"
+      },
+      {
+        "bytes": 9708,
+        "path": "results/reasoning_localization_03662_v1/phase_0/P0_S1_EXECUTION_REGISTRY.json",
+        "role": "s1_execution_registry",
+        "sha256": "b86479d6308fc389d9d84587f3d6bda8b83facd620e1186e9c7b0e1f82b2e7b4"
+      },
+      {
+        "bytes": 197267,
+        "path": "results/reasoning_localization_03662_v1/phase_0/p0_s1_reducer_bridge/P0_S1_LOCAL_PER_QUESTION.csv",
+        "role": "s1_artifact",
+        "sha256": "dab19e4cdeebcf172184f829dc89fb8e2d546674253b0a0bfd5b8e761312a366"
+      },
+      {
+        "bytes": 1743,
+        "path": "results/reasoning_localization_03662_v1/phase_0/p0_s1_reducer_bridge/P0_S1_LOCAL_CELL_METRICS.csv",
+        "role": "s1_artifact",
+        "sha256": "071822af570e92ca21dd591e55862a3b12edf79fc1e580bf9bc9e94d067616a1"
+      },
+      {
+        "bytes": 5972,
+        "path": "results/reasoning_localization_03662_v1/phase_0/p0_s1_reducer_bridge/P0_S1_POPULATION.json",
+        "role": "s1_artifact",
+        "sha256": "361efd3f52772346effb0ba0ac1a3ba6c9003f6a88a02a3255e8bb37139a2abb"
+      },
+      {
+        "bytes": 13424,
+        "path": "results/reasoning_localization_03662_v1/phase_0/p0_s1_reducer_bridge/P0_S1_VERIFICATION.json",
+        "role": "s1_artifact",
+        "sha256": "5264403eacb6f570ad7deed991c5cd1363d9cbe1102222138e7bc8cf5e399b58"
+      },
+      {
+        "bytes": 2438,
+        "path": "results/reasoning_localization_03662_v1/phase_0/p0_s1_reducer_bridge/RUN_MANIFEST.json",
+        "role": "s1_artifact",
+        "sha256": "63a583d0bb73bf5fe1dcd4b720dda7fd9af1bdca4f6a31749c87b82ac61277ba"
+      },
+      {
+        "bytes": 31787,
+        "path": "scripts/reasoning_localization/run_phase0_reducer_bridge.py",
+        "role": "code_dependencie",
+        "sha256": "8dab5e1d07a44ccd651da99f3578f58233df6bd07be30841036dd8b383b9d870"
+      },
+      {
+        "bytes": 16775,
+        "path": "spectral_utils/online_localization_fusion.py",
+        "role": "code_dependencie",
+        "sha256": "867b6337e9471fbb6e654eb026b5f0af8e810f35f9dde1a2dbe5090b2c123687"
+      },
+      {
+        "bytes": 4210,
+        "path": "spectral_utils/adapted_dufs.py",
+        "role": "code_dependencie",
+        "sha256": "eb2328fc88de575bec9fb335f6cad94ef148d1507858d23a7765a3dff05fb5a3"
+      },
+      {
+        "bytes": 13835,
+        "path": "spectral_utils/laplacian_upcr.py",
+        "role": "code_dependencie",
+        "sha256": "ecf2c387bbba48906dcb2e0a7d56561101cffcd24fb9bd2d32033d471347953a"
+      }
+    ],
+    "sources_sha256": "517a977769edba7ad976c843cb47b3f10065e5930d9c49befb0b111611383595"
+  },
+  "source_mutation": false,
+  "state_id": "P0_S2A_MODERN_DETECTOR_BRIDGE",
+  "status": "COMPLETE",
+  "variant_id": "P0_S2A_FAMILY6_STEP_MAX_DUFS_DETECTOR"
+}

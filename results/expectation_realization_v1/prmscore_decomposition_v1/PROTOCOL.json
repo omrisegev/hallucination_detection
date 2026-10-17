@@ -1,0 +1,64 @@
+{
+ "protocol": "prmscore_decomposition_v1",
+ "date": "2026-09-27",
+ "status": "FROZEN before any decomposition result is computed. Changes need an amendment with its reason, written before the affected numbers are looked at.",
+ "requested_by": "Omri, 2026-09-27 (pasted plan): decompose PRMScore on frozen predictions, no method change, no threshold chosen from the decomposition; length/position secondary; no new weighting experiment.",
+ "question": "Where do the fusion rows differ in PRMScore (official categories, PRMScore components), what does the DS filter contribute over the original average, what separates the fused rows from realized_drv and from the supervised Qwen PRM, and how much of each gap is within-answer ranking, between-answer comparison, or threshold decisions (including false alarms on clean answers)?",
+ "access_note": "Development evidence on the already-evaluated PRMBench population. Nothing here is untouched confirmation. PRMBench only; ProcessBench is out of scope for this analysis.",
+ "frozen_inputs": {
+  "step_scores": "results/expectation_realization_v1/run_20260927_stage_b/STEP_SCORES.npz and run_20260927_stage_b2/STEP_SCORES.npz (frozen)",
+  "thresholds": "per-fold q80 thresholds recovered by re-running the unchanged stage B / B2 runners with three added save lines (THRESHOLDS.json, CHANNELS.npz) into run_20260927_stage_b_thr / run_20260927_stage_b2_thr. Gate: every analysed STEP_SCORES array bit-identical to the frozen run, and every frozen METRICS row (within_auc, prmscore, any_error_hit) reproduced to 1e-12 from the saved thresholds. If a gate fails, stop.",
+  "channel_realized_drv": "column realized_drv of CHANNELS.npz values (the answer-standardized channel exactly as it entered the 13-channel bank)",
+  "prm_rewards": "Qwen2.5-Math-PRM-7B step rewards from the PRMBench metadata pickle named in step_evidence_v1/INPUT_FREEZE.json (the file every PRMScore run loads); risk = 1 - reward (Step 437 definition)",
+  "population_and_folds": "step_evidence_v1/OOF_ANSWERS.csv (fold, source_group, cell, id) and OOF_STEP_SCORES.npz (offsets, labels); PRMBench metadata for classification and official scoring"
+ },
+ "calibration_rule_ours": "Frozen rule of the stage runners: for evaluation fold k, threshold = 0.8 quantile of the SAME fold-k model's answer-z scores over the PRMBench steps of calibration fold (k+1)%5 (label-free). A step is predicted VALID when its answer-z score < threshold. Fixed-weight rows (average, realized_drv, ct7, fam421, step_index) use the same rule on their fixed scores.",
+ "arms": {
+  "B13_equal": "average of all 13 channels (algorithmic, label-free)",
+  "S_equal": "Dawid-Skene filter, then average of the survivors (algorithmic, label-free)",
+  "G1_sml": "binary rule: DS filter + discovered groups + DS group weights (stage B, algorithmic)",
+  "B_sml__merge": "binary rule with the two level sub-groups merged (stage B2). MECHANISM TEST: uses a hard-coded list of the five level channels; not algorithmic",
+  "B13_lsml": "continuous L-SML on all 13 channels (algorithmic)",
+  "S_lsml": "continuous L-SML on the DS survivors (algorithmic)",
+  "realized_drv": "single channel, EMA-16 derivative of chosen_surprisal. Chosen post hoc as the best of 22 channels on this data (label-selected reference). Its PRMScore under the frozen rule has not been reported before; it is computed here with the same rule, no choice involved",
+  "fam421": "reference (developed on this data)",
+  "ct7": "reference (developed on this data)",
+  "step_index": "position-only reference (LESSONS 2026-09-27)",
+  "PRM_native": "Qwen2.5-Math-PRM-7B at its own 0.5 reward threshold (manufacturer rule; replay target Step 437: 0.6545676654529491)",
+  "PRM_raw_q80": "Qwen PRM risk on its original scale, 0.8 quantile of fold (k+1)%5 PRMBench risk as threshold (same fold rule as ours, no answer-z)",
+  "PRM_z_q80": "Qwen PRM risk after answer-z, exactly our rule (fully matched calibration access)"
+ },
+ "prm_access_note": "The PRM was trained with step labels on other data and runs its own forward pass; it is a reference point, not a matched competitor. Step 437 reported 0.6804 (raw q80) and 0.6733 (z q80) under its own calibration code; if our fold rule gives different values, both are shown and the difference is attributed to the calibration code, not tuned away.",
+ "population": {
+  "prmbench_answers": 6969,
+  "controls": "classification 'correct' (synthetic all-correct controls, expected 758): excluded from the official PRMScore pooled confusion -> separate panel",
+  "noncontrol": "expected 6211 = answers with at least one error step (8 error classes, expected 6035) + multi_solutions answers without error steps",
+  "within_auc_eligible": "answers with both correct and error steps (expected 6030)",
+  "official_scorer": "spectral_utils.prmbench.prmbench_evaluate (depth-feature-fusion-v1), validity fallback for redundency/circular (no redundancy head; adaptation flag reported)"
+ },
+ "panels": {
+  "P1_overall": "one row per arm/condition on the same population: within-AUC, pooled AUC on the decision scale, official PRMScore, F1 correct steps, F1 error steps, recall/precision of both classes, flagged fraction, any-error hit (argmax step is an error step; threshold-free), calibration condition column",
+  "P2_categories": "per official classification (8 error classes + multi_solutions; controls excluded) and per the three official groups (simplicity/soundness/sensitivity): N answers, N steps, N error steps; PRMScore and its two F1 components; paired differences with 95% source-group bootstrap intervals and, per contrast, a Bonferroni-adjusted interval over the 9 classifications. multi_solutions has no error steps: only F1 correct and false-flag rate are defined there",
+  "P3_ranking_vs_decisions": "within-AUC; pooled AUC on the decision scale; cross-answer AUC (error/correct pairs from different answers only; point estimate); at the frozen threshold: false flags on correct steps (count, rate), missed error steps (count, rate), predicted-error fraction; clean-answer panel: for the controls (separate, outside PRMScore), multi_solutions answers and the correct steps of erroneous answers: step false-flag rate and share of answers with at least one false flag",
+  "P4_complementarity": "on the erroneous answers: both / only A / only B / neither for (i) the threshold-free any-error hit and (ii) at least one error step flagged at the frozen threshold, overall and per classification, for pairs S_equal-realized_drv, S_equal-PRM_z_q80, S_equal-PRM_raw_q80, realized_drv-PRM_z_q80, B13_equal-S_equal",
+  "S1_secondary_length_position": "SECONDARY: answer step-count quartiles (non-control) and relative first-error position bins (first step, (0,1/3], (1/3,2/3], (2/3,1]) for B13_equal, S_equal, realized_drv, ct7, PRM_z_q80, PRM_raw_q80, step_index: within-AUC, PRMScore, any-error hit, with N per bin"
+ },
+ "contrasts": {
+  "declared_primary_questions": [
+   ["S_equal", "B13_equal", "filter contribution over the original average"],
+   ["S_equal", "realized_drv", "fused row vs the post-hoc single channel"],
+   ["B13_equal", "realized_drv", "original average vs the single channel"],
+   ["S_equal", "PRM_z_q80", "gap to the PRM under exactly our calibration rule"],
+   ["S_equal", "PRM_raw_q80", "gap to the PRM, PRM on its own scale"],
+   ["S_equal", "PRM_native", "gap to the PRM at its manufacturer threshold"]
+  ],
+  "secondary": [
+   ["B13_lsml", "B13_equal"], ["S_lsml", "S_equal"], ["G1_sml", "S_equal"], ["B_sml__merge", "S_equal"],
+   ["S_equal", "fam421"], ["S_equal", "ct7"], ["realized_drv", "PRM_z_q80"]
+  ],
+  "endpoints": ["prmscore", "f1_correct", "f1_error", "recall_correct", "recall_error", "within_auc", "any_error_hit"]
+ },
+ "uncertainty": "paired bootstrap over PRMBench source groups (OOF_ANSWERS.source_group), both arms from the same resample; count-based endpoints (PRMScore and components, hit) and within-AUC: 10,000 draws; pooled AUC: 2,000 draws with group weights; cross-answer AUC: point estimate only. Seed 20260927. Intervals are 95% percentile; per-category claims use the Bonferroni-adjusted interval (9 classifications). Small differences are reported with their intervals, not dropped.",
+ "not_done": "no threshold selection, no quantile other than the frozen 0.8, no new weights or channels, no subset of answers chosen from outcomes, no ProcessBench panel",
+ "code_check_note": "Checked before this protocol (Omri's remark): the binary marks in stages A, B and B2 are top ceil(0.2 n) steps WITHIN each answer (er_stage_a.binary_votes, er_stage_b.random_tie_marks, calfix_common.tail_marks; runners assert the per-answer count). 'Over all fit-fold steps' in the handoff refers only to the rows the estimators are fitted on. The within-answer-marks test proposed in the discussion therefore already exists, as does the position-adjusted bank."
+}

@@ -1,0 +1,75 @@
+{
+  "status": "COMPLETE_REVIEWED",
+  "population": 13769,
+  "primary_readouts": {
+    "6": "posterior",
+    "12": "logit"
+  },
+  "adopted_replacement": null,
+  "conclusions": [
+    "Bank6 separate variance improves within-answer AUC versus newly fitted shared variance; no clear improvement versus original RBM.",
+    "Bank12 separate variance severely harms localization under Logit; most lost successes move earlier.",
+    "Bank12 shared variance has a small descriptive within-AUC gain; no clear PB gain. Its Posterior PB point improvement is not established by its paired interval.",
+    "Do not infer task gain from model fit alone; registered capacity/CD and temporal tests continue."
+  ],
+  "primary_contrasts": {
+    "b12_variance_separate_logit_minus_b12_variance_shared_logit": {
+      "bootstrap_draws": 10000,
+      "ci_level": 0.975,
+      "common_prm_answers": 6030,
+      "gained": 283,
+      "lost": 934,
+      "lost_early": 925,
+      "lost_gate": 0,
+      "lost_late": 9,
+      "pb_ci": [
+        -0.17474566968449032,
+        -0.12765969902463065
+      ],
+      "pb_delta": -0.15089726862035774,
+      "primary": true,
+      "prm_valid_bootstrap_draws": 10000,
+      "prm_within_ci": [
+        -0.053922100475347075,
+        -0.0438765892997592
+      ],
+      "prm_within_delta_common": -0.048659103897175864
+    },
+    "b6_variance_separate_posterior_minus_b6_variance_shared_posterior": {
+      "bootstrap_draws": 10000,
+      "ci_level": 0.975,
+      "common_prm_answers": 6030,
+      "gained": 191,
+      "lost": 175,
+      "lost_early": 142,
+      "lost_gate": 0,
+      "lost_late": 33,
+      "pb_ci": [
+        -0.006083870205625474,
+        0.011796410397796378
+      ],
+      "pb_delta": 0.002752585140366026,
+      "primary": true,
+      "prm_valid_bootstrap_draws": 10000,
+      "prm_within_ci": [
+        0.0025757755996154443,
+        0.007736742266301126
+      ],
+      "prm_within_delta_common": 0.005166375159043782
+    }
+  },
+  "review_file": "RESULT_REVIEW.json",
+  "development_evidence": true,
+  "post_fit_diagnostics": {
+    "fits": 55076,
+    "source": "MODEL_MECHANISM_SUMMARY.csv",
+    "finding": "Separate variance fits density better, without resolving off-diagonal covariance mismatch or improving localization."
+  },
+  "loss_decomposition": {
+    "source": "VARIANCE_LOSS_DECOMPOSITION.json",
+    "changed_answers": 1217,
+    "lost": 934,
+    "linear_truth_preference_reversed_by_quadratic": 922,
+    "limitation": "Pairwise explanation under fitted coefficients; not a new model or a count of recoverable errors."
+  }
+}

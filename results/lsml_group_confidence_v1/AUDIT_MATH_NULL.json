@@ -1,0 +1,440 @@
+{
+  "audit": "math and scoring-only negative controls; independent reviewer C",
+  "read_summary_or_other_audits": false,
+  "hashes": {
+    "PREDICTIONS.npz": "f11f978ed82cba32f6ea6f1b823ae353fccb17824bde13c5884adb437a6bd366",
+    "FITS.json": "0a23912ad590bc596aaeffdaaf1f8669843f4f70ec9b688dc8ca414dca995190",
+    "audit_script": "be715a45e45384e9375bf604c8e15fb4972b2187442d7845b4e2e8ccd98174e3"
+  },
+  "math": {
+    "verdict": "Binary likelihood, EM updates, local/global gauge and derivative are algebraically consistent. Continuous scoring is a declared unproved affine likelihood continuation, not a Bernoulli likelihood or original published L-SML estimator.",
+    "likelihood_identity": "p(B_g|Y=y)=L_g0*((1-a_gy)+a_gy*exp(e_g)); L_g0 cancels in likelihood ratio; groups add only after taking log.",
+    "member_parameters": "sensitivity theta_i1; specificity 1-theta_i0 relative to latent alpha, not true Y",
+    "member_marginal_parameters": "Sensitivity to inferred Y: theta_i0+(theta_i1-theta_i0)*a_g1. Specificity: 1-[theta_i0+(theta_i1-theta_i0)*a_g0]. Model-implied, not gold-label measurements.",
+    "group_parameters": "sensitivity a_g1; specificity 1-a_g0 relative to inferred Y (global sign convention fixed by entropy)",
+    "EM_MAP": "Symmetric +0.5 numerator/+1 denominator corresponds Beta(1.5,1.5) MAP, not Jeffreys Beta(0.5,0.5) MAP.",
+    "same_parameters_ablation": true,
+    "sum_vs_mean": "Averaging divides all group log evidence including intercept by number of unique binary members. This is a likelihood-temperature intervention, not a control isolating only information from newly added independent features.",
+    "limitations": [
+      "No proof named families meet conditional independence; correlated errors can still be double-counted.",
+      "Exact clones collapse only within family; cross-family duplicates and near-duplicates are not covered.",
+      "No global optimum or finite-sample consistency established by deterministic single-start EM convergence.",
+      "Continuous h=mu+sd*z may lie outside [0,1]; singleton contributions are unsaturated, unlike multi-member latent groups.",
+      "Groups of two rely on global latent structure for identification; no direct recovery guarantee is tested on real telemetry.",
+      "Bank orientation/selection used prior source labels; labels are isolated for this fit but source bank evaluation remains development.",
+      "Scoring-only null cannot certify historical feature-selection leakage absence or calibration validity; it checks label/score association disappears."
+    ],
+    "fold_models": [
+      {
+        "fold": 0,
+        "converged": true,
+        "iterations": 75,
+        "minimum_objective_increment": 0.008066713460721076,
+        "offblock_relative_residual": 0.406698927484134,
+        "group_sizes": [
+          10,
+          1,
+          1,
+          1,
+          2,
+          3,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          2,
+          1,
+          1
+        ]
+      },
+      {
+        "fold": 1,
+        "converged": true,
+        "iterations": 69,
+        "minimum_objective_increment": 0.008221317897550762,
+        "offblock_relative_residual": 0.4132654824622671,
+        "group_sizes": [
+          10,
+          1,
+          1,
+          1,
+          2,
+          3,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          2,
+          1,
+          1
+        ]
+      },
+      {
+        "fold": 2,
+        "converged": true,
+        "iterations": 65,
+        "minimum_objective_increment": 0.008622312219813466,
+        "offblock_relative_residual": 0.41863848946050813,
+        "group_sizes": [
+          10,
+          1,
+          1,
+          1,
+          2,
+          3,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          2,
+          1,
+          1
+        ]
+      },
+      {
+        "fold": 3,
+        "converged": true,
+        "iterations": 67,
+        "minimum_objective_increment": 0.008222783915698528,
+        "offblock_relative_residual": 0.4094082819525633,
+        "group_sizes": [
+          10,
+          1,
+          1,
+          1,
+          2,
+          3,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          2,
+          1,
+          1
+        ]
+      },
+      {
+        "fold": 4,
+        "converged": true,
+        "iterations": 79,
+        "minimum_objective_increment": 0.008329321979545057,
+        "offblock_relative_residual": 0.40953936561911514,
+        "group_sizes": [
+          10,
+          1,
+          1,
+          1,
+          2,
+          3,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          2,
+          1,
+          1
+        ]
+      }
+    ],
+    "duplicate_binary_application_check": [
+      {
+        "fold": 0,
+        "fractional_test_binary_cells": 0
+      },
+      {
+        "fold": 1,
+        "fractional_test_binary_cells": 0
+      },
+      {
+        "fold": 2,
+        "fractional_test_binary_cells": 0
+      },
+      {
+        "fold": 3,
+        "fractional_test_binary_cells": 0
+      },
+      {
+        "fold": 4,
+        "fractional_test_binary_cells": 0
+      }
+    ]
+  },
+  "shuffled_label_null": {
+    "scope": "fixed sealed predictions, independent within-answer error-label permutations, no refit/reselection",
+    "eligible_answers_checked": 6030,
+    "eligible_answers_total": 6030,
+    "seeds": [
+      202609240,
+      202609241,
+      202609242,
+      202609243,
+      202609244,
+      202609245,
+      202609246,
+      202609247,
+      202609248,
+      202609249,
+      202609250,
+      202609251,
+      202609252,
+      202609253,
+      202609254,
+      202609255,
+      202609256,
+      202609257,
+      202609258,
+      202609259
+    ],
+    "observed_within_auc": {
+      "confidence_sum": 0.7575992939026592,
+      "confidence_average": 0.7557712004574785,
+      "raw28_equal": 0.7616828865937302,
+      "family15_equal": 0.7658538403970853
+    },
+    "per_seed": [
+      {
+        "seed": 202609240,
+        "confidence_sum": 0.5042264862832215,
+        "confidence_average": 0.5044735678472186,
+        "raw28_equal": 0.5034648184231644,
+        "family15_equal": 0.5029019640259799
+      },
+      {
+        "seed": 202609241,
+        "confidence_sum": 0.5004093497423826,
+        "confidence_average": 0.5005213272436576,
+        "raw28_equal": 0.5008996254645166,
+        "family15_equal": 0.5025042742090787
+      },
+      {
+        "seed": 202609242,
+        "confidence_sum": 0.4987682075701667,
+        "confidence_average": 0.49971103893972485,
+        "raw28_equal": 0.500142688368731,
+        "family15_equal": 0.5001352830413758
+      },
+      {
+        "seed": 202609243,
+        "confidence_sum": 0.49698830492862867,
+        "confidence_average": 0.4987700668836309,
+        "raw28_equal": 0.49826980751449446,
+        "family15_equal": 0.4984346593104418
+      },
+      {
+        "seed": 202609244,
+        "confidence_sum": 0.5040584772875921,
+        "confidence_average": 0.5040064353409381,
+        "raw28_equal": 0.5035353673297036,
+        "family15_equal": 0.501425305414829
+      },
+      {
+        "seed": 202609245,
+        "confidence_sum": 0.4956322132565153,
+        "confidence_average": 0.49648383105207694,
+        "raw28_equal": 0.4951878610519936,
+        "family15_equal": 0.4953907193473856
+      },
+      {
+        "seed": 202609246,
+        "confidence_sum": 0.5006043054686425,
+        "confidence_average": 0.4998186184081348,
+        "raw28_equal": 0.49910324344629575,
+        "family15_equal": 0.497930732121906
+      },
+      {
+        "seed": 202609247,
+        "confidence_sum": 0.4990915222528169,
+        "confidence_average": 0.49987782610115017,
+        "raw28_equal": 0.4986371446574077,
+        "family15_equal": 0.4982898827452244
+      },
+      {
+        "seed": 202609248,
+        "confidence_sum": 0.49755265956018374,
+        "confidence_average": 0.4968260768472706,
+        "raw28_equal": 0.49767308659580867,
+        "family15_equal": 0.4987679433690951
+      },
+      {
+        "seed": 202609249,
+        "confidence_sum": 0.5032938777191956,
+        "confidence_average": 0.5026822103200084,
+        "raw28_equal": 0.5050602728585323,
+        "family15_equal": 0.5034071175110807
+      },
+      {
+        "seed": 202609250,
+        "confidence_sum": 0.5008330963037126,
+        "confidence_average": 0.5007353463766664,
+        "raw28_equal": 0.5014033100258067,
+        "family15_equal": 0.5001271982180613
+      },
+      {
+        "seed": 202609251,
+        "confidence_sum": 0.5007659325353762,
+        "confidence_average": 0.5007651091009477,
+        "raw28_equal": 0.49940836344725875,
+        "family15_equal": 0.4976277512801735
+      },
+      {
+        "seed": 202609252,
+        "confidence_sum": 0.503706589762164,
+        "confidence_average": 0.5033455253143885,
+        "raw28_equal": 0.5028187968810761,
+        "family15_equal": 0.5039904252352941
+      },
+      {
+        "seed": 202609253,
+        "confidence_sum": 0.5017416049022703,
+        "confidence_average": 0.5022636132473388,
+        "raw28_equal": 0.501930081976003,
+        "family15_equal": 0.5036710877030153
+      },
+      {
+        "seed": 202609254,
+        "confidence_sum": 0.5043545432135637,
+        "confidence_average": 0.5037789862379951,
+        "raw28_equal": 0.5031762512922038,
+        "family15_equal": 0.5044080174569535
+      },
+      {
+        "seed": 202609255,
+        "confidence_sum": 0.499544223327838,
+        "confidence_average": 0.49977399656530563,
+        "raw28_equal": 0.497205290501481,
+        "family15_equal": 0.4981993959940974
+      },
+      {
+        "seed": 202609256,
+        "confidence_sum": 0.4945904833397095,
+        "confidence_average": 0.49470080328421484,
+        "raw28_equal": 0.494351826812667,
+        "family15_equal": 0.49411175950006775
+      },
+      {
+        "seed": 202609257,
+        "confidence_sum": 0.4991761524771514,
+        "confidence_average": 0.49983749352998835,
+        "raw28_equal": 0.5003354086764448,
+        "family15_equal": 0.5008390855746756
+      },
+      {
+        "seed": 202609258,
+        "confidence_sum": 0.49925252816401244,
+        "confidence_average": 0.4989757944586863,
+        "raw28_equal": 0.4976746682221104,
+        "family15_equal": 0.49864706786560264
+      },
+      {
+        "seed": 202609259,
+        "confidence_sum": 0.5012424069415288,
+        "confidence_average": 0.5002316960511685,
+        "raw28_equal": 0.500103416608404,
+        "family15_equal": 0.4981813387457807
+      }
+    ],
+    "summary": {
+      "confidence_sum": {
+        "mean": 0.5002916482518336,
+        "sd_across_seeds": 0.0028075273024168327,
+        "min": 0.4945904833397095,
+        "max": 0.5043545432135637,
+        "candidate_minus_arm_mean": 0.0,
+        "candidate_minus_arm_min": 0.0,
+        "candidate_minus_arm_max": 0.0
+      },
+      "confidence_average": {
+        "mean": 0.5003789681575255,
+        "sd_across_seeds": 0.002572366532357274,
+        "min": 0.49470080328421484,
+        "max": 0.5044735678472186,
+        "candidate_minus_arm_mean": -8.73199056919266e-05,
+        "candidate_minus_arm_min": -0.0017817619550022368,
+        "candidate_minus_arm_max": 0.0010107108903603113
+      },
+      "raw28_equal": {
+        "mean": 0.5000190665077052,
+        "sd_across_seeds": 0.002851409869645485,
+        "min": 0.494351826812667,
+        "max": 0.5050602728585323,
+        "candidate_minus_arm_mean": 0.0002725817441284556,
+        "candidate_minus_arm_min": -0.0017663951393366295,
+        "candidate_minus_arm_max": 0.0023389328263569986
+      },
+      "family15_equal": {
+        "mean": 0.499949550433506,
+        "sd_across_seeds": 0.002892372285165908,
+        "min": 0.49411175950006775,
+        "max": 0.5044080174569535,
+        "candidate_minus_arm_mean": 0.00034209781832769405,
+        "candidate_minus_arm_min": -0.002094924466696124,
+        "candidate_minus_arm_max": 0.0031381812552026545
+      }
+    }
+  },
+  "feature_permutation": {
+    "feature": "q15_H1",
+    "seed": 20260924,
+    "within_each_answer": true,
+    "answers_checked": 13769,
+    "answers_total": 13769,
+    "steps": 145597,
+    "refit": false,
+    "recalibrated": false,
+    "method": "Original models and thresholds; answer standardization recomputed after scoring.",
+    "arms": {
+      "confidence_sum": {
+        "mean_absolute_score_change": 0.04688097725629379,
+        "changed_scores_above_1e_minus10": 145055,
+        "changed_step_decisions": 1408,
+        "permuted_within_auc": 0.757628997737252,
+        "within_auc_change": 2.9703834592775813e-05
+      },
+      "confidence_average": {
+        "mean_absolute_score_change": 0.024908872311625165,
+        "changed_scores_above_1e_minus10": 145087,
+        "changed_step_decisions": 1143,
+        "permuted_within_auc": 0.7558632148613639,
+        "within_auc_change": 9.201440388539872e-05
+      },
+      "raw28_equal": {
+        "mean_absolute_score_change": 0.04930396218132464,
+        "changed_scores_above_1e_minus10": 145089,
+        "changed_step_decisions": 2048,
+        "permuted_within_auc": 0.7630868393813258,
+        "within_auc_change": 0.0014039527875956415
+      },
+      "family15_equal": {
+        "mean_absolute_score_change": 0.012093917630139289,
+        "changed_scores_above_1e_minus10": 145087,
+        "changed_step_decisions": 550,
+        "permuted_within_auc": 0.7660882854341906,
+        "within_auc_change": 0.00023444503710534637
+      }
+    }
+  },
+  "synthetic": {
+    "training_rows": 30000,
+    "heldout_rows": 30000,
+    "train_seed": 40,
+    "test_seed": 41,
+    "three_independent_measurements_loss": 0.1362183170679111,
+    "one_measurement_loss": 0.15435678958669669,
+    "same_parameters_mean_evidence_loss": 0.14555854642529473,
+    "duplicate_measurements_loss": 0.1362183170679111,
+    "duplicate_max_score_difference": 0.0,
+    "full_converged": true,
+    "small_converged": true,
+    "duplicate_converged": true
+  }
+}

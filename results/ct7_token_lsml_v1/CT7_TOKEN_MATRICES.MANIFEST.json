@@ -1,0 +1,44 @@
+{
+  "schema": "ct7-token-matrices-v1",
+  "answers": 13769,
+  "tokens": 6968779,
+  "steps": 145597,
+  "channels": [
+    "H0lim",
+    "ve0",
+    "ve0.75",
+    "ve1",
+    "H0lim_prefix_innovation",
+    "bocpd_residual",
+    "chosen_std_excess"
+  ],
+  "bocpd_provenance": "rebuilt from the raw row by the temporal_context_data_v1 recipe (bocpd_residual_temporal_recipe)",
+  "sources_sha256": {
+    "dataset_cache/repgrid/pb_qwen3_4b/processbench_gsm8k.pkl": "549843b11a99f41b60ccb13eb6a65c5583527402602e6e40d1a417699e64b02b",
+    "dataset_cache/repgrid/pb_qwen3_4b/processbench_math.pkl": "807292c490012b68c7a20cc3d093cda637866227940b9024b258b6a201657c32",
+    "dataset_cache/repgrid/pb_qwen3_4b/processbench_olympiadbench.pkl": "e5e73f044247e0fb4081fea1c3a77793aab182485daebce48cf7a3f7809eb0ae",
+    "dataset_cache/repgrid/pb_qwen3_4b/processbench_omnimath.pkl": "ec20e56553acee15c0646ad266f5d5d8d24ef22ba87289b6ffe013b0c639ba67",
+    "dataset_cache/repgrid/pb_qwen3_8b/processbench_gsm8k.pkl": "c258e8a37fad43216290fef2f70c88735f413f8c0ceb5cce39dfefe67d66955d",
+    "dataset_cache/repgrid/pb_qwen3_8b/processbench_math.pkl": "19cbbb2b4f90e073f2793360f142bc25334f88bbc4ec01fd78807f9f1ad2836d",
+    "dataset_cache/repgrid/pb_qwen3_8b/processbench_olympiadbench.pkl": "2083c4f9d0cc8d84657b02558d0720f726db4288e39e7557be4c55f78f4d4e60",
+    "dataset_cache/repgrid/pb_qwen3_8b/processbench_omnimath.pkl": "561b96c5e96a25256e7e51a62c7ef01bcb2fd87ea1adcfc36e2c758807f559a0",
+    "dataset_cache/four_localization/prmbench_qwen3_8b_telemetry_full/prmbench_telemetry.pkl": "b934afad0889ffacf0f4420f885ad52ddcf08f2124e506a21cd24f216bd170be"
+  },
+  "gates": {
+    "i_bank_top10_exact": {
+      "checked_answers": 13769,
+      "mismatches": 0,
+      "compared_as": "float32 (CT7 precision)",
+      "max_abs_difference_float64": 0.0
+    },
+    "ii_bocpd_view_replay": {
+      "max_abs_difference": 7.216449660063518e-15,
+      "tolerance": 1e-08,
+      "provenance": "rebuilt from the raw row by the temporal_context_data_v1 recipe (bocpd_residual_temporal_recipe)"
+    }
+  },
+  "seconds": 1117.5073173046112,
+  "smoke": 0,
+  "development_only": true,
+  "npz_sha256": "17813643aae9bcdb7fdfea121661c900b2d0d52f1acf46c5253a2a268af0d1eb"
+}

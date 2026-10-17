@@ -140,6 +140,12 @@ results/reconstruction_benchmark_v1/external_audits/
 # Research-run intermediates. Commit reports, summary tables, manifests, and
 # advisor figures; regenerate per-run score matrices and verbose diagnostics.
 results/**/*.npz
+!results/digit_alternative_probability_v1/SCORES.npz
+!results/digit_alternative_probability_v1/ANSWER_METRICS.npz
+!results/digit_family_extension_v1/FEATURES.npz
+!results/digit_family_extension_v1/PREDICTIONS.npz
+!results/digit_family_extension_v1/EVALUATION.npz
+!results/digit_family_extension_v1/duplicate_equal_completion/PREDICTIONS.npz
 results/**/diagnostics/
 results/**/training_history.csv
 results/frozen_24cell_benchmark_failed_nan_diagnostic/
@@ -252,3 +258,84 @@ results/lsml_external_generalization_v1/private/
 # Preserved figures from the independently replayed PRM audit (2026-10-17).
 !results/remote_claims_replay_2026-10-15/plots/*.png
 !results/remote_claims_replay_2026-10-15/plots/*.svg
+# Local resumable temporal fitting state; final score/metric artifacts are retained separately.
+results/direct_probability_temporal_v3/*.sqlite*
+results/direct_probability_temporal_v3_original_solver/*.sqlite*
+results/varentropy_contribution_fusion_v1/*.sqlite*
+results/surprisal_power_fusion_v1/*.sqlite*
+results/binary_moment_fusion_v1/*.sqlite*
+results/binary_moment_fusion_v1/*.log
+results/deem_b3_probability_moments_v1/*.sqlite*
+results/deem_b3_probability_moments_v1/*.log
+results/moment_rbm_fusion_v1/*.sqlite*
+results/moment_rbm_fusion_v1/*.log
+results/moment_rbm_fusion_v1_staged/**/*.sqlite*
+results/moment_rbm_fusion_v1_staged/*.log
+results/rbm_m3_powers_v1/*.sqlite*
+results/rbm_m3_powers_v1/*.log
+results/global_moment_fusion_24_v1/*.log
+# Resumable state is local; compact reviews and metrics are retained.
+results/renyi_position_temporal_fusion_v1/**/*.sqlite*
+results/probability_normalization_ablation_v1/**/*.sqlite*
+results/uniform_multiscale_fusion_v1/**/*.sqlite*
+results/gate_feature_readout_selection_v1/**/*.sqlite*
+results/math_gate_development_v1/cells/
+# Fusion Independence Atlas v1: resumable memmaps, checkpoints, and model state
+# are local build products. Compact manifests, ledgers, reports, CSVs, and
+# figures remain eligible for review and version control.
+results/fusion_independence_atlas_v1/**/*.npy
+results/fusion_independence_atlas_v1/**/*.npz
+results/fusion_independence_atlas_v1/**/*.sqlite*
+results/fusion_independence_atlas_v1/**/*.pt
+results/fusion_independence_atlas_v1/**/*.tmp
+results/fusion_independence_atlas_v1/**/*.log
+results/fusion_independence_atlas_v1/extract/answers/*.npz
+results/fusion_independence_atlas_v1/baseline_replay/SCORES_FROZEN.npz
+results/fusion_independence_atlas_v1/report/.mplconfig/
+results/fusion_independence_atlas_v1/**/*.lock
+# Follow-up L-SML research arrays are reproducible local caches. Keep compact
+# JSON/Markdown results reviewable in Git.
+results/lsml_gate_locator_research_v1/**/*.npz
+results/soft_joint_auto_v1/**/*.npz
+# Joint redundancy-robustness v1: OOF score arrays and logs are local caches.
+results/joint_redundancy_robustness_v1/**/*.npz
+results/joint_redundancy_robustness_v1/**/*.log
+# Codex Joint membership / broad50 series (2026-09-17): binary caches stay local.
+results/broad50_*/**/*.npz
+results/digitfree_broad50_v1/**/*.npz
+results/joint_*_v1/**/*.npz
+results/joint_*_v1/**/*.npy
+results/joint_*_v1/**/*.log
+results/broad50_*/**/*.log
+results/digitfree_broad50_v1/**/*.log
+results/joint_group_readouts_v1/**/*.npz
+results/joint_group_readouts_v1/**/*.log
+results/digitfree20_ladder_v1/**/*.npz
+results/digitfree20_ladder_v1/**/*.log
+results/digitfree20_ladder_v1_run.log
+results/chosen_token_calibration_v1/**/*.npz
+results/chosen_token_calibration_v1/**/*.log
+results/length_explicit_ct7_v1/**/*.npz
+results/length_explicit_ct7_v1/**/*.log
+results/*_extract.log
+results/*_analysis.log
+results/*_reextract.log
+# Cumulative vote v2: preserve compact reports; full OOF/model artifacts stay local.
+results/cumulative_vote_fusion_v2/**/*.npy
+results/cumulative_vote_fusion_v2/**/*.npz
+results/cumulative_vote_fusion_v2/**/*.pkl
+results/cumulative_vote_fusion_v2/jobs/
+results/cumulative_vote_fusion_v2/OOF_ANSWERS.csv
+results/cumulative_vote_fusion_v2/ct7_profiles_v1/jobs/
+# Quickest-detection diagnostics: the full 153k-row sweep table stays local (39.6 MB); B1_SUMMARY.csv is committed.
+results/quickest_detection_diagnostics_v1/B1_DELAY_CURVES.csv
+results/quickest_detection_diagnostics_v1/*.log
+results/quickest_detection_diagnostics_v1/*.err
+results/readout_family_v1/*.log
+results/readout_family_v1/*.err
+# Readout family v1: compact reports are committed; profiles, OOF arrays, models and per-job files stay local (Drive is canonical).
+results/readout_family_v1/**/*.npy
+results/readout_family_v1/**/*.npz
+results/readout_family_v1/**/*.pkl
+results/readout_family_v1/jobs/
+results/readout_family_v1/OOF_ANSWERS.csv

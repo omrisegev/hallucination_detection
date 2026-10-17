@@ -1,0 +1,38 @@
+{
+ "protocol_id": "partition_switch_v1",
+ "version": 1,
+ "frozen_before_scoring": true,
+ "status": "FROZEN",
+ "requested_by": "Omri 2026-09-28 ('2. accepted, try'): a label-free stopping rule that decides when NOT to use the grouping and falls back to the plain average, so that the estimate-weighted grouped method stops losing where the partition is poor (algorithm_decisions_v1, Step 457).",
+ "question": "Does a label-free rule that switches, per bank and fold, between the grouped DS-estimate fusion and the plain average remove the grouped method's losses while keeping its gains, so that the result is never significantly worse than the plain average and better on average over the 8 banks?",
+ "what_a_switch_can_and_cannot_do": "A switch can only remove losses; it cannot create wins where the grouped method has none. It therefore cannot meet the Step-457 rule's '>= 5 of 8 wins'. This experiment's own success criterion is declared below.",
+ "inputs_frozen": "algorithm_decisions_v1 run_20260928 (STEP_SCORES.npz local, sha recorded; ACTIVITY.jsonl partitions of the raw learning; THRESHOLDS.json). No method is refitted; only label-free statistics are computed on each fold's fit rows, and existing scores are recombined.",
+ "arms": {
+  "BASE": "P0__BASE: DS filter, plain average (the reference)",
+  "ON": "P0__EQ_DSM: DS filter, binary partition + merge, mean within groups, MLE weights from DS estimates on group-score marks (the secondary external candidate)",
+  "SW": "PRIMARY. Per bank b and fold k: ON if s_j(b,k) <= tau, else BASE; (j, tau) chosen by the leave-one-bank-and-fold-out rule below",
+  "BLEND": "per answer: answer-z(BASE) + answer-z(ON); no parameter",
+  "SW_HEM, BLEND_HEM": "the same with ON = P0__HEM_DSM (secondary)",
+  "ORACLE_SWITCH": "LABEL-USING ceiling: ON on the banks where its full-sample gain over BASE is positive, else BASE; reference only"
+ },
+ "label_free_statistics": {
+  "note": "computed per bank and fold on that fold's fit rows (all fit-fold steps; PRMBench fit steps for marks), from the survivors and merged partition recorded in ACTIVITY.jsonl (raw learning); higher = more reason to fall back",
+  "S1_between_dependence": "mean |Pearson r| between channels in different merged groups (continuous values)",
+  "S2_largest_group_share": "size of the largest merged group / number of survivors",
+  "S3_rank_one_misfit": "relative Frobenius misfit of the off-diagonal covariance of the group-score marks (the DS/SML model implies rank one): ||offdiag(Q) - offdiag(lambda v v^T)|| / ||offdiag(Q)|| after er_stage_a.rank_one_completion"
+ },
+ "rule_selection_leak_free": "All 8 banks score the SAME answers, so leaving one bank out would reuse the target fold's labels. For target (bank b, fold k) the rule is chosen on the cells (b', k') with b' != b AND k' != k (28 cells): gain(b',k') = within-AUC(ON) - within-AUC(BASE) on fold k' evaluation answers; for each statistic j and threshold tau in {-inf} U {observed s_j values of the training cells} U {+inf}, objective = mean over training cells of gain * [s_j <= tau]; choose the (j, tau) with the highest objective (ties: smaller tau, then S1 < S2 < S3). Apply to (b, k).",
+ "endpoints": "PRMBench within-answer AUC (primary); ProcessBench gate-free SLA macro 8 (beside); official PRMScore for SW (each fold uses the chosen arm's stored fold threshold; not computable for BLEND because the per-fold calibration scores of the blend were not stored - declared)",
+ "uncertainty": "paired source-group bootstrap, 20,000 draws, seed 20260930; per bank 95% intervals; the 8-bank mean delta per draw = mean of the 8 bank deltas under the same draw",
+ "success_criterion_frozen": "SW succeeds iff (a) no bank has a 95% interval of SW - BASE entirely below 0, and (b) the 95% interval of the 8-bank mean delta is entirely above 0. Same criterion reported for BLEND and the HEM versions. If SW succeeds, SW becomes the secondary external candidate in place of ON; otherwise ON stays the secondary candidate as planned.",
+ "nulls_and_robustness": "for SW - BASE and BLEND - BASE on every bank where they differ: within-answer label shuffle and same-length whole-answer swap (200 permutations, seeds 11/12), concentration (top 1% share, trimmed mean), and the list of switch decisions per bank and fold with the chosen statistic and threshold",
+ "predictions_frozen": {
+  "P1": "the switch keeps ON on 32 and 32+digits in most folds and falls back on 51 and 20+digits in most folds",
+  "P2": "SW has no significant loss on any bank but its 8-bank mean gain is small (< 0.003) and may not be significant",
+  "P3": "BLEND has no significant loss on any bank and a positive 8-bank mean",
+  "P4": "the ORACLE_SWITCH ceiling is about 0.003 above BASE on the 8-bank mean"
+ },
+ "hard_stops": ["inputs differ from the recorded hashes", "BASE recomputed from the ACTIVITY survivors differs from the stored P0__BASE by > 1e-9 on any evaluation row", "the rule for (b, k) uses any cell with b' = b or k' = k"],
+ "review": "pre-run code review; red team of three after the run",
+ "budget": "CPU only, <= 30 minutes"
+}

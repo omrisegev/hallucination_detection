@@ -1,0 +1,2270 @@
+{
+  "status": "PASS",
+  "scope": "same-session automated control replay, isolation, joins and metrics",
+  "rows": 13769,
+  "arms": 34,
+  "fits": 245,
+  "fixtures": {
+    "status": "PASS",
+    "checks": [
+      "weighted_AUC_vs_explicit_repeats",
+      "invalid_decision_accounting",
+      "step_zero_error",
+      "threshold_search",
+      "ties_and_single_class"
+    ]
+  },
+  "source_controls": {
+    "status": "PASS",
+    "exact_control_arrays": 6615,
+    "grouping_counts": {
+      "SELECTED": 190,
+      "BLOCKED_NO_ADMISSIBLE_PARTITION": 55
+    },
+    "provenance_fallback_events": {
+      "internal_cont/provenance": 55,
+      "internal_joint_shared/provenance_merged": 55,
+      "internal_joint_gate050/provenance_merged": 55,
+      "internal_joint_gate100/provenance_merged": 55
+    },
+    "reported_convergence": {
+      "internal_joint/True": 191,
+      "internal_joint_gate050/True": 236,
+      "internal_joint_gate100/False": 240,
+      "internal_joint/False": 54,
+      "internal_joint_gate100/True": 5,
+      "internal_joint_gate050/False": 9
+    },
+    "limitation": "Only convergence flags exposed by the historical entry point are counted; no added Jacobian gate"
+  },
+  "checks": {
+    "fits": [
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 0,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 0,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 0,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 0,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 0,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 0,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 1,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 1,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 1,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 1,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 1,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 1,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 2,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 2,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 2,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 2,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 2,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 2,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 3,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 3,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 3,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 3,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 3,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 3,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 4,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 4,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 4,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 4,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 4,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q4",
+          "outer": 4,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 0,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 0,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 0,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 0,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 0,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 0,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 1,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 1,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 1,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 1,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 1,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 1,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 2,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 2,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 2,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 2,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 2,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 2,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 3,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 3,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 3,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 3,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 3,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 3,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 4,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 4,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 4,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 4,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 4,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_gsm8k_q8",
+          "outer": 4,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 0,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 0,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 0,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 0,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 0,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 0,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 1,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 1,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 1,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 1,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 1,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 1,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 2,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 2,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 2,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 2,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 2,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 2,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 3,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 3,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 3,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 3,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 3,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 3,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 4,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 4,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 4,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 4,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 4,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q4",
+          "outer": 4,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 0,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 0,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 0,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 0,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 0,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 0,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 1,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 1,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 1,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 1,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 1,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 1,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 2,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 2,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 2,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 2,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 2,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 2,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 3,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 3,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 3,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 3,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 3,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 3,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 4,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 4,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 4,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 4,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 4,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_math_q8",
+          "outer": 4,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 0,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 0,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 0,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 0,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 0,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 0,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 1,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 1,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 1,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 1,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 1,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 1,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 2,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 2,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 2,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 2,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 2,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 2,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 3,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 3,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 3,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 3,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 3,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 3,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 4,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 4,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 4,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 4,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 4,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q4",
+          "outer": 4,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 0,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 0,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 0,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 0,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 0,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 0,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 1,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 1,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 1,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 1,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 1,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 1,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 2,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 2,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 2,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 2,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 2,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 2,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 3,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 3,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 3,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 3,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 3,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 3,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 4,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 4,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 4,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 4,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 4,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_olympiadbench_q8",
+          "outer": 4,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 0,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 0,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 0,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 0,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 0,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 0,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 1,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 1,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 1,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 1,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 1,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 1,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 2,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 2,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 2,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 2,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 2,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 2,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 3,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 3,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 3,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 3,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 3,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 3,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 4,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 4,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 4,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 4,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 4,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q4",
+          "outer": 4,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 0,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 0,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 0,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 0,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 0,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 0,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 1,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 1,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 1,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 1,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 1,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 1,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 2,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 2,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 2,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 2,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 2,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 2,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 3,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 3,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 3,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 3,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 3,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 3,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 4,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 4,
+          "inner": 0
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 4,
+          "inner": 1
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 4,
+          "inner": 2
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 4,
+          "inner": 3
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "pb_omnimath_q8",
+          "outer": 4,
+          "inner": 4
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "prmbench_qwen3_8b",
+          "outer": 0,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "prmbench_qwen3_8b",
+          "outer": 1,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "prmbench_qwen3_8b",
+          "outer": 2,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "prmbench_qwen3_8b",
+          "outer": 3,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      },
+      {
+        "job": {
+          "cell": "prmbench_qwen3_8b",
+          "outer": 4,
+          "inner": null
+        },
+        "status": "PASS",
+        "failures": {}
+      }
+    ],
+    "checked_labels": 13769,
+    "failures": {
+      "iu_c2_s25_l2_exoff": 0,
+      "iu_c2_s25_l2_exon": 0,
+      "equal_all23": 0,
+      "fixed_family_cont_unguarded": 0,
+      "prov5_cont": 0,
+      "internal_cont": 0,
+      "internal_joint": 0,
+      "internal_joint_gate050": 0,
+      "internal_joint_gate100": 0,
+      "internal_joint_liu010": 0,
+      "internal_joint_liu050": 0,
+      "internal_joint_diag010": 0,
+      "internal_joint_diag050": 0,
+      "internal_joint_modelinv_lam0": 0,
+      "permctl_graph_internal_joint_liu010": 0
+    }
+  },
+  "external_review": false,
+  "browser_review": false,
+  "seconds": 403.95318508148193
+}

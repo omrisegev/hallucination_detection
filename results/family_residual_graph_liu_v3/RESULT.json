@@ -1,0 +1,151 @@
+{
+  "all_topology_candidate_count": 1536,
+  "candidate_count": 1152,
+  "connectivity_mechanism_gate_pass": true,
+  "d30_ci_pp": [
+    -0.15179393378911382,
+    0.01725539018304145
+  ],
+  "d30_point_pp": -0.0649240554924653,
+  "d50_ci_pp": [
+    -0.2491490999484218,
+    0.004570837795606487
+  ],
+  "d50_point_pp": -0.12034580629254553,
+  "design": "nested leave-one-dataset-family-out retrospective development",
+  "family_nrm_delta_pp": 0.27710875400040114,
+  "fixed_default_ci_pp": [
+    -0.025608686101401636,
+    0.041011656329639046
+  ],
+  "fixed_default_delta_pp": 0.007661565645388409,
+  "full_minus_dufs_same_readout_pp": -0.013571462166510388,
+  "full_minus_same_graph_u2_pp": 0.018355988733689543,
+  "graph_health_prefilter": {
+    "criterion": "symmetric finite nonnegative weights, finite positive minimum/mean degree, and zero isolated nodes in all 24 cells; connectivity is a separate mechanism gate",
+    "eligible_graph_settings": 84,
+    "registered_graph_settings": 84
+  },
+  "incumbent_dufs_liu_delta_pp": 0.0677805041215326,
+  "n_cells": 23,
+  "n_dataset_families": 8,
+  "nested_auprc_delta_vs_iu_ci_pp": [
+    -0.016686415415452162,
+    0.04082248698242849
+  ],
+  "nested_auprc_delta_vs_iu_pp": 0.012839084346341694,
+  "nested_delta_vs_iu_ci_pp": [
+    -0.041271095454121685,
+    0.08030478385556337
+  ],
+  "nested_delta_vs_iu_pp": 0.01820857070765505,
+  "nonzero_selected_folds": 8,
+  "nrm_recovery_fraction": 0.06570911400232665,
+  "positive_outer_families": 4,
+  "promotion_gates": {
+    "ci_lower_gt_zero": false,
+    "d30_lower_nonnegative": false,
+    "point_at_least_0p10pp": false,
+    "six_nonzero_folds": true,
+    "six_of_eight_positive": false,
+    "worst_at_least_minus_0p50pp": true
+  },
+  "promotion_pass": false,
+  "score_freeze_hash": "71eee2c2fc774d0338d732dbb62d91f5cce557770988183b19262ba0b0cb096a",
+  "selected_graph_health": {
+    "all_symmetric": true,
+    "connected_cells": 19,
+    "maximum_component_excess_fraction": 0.03483606557377049,
+    "maximum_isolated_fraction": 0.0,
+    "mechanism_health_criterion": "largest component >=90% and isolated fraction <=5%; at least 90% of cells required for mechanism promotion",
+    "mechanism_healthy_cell_fraction": 0.9166666666666666,
+    "mechanism_healthy_cells": 22,
+    "minimum_algebraic_connectivity": 0.0,
+    "minimum_degree": 0.05702016505848516,
+    "minimum_largest_component_fraction": 0.6086065573770492,
+    "n_cells": 24
+  },
+  "topology_rescue_sensitivities": {
+    "adaptive_only": {
+      "candidate_count": 384,
+      "final_config": {
+        "beta": 0.0,
+        "eta": 1.0,
+        "k": 7,
+        "lambda": 0.03,
+        "readout": "cs",
+        "topology": "adaptive",
+        "trust_factor": 1.0
+      },
+      "final_key": "cs__gadaptive__e0100__b0000__k07__l0003__t0100",
+      "final_selection_diagnostics": {
+        "best_key": "cs__gadaptive__e0100__b0000__k07__l0300__t0050",
+        "best_mean": 0.0014473003291529559,
+        "best_se": 0.0013222869041525595,
+        "chosen_training_mean": 0.00035195277674779835,
+        "chosen_training_worst": -0.00041517266045828133,
+        "eligible_count": 43,
+        "one_se_threshold": 0.0001250134250003964,
+        "tail_safe_count": 39
+      },
+      "nested_delta_vs_iu_ci_pp": [
+        -0.004966876171160345,
+        0.05047094232044121
+      ],
+      "nested_delta_vs_iu_pp": 0.015399769114441271,
+      "positive_families": 3,
+      "selected_keys_by_fold": [
+        "u2__gadaptive__e0100__b0000__k07__l0003",
+        "cs__gadaptive__e0100__b0000__k07__l0003__t0100",
+        "u2__gadaptive__e0100__b0000__k07__l0003",
+        "u2__gadaptive__e0100__b0000__k07__l0003",
+        "u2__gadaptive__e0100__b0000__k07__l0003",
+        "u2__gadaptive__e0100__b0000__k07__l0003",
+        "u2__gadaptive__e0100__b0000__k07__l0003",
+        "cs__gadaptive__e0100__b0000__k07__l0003__t0100"
+      ],
+      "worst_family_pp": -0.01072596935948189
+    },
+    "union_plus_adaptive": {
+      "candidate_count": 1536,
+      "final_config": {
+        "beta": 0.0,
+        "eta": 1.0,
+        "k": 7,
+        "lambda": 0.03,
+        "readout": "u2",
+        "topology": "union"
+      },
+      "final_key": "u2__gunion__e0100__b0000__k07__l0003",
+      "final_selection_diagnostics": {
+        "best_key": "cs__gunion__e0100__b0000__k07__l1000__t0100",
+        "best_mean": 0.002580150327856053,
+        "best_se": 0.0025819020520472255,
+        "chosen_training_mean": 1.4911826840275274e-05,
+        "chosen_training_worst": -3.221919562811371e-05,
+        "eligible_count": 764,
+        "one_se_threshold": -1.7517241911726641e-06,
+        "tail_safe_count": 731
+      },
+      "nested_delta_vs_iu_ci_pp": [
+        -0.04179777570473658,
+        0.08074971712131047
+      ],
+      "nested_delta_vs_iu_pp": 0.01820857070765505,
+      "positive_families": 4,
+      "selected_keys_by_fold": [
+        "cs__gunion__e0100__b0000__k07__l0010__t0100",
+        "u2__gunion__e0100__b0000__k07__l0003",
+        "u2__gunion__e0100__b0000__k07__l0003",
+        "cs__gunion__e0100__b0000__k07__l0010__t0100",
+        "cs__gunion__e0100__b0000__k07__l0003__t0100",
+        "u2__gunion__e0100__b0000__k07__l0003",
+        "u2__gunion__e0100__b0000__k07__l0003",
+        "cs__gunion__e0100__b0000__k07__l0003__t0100"
+      ],
+      "worst_family_pp": -0.13117035034732272
+    }
+  },
+  "version": "family-residual-graph-liu-v3-2026-08-23",
+  "worst_outer_family_pp": -0.13117035034732272
+}

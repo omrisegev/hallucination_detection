@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Three-week research update — advisor letter</title>
+  <style>
+    :root{--ink:#182033;--muted:#667085;--line:#e3e9f2;--paper:#fff;--navy:#25466f;--blue:#4f7cac;--green:#2d8f71;--amber:#c47d12;--wash:#f5f8fc}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--wash);color:var(--ink);font:17px/1.68 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    a{color:#245c96;text-decoration-thickness:1px;text-underline-offset:3px}.page{max-width:1040px;margin:36px auto;background:var(--paper);box-shadow:0 18px 55px rgba(36,58,92,.12);border-radius:22px;overflow:hidden}
+    header{padding:58px 70px 42px;background:linear-gradient(135deg,#1f385e,#315d87);color:#fff}header p{max-width:800px;margin:12px 0 0;color:#dce9f6}.eyebrow{letter-spacing:.12em;text-transform:uppercase;font-size:13px;font-weight:750;color:#a9d5ff}h1{margin:8px 0;font-size:42px;line-height:1.12}
+    nav{display:flex;gap:12px;flex-wrap:wrap;margin-top:26px}nav a{padding:9px 14px;border-radius:999px;background:rgba(255,255,255,.12);color:#fff;text-decoration:none;font-size:14px;border:1px solid rgba(255,255,255,.18)}
+    main{padding:46px 70px 70px}.salutation{font-size:19px}.lead{font-size:19px;color:#34425a}.directions{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:28px 0 42px;padding:0;counter-reset:item}.directions li{list-style:none;background:#f6f8fc;border:1px solid var(--line);padding:16px 18px;border-radius:14px;font-weight:650}.directions li:before{counter-increment:item;content:counter(item);display:inline-grid;place-items:center;width:27px;height:27px;margin-right:9px;border-radius:50%;background:var(--navy);color:#fff;font-size:13px}
+    section{scroll-margin-top:20px;margin:62px 0}h2{font-size:29px;line-height:1.2;margin:0 0 22px;color:#203959;border-left:5px solid var(--blue);padding-left:16px}h3{font-size:20px;margin-top:30px}.plot{margin:30px 0 20px;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#fff}.plot img{display:block;width:100%;height:auto}.caption{padding:10px 16px 14px;color:var(--muted);font-size:13px;background:#fafcff}
+    .takeaway{padding:18px 22px;margin:24px 0;border-radius:14px;background:#eef7f3;border-left:5px solid var(--green)}.warning{background:#fff7e8;border-left-color:var(--amber)}.table-wrap{overflow-x:auto;margin:22px 0}table{width:100%;border-collapse:collapse;font-size:15px}th,td{padding:11px 13px;border:1px solid var(--line);text-align:left;vertical-align:top}th{background:#f2f6fb;color:#294766}td:not(:first-child),th:not(:first-child){white-space:nowrap;text-align:right}.links{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0}.button{display:inline-block;padding:9px 13px;border:1px solid #cbd8e8;border-radius:10px;text-decoration:none;background:#fff;font-size:14px;font-weight:650}
+    .papers{background:#f7f9fc;border:1px solid var(--line);border-radius:16px;padding:20px 26px}.papers li{margin:7px 0}.footer{margin-top:56px;padding-top:28px;border-top:1px solid var(--line)}.small{font-size:14px;color:var(--muted)}
+    @media(max-width:760px){.page{margin:0;border-radius:0}header,main{padding:34px 24px}.directions{grid-template-columns:1fr}h1{font-size:34px}}
+    @media print{body{background:#fff}.page{box-shadow:none;margin:0;max-width:none}nav,.links{display:none}header{print-color-adjust:exact}.plot{break-inside:avoid}section{break-before:page}}
+
+    .inline-figure{display:block;width:100%;height:auto;background:#fff}
+    .technical-appendices details{margin:16px 0;border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden}
+    .technical-appendices summary{cursor:pointer;padding:17px 20px;background:#f4f7fb;color:#294766;font-weight:750}
+    .appendix-body{padding:8px 22px 26px}.appendix-body h3{font-size:23px;color:#203959;margin-top:32px}.appendix-body h4{font-size:19px;color:#294766;margin-top:26px}.appendix-body h5{font-size:17px;margin-top:22px}
+    .equation{white-space:pre-wrap;overflow-x:auto;padding:16px 18px;border:1px solid var(--line);border-radius:10px;background:#f8fafc;color:#263750;font:15px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace}
+    .source-reference{color:#42536d}.source-reference:after{content:" · listed in the project source packet";font-size:12px;color:var(--muted)}
+    blockquote{margin:20px 0;padding:12px 18px;border-left:4px solid var(--blue);background:#f7f9fc;color:#3d4d66}
+    @media print{details{break-inside:auto}details>summary{display:none}details>.appendix-body{display:block!important}.technical-appendices{break-before:page}}
+    
+  </style>
+</head>
+<body>
+<article class="page">
+  <header>
+    <div class="eyebrow">Advisor update · August 2026</div>
+    <h1>Algorithmic development and new applications</h1>
+    <p>A self-contained advisor packet with the main research story, four embedded figures, technical derivations, full application notes and paper references.</p>
+    <nav><a href="#summary">TL;DR</a><a href="#algorithmic">Algorithmic</a><a href="#applications">Applications</a><a href="#whitebox">White-box note</a><a href="#embedded-figures">Figures</a><a href="#technical-appendices">Deep dives</a><a href="#references-full">Papers</a></nav>
+  </header>
+  <main>
+    <p class="salutation">Hi Ofir, Bracha and Amir,</p>
+    <p class="lead">I wanted to share an update on what I have done in the past three weeks since our last meeting. The work converged around two connected directions:</p>
+    <ol class="directions"><li>Algorithmic extensions of our unsupervised fusion method, U-PCR</li><li>Application-oriented extensions beyond global final-answer hallucination detection</li></ol>
+    <p>I also ran a smaller white-box study, summarized briefly near the end. I moved the equations, complete experimental record, confidence intervals and detailed plots into three linked deep dives.</p>
+
+    <section id="summary">
+      <h2>TL;DR</h2>
+      <div class="takeaway"><strong>Algorithmic benchmark.</strong> Thirteen label-free fusion methods on the same frozen 24 cells all land within 1.4 AUROC points. CA-DEEM and a simple six-family average are the two modest standouts, but the broader picture is saturation on the current feature pool.</div>
+      <p><strong>Beyond the aligned table.</strong> Family-NRM improves by +0.28 points on its original 23-cell transfer benchmark and +0.46 points on the reserved PRMBench confirmation. CIW-DEEM reaches 0.7820 in its separate structured-input line, but remains below its registered promotion threshold.</p>
+      <p><strong>Applications.</strong> First-error localization beats the reproduced Mind the Gap in all eight cells, from 25.7% to 31.4% macro F1. A new ablation shows that simple averaging is enough in the global response head, but loses more than four F1 points in the local token head. Fixed-prefix prediction separates from our frozen internal baseline at 64 and 256 tokens.</p>
+      <p><strong>Decision.</strong> I propose stopping open-ended variant exploration, consolidating the work into a thesis/paper-style document and choosing one final prospective experiment.</p>
+    </section>
+
+    <section id="algorithmic">
+      <h2>1. Algorithmic extensions of U-PCR</h2>
+      <p>The algorithmic direction grew directly from our discussion about using DUFS more naturally inside U-PCR. In the previous round, I tried DUFS, GroupFS and other selectors as a preprocessing step: they selected the features in advance and then ran L-SML or U-PCR as-is. This time, I replaced U-PCR's own internal keep decision with 111 variants inspired by those feature-selection algorithms. None improved AUROC or moved the selected subset closer to the best label-based subset.</p>
+      <p>I then did another literature review, focusing specifically on papers that continued the early U-PCR and unsupervised ensemble-regression work. Two became important:</p>
+      <ol><li><a href="https://proceedings.mlr.press/v151/tenzer22a.html"><em>Crowdsourcing Regression: A Spectral Approach</em></a> (AISTATS 2022) recovers an unknown continuous target from noisy regressors without labels. IU-PCR estimates the shared target direction from covariance under an independence assumption; SU-PCR separates the covariance into a low-rank shared component and sparse correlated regressor errors.</li><li><a href="https://arxiv.org/abs/2601.20556"><em>Unsupervised Ensemble Learning Through Deep Energy-based Models</em></a> (AISTATS 2026) replaces the linear covariance model with an energy-based model over the ensemble outputs and latent class, allowing nonlinear dependencies without labels. Its original categorical input required a new continuous adaptation for our measurements.</li></ol>
+      <p>I started with IU-PCR and SU-PCR. SU-PCR's sparse-error correction was heterogeneous and inconclusive; on the aligned benchmark below it ends slightly under IU-PCR. IU-PCR performed well and gave us a cleaner baseline: it retains the stable measurements and estimates the score through a low-dimensional projected covariance solve.</p>
+      <p>I then integrated <a href="https://proceedings.neurips.cc/paper/2021/hash/0bc10d8a74dbafbf242e30433e83aa56-Abstract.html">DUFS</a> into this PCR fusion stage. In the earlier experiments DUFS selected features and fusion ran unchanged. In DUFS-LIU-PCR, no feature is simply selected or deleted. Continuous gates define a similarity graph between answers, and its Laplacian enters the final IU-PCR weight problem as a regularizer. Many variants found stable geometry, but it mainly followed shared confidence and response length rather than correctness. IU-PCR and DUFS-LIU-PCR were essentially tied on the aligned 24-cell benchmark.</p>
+      <p>To compare everything under identical conditions, I reconstructed all 13 methods on the same frozen 24 cells: 48,607 answers, two independent builds with byte-identical outputs, scores frozen before labels were opened and a grouped 20,000-draw bootstrap.</p>
+      <p>The whole roster sits within 1.4 points. CA-DEEM and the six-family average are the two positive standouts against IU-PCR in paired comparison, but the gains are small; DUFS-LIU and IU-PCR remain tied. The broad conclusion is diminishing returns rather than one universal winner. The complete numerical table remains in the algorithmic deep dive.</p>
+      <p class="small">* These Family-NRM and PGRD-A rows are later within-cell reconstructions under the common 24-cell contract. Their original transfer protocols are separate.</p>
+      <p>The most useful change came from <a href="https://arxiv.org/abs/2509.11536">HARP</a>. I reused its architectural idea of removing the dominant shared component and examining what remains, not its supervised white-box classifier. I grouped the 30 measurements into six families based on raw provenance: entropy level, entropy change, two energy families, top-probability shape and trace structure.</p>
+      <p>For each answer, the weighted measurements within a family form one partial score; the six partial scores add exactly to IU-PCR. I regressed each family contribution on the total score and retained its residual—how much more or less the family contributed than expected at the same overall confidence. Family-NRM finds a residual disagreement pattern that repeats across calibration environments and adds it as a small correction. Treating each atomic feature as its own residual direction was unstable and worse. Across the original 23-cell benchmark, leave-one-family-out calibration improved AUROC over IU-PCR by 0.277 percentage points, with a grouped interval of [+0.016,+0.533]. A later, separate PRMBench response test confirmed the direction: 0.7206 to 0.7252, approximately +0.46 points, again with a positive interval.</p>
+      <p>I then adapted DEEM to our setting. The published model receives categorical classifier predictions and uses a deeper energy architecture to capture nonlinear dependencies; the paper also demonstrates mixture-of-experts settings, where different predictors matter for different samples. Our measurements are continuous, so I built <strong>Continuous Additive DEEM (CA-DEEM)</strong>—called B3 only in the internal experiment registry. It processes each provenance family through a small nonlinear component and adds the family contributions into one label-free score.</p>
+      <p>Because this adapter removed parts of DEEM's categorical/iRBM architecture, I was concerned that it had also lost some adaptive expert behavior. I tried several output routers and several residual, graph and Laplacian corrections, but none improved reliably. Once again, stable dependence did not identify which measurement should be trusted for a particular answer.</p>
+      <p>I therefore redesigned the input. I returned to three token-level signals behind many of our original measurements—entropy, sampled-token surprisal and partition energy—and kept three familiar summaries of each: mean level, strongest sliding-window variance and strongest CUSUM change. This creates a 3-by-3 set of nine inputs whose rows share a source and whose columns share an operator.</p>
+      <p>For each input, cross-fitting predicts the part already explained by the other inputs that share its source or operator. The residual is its <em>innovation</em>: what that measurement contributes beyond the surrounding structure. CIW mixes the original measurement with this innovation, retains at least half of the original value and passes the transformed inputs to unchanged CA-DEEM. Neither stage uses correctness labels.</p>
+      <p>This produces <strong>CIW-DEEM—Cross-fitted Innovation-Weighted DEEM</strong>. It reaches <strong>0.7820 cell-macro AUROC</strong>, the highest point estimate in this CA-DEEM input line, although its registered improvement over CA-DEEM is too small for promotion. Supervised group-held-out logistic regression on the same transformed inputs reaches 0.7828—essentially the same range—and is slightly worse than logistic regression before CIW at 0.7834. CIW therefore does not expose a large unused linear signal; its small benefit appears specific to the nonlinear CA-DEEM backend.</p>
+      <p>The unsuccessful variants remain in the deep dive; the main route is feature selection → IU/SU-PCR → DUFS-LIU-PCR → Family-NRM → CA-DEEM → CIW-DEEM.</p>
+      <figure class="plot"><svg class="inline-figure" role="img" aria-label="Algorithmic comparison across the common benchmark and structured-input diagnostics" xmlns="http://www.w3.org/2000/svg" width="1100" height="850" viewBox="0 0 1100 850" role="img" aria-labelledby="title desc">
+  <title id="title">24-cell algorithmic comparison with CIW-DEEM and supervised diagnostics</title>
+  <desc id="desc">The upper band shows point estimates for CIW-DEEM and two supervised logistic-regression diagnostics on the structured nine-input line. The lower band shows macro AUROC and grouped 95 percent intervals for thirteen label-free methods reconstructed on the common frozen twenty-four cells.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f8fbff"/><stop offset="1" stop-color="#eef4ff"/></linearGradient>
+    <style>
+      .title{font:700 27px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#172033}.sub{font:15px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#536079}.panel{fill:#fff;stroke:#dce5f2;stroke-width:1.5}.band{font:700 12px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#657187;letter-spacing:.5px}.label{font:14px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#3e4b63}.labelhi{font:700 14px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#203959}.value{font:700 14px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#27334d}.tick{font:12px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#758097}.grid{stroke:#e4eaf3;stroke-width:1}.separator{stroke:#cbd5e3;stroke-width:1.5;stroke-dasharray:5 5}.whisker{stroke:#99a7bb;stroke-width:2}.cap{stroke:#99a7bb;stroke-width:2}.dot{fill:#8d9bb0}.top{fill:#2d9d78}.iu{fill:#315d87}.dufs{fill:#6c79c9}.ciw{fill:#d58b22;stroke:#a5660e;stroke-width:1}.lr{fill:#8a5bb8;stroke:#68418f;stroke-width:1}.note{font:13px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#68748a}.callout{fill:#eef7f3;stroke:#cfe8de;stroke-width:1.2}.calloutText{font:700 14px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#226e57}
+    </style>
+  </defs>
+  <rect width="1100" height="850" rx="24" fill="url(#bg)"/>
+  <text x="42" y="50" class="title">24-cell algorithmic comparison: saturation and diagnostics</text>
+  <text x="42" y="78" class="sub">Cell-macro AUROC · contracts and access levels are labeled rather than pooled</text>
+  <rect x="35" y="105" width="1030" height="625" rx="18" class="panel"/>
+  <line x1="556.3" y1="145" x2="556.3" y2="716" class="grid"/><text x="542" y="135" class="tick">0.760</text>
+  <line x1="622.5" y1="145" x2="622.5" y2="716" class="grid"/><text x="608" y="135" class="tick">0.765</text>
+  <line x1="688.8" y1="145" x2="688.8" y2="716" class="grid"/><text x="674" y="135" class="tick">0.770</text>
+  <line x1="755" y1="145" x2="755" y2="716" class="grid"/><text x="741" y="135" class="tick">0.775</text>
+  <line x1="821.3" y1="145" x2="821.3" y2="716" class="grid"/><text x="807" y="135" class="tick">0.780</text>
+  <line x1="887.5" y1="145" x2="887.5" y2="716" class="grid"/><text x="873" y="135" class="tick">0.785</text>
+  <line x1="953.8" y1="145" x2="953.8" y2="716" class="grid"/><text x="939" y="135" class="tick">0.790</text>
+
+  <text x="62" y="158" class="band">SEPARATE STRUCTURED NINE-INPUT LINE · POINT ESTIMATES ONLY</text>
+  <text x="62" y="190" class="labelhi">Supervised LR · original inputs</text><text x="405" y="190" class="value">0.7834</text><path d="M 866.5 178 L 874.5 192 L 858.5 192 Z" class="lr"/>
+  <text x="62" y="222" class="labelhi">Supervised LR · CIW-transformed inputs</text><text x="405" y="222" class="value">0.7828</text><path d="M 858.1 210 L 866.1 224 L 850.1 224 Z" class="lr"/>
+  <text x="62" y="254" class="labelhi">CIW-DEEM · label-free challenger</text><text x="405" y="254" class="value">0.7820</text><path d="M 848.1 240 L 857.1 249 L 848.1 258 L 839.1 249 Z" class="ciw"/>
+
+  <line x1="55" y1="272" x2="1045" y2="272" class="separator"/>
+  <text x="62" y="295" class="band">COMMON 13-METHOD RECONSTRUCTION · GROUPED 95% INTERVALS</text>
+  <text x="62" y="324" class="labelhi">CA-DEEM</text><text x="405" y="324" class="value">0.7812</text><line x1="715.6" y1="319" x2="954.7" y2="319" class="whisker"/><line x1="715.6" y1="313" x2="715.6" y2="325" class="cap"/><line x1="954.7" y1="313" x2="954.7" y2="325" class="cap"/><circle cx="837.8" cy="319" r="6.5" class="top"/>
+  <text x="62" y="356" class="labelhi">Equal six-family average</text><text x="405" y="356" class="value">0.7810</text><line x1="713.4" y1="351" x2="951.8" y2="351" class="whisker"/><line x1="713.4" y1="345" x2="713.4" y2="357" class="cap"/><line x1="951.8" y1="345" x2="951.8" y2="357" class="cap"/><circle cx="834.7" cy="351" r="6.5" class="top"/>
+  <text x="62" y="388" class="labelhi">DUFS-LIU-PCR</text><text x="405" y="388" class="value">0.7766</text><line x1="653.1" y1="383" x2="895.1" y2="383" class="whisker"/><line x1="653.1" y1="377" x2="653.1" y2="389" class="cap"/><line x1="895.1" y1="377" x2="895.1" y2="389" class="cap"/><circle cx="775.6" cy="383" r="6" class="dufs"/>
+  <text x="62" y="420" class="labelhi">IU-PCR</text><text x="405" y="420" class="value">0.7761</text><line x1="646.5" y1="415" x2="888.9" y2="415" class="whisker"/><line x1="646.5" y1="409" x2="646.5" y2="421" class="cap"/><line x1="888.9" y1="409" x2="888.9" y2="421" class="cap"/><circle cx="769.4" cy="415" r="6" class="iu"/>
+  <text x="62" y="452" class="label">Family-NRM · aligned reconstruction*</text><text x="405" y="452" class="value">0.7746</text><line x1="629.1" y1="447" x2="868" y2="447" class="whisker"/><line x1="629.1" y1="441" x2="629.1" y2="453" class="cap"/><line x1="868" y1="441" x2="868" y2="453" class="cap"/><circle cx="750.2" cy="447" r="5.5" class="dot"/>
+  <text x="62" y="484" class="label">CA-SpecRaGE · atomic</text><text x="405" y="484" class="value">0.7742</text><line x1="618.7" y1="479" x2="867.3" y2="479" class="whisker"/><line x1="618.7" y1="473" x2="618.7" y2="485" class="cap"/><line x1="867.3" y1="473" x2="867.3" y2="485" class="cap"/><circle cx="744.8" cy="479" r="5.5" class="dot"/>
+  <text x="62" y="516" class="label">Deployed U-PCR</text><text x="405" y="516" class="value">0.7740</text><line x1="613.9" y1="511" x2="862.9" y2="511" class="whisker"/><line x1="613.9" y1="505" x2="613.9" y2="517" class="cap"/><line x1="862.9" y1="505" x2="862.9" y2="517" class="cap"/><circle cx="741.1" cy="511" r="5.5" class="dot"/>
+  <text x="62" y="548" class="label">Equal 30-feature average</text><text x="405" y="548" class="value">0.7739</text><line x1="619.7" y1="543" x2="856.8" y2="543" class="whisker"/><line x1="619.7" y1="537" x2="619.7" y2="549" class="cap"/><line x1="856.8" y1="537" x2="856.8" y2="549" class="cap"/><circle cx="740.8" cy="543" r="5.5" class="dot"/>
+  <text x="62" y="580" class="label">PGRD-A · aligned reconstruction*</text><text x="405" y="580" class="value">0.7735</text><line x1="606.8" y1="575" x2="858.2" y2="575" class="whisker"/><line x1="606.8" y1="569" x2="606.8" y2="581" class="cap"/><line x1="858.2" y1="569" x2="858.2" y2="581" class="cap"/><circle cx="735.3" cy="575" r="5.5" class="dot"/>
+  <text x="62" y="612" class="label">SU-PCR</text><text x="405" y="612" class="value">0.7714</text><line x1="582.7" y1="607" x2="827.4" y2="607" class="whisker"/><line x1="582.7" y1="601" x2="582.7" y2="613" class="cap"/><line x1="827.4" y1="601" x2="827.4" y2="613" class="cap"/><circle cx="707" cy="607" r="5.5" class="dot"/>
+  <text x="62" y="644" class="label">Continuous L-SML</text><text x="405" y="644" class="value">0.7710</text><line x1="576.1" y1="639" x2="823.3" y2="639" class="whisker"/><line x1="576.1" y1="633" x2="576.1" y2="645" class="cap"/><line x1="823.3" y1="633" x2="823.3" y2="645" class="cap"/><circle cx="701.4" cy="639" r="5.5" class="dot"/>
+  <text x="62" y="676" class="label">DUFS stability + L-SML</text><text x="405" y="676" class="value">0.7703</text><line x1="564.9" y1="671" x2="815.8" y2="671" class="whisker"/><line x1="564.9" y1="665" x2="564.9" y2="677" class="cap"/><line x1="815.8" y1="665" x2="815.8" y2="677" class="cap"/><circle cx="692.5" cy="671" r="5.5" class="dot"/>
+  <text x="62" y="708" class="label">DUFS parameter-free + L-SML</text><text x="405" y="708" class="value">0.7674</text><line x1="529.8" y1="703" x2="776.1" y2="703" class="whisker"/><line x1="529.8" y1="697" x2="529.8" y2="709" class="cap"/><line x1="776.1" y1="697" x2="776.1" y2="709" class="cap"/><circle cx="654.5" cy="703" r="5.5" class="dot"/>
+
+  <rect x="35" y="742" width="1030" height="88" rx="15" class="callout"/>
+  <text x="58" y="764" class="calloutText">CIW-DEEM leads the structured-input label-free line; paired CA-DEEM is 0.7818 (cell-macro Δ +0.0002).</text>
+  <text x="58" y="786" class="calloutText">Supervised LR is slightly higher on original inputs (0.7834) and does not improve after CIW (0.7828).</text>
+  <text x="58" y="814" class="note">CIW/LR: no registered marginal interval. LR uses labels. * Family-NRM/PGRD are later aligned reconstructions.</text>
+</svg>
+<figcaption class="caption">The common 13-method reconstruction is shown with grouped intervals. CIW-DEEM and the two supervised logistic-regression diagnostics use the separate nine-input structured line and are shown as clearly labeled point estimates.</figcaption></figure>
+      <p>The answer-level benchmark left me with a more useful question: perhaps fusion is saturated only when we reduce a completed answer to one score. Localization lets us test whether it still matters when we need to preserve where the signal changes.</p>
+      <div class="links"><a class="button" href="#appendix-algorithmic">Equations and full chronology</a><a class="button" href="#appendix-algorithmic">Graph visual brief</a><a class="button" href="#appendix-algorithmic">All algorithmic assets</a></div>
+    </section>
+
+    <section id="applications">
+      <h2>2. Application-oriented extensions beyond final-answer detection</h2>
+      <p>I tested first-error localization, fixed-prefix prediction, actual stopping and RAG hallucination detection. The first two produced the clearest results, so I focus on them here and leave the complete stopping and RAG analyses in the deep dive.</p>
+      <h3>A. First-error localization — a consistent improvement over Mind the Gap</h3>
+      <p><a href="https://arxiv.org/abs/2412.06559">ProcessBench</a> differs from final-answer detection: the system must identify the first erroneous reasoning step, or return <strong>no error</strong>. Our pipeline splits this into a global response head that decides whether the trace contains an error and a local token-level head that locates it. We compare it with our reproduction of <a href="https://openreview.net/pdf?id=gllCfOG1Gt"><em>Mind the Gap</em></a> under the same protocol. The frozen selected pipeline uses a DUFS-LIU response head chosen earlier, but the ablations show that this particular graph head is not the source of the main gain.</p>
+      <p>I reconstructed all 13 answer-level fusion methods as alternative <strong>response heads</strong> and paired each with the same <strong>token head</strong>. The response head summarizes whether the complete trace looks unreliable. The token head fuses 29 causal uncertainty streams with IU-PCR, scores every token and assigns each reasoning step its maximum token risk.</p>
+      <p>The 29 streams come from four sources: token entropy and thirteen transforms of it; sampled-token surprisal and its variance, CUSUM and running-minimum transforms; partition energy with the same transforms; six top-K distribution-shape streams; and elapsed prefix length. ProcessBench combines the response and step ranks before selecting a first error or <strong>no error</strong>; PRMBench labels every step and can use the token score directly.</p>
+      <figure class="plot"><svg class="inline-figure" role="img" aria-label="Localization response-head and token-head architecture and equal-weight ablation" xmlns="http://www.w3.org/2000/svg" width="1100" height="900" viewBox="0 0 1100 900" role="img" aria-labelledby="title desc">
+  <title id="title">Where fusion matters in first-error localization</title>
+  <desc id="desc">The localization architecture, a five-fold equal-weight ablation showing that learned fusion matters in the token head but not the response head, and a separate historical comparison with Mind the Gap.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f8fbff"/><stop offset="1" stop-color="#eef6ff"/></linearGradient>
+    <style>
+      .title{font:700 26px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#172033}
+      .sub{font:15px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#536079}
+      .box{fill:#fff;stroke:#ccd9e8;stroke-width:1.5}
+      .box-blue{fill:#edf4ff;stroke:#7ca3d1;stroke-width:1.8}
+      .box-green{fill:#edf8f3;stroke:#58a487;stroke-width:1.8}
+      .h{font:700 17px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#27334d}
+      .label{font:14px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#45516a}
+      .small{font:13px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#68748a}
+      .value{font:700 16px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#172033}
+      .value-green{font:700 16px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#247658}
+      .arrow{stroke:#6c7c92;stroke-width:2.2;fill:none;marker-end:url(#arrow)}
+      .bar-equal{fill:#aab5c4}.bar-iu{fill:#3d9b78}.bar-selected{fill:#4f7cac}.bar-mtg{fill:#c0c7d0}
+    </style>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#6c7c92"/></marker>
+  </defs>
+  <rect width="1100" height="900" rx="24" fill="url(#bg)"/>
+  <text x="42" y="48" class="title">Where fusion matters in first-error localization</text>
+  <text x="42" y="76" class="sub">A completed answer needs one global decision; localization must also preserve where a short error signal appears.</text>
+
+  <rect x="40" y="108" width="245" height="108" rx="16" class="box-blue"/>
+  <text x="62" y="139" class="h">Response head</text>
+  <text x="62" y="167" class="label">30 answer-level measurements</text>
+  <text x="62" y="191" class="small">Does the complete trace look wrong?</text>
+
+  <rect x="40" y="238" width="245" height="128" rx="16" class="box-green"/>
+  <text x="62" y="269" class="h">Token head</text>
+  <text x="62" y="297" class="label">29 uncertainty trajectories</text>
+  <text x="62" y="321" class="small">Risk for every token</text>
+  <text x="62" y="344" class="small">Step risk = maximum token risk</text>
+
+  <rect x="388" y="122" width="284" height="102" rx="16" class="box"/>
+  <text x="411" y="153" class="h">ProcessBench</text>
+  <text x="411" y="181" class="label">Combine response and step risks</text>
+  <text x="411" y="204" class="small">Predict first error or no error</text>
+  <path d="M285 159 C330 159 344 159 388 169" class="arrow"/>
+  <path d="M285 300 C342 300 340 211 388 191" class="arrow"/>
+
+  <rect x="388" y="252" width="284" height="102" rx="16" class="box"/>
+  <text x="411" y="283" class="h">PRMBench</text>
+  <text x="411" y="311" class="label">Use the step risk directly</text>
+  <text x="411" y="334" class="small">Score every reasoning step</text>
+  <path d="M285 313 C334 313 348 303 388 303" class="arrow"/>
+
+  <rect x="710" y="108" width="350" height="258" rx="18" class="box"/>
+  <text x="734" y="140" class="h">Main ProcessBench result</text>
+  <text x="734" y="169" class="small">Historical repeated half-splits</text>
+  <text x="734" y="207" class="label">Mind the Gap</text><rect x="868" y="190" width="91" height="22" rx="6" class="bar-mtg"/><text x="970" y="207" class="value">25.71%</text>
+  <text x="734" y="246" class="label">Equal / equal</text><rect x="868" y="229" width="93" height="22" rx="6" class="bar-equal"/><text x="970" y="246" class="value">25.93%</text>
+  <text x="734" y="285" class="label">Equal / token IU</text><rect x="868" y="268" width="143" height="22" rx="6" class="bar-iu"/><text x="1019" y="285" class="value-green">30.50%</text>
+  <text x="734" y="324" class="label">Selected GL-LIU</text><rect x="868" y="307" width="151" height="22" rx="6" class="bar-selected"/><text x="1027" y="324" class="value">31.36%</text>
+  <text x="734" y="350" class="small">24–32% scale; equal response keeps most of the gain.</text>
+
+  <text x="42" y="416" class="h">New equal-weight ablation · five-fold cross-fitting</text>
+  <text x="42" y="442" class="sub">The two comparisons hold the other head fixed; bars share a 24–32% display range.</text>
+
+  <rect x="40" y="464" width="500" height="190" rx="18" class="box"/>
+  <text x="64" y="496" class="h">Global response head</text>
+  <text x="64" y="521" class="small">Token IU-PCR stays fixed</text>
+  <text x="64" y="558" class="label">Equal 30-feature average</text><rect x="260" y="541" width="199" height="23" rx="6" class="bar-equal"/><text x="470" y="558" class="value">30.71%</text>
+  <text x="64" y="597" class="label">IU-PCR</text><rect x="260" y="580" width="201" height="23" rx="6" class="bar-iu"/><text x="470" y="597" class="value-green">30.86%</text>
+  <text x="64" y="632" class="small">Equal minus IU: -0.15 points · paired interval includes zero</text>
+
+  <rect x="560" y="464" width="500" height="190" rx="18" class="box"/>
+  <text x="584" y="496" class="h">Local token head</text>
+  <text x="584" y="521" class="small">Equal response head stays fixed</text>
+  <text x="584" y="558" class="label">Equal 29-stream average</text><rect x="780" y="541" width="151" height="23" rx="6" class="bar-equal"/><text x="942" y="558" class="value">26.29%</text>
+  <text x="584" y="597" class="label">IU-PCR</text><rect x="780" y="580" width="199" height="23" rx="6" class="bar-iu"/><text x="990" y="597" class="value-green">30.71%</text>
+  <text x="584" y="632" class="small">Equal minus IU: -4.41 points · paired interval is below zero</text>
+
+  <rect x="40" y="690" width="1020" height="150" rx="18" class="box"/>
+  <text x="65" y="724" class="h">Interpretation</text>
+  <text x="65" y="757" class="label">A simple average is enough for deciding whether the full trace looks risky.</text>
+  <text x="65" y="787" class="label">It is not enough for finding where the reasoning failed: averaging the token streams blurs the local peaks.</text>
+  <text x="65" y="817" class="small">The five-fold ablation and the historical Mind-the-Gap headline use separate protocols and are shown separately.</text>
+  <text x="42" y="878" class="small">Follow-up diagnostic on the frozen localization inputs; no token-level CIW model has been fitted yet.</text>
+</svg>
+<figcaption class="caption">The shared architecture and the new equal-weight ablation show that learned fusion adds little in the global response head but matters in the local token head. The historical Mind-the-Gap comparison is shown separately from the five-fold ablation.</figcaption></figure>
+      <div class="table-wrap"><table><thead><tr><th>ProcessBench result across four datasets and two Qwen3 sizes</th><th>Reproduced Mind the Gap</th><th>Our selected pipeline</th><th>Change</th></tr></thead><tbody><tr><td>Macro F1: correct first-error decision, including clean traces</td><td>25.71%</td><td><strong>31.36%</strong></td><td><strong>+5.65 points</strong></td></tr><tr><td>Exact first erroneous step, among erroneous traces</td><td>17.84%</td><td><strong>21.79%</strong></td><td><strong>+3.95 points</strong></td></tr><tr><td>Predicted within one step of the first error</td><td>39.35%</td><td><strong>46.76%</strong></td><td><strong>+7.41 points</strong></td></tr></tbody></table></div>
+      <p>The selected pipeline wins all eight cells, and almost all our global-local variants beat Mind the Gap. The graph-based response heads add only small and inconclusive gains over IU-PCR, so the graph is not what wins here.</p>
+      <p>The new equal-weight ablation in the figure makes the connection to the 24-cell result clearer. A simple average works almost as well as IU-PCR in the global response head. It does not work in the local token head: averaging the 29 trajectories loses more than four F1 points and falls back to the Mind-the-Gap range. The useful fusion is therefore at the token level, where it must preserve short peaks instead of averaging them away.</p>
+      <p><strong>Separate PRMBench experiment.</strong> <a href="https://arxiv.org/abs/2501.03124">PRMBench</a> labels every step, not only the first error. The token-only trajectory-first IU-PCR reaches 0.6712 AUROC; supervised <a href="https://arxiv.org/abs/2501.07301">Qwen2.5-Math-PRM-7B</a> reaches 0.7983 and remains a higher-access ceiling.</p>
+      <p>This gives me a more focused next step. Rather than testing another answer-level fusion rule, I think the useful algorithmic question is how to improve the token head itself. CIW-DEEM was previously transferred only to the response head and remained tied with CA-DEEM; a token-native innovation model has not yet been tested.</p>
+      <h3>B. Fixed-prefix prediction — a clear gain at 64 and 256 tokens</h3>
+      <p>We can predict final-answer correctness meaningfully before the answer is complete, and the selected prefix model clearly improves over our earlier shared causal baseline.</p>
+      <p>That baseline, <strong>Unified-28</strong>, compresses seven token-level uncertainty streams into four causal summaries per stream—the current level, a short moving average, accumulated positive evidence and persistence—giving 28 features in total. One frozen IU-PCR weight vector produces a risk score at every prefix, using only information already available at that token.</p>
+      <p>The selected model uses a more task-specific <strong>two-head architecture</strong>. Its global head recomputes the answer-level IU uncertainty score using only the observed prefix; its local head follows the strongest token-level warning seen so far. After calibration, the two scores are combined with equal weight. This preserves both the overall state of the incomplete answer and a sharp local warning that might otherwise be averaged away.</p>
+      <p>On the aligned ProcessBench prefix benchmark, the two-head model reaches 0.5955 AUROC at 64 tokens versus 0.5629 for Unified-28, and 0.6572 at 256 tokens versus 0.6114; both paired intervals are above zero. At 16, 32 and 128 tokens, the two methods do not separate.</p>
+      <p class="small"><strong>Comparator boundary.</strong> This is an internal comparison with our frozen Unified-28 baseline. <a href="https://arxiv.org/abs/2508.15260"><em>Deep Think with Confidence</em></a> motivates the confidence-under-compute question but uses thousands of traces, confidence-weighted self-consistency and online stopping. Our experiment asks when one saved trace predicts its own outcome; a code-exact external comparator belongs in a prospective follow-up.</p>
+      <h3>Other application experiments</h3>
+      <p>I also tested actual online stopping and RAG hallucination detection, but neither is currently a central positive result. LEASH saved 38.8% of generated tokens while pass@1 fell by 18.3 percentage points. RAG evidence-contrast fusion transferred, but the result varied substantially with benchmark, prediction unit and context condition. The full protocols and numbers remain in the application deep dive.</p>
+      <figure class="plot"><svg class="inline-figure" role="img" aria-label="Application results for first-error localization and fixed-prefix prediction" xmlns="http://www.w3.org/2000/svg" width="1100" height="410" viewBox="0 0 1100 410" role="img" aria-labelledby="title desc">
+  <title id="title">Application results worth taking forward</title>
+  <desc id="desc">First-error localization and fixed-prefix prediction are the two positive application results.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f8fffc"/><stop offset="1" stop-color="#edf8f4"/></linearGradient>
+    <style>.title{font:700 26px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#172033}.sub{font:15px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#536079}.panel{fill:#fff;stroke:#d8e9e2;stroke-width:1.5}.h{font:700 17px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#27334d}.label{font:14px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#45516a}.value{font:700 21px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#172033}.note{font:13px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#68748a}.good{fill:#2d9d78}.base{fill:#9aa8b9}.tag{font:700 12px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#fff}</style>
+  </defs>
+  <rect width="1100" height="410" rx="24" fill="url(#bg)"/>
+  <text x="42" y="50" class="title">Applications worth taking forward</text>
+  <text x="42" y="78" class="sub">The clearest results are first-error localization and prediction from incomplete reasoning prefixes.</text>
+
+  <rect x="35" y="108" width="500" height="226" rx="18" class="panel"/>
+  <text x="62" y="143" class="h">First-error localization · ProcessBench macro F1</text>
+  <text x="62" y="190" class="label">Mind-the-Gap control</text><rect x="228" y="169" width="154" height="28" rx="7" class="base"/><text x="393" y="190" class="value">25.71%</text>
+  <text x="62" y="242" class="label">Our GL-LIU</text><rect x="228" y="221" width="188" height="28" rx="7" class="good"/><text x="427" y="242" class="value">31.36%</text>
+  <rect x="62" y="275" width="116" height="28" rx="14" class="good"/><text x="80" y="294" class="tag">8 / 8 CELLS</text>
+  <text x="192" y="294" class="note">Token-level fusion supplies most of the gain.</text>
+
+  <rect x="558" y="108" width="507" height="226" rx="18" class="panel"/>
+  <text x="584" y="143" class="h">Fixed-prefix prediction · ProcessBench AUROC</text>
+  <text x="584" y="188" class="label">64 tokens</text><text x="688" y="188" class="note">0.5629</text><rect x="753" y="169" width="116" height="24" rx="6" class="base"/><text x="885" y="188" class="value">0.5955</text>
+  <text x="584" y="238" class="label">256 tokens</text><text x="688" y="238" class="note">0.6114</text><rect x="753" y="219" width="152" height="24" rx="6" class="base"/><text x="921" y="238" class="value">0.6572</text>
+  <text x="584" y="278" class="note">Gray bar/value = Unified-28; bold value = selected two-head model.</text>
+  <text x="584" y="306" class="note">Both paired intervals are above zero.</text>
+
+  <text x="42" y="375" class="note">Stopping and RAG were also tested, but neither currently supports a central positive claim; full results remain in the deep dive.</text>
+</svg>
+<figcaption class="caption">The two application results worth taking forward: consistent first-error localization and stronger fixed-prefix prediction.</figcaption></figure>
+      <div class="takeaway"><strong>My interpretation:</strong> first-error localization and fixed-prefix prediction are the application results worth developing and presenting.</div>
+      <div class="links"><a class="button" href="#appendix-applications">Protocols and full application results</a><a class="button" href="#appendix-applications">Applications visual brief</a><a class="button" href="#appendix-applications">All application assets</a></div>
+    </section>
+
+    <section id="whitebox">
+      <h2>3. Additional white-box exploration</h2>
+      <p>Separately, inspired mainly by <em>TriLens</em>, I tested whether internal layer representations add information beyond our gray-box token statistics. Distributed-depth U-PCR reached about 0.785 macro AUROC and covered more answers, but on the exact matched subset it was effectively tied with gray-box DUFS-LIU: 0.7817 versus 0.7830. A post-hoc white+gray average reached 0.7902, suggesting complementarity, but it needs independent validation. I therefore see white-box as a secondary direction rather than the main story of this update.</p>
+      <figure class="plot" id="embedded-figures"><svg class="inline-figure" role="img" aria-label="Matched white-box and gray-box hallucination detection results" xmlns="http://www.w3.org/2000/svg" width="1100" height="520" viewBox="0 0 1100 520" role="img" aria-labelledby="title desc">
+  <title id="title">White-box results summary</title>
+  <desc id="desc">Exact matched AUROC comparison, coverage, and exploratory hybrid result.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbfaff"/><stop offset="1" stop-color="#f2efff"/></linearGradient>
+    <style>.title{font:700 26px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#172033}.sub{font:15px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#536079}.panel{fill:#fff;stroke:#e2dcf2;stroke-width:1.5}.h{font:700 17px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#27334d}.label{font:14px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#45516a}.value{font:700 21px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#172033}.note{font:13px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#68748a}.white{fill:#7c62c9}.gray{fill:#8794a8}.hybrid{fill:#2d9d78}.coverage{fill:#b09ae4}.axis{stroke:#d5cfea}.tag{font:700 12px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#fff}</style>
+  </defs>
+  <rect width="1100" height="520" rx="24" fill="url(#bg)"/>
+  <text x="42" y="50" class="title">White-box direction: complementary signal, broader coverage, no validated win yet</text>
+  <text x="42" y="78" class="sub">Exact-match comparison separates discrimination from the coverage advantage of internal-model access.</text>
+  <rect x="35" y="108" width="655" height="352" rx="18" class="panel"/>
+  <text x="62" y="144" class="h">Exact 31,440-answer comparison · macro AUROC</text>
+  <line x1="226" y1="181" x2="646" y2="181" class="axis"/>
+  <text x="226" y="201" class="note">0.775</text><text x="614" y="201" class="note">0.792</text>
+  <text x="62" y="246" class="label">White pure U-PCR</text><rect x="226" y="224" width="165" height="30" rx="8" class="white"/><text x="405" y="247" class="value">0.7817</text>
+  <text x="62" y="306" class="label">Gray DUFS-LIU</text><rect x="226" y="284" width="197" height="30" rx="8" class="gray"/><text x="437" y="307" class="value">0.7830</text>
+  <text x="62" y="366" class="label">White + gray</text><rect x="226" y="344" width="375" height="30" rx="8" class="hybrid"/><text x="615" y="367" class="value">0.7902</text>
+  <text x="62" y="408" class="note">White minus gray: -0.0013 · 95% interval [-0.0169, +0.0123]</text>
+  <rect x="62" y="421" width="205" height="26" rx="13" class="hybrid"/><text x="79" y="439" class="tag">HYBRID: EXPLORATORY</text>
+
+  <rect x="714" y="108" width="351" height="352" rx="18" class="panel"/>
+  <text x="740" y="144" class="h">Scorable-answer coverage</text>
+  <text x="740" y="198" class="label">White-box</text><text x="956" y="198" class="value">42,238</text>
+  <rect x="740" y="214" width="282" height="34" rx="8" class="coverage"/>
+  <text x="740" y="294" class="label">Gray-box complete case</text><text x="956" y="294" class="value">31,467</text>
+  <rect x="740" y="310" width="210" height="34" rx="8" class="gray"/>
+  <text x="740" y="382" class="note">Internal features retain rows that the</text>
+  <text x="740" y="402" class="note">complete gray feature contract cannot score.</text>
+  <text x="740" y="432" class="note">Next gate: frozen prospective cells.</text>
+  <text x="42" y="493" class="note">Interpretation: useful information and coverage are present, but promotion requires an independent preregistered validation.</text>
+</svg>
+<figcaption class="caption">White-box internal measurements broaden coverage, but the matched white-only result is tied with the gray-box system. The combined score remains exploratory.</figcaption></figure>
+      <div class="links"><a class="button" href="#appendix-whitebox">White-box deep dive</a><a class="button" href="#appendix-whitebox">White-box visual brief</a></div>
+    </section>
+
+    <p class="lead">My current conclusion is that we are approaching saturation in algorithmic development on the present feature pool. We now have methods that work well at several levels of complexity—from IU-PCR, through the bounded Family-NRM correction, to nonlinear CA-DEEM and CIW-DEEM—but the added complexity produces increasingly small gains. The clearer successes are now in first-error localization and fixed-prefix prediction.</p>
+    <p>Because of that, I want to stop open-ended exploration at this stage. The space of possible variants has no natural end; I would rather commit to a small number of specific directions and take them to depth. I would like to consolidate the work into a formal thesis or paper-style document that makes the story easier to evaluate and share, while deciding which of localization, early prediction and token-native innovation deserves one final prospective experiment.</p>
+    <p>Could we meet next week to go over the results and decide on the main thesis and paper story?</p>
+    <p>Thanks,<br>Omri</p>
+
+    <section class="papers">
+      <h3>Papers used as inspiration or comparison</h3>
+      <ul>
+        <li>Jaffe et al., <em>Unsupervised Ensemble Learning with Dependent Classifiers</em> (AISTATS 2016); Dror et al., <em>Unsupervised Ensemble Regression</em>; Tenzer et al., <a href="https://proceedings.mlr.press/v151/tenzer22a.html"><em>Crowdsourcing Regression: A Spectral Approach</em></a> (AISTATS 2022).</li>
+        <li>Ofir Lindenbaum, Uri Shaham, Jonathan Svirsky, Erez Peterfreund and Yuval Kluger, <a href="https://proceedings.neurips.cc/paper/2021/hash/0bc10d8a74dbafbf242e30433e83aa56-Abstract.html"><em>Differentiable Unsupervised Feature Selection based on a Gated Laplacian</em></a> (NeurIPS 2021); <a href="https://arxiv.org/abs/2509.11536">HARP</a>; and Maymon et al., <a href="https://arxiv.org/abs/2601.20556"><em>Unsupervised Ensemble Learning Through Deep Energy-based Models</em></a> (AISTATS 2026).</li>
+        <li>TriLens; ProcessBench; Mind the Gap; PRMBench; <em>The Lessons of Developing Process Reward Models in Mathematical Reasoning</em>; <a href="https://arxiv.org/abs/2508.15260"><em>Deep Think with Confidence</em></a>; LEASH.</li>
+        <li>RAGTruth (ACL 2024), GASP, LettuceDetect and RefChecker (EMNLP 2024).</li>
+      </ul>
+      <a href="#references-full">Full references and exact description of how each paper was used →</a>
+    </section>
+
+<section id="technical-appendices" class="technical-appendices">
+<h2>Technical deep dives</h2>
+<p class="lead">The sections below are embedded in this attachment. They contain the chronology, equations, complete comparisons, protocol boundaries and negative results that were intentionally kept out of the email body.</p>
+<details id="appendix-algorithmic">
+<summary>Algorithmic deep dive</summary>
+<div class="appendix-body">
+<h3>Deep dive 1 — Algorithmic development</h3>
+<h4>The story in the order it happened</h4>
+<p>The algorithmic line did not begin with Tenzer's IU/SU-PCR. Before the July 30 meeting, a clustered U-PCR had already tested whether L-SML-style dependence groups could repair U-PCR by fitting only cross-cluster moment equations. It lost 4.46 AUROC points, and its apparent dependence premise disappeared after matching covariance strength.</p>
+<p>The weak-cell diagnosis followed, but it was already described in the previous advisor update and is not repeated in the main letter. Sign errors, malformed generations and non-monotone feature-target relationships were investigated. Individual non-monotone views could improve by as much as 26.5 points after folding, but almost all recovered information was redundant with the rest of the feature pool; the fused gain was about +0.05 points.</p>
+<p>The next step priced the remaining U-PCR channels. Only the keep-set identity had meaningful oracle room. Weight blending, constants, variance and perfect polarity were near-empty. This led to a narrower second DUFS round than the one reported before the meeting: the earlier round used DUFS as an external selector before L-SML/U-PCR; this round replaced only U-PCR's internal keep decision while holding the estimator fixed. Direct DUFS ranking, sparse set-level objectives, l0-CCA-inspired objectives and 111 published keep-rule variants all failed to beat the deployed rule.</p>
+<p>The subsequent literature search found two direct extensions of the U-PCR line. Tenzer's IU/SU-PCR writes the covariance as a low-rank shared component plus sparse correlated error. DEEM replaces the linear spectral ensemble with an unsupervised nonlinear energy model. The Tenzer experiment came first: its sparse correction was heterogeneous and inconclusive, while replacing the two-component projected solve by a full inverse was harmful. Controlled ablations localized most of that harm to the solver change.</p>
+<p>DUFS-LIU then used DUFS in a structurally different way. It did not select a subset. It kept the gates continuous, used them to define answer-level sample geometry, and inserted the resulting graph Laplacian into the final IU projected solve. The later graph program changed the graph, the grouping or the reliability model while holding the target score framework fixed. Across atomic graphs, provenance-family graphs, alternating diffusion, repeated measurements and residual graphs, the common outcome was stable structure without reliable target alignment.</p>
+<p>HARP motivated the move from sample geometry to residual contribution geometry. Family-NRM decomposes the IU score into six provenance families defined by the raw origin of each measurement—entropy level, entropy change, two energy families, top-probability shape and trace structure—removes the shared score direction and searches for a neutral residual covariance mode. Atomic label-free variants that treated every feature as its own direction lost to IU-PCR and transferred poorly; learned and refined partitions did not recover the family result. The positive result therefore uses a meaningful but manually supplied provenance prior and unlabeled donor environments.</p>
+<p>DEEM supplied a nonlinear energy-model direction. Residual-graph DEEM failed synthetic specificity. Our <strong>Continuous Additive DEEM (CA-DEEM)</strong> adapter—internally registered as B3—was positive but registered as noninferior rather than superior. CIW-DEEM is the current structured-input challenger: it separates common source/operator structure from innovation residuals before applying unchanged CA-DEEM. Its point estimate improved slightly, but the registered promotion threshold was not met.</p>
+<h4>Core equations</h4>
+<h5>IU/U-PCR</h5>
+<p>For centered feature measurements <code>F</code>, the off-diagonal moments are modeled as</p>
+<pre class="equation" aria-label="Mathematical equation">C_{ij}=\rho_i+\rho_j-g^2,\qquad i\ne j.</pre>
+<p>The projected inverse score uses the leading covariance subspace:</p>
+<pre class="equation" aria-label="Mathematical equation">\hat w=U_k(U_k^\top C U_k)^{-1}U_k^\top\hat\rho,
+\qquad s=\hat w^\top F.</pre>
+<p>IU keeps the stable feature contract and a two-dimensional projected solve. Deployed U-PCR adds exclusion and fallback rules.</p>
+<h5>SU-PCR</h5>
+<p>Tenzer's dependent-error model is</p>
+<pre class="equation" aria-label="Mathematical equation">C=L+S,
+\qquad
+L=g^2\mathbf1\mathbf1^\top+a\mathbf1^\top+\mathbf1a^\top,</pre>
+<p>where <code>L</code> has rank at most two and <code>S</code> models sparse correlated errors. The experiment found the sparse correction inconclusive and the full structured inverse harmful.</p>
+<h5>DUFS-LIU</h5>
+<p>DUFS learns continuous gates <code>g</code>. For answer <code>j</code>, the gated representation is <code>z_j=g\odot F_:j</code>. A normalized graph Laplacian <code>L</code> produces the feature-space roughness matrix</p>
+<pre class="equation" aria-label="Mathematical equation">R=\frac1nFLF^\top,</pre>
+<p>and the final solve is</p>
+<pre class="equation" aria-label="Mathematical equation">w_\lambda=U[U^\top(C+\lambda\bar R)U]^{-1}U^\top\hat\rho.</pre>
+<p>At <code>lambda=0</code>, the implementation reproduces IU exactly. On the aligned 24 cells, positive <code>lambda</code> changed almost nothing.</p>
+<h5>Family-NRM</h5>
+<p>The IU score is decomposed into family contributions</p>
+<pre class="equation" aria-label="Mathematical equation">h_g(x)=\sum_{i\in g}w_{0i}F_i(x),
+\qquad b(x)=\sum_gh_g(x).</pre>
+<p>After residualizing each contribution against <code>b</code>, Family-NRM averages residual covariances across source environments, chooses the eigenmode closest to the neutral eigenvalue one, orients it toward the equal-family anchor, and adds the standardized residual coordinate back to <code>b</code>.</p>
+<h5>Continuous Additive DEEM (internal arm B3) and CIW-DEEM</h5>
+<p>CA-DEEM uses a family-wise additive energy correction:</p>
+<pre class="equation" aria-label="Mathematical equation">c_g=w_g\odot x_g+\frac{2}{|g|}\tanh\!\left(V_g\tanh(W_gx_g+d_g)+e_g\right),
+\qquad \ell=b+\sum_g\mathbf1^\top c_g.</pre>
+<p>CIW-DEEM leaves CA-DEEM unchanged and transforms each structured input coordinate using cross-fitted innovation:</p>
+<pre class="equation" aria-label="Mathematical equation">\alpha_j=0.5\,\mathrm{clip}(R^2_{\mathrm{OOF},j},0,1),</pre>
+<pre class="equation" aria-label="Mathematical equation">\mathrm{innovation}_j=\frac{x_j-\hat x_j}{\mathrm{sd}(x_j-\hat x_j)},
+\qquad
+x&#x27;_j=(1-\alpha_j)x_j+\alpha_j\mathrm{innovation}_j.</pre>
+<p>No correctness labels enter the transform or CA-DEEM fit.</p>
+<h4>Result interpretation</h4>
+<h5>Aligned 24-cell reconstruction</h5>
+<p>The common-matrix reconstruction places all 13 methods on the same 48,607 answers and grouped 20,000-draw bootstrap. The point estimates span only 0.7674-0.7812 AUROC:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Method</th>
+<th>Macro-24 AUROC</th>
+<th>95% CI</th>
+</tr></thead><tbody>
+<tr>
+<td>CA-DEEM</td>
+<td><strong>0.7812</strong></td>
+<td>[0.772,0.790]</td>
+</tr>
+<tr>
+<td>Equal six-family average</td>
+<td>0.7810</td>
+<td>[0.772,0.790]</td>
+</tr>
+<tr>
+<td>DUFS-LIU-PCR</td>
+<td>0.7766</td>
+<td>[0.767,0.786]</td>
+</tr>
+<tr>
+<td>IU-PCR</td>
+<td>0.7761</td>
+<td>[0.767,0.785]</td>
+</tr>
+<tr>
+<td>Family-NRM, aligned within-cell reconstruction</td>
+<td>0.7746</td>
+<td>[0.766,0.784]</td>
+</tr>
+<tr>
+<td>CA-SpecRaGE</td>
+<td>0.7742</td>
+<td>[0.765,0.783]</td>
+</tr>
+<tr>
+<td>Deployed U-PCR</td>
+<td>0.7740</td>
+<td>[0.764,0.783]</td>
+</tr>
+<tr>
+<td>Equal 30-feature average</td>
+<td>0.7739</td>
+<td>[0.765,0.783]</td>
+</tr>
+<tr>
+<td>PGRD-A, aligned within-cell reconstruction</td>
+<td>0.7735</td>
+<td>[0.764,0.783]</td>
+</tr>
+<tr>
+<td>SU-PCR</td>
+<td>0.7714</td>
+<td>[0.762,0.780]</td>
+</tr>
+<tr>
+<td>Continuous L-SML</td>
+<td>0.7710</td>
+<td>[0.762,0.780]</td>
+</tr>
+<tr>
+<td>DUFS stability + L-SML</td>
+<td>0.7703</td>
+<td>[0.761,0.780]</td>
+</tr>
+<tr>
+<td>DUFS parameter-free + L-SML</td>
+<td>0.7674</td>
+<td>[0.758,0.777]</td>
+</tr>
+</tbody></table></div>
+<p>The table is a retrospective same-contract comparison. CA-DEEM and the equal-family baseline are the two modest positive standouts against IU-PCR in paired analysis; DUFS-LIU is tied with IU-PCR. The aligned Family-NRM and PGRD-A rows are later within-cell reconstructions, not their original transfer protocols. The main conclusion is therefore a crowded leaderboard and diminishing returns, not one universal winner.</p>
+<ul>
+<li>Clustered U-PCR: negative, -4.46 points.</li>
+<li>Direct DUFS ranking and published keep rules: negative.</li>
+<li>SU-PCR: +1.26 points with a wide crossing interval; inconclusive.</li>
+<li>DUFS-LIU on the frozen 24 cells: 0.77414 versus IU-PCR 0.77406; effectively tied.</li>
+<li>Family-NRM on the original 23 cells with leave-one-family-out calibration: +0.277 AUROC points over IU-PCR, grouped interval [+0.016,+0.533], with 15 wins and 8 losses.</li>
+<li>Family-NRM on reserved PRMBench responses: 0.72521 versus 0.72060; +0.460 points with a positive interval. This is a separate confirmation contract, not part of the 23/24-cell leaderboard.</li>
+<li>CA-DEEM (internal B3): small positive result, registered as noninferiority.</li>
+<li>CIW-DEEM: 0.78203 cell-macro AUROC. Its registered equal-family delta over CA-DEEM was +0.073 points, below the +0.25-point promotion threshold.</li>
+<li>Supervised group-OOF logistic regression reaches 0.78278 cell-macro AUROC on the CIW inputs versus 0.78341 before CIW, so the transform does not reveal additional linear separability.</li>
+<li>Crossed-Rook and confidence-envelope CA-DEEM follow-ups remain retrospective exploratory artifacts and did not pass promotion.</li>
+</ul>
+<h4>Detailed visual evidence</h4>
+<ul>
+<li><span class="source-reference">Basic fusion visual brief</span></li>
+<li><span class="source-reference">Graphs and nuisance visual brief</span></li>
+<li><span class="source-reference">Complete 13-method report</span></li>
+<li><span class="source-reference">Frozen 24-cell benchmark report</span></li>
+<li><span class="source-reference">Family-NRM PRMBench report</span></li>
+<li><span class="source-reference">Dependency-fusion/SU-PCR report</span></li>
+<li><span class="source-reference">Repeated cross-view diffusion report</span></li>
+<li><span class="source-reference">Feature-contract search plots</span></li>
+<li><span class="source-reference">CIW-DEEM report in the local master worktree</span></li>
+<li><span class="source-reference">Crossed-Rook explainer — exploratory, not promoted</span></li>
+</ul>
+<p>The <a href="#embedded-figures">asset index</a> lists the remaining graph, mechanism, sensitivity and per-cell plots.</p>
+</div>
+</details>
+<details id="appendix-applications">
+<summary>Applications deep dive</summary>
+<div class="appendix-body">
+<h3>Deep dive 3 — Applications beyond completed-answer detection</h3>
+<p>The application work deliberately keeps four different prediction units separate. A response-level AUROC, first-error macro F1, prefix AUROC and token-saving/pass@1 frontier are not entries in one leaderboard.</p>
+<h4>A. First-error localization</h4>
+<h5>Goal and references</h5>
+<p>The goal is to predict whether a reasoning trace contains an error and, if so, locate the first erroneous step. ProcessBench supplies the official step annotations. Mind the Gap is the main label-free localization comparator; supervised PRMs and large critic models are separate higher-access ceilings.</p>
+<h5>Method</h5>
+<p>The reconstruction crosses all 13 frozen answer-level methods with one shared local head. The response head estimates whether the complete reasoning trace is unreliable. The local head fuses 29 causal token-level uncertainty trajectories with two-component L2 IU-PCR, and each step receives the maximum token risk inside its span.</p>
+<p>The 29 streams come from four sources: the token-entropy trajectory and thirteen transforms of it; sampled-token surprisal and its variance, CUSUM and running-minimum transforms; partition energy with the same transforms; six top-K distribution-shape streams; and elapsed prefix length. The transforms include sliding-window variance, CUSUM change, rolling spectral summaries, permutation entropy, Hurst and tail statistics. ProcessBench combines empirical response and step ranks by their geometric mean, then calibrates a threshold that chooses between the highest-risk step and <strong>no error</strong>. PRMBench uses the step risk directly because it labels every step rather than asking for one first-error decision. Step boundaries reduce token scores after fusion; they do not construct the token representation.</p>
+<h5>Results</h5>
+<ul>
+<li>GL-LIU: 31.36% ProcessBench macro F1.</li>
+<li>Reproduced Mind-the-Gap control: 25.71%.</li>
+<li>Later aligned three-scorer adapters: +0.33 to +0.58 F1 points versus matched IU, with intervals crossing zero.</li>
+<li>ProcessBench component audit: 13 response-only heads span 17.36%-19.20% macro F1; token-only reaches 29.44%; the best response-token combination reaches 31.07%.</li>
+<li>PRMBench component audit: token-only reaches 0.6712 AUROC, above the best response-token combination at 0.6493; the supervised Qwen2.5-Math-PRM-7B ceiling is 0.7983.</li>
+<li>Later CIW transfer: CIW response + frozen token-IU29 reaches 30.91% ProcessBench macro F1 versus 31.02% for CA-DEEM, and 0.5811 PRMBench AUROC versus 0.5842 for CA-DEEM. This did not test a token-level CIW model.</li>
+</ul>
+<h5>Equal-weight follow-up</h5>
+<p>The 24-cell answer benchmark showed that a simple average of the 30 aligned measurements is a serious baseline. I therefore repeated the localization comparison separately in each head. The response control uses the frozen equal-30 score. The token control applies the same target-free preprocessing as token IU-PCR to the 29 trajectories, but replaces its fitted weights with equal weights.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Five-fold ProcessBench ablation</th>
+<th>Token IU-PCR</th>
+<th>Equal token average</th>
+</tr></thead><tbody>
+<tr>
+<td>IU-PCR response head</td>
+<td><strong>30.86%</strong></td>
+<td>26.86%</td>
+</tr>
+<tr>
+<td>Equal 30-feature response head</td>
+<td><strong>30.71%</strong></td>
+<td>26.29%</td>
+</tr>
+</tbody></table></div>
+<p>With the token head fixed, replacing response IU-PCR by the equal average changes macro F1 by only -0.15 points, with paired interval [-0.61,+0.30]. With the equal response head fixed, replacing token IU-PCR by the equal average loses 4.41 points, with interval [-5.88,-2.94]. Replacing both heads loses 4.56 points against IU/IU, with interval [-6.07,-3.06]. Token-only equal averaging reaches 23.38%, compared with 29.31% for token-only IU-PCR.</p>
+<p>The historical repeated-half-split protocol leads to the same conclusion. Equal response + equal token reaches 25.93%, essentially tied with Mind the Gap at 25.71%. Equal response + token IU-PCR reaches 30.50%, close to IU/IU at 30.70%; the selected GL-LIU pipeline reaches 31.36%. These historical numbers and the five-fold ablation above are separate protocols and are not pooled.</p>
+<p>The stable contribution is therefore the localization framework and token-first construction, not a robust graph increment. The answer-level response head is already close to saturation, while the token head still benefits strongly from learned fusion. The direct follow-up is to develop a token-native innovation model and validate it on new data.</p>
+<h4>B. Causal prefix prediction</h4>
+<h5>Goal and reference</h5>
+<p>The target is final-answer correctness, but the score may use only the prefix observed at a fixed token budget. DeepConf motivates the confidence-under-compute question, but it is not a like-for-like comparator. DeepConf generates many reasoning traces, filters and weights them using local confidence, and may stop weak traces online. Our experiment asks when one saved trace begins to predict its own final outcome.</p>
+<h5>Results</h5>
+<ul>
+<li>64 tokens: Step272 0.5955 AUROC versus Unified-28 0.5629; delta +0.0326, interval [+0.0035,+0.0625].</li>
+<li>256 tokens: Step272 0.6572 versus Unified-28 0.6114; delta +0.0458, interval [+0.0147,+0.0765].</li>
+<li>16, 32 and 128 tokens: the two methods do not separate.</li>
+</ul>
+<p>This is a positive internal comparison against our frozen Unified-28 baseline. No published external method is yet evaluated in this lane. It is prediction from saved fixed prefixes, not proof of adaptive stopping or realized compute savings; an external or code-exact DeepConf-style comparator belongs in a prospective follow-up.</p>
+<h4>C. Actual stopping with LEASH</h4>
+<p>LEASH is evaluated as an accuracy-compute frontier, not as an AUROC detector. The reconstruction observed the actual callback and forced closure in six eligible cells; two Mistral cells were blocked because the tokenizer did not expose the required chat template.</p>
+<ul>
+<li>Overall token reduction: 38.83%, interval [37.08%,40.54%].</li>
+<li>Overall pass@1 delta: -18.26 percentage points, interval [-21.21,-15.48].</li>
+<li>Pass@1 decreases in every ready cell.</li>
+</ul>
+<p>The result demonstrates real compute savings and a real accuracy cost. It does not support a matched-accuracy or paper-exact stopping claim.</p>
+<h4>D. RAG evidence panels</h4>
+<h5>References and units</h5>
+<ul>
+<li>RAGTruth: answer-, sentence- and token-level hallucination labels.</li>
+<li>GASP: sentence-level evidence-removal scoring.</li>
+<li>LettuceDetect: supervised example-level ceiling.</li>
+<li>RefChecker: claim-level three-way NLI and binary fixed-claim transfer under accurate, noisy and zero context.</li>
+</ul>
+<h5>Results</h5>
+<ul>
+<li>RAGTruth test AUROC: answer 0.7274, sentence 0.6892, token 0.6587.</li>
+<li>GASP local sample: 0.6708 versus 0.6597 for matched IU; delta +0.0111, interval [-0.0125,+0.0343]. No superiority claim.</li>
+<li>LettuceDetect supervised example-level F1: 0.7929.</li>
+<li>RefChecker three-way NLI accuracy: 0.6007 accurate context, 0.7620 noisy context, 0.7337 zero context.</li>
+<li>RefChecker fixed binary AUROC: 0.6645, 0.6402 and 0.7506 respectively.</li>
+</ul>
+<p>The settings and prediction units are not pooled. RAGTruth also shows substantial task heterogeneity between QA and Data-to-Text, reinforcing the need to report panels separately.</p>
+<h4>Visuals and reports</h4>
+<ul>
+<li><span class="source-reference">Response/token fusion architecture and component result</span></li>
+<li><span class="source-reference">Applications advisor brief</span></li>
+<li><span class="source-reference">Fair paper-exact comparison report</span></li>
+<li><span class="source-reference">ProcessBench localization report</span></li>
+<li><span class="source-reference">GL-LIU factorial report and plots</span></li>
+<li><span class="source-reference">Global/local/online architecture report</span></li>
+<li><span class="source-reference">RAG evidence-contrast report</span></li>
+<li><span class="source-reference">RAG mixed-v2 evidence-aware report</span></li>
+<li><a href="#embedded-figures">All application plots and source reports</a></li>
+</ul>
+</div>
+</details>
+<details id="appendix-whitebox">
+<summary>White-box deep dive</summary>
+<div class="appendix-body">
+<h3>Deep dive 2 — White-box internal features</h3>
+<h4>Question</h4>
+<p>Can layer-wise internal measurements supply information that is unavailable in the final output probabilities, and can they be fused without labels?</p>
+<p>The main external reference is TriLens, which uses logit-lens entropy from the attention output, MLP output and residual stream at every transformer layer and trains a supervised probe. Our experiment reused the layer-wise measurement idea but asked a different question: can U-PCR/DUFS-style fusion combine those trajectories without a supervised classifier?</p>
+<h4>Feature contract</h4>
+<p>For each layer and internal pathway, the capture includes:</p>
+<ul>
+<li>logit-lens entropy;</li>
+<li>target-token negative log-likelihood;</li>
+<li>top-1 surprisal;</li>
+<li>target-to-top-1 logit/probability gap;</li>
+<li>entropy excess above top-1 uncertainty;</li>
+<li>divergence from the final-layer distribution.</li>
+</ul>
+<p>The captured panel covers 14 dataset-model cells and nine model families. The initial representation grouped internal paths compactly; the later distributed-depth representation adds tail summaries, depth-quartile experts and a hierarchical 96-view lens expert.</p>
+<h4>Fusion methods</h4>
+<ul>
+<li>U-PCR over depth views;</li>
+<li>DUFS-LIU over layer/path measurements;</li>
+<li>hierarchical groups defined by depth quartile or module/metric identity;</li>
+<li>Family-NRM-style residual fusion;</li>
+<li>supervised TriLens-style and atomic probes as evaluation-only ceilings.</li>
+</ul>
+<p>All promoted scoring fits are label-free. The supervised rows are comparators or ceilings, not the claimed method.</p>
+<h4>Results</h4>
+<p>The initial registered white-box v2 compact representation was negative: DUFS-LIU reached 0.6181 macro AUROC versus 0.7298 for final-layer NLL. This showed that internal trajectories contain signal, but the initial compact unsupervised objective did not recover it.</p>
+<p>The richer distributed-depth pure U-PCR candidate reached 0.7846 macro AUROC; the hybrid that adds one transparent final-output entropy control reached 0.7855. Against the local supervised TriLens approximation, both are positive. These candidates remain preliminary because the feature registry was selected after inspecting the existing cells and corrected live validation is still open.</p>
+<p>The exact matched white/gray comparison is the cleanest summary:</p>
+<ul>
+<li>31,440 identical answers across 13 cells;</li>
+<li>white pure U-PCR: 0.78169 AUROC / 0.67705 AUPRC;</li>
+<li>gray mixed-v2 DUFS-LIU: 0.78299 / 0.68773;</li>
+<li>white minus gray AUROC: -0.00130, interval [-0.01693,+0.01230];</li>
+<li>white coverage: 42,238 scorable answers;</li>
+<li>gray complete-case coverage: 31,467 answers;</li>
+<li>post-hoc equal-z white+gray: 0.79020 AUROC, exploratory only.</li>
+</ul>
+<h4>Interpretation</h4>
+<p>The current evidence supports three bounded claims:</p>
+<ol>
+<li>Internal-layer features contain useful hallucination signal.</li>
+<li>They provide materially broader row coverage than the complete gray-box feature contract.</li>
+<li>On matched answers, white-box alone does not yet improve aggregate discrimination.</li>
+</ol>
+<p>The post-hoc combined score suggests complementarity, but it must be frozen and tested on new cells before promotion. The next clean experiment is a preregistered crossed model-by-dataset validation using the final distributed-depth and white+gray rules without retuning.</p>
+<h4>Visuals and reports</h4>
+<ul>
+<li><span class="source-reference">White-box advisor brief</span></li>
+<li><span class="source-reference">Matched white-versus-gray report</span></li>
+<li><span class="source-reference">Distributed-depth pure report</span></li>
+<li><span class="source-reference">Distributed-depth hybrid report</span></li>
+<li><span class="source-reference">Registered white-box v2 report</span></li>
+<li><span class="source-reference">White-box NRM report</span></li>
+<li><span class="source-reference">Layer-organic NRM report</span></li>
+<li><a href="#embedded-figures">All white-box plots and intermediate reports</a></li>
+</ul>
+</div>
+</details>
+<details id="references-full">
+<summary>Paper references and how each was used</summary>
+<div class="appendix-body">
+<h3>Papers referenced in the advisor update</h3>
+<h4>Core unsupervised fusion and dependence</h4>
+<ul>
+<li>Ariel Jaffe, Ethan Fetaya, Boaz Nadler, Tingting Jiang and Yuval Kluger. <strong>Unsupervised Ensemble Learning with Dependent Classifiers.</strong> AISTATS 2016. Used as the dependence/clustering inspiration for the pre-meeting clustered U-PCR experiment; our regression extension is not a paper reproduction.</li>
+<li>Omer Dror, Boaz Nadler, Erhan Bilal and Yuval Kluger. <strong>Unsupervised Ensemble Regression.</strong> 2017. Provides the continuous covariance/PCR basis behind U-PCR.</li>
+<li>Yaniv Tenzer, Omer Dror, Boaz Nadler, Erhan Bilal and Yuval Kluger. <a href="https://proceedings.mlr.press/v151/tenzer22a.html" target="_blank" rel="noopener noreferrer"><strong>Crowdsourcing Regression: A Spectral Approach.</strong></a> AISTATS 2022. Supplies the IU-PCR/SU-PCR framing and the low-rank-plus-sparse covariance model.</li>
+<li>Uri Shaham et al. <strong>A Deep Learning Approach to Unsupervised Ensemble Learning.</strong> 2016. Earlier RBM/DNN lineage for dependent unsupervised ensembles.</li>
+</ul>
+<h4>Feature selection, graphs and nonlinear energy models</h4>
+<ul>
+<li>Ofir Lindenbaum, Uri Shaham, Jonathan Svirsky, Erez Peterfreund and Yuval Kluger. <a href="https://proceedings.neurips.cc/paper/2021/hash/0bc10d8a74dbafbf242e30433e83aa56-Abstract.html" target="_blank" rel="noopener noreferrer"><strong>Differentiable Unsupervised Feature Selection based on a Gated Laplacian.</strong></a> NeurIPS 2021. Inspired both direct gate-ranking experiments and the continuous DUFS-LIU sample graph; DUFS-LIU is our adaptation.</li>
+<li>Ofir Lindenbaum, Moshe Salhov, Amir Averbuch and Yuval Kluger. <strong>l0-based Sparse Canonical Correlation Analysis.</strong> Inspired the cross-channel gated objective tested in the feature-selection cycle.</li>
+<li>Junchen Yang, Ofir Lindenbaum, Yuval Kluger and Ariel Jaffe. <strong>Multi-modal Differentiable Unsupervised Feature Selection.</strong> Inspired the shared-operator graph control.</li>
+<li>Amitai Yacobi, Ofir Lindenbaum and Uri Shaham. <strong>Generalizable and Robust Spectral Method for Multi-view Representation Learning (SpecRaGE).</strong> Inspired multi-view graph constructions; the repository methods are adaptations.</li>
+<li>Junjie Hu et al. <a href="https://arxiv.org/abs/2509.11536" target="_blank" rel="noopener noreferrer"><strong>HARP: Hallucination Detection via Reasoning Subspace Projection.</strong></a> 2025 preprint. Inspired the target-versus-nuisance subspace architecture used in contribution space. We did not reproduce HARP's supervised hidden-state detector.</li>
+<li>Ariel Maymon, Yanir Buznah and Uri Shaham. <a href="https://arxiv.org/abs/2601.20556" target="_blank" rel="noopener noreferrer"><strong>Unsupervised Ensemble Learning Through Deep Energy-based Models.</strong></a> AISTATS 2026. Inspired the official-package adapter and the later Continuous Additive DEEM/CIW-DEEM adaptations; those are not paper-exact reproductions.</li>
+</ul>
+<h4>White-box detection</h4>
+<ul>
+<li>Bohan Yang et al. <strong>TriLens: Per-Layer Logit-Lens Entropy for White-Box Hallucination Detection.</strong> 2026 preprint. Main reference for the three-pathway, all-layer internal trajectory; our main fusion is label-free rather than a supervised TriLens probe.</li>
+<li>Binkowski et al. <strong>Hallucination Detection in LLMs Using Spectral Features of Attention.</strong> Reference for the supervised LapEigvals ceiling; it is not a like-for-like label-free comparator.</li>
+</ul>
+<h4>Reasoning localization, early prediction and stopping</h4>
+<ul>
+<li>Chujie Zheng et al. <strong>ProcessBench: Identifying Process Errors in Mathematical Reasoning.</strong> Supplies first-error reasoning labels and the official localization metric.</li>
+<li>Chen et al. <strong>Mind the Gap: Catching Hallucinations via Evidence Drop on the Reasoning Manifold.</strong> ICML 2026. Main label-free localization comparator.</li>
+<li>Mingyang Song et al. <strong>PRMBench: A Fine-grained and Challenging Benchmark for Process-Level Reward Models.</strong> ACL 2025. Supplies the separate every-step error labels; it is not another first-error ProcessBench result.</li>
+<li>Zhenru Zhang et al. <strong>The Lessons of Developing Process Reward Models in Mathematical Reasoning.</strong> Source of the supervised Qwen2.5-Math-PRM-7B ceiling used on PRMBench.</li>
+<li>Yichao Fu et al. <a href="https://arxiv.org/abs/2508.15260" target="_blank" rel="noopener noreferrer"><strong>Deep Think with Confidence.</strong></a> 2025 preprint. Main conceptual reference for confidence-aware reasoning and compute; our single-trace fixed-prefix experiment is a different protocol, not a paper-exact reproduction.</li>
+<li><strong>LEASH: Logit-Entropy Adaptive Stopping Heuristic for Efficient Chain-of-Thought Reasoning.</strong> Reconstructed under a paper-specified-partial protocol with observed callbacks and forced closure.</li>
+<li>Oren-Loberman, Azar and Huleihel. <strong>Online Auditing of Information Flow.</strong> IEEE TSIPN 2024. Used for the sequential accuracy-delay formulation, not for a theorem-level reproduction.</li>
+</ul>
+<h4>RAG hallucination detection</h4>
+<ul>
+<li>Niu et al. <strong>RAGTruth: A Hallucination Corpus for Developing Trustworthy Retrieval-Augmented Language Models.</strong> ACL 2024.</li>
+<li><strong>GASP.</strong> 2026 preprint. Evidence-removal reference evaluated on the local exact cohort.</li>
+<li><strong>LettuceDetect.</strong> 2025 preprint. Supervised example-level ceiling.</li>
+<li>Hu et al. <strong>RefChecker: Reference-based Fine-grained Hallucination Checker and Benchmark for Large Language Models.</strong> EMNLP 2024.</li>
+</ul>
+<p>For exact local PDFs, digests and artifact provenance, see the project <code>papers/</code> index.</p>
+</div>
+</details>
+</section>
+
+    <div class="footer">
+      <strong>Supporting packet</strong>
+      <div class="links"><a class="button" href="#summary">Packet home</a><a class="button" href="#embedded-figures">Every plot and report</a><a class="button" href="#appendix-algorithmic">Complete embedded results</a><a class="button" href="#summary">Editable letter</a></div>
+      <p class="small">The summary plots guide the discussion. Exact rows, confidence intervals and exploratory/non-promoted experiments remain in the linked source reports.</p>
+    </div>
+  </main>
+</article>
+</body>
+</html>

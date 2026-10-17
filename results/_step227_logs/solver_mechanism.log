@@ -1,0 +1,148 @@
+[iter_cells] qa/spectral_phase9_cache_webq_traces_T1.0: single-class labels — skipped
+VALIDITY: GOOD_6 macro = 0.7733 (expected 0.7733 +/- 0.002) -> PASS
+  epr_triviaqa_mistral24b            pcr=0.6464  ridge=0.6491  pcr_plus_tai=0.5954  ridge_plus_t=0.5956
+  losnet_hotpotqa_mistral7b          pcr=0.5700  ridge=0.5700  pcr_plus_tai=0.5734  ridge_plus_t=0.5734
+  sciq_llama8b                       pcr=0.7421  ridge=0.7421  pcr_plus_tai=0.7230  ridge_plus_t=0.7229
+  se_nq_open_llama8b                 pcr=0.6302  ridge=0.6322  pcr_plus_tai=0.6049  ridge_plus_t=0.6052
+  se_squad_v2_llama8b                pcr=0.8123  ridge=0.8122  pcr_plus_tai=0.8089  ridge_plus_t=0.8088
+  seiclr_triviaqa_opt30b             pcr=0.8240  ridge=0.8238  pcr_plus_tai=0.7573  ridge_plus_t=0.7563
+  semenergy_triviaqa_qwen3_8b        pcr=0.7872  ridge=0.7874  pcr_plus_tai=0.7731  ridge_plus_t=0.7724
+  spilled_triviaqa_llama8b           pcr=0.9360  ridge=0.9360  pcr_plus_tai=0.8367  ridge_plus_t=0.8367
+  truthfulqa_llama8b                 pcr=0.6643  ridge=0.6642  pcr_plus_tai=0.6674  ridge_plus_t=0.6674
+  ars_gsm8k_r1distill8b              pcr=0.7581  ridge=0.7579  pcr_plus_tai=0.6854  ridge_plus_t=0.6846
+  internalstates_gsm8k_qwen25_7b     pcr=0.7131  ridge=0.7130  pcr_plus_tai=0.6916  ridge_plus_t=0.6913
+  lapeigvals_gsm8k_llama3b           pcr=0.6936  ridge=0.6936  pcr_plus_tai=0.6686  ridge_plus_t=0.6682
+  lapeigvals_gsm8k_llama8b           pcr=0.8177  ridge=0.8177  pcr_plus_tai=0.7989  ridge_plus_t=0.7986
+  lapeigvals_gsm8k_mistral24b        pcr=0.8468  ridge=0.8468  pcr_plus_tai=0.7980  ridge_plus_t=0.7975
+  lapeigvals_gsm8k_nemo              pcr=0.7959  ridge=0.7961  pcr_plus_tai=0.7812  ridge_plus_t=0.7811
+  lapeigvals_gsm8k_phi35             pcr=0.8117  ridge=0.8118  pcr_plus_tai=0.8025  ridge_plus_t=0.8023
+  noise_gsm8k_mistral7b              pcr=0.7850  ridge=0.7850  pcr_plus_tai=0.7611  ridge_plus_t=0.7608
+  noise_gsm8k_phi3mini               pcr=0.6823  ridge=0.6824  pcr_plus_tai=0.6673  ridge_plus_t=0.6672
+  math500_dsmath7b                   pcr=0.7887  ridge=0.7886  pcr_plus_tai=0.7822  ridge_plus_t=0.7823
+  math500_qwenmath7b                 pcr=0.9300  ridge=0.9297  pcr_plus_tai=0.6787  ridge_plus_t=0.6779
+  math500_r1distill8b                pcr=0.8363  ridge=0.8363  pcr_plus_tai=0.8183  ridge_plus_t=0.8181
+  math500_r1distill8b_mn4096         pcr=0.8305  ridge=0.8303  pcr_plus_tai=0.8024  ridge_plus_t=0.8016
+  trace_gsm8k_llama8b_k10            pcr=0.8148  ridge=0.8148  pcr_plus_tai=0.7715  ridge_plus_t=0.7709
+  trace_math500_qwenmath15b_k10      pcr=0.6870  ridge=0.6870  pcr_plus_tai=0.6648  ridge_plus_t=0.6645
+
+wiring gate  : both factorial corners reproduce committed AUROC to 1e-9 on all 24 cells
+arithmetic gate: h_ridge + t_ridge == registered ridge to 1e-10 on all cells and all 5 kappa
+
+held-out / sample-size study (3 fractions x 50 repeats x 24 cells)
+  [epr_triviaqa_mistral24b]
+    frac=0.25  ok= 50  ridge-PCR= -4.18pp  tail= -4.15pp  head= +0.08pp
+    frac=0.50  ok= 50  ridge-PCR= -5.40pp  tail= -5.40pp  head= +0.18pp
+    frac=0.75  ok= 50  ridge-PCR= -4.88pp  tail= -4.88pp  head= +0.20pp
+  [losnet_hotpotqa_mistral7b]
+    frac=0.25  ok= 50  ridge-PCR= -0.48pp  tail= -0.47pp  head= +0.01pp
+    frac=0.50  ok= 50  ridge-PCR= -0.09pp  tail= -0.09pp  head= +0.00pp
+    frac=0.75  ok= 50  ridge-PCR= -0.07pp  tail= -0.07pp  head= +0.00pp
+  [sciq_llama8b]
+    frac=0.25  ok= 50  ridge-PCR= -3.94pp  tail= -3.88pp  head= -0.00pp
+    frac=0.50  ok= 50  ridge-PCR= -3.21pp  tail= -3.16pp  head= -0.01pp
+    frac=0.75  ok= 50  ridge-PCR= -3.70pp  tail= -3.67pp  head= -0.00pp
+  [se_nq_open_llama8b]
+    frac=0.25  ok= 50  ridge-PCR= -0.60pp  tail= -0.63pp  head= +0.07pp
+    frac=0.50  ok= 50  ridge-PCR= -0.30pp  tail= -0.34pp  head= +0.08pp
+    frac=0.75  ok= 50  ridge-PCR= -0.87pp  tail= -0.91pp  head= +0.11pp
+  [se_squad_v2_llama8b]
+    frac=0.25  ok= 50  ridge-PCR= -0.37pp  tail= -0.35pp  head= -0.00pp
+    frac=0.50  ok= 50  ridge-PCR= -0.31pp  tail= -0.29pp  head= -0.01pp
+    frac=0.75  ok= 50  ridge-PCR= -0.37pp  tail= -0.36pp  head= -0.00pp
+  [seiclr_triviaqa_opt30b]
+    frac=0.25  ok= 50  ridge-PCR= -6.76pp  tail= -6.66pp  head= -0.02pp
+    frac=0.50  ok= 50  ridge-PCR= -6.89pp  tail= -6.79pp  head= -0.01pp
+    frac=0.75  ok= 50  ridge-PCR= -6.88pp  tail= -6.78pp  head= -0.02pp
+  [semenergy_triviaqa_qwen3_8b]
+    frac=0.25  ok= 50  ridge-PCR= -5.45pp  tail= -5.39pp  head= +0.02pp
+    frac=0.50  ok= 50  ridge-PCR= -4.73pp  tail= -4.68pp  head= +0.02pp
+    frac=0.75  ok= 50  ridge-PCR= -2.59pp  tail= -2.54pp  head= +0.02pp
+  [spilled_triviaqa_llama8b]
+    frac=0.25  ok= 46  ridge-PCR=-23.95pp  tail=-23.79pp  head= +0.01pp
+    frac=0.50  ok= 50  ridge-PCR=-16.75pp  tail=-16.58pp  head= +0.03pp
+    frac=0.75  ok= 42  ridge-PCR=-16.39pp  tail=-16.29pp  head= +0.06pp
+  [truthfulqa_llama8b]
+    frac=0.25  ok= 50  ridge-PCR= -2.11pp  tail= -2.08pp  head= +0.01pp
+    frac=0.50  ok= 50  ridge-PCR= -1.74pp  tail= -1.72pp  head= +0.01pp
+    frac=0.75  ok= 50  ridge-PCR= -0.95pp  tail= -0.93pp  head= +0.00pp
+  [ars_gsm8k_r1distill8b]
+    frac=0.25  ok= 50  ridge-PCR= -4.48pp  tail= -4.42pp  head= -0.00pp
+    frac=0.50  ok= 50  ridge-PCR= -7.97pp  tail= -7.87pp  head= -0.01pp
+    frac=0.75  ok= 50  ridge-PCR= -6.68pp  tail= -6.58pp  head= -0.00pp
+  [internalstates_gsm8k_qwen25_7b]
+    frac=0.25  ok= 50  ridge-PCR= -1.99pp  tail= -1.95pp  head= -0.00pp
+    frac=0.50  ok= 50  ridge-PCR= -1.92pp  tail= -1.89pp  head= -0.01pp
+    frac=0.75  ok= 50  ridge-PCR= -1.85pp  tail= -1.82pp  head= -0.00pp
+  [lapeigvals_gsm8k_llama3b]
+    frac=0.25  ok= 50  ridge-PCR= -2.45pp  tail= -2.42pp  head= +0.00pp
+    frac=0.50  ok= 50  ridge-PCR= -2.55pp  tail= -2.52pp  head= +0.00pp
+    frac=0.75  ok= 50  ridge-PCR= -2.73pp  tail= -2.69pp  head= +0.00pp
+  [lapeigvals_gsm8k_llama8b]
+    frac=0.25  ok= 50  ridge-PCR= -3.42pp  tail= -3.35pp  head= +0.00pp
+    frac=0.50  ok= 50  ridge-PCR= -2.54pp  tail= -2.48pp  head= +0.00pp
+    frac=0.75  ok= 50  ridge-PCR= -2.20pp  tail= -2.15pp  head= +0.00pp
+  [lapeigvals_gsm8k_mistral24b]
+    frac=0.25  ok= 50  ridge-PCR= -8.92pp  tail= -8.83pp  head= +0.04pp
+    frac=0.50  ok= 50  ridge-PCR=-10.24pp  tail=-10.12pp  head= +0.05pp
+    frac=0.75  ok= 50  ridge-PCR=-11.45pp  tail=-11.31pp  head= +0.05pp
+  [lapeigvals_gsm8k_nemo]
+    frac=0.25  ok= 50  ridge-PCR= -1.95pp  tail= -1.93pp  head= +0.00pp
+    frac=0.50  ok= 50  ridge-PCR= -1.68pp  tail= -1.66pp  head= +0.01pp
+    frac=0.75  ok= 50  ridge-PCR= -1.54pp  tail= -1.53pp  head= +0.01pp
+  [lapeigvals_gsm8k_phi35]
+    frac=0.25  ok= 50  ridge-PCR= -1.31pp  tail= -1.28pp  head= +0.00pp
+    frac=0.50  ok= 50  ridge-PCR= -1.21pp  tail= -1.18pp  head= +0.00pp
+    frac=0.75  ok= 50  ridge-PCR= -0.81pp  tail= -0.80pp  head= +0.00pp
+  [noise_gsm8k_mistral7b]
+    frac=0.25  ok= 50  ridge-PCR= -2.87pp  tail= -2.83pp  head= +0.00pp
+    frac=0.50  ok= 50  ridge-PCR= -2.61pp  tail= -2.57pp  head= +0.00pp
+    frac=0.75  ok= 50  ridge-PCR= -2.64pp  tail= -2.60pp  head= +0.00pp
+  [noise_gsm8k_phi3mini]
+    frac=0.25  ok= 50  ridge-PCR= -1.16pp  tail= -1.15pp  head= +0.00pp
+    frac=0.50  ok= 50  ridge-PCR= -1.13pp  tail= -1.12pp  head= +0.00pp
+    frac=0.75  ok= 50  ridge-PCR= -1.39pp  tail= -1.38pp  head= +0.00pp
+  [math500_dsmath7b]
+    frac=0.25  ok= 50  ridge-PCR= -1.97pp  tail= -1.94pp  head= +0.01pp
+    frac=0.50  ok= 50  ridge-PCR= -0.83pp  tail= -0.81pp  head= +0.01pp
+    frac=0.75  ok= 50  ridge-PCR= -1.09pp  tail= -1.09pp  head= -0.00pp
+  [math500_qwenmath7b]
+    frac=0.25  ok= 50  ridge-PCR= -9.89pp  tail= -9.88pp  head= +0.10pp
+    frac=0.50  ok= 50  ridge-PCR=-16.59pp  tail=-16.57pp  head= +0.21pp
+    frac=0.75  ok= 50  ridge-PCR=-19.95pp  tail=-19.98pp  head= +0.32pp
+  [math500_r1distill8b]
+    frac=0.25  ok= 50  ridge-PCR= -3.25pp  tail= -3.20pp  head= +0.01pp
+    frac=0.50  ok= 50  ridge-PCR= -1.33pp  tail= -1.31pp  head= -0.00pp
+    frac=0.75  ok= 50  ridge-PCR= -1.58pp  tail= -1.54pp  head= +0.00pp
+  [math500_r1distill8b_mn4096]
+    frac=0.25  ok= 50  ridge-PCR= -6.59pp  tail= -6.50pp  head= -0.02pp
+    frac=0.50  ok= 50  ridge-PCR= -4.27pp  tail= -4.18pp  head= -0.02pp
+    frac=0.75  ok= 50  ridge-PCR= -3.90pp  tail= -3.84pp  head= -0.02pp
+  [trace_gsm8k_llama8b_k10]
+    frac=0.25  ok= 50  ridge-PCR= -5.15pp  tail= -5.08pp  head= +0.00pp
+    frac=0.50  ok= 50  ridge-PCR= -4.70pp  tail= -4.64pp  head= -0.00pp
+    frac=0.75  ok= 50  ridge-PCR= -4.27pp  tail= -4.21pp  head= -0.00pp
+  [trace_math500_qwenmath15b_k10]
+    frac=0.25  ok= 50  ridge-PCR= -2.46pp  tail= -2.43pp  head= +0.00pp
+    frac=0.50  ok= 50  ridge-PCR= -2.42pp  tail= -2.39pp  head= -0.00pp
+    frac=0.75  ok= 50  ridge-PCR= -2.26pp  tail= -2.23pp  head= -0.00pp
+
+factorial at the registered kappa=100 (macro AUROC over cells):
+                      tail absent    + t_ridge
+  PCR head scaling         0.7668       0.7297
+  ridge head scaling       0.7670       0.7294
+
+effects (pp, positive = candidate better; CI is family-blocked):
+  head rescaling, tail absent                    +0.02  [ -0.00, +0.06]  10W/9L  p=0.904
+  head rescaling, tail present                   -0.03  [ -0.04, -0.01]  4W/19L  p=0.000658
+  tail addition at PCR head                      -3.71  [ -5.36, -1.76]  2W/22L  p=5.96e-07
+  tail addition at ridge head                    -3.76  [ -5.40, -1.83]  2W/22L  p=5.96e-07
+  solver leg, both at once                       -3.74  [ -5.38, -1.86]  2W/22L  p=5.96e-07
+  matrix leg, PCR solver (raw structured)        -0.37  [ -0.81, -0.01]  7W/14L  p=0.0853
+  matrix leg, PCR solver (PSD structured)        -0.37  [ -0.81, -0.05]  7W/14L  p=0.0853
+  PSD repair on the structured matrix            +0.00  [ +0.00, +0.00]  0W/0L  p=nan
+  no inversion at all                            +0.52  [ -0.24, +2.24]  8W/16L  p=0.208
+  interaction (tail effect at ridge head - at PCR head)   -0.05  [ -0.08, -0.02]  3W/20L  p=7.69e-05
+
+kappa trend: slope -0.745 pp per log-kappa [-1.250,-0.269]  (consistent with tail amplification)
+
+wrote C:\Users\omris\TAU\hallucination_detection\results\solver_mechanism  (347.8s)

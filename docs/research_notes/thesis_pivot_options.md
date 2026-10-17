@@ -1,5 +1,12 @@
 # Thesis Pivot Reference: Online State Estimation & Manifold Learning for LLM Hallucination Detection
 
+> Correction, 2026-09-15: Option 3's citation and clean-hidden-state proposal
+> are historical and superseded. The actual source is Tsakonas, Ivaldi and
+> Mouret, *Native Extrapolation Awareness in Flow-Based Conditional Generation*,
+> arXiv:2602.13061v2. The approved experiment uses unlabeled probability-derived
+> token features, conditional flow matching, repel/curve losses and generated-path
+> DOT. See [verified digest](../../papers/digests/diverging-flows-2602-13061v2.md).
+
 This document acts as a comprehensive reference detailing the theoretical motivation, mathematical formulations, academic citations, and structural classifications for the proposed pivot directions. It is designed to be read by other autonomous coding agents (e.g., Claude) and shared with advisors to coordinate the next research phase.
 
 ---
@@ -109,7 +116,7 @@ Normalizing flows learn to map complex, high-dimensional target distributions (e
 * **Detection Mechanism**: When the model begins to hallucinate, its hidden states drift off the knowledge manifold. The transport cost (or log-likelihood) of the flow diverges, generating an immediate anomaly trigger.
 
 #### Key Citations
-* **Diverging Flows**: B. Laufer-Goldshtein et al., *"Extrapolation Detection and Diverging Flows,"* 2025/2026. (Enforces inefficient transport to detect out-of-distribution inputs).
+* **Diverging Flows (corrected)**: Constantinos Tsakonas, Serena Ivaldi and Jean-Baptiste Mouret, *"Native Extrapolation Awareness in Flow-Based Conditional Generation,"* arXiv:2602.13061v2 (2026).
 * **eMOSAIC**: A. Badkul, L. Xie, S. Zhang, and L. Xie, *"Embedding Mahalanobis Outlier Scoring and Anomaly Identification via Clustering,"* 2024. (Uses Mahalanobis distance in embedding space for uncertainty quantification).
 
 #### Competitors & Baselines

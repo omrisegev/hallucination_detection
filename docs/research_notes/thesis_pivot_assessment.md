@@ -1,5 +1,13 @@
 # Thesis Pivot Options — Critical Assessment + Pilot Results
 
+> Correction, 2026-09-15: this is a historical assessment. Its attribution of
+> Diverging Flows to Bracha Laufer and its equivalence to GMM/KDE density scoring
+> are incorrect. Those pilot results do not test or close the DiFlo family.
+> Tsakonas, Ivaldi and Mouret's arXiv:2602.13061v2 uses conditional vector-field
+> margin losses and generated-path geometry. It need not use hidden states.
+> The new unlabeled telemetry adaptation is authorized but not yet benchmarked;
+> see the [verified digest](../../papers/digests/diverging-flows-2602-13061v2.md).
+
 **Replies to**: [`thesis_pivot_options.md`](thesis_pivot_options.md) (Gemini research session, Jul 2026)
 **Branch**: `experiment/pivot-alternatives` · **Step**: 151 · **Status**: pilot complete, results in §7–8
 

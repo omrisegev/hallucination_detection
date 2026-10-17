@@ -319,10 +319,18 @@ def upcr_fit_covariance(
         """One full estimation pass over a feature block: solve once, shift over
         the g2 grid, pick g2 by Eq. 20."""
         mb = Cb.shape[0]
-        A, prs = additive_design(mb, idx_pairs)
-        b = np.array([Cb[i, j] for i, j in prs], dtype=float)
-
-        rho0 = solve_additive(A, b, loss=loss)          # Eq. 15 at q = 0
+        if loss == 'l2' and idx_pairs is None and mb >= 64:
+            # Complete pair design: A.T A = (m-2) I + 11.T. Its exact
+            # inverse avoids materializing O(m^3) design entries or an SVD.
+            # Restricted pairs, L1, and existing small-bank anchors retain
+            # their original paths. Grid, projection and spectral solve below
+            # are unchanged. See test_upcr_complete_pair_fast.py.
+            row_sum = Cb.sum(axis=1) - np.diag(Cb)
+            rho0 = (row_sum - row_sum.sum()/(2*(mb-1))) / (mb-2)
+        else:
+            A, prs = additive_design(mb, idx_pairs)
+            b = np.array([Cb[i, j] for i, j in prs], dtype=float)
+            rho0 = solve_additive(A, b, loss=loss)      # Eq. 15 at q = 0
 
         kproj = (min(n_components, mb) if g2_projection_k == "match"
                  else min(int(g2_projection_k), mb))

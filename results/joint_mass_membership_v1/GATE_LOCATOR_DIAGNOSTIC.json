@@ -1,0 +1,137 @@
+{
+  "status": "PASS",
+  "scope": "full development PB post-evaluation attribution; no feature or threshold selected",
+  "answers": 13769,
+  "pb_answers": 6800,
+  "pb_error": 4442,
+  "pb_clean": 2358,
+  "score_sha256": "881740068a46517f11997d397e2b99487ad1f4f2200635fa882ea567c580c347",
+  "target_sha256": "2ec682ab79b735eca21fd11eaaea0bb7ef3ef43ea8f52710f7a4d3fc8f464f67",
+  "interpretation": "Gate-only and both denote misses on erroneous answers; clean false alarms are reported separately. Same gate in all arms.",
+  "arms": {
+    "base__mass": {
+      "error_hit": 1246,
+      "gate_only_miss": 298,
+      "locator_only_miss": 2375,
+      "both_miss": 523,
+      "clean_correct": 1423,
+      "clean_false_alarm": 935,
+      "wrong_peak_before_target": 1355,
+      "wrong_peak_after_target": 1543,
+      "wrong_peak_step_offset_quantiles": [
+        -21.0,
+        -2.0,
+        1.0,
+        2.0,
+        23.0
+      ]
+    },
+    "near_copies__mass": {
+      "error_hit": 1184,
+      "gate_only_miss": 304,
+      "locator_only_miss": 2437,
+      "both_miss": 517,
+      "clean_correct": 1423,
+      "clean_false_alarm": 935,
+      "wrong_peak_before_target": 1262,
+      "wrong_peak_after_target": 1692,
+      "wrong_peak_step_offset_quantiles": [
+        -21.0,
+        -2.0,
+        1.0,
+        2.0,
+        23.0
+      ]
+    },
+    "base__previous": {
+      "error_hit": 1231,
+      "gate_only_miss": 293,
+      "locator_only_miss": 2390,
+      "both_miss": 528,
+      "clean_correct": 1423,
+      "clean_false_alarm": 935,
+      "wrong_peak_before_target": 1390,
+      "wrong_peak_after_target": 1528,
+      "wrong_peak_step_offset_quantiles": [
+        -21.0,
+        -2.0,
+        1.0,
+        2.0,
+        23.0
+      ]
+    },
+    "base__feasible_reference": {
+      "error_hit": 1214,
+      "gate_only_miss": 295,
+      "locator_only_miss": 2407,
+      "both_miss": 526,
+      "clean_correct": 1423,
+      "clean_false_alarm": 935,
+      "wrong_peak_before_target": 1350,
+      "wrong_peak_after_target": 1583,
+      "wrong_peak_step_offset_quantiles": [
+        -21.0,
+        -2.0,
+        1.0,
+        2.0,
+        23.0
+      ]
+    },
+    "innovation5": {
+      "error_hit": 1268,
+      "gate_only_miss": 321,
+      "locator_only_miss": 2353,
+      "both_miss": 500,
+      "clean_correct": 1423,
+      "clean_false_alarm": 935,
+      "wrong_peak_before_target": 1298,
+      "wrong_peak_after_target": 1555,
+      "wrong_peak_step_offset_quantiles": [
+        -21.0,
+        -2.0,
+        1.0,
+        2.0,
+        25.0
+      ]
+    },
+    "historical_bocpd": {
+      "error_hit": 1303,
+      "gate_only_miss": 322,
+      "locator_only_miss": 2318,
+      "both_miss": 499,
+      "clean_correct": 1423,
+      "clean_false_alarm": 935,
+      "wrong_peak_before_target": 1374,
+      "wrong_peak_after_target": 1443,
+      "wrong_peak_step_offset_quantiles": [
+        -21.0,
+        -2.0,
+        1.0,
+        2.0,
+        23.0
+      ]
+    }
+  },
+  "paired_changes": {
+    "base__mass minus base__previous": {
+      "error_exact_gains": 118,
+      "error_exact_losses": 103,
+      "clean_decisions_changed": 0
+    },
+    "base__mass minus base__feasible_reference": {
+      "error_exact_gains": 118,
+      "error_exact_losses": 86,
+      "clean_decisions_changed": 0
+    },
+    "near_copies__mass minus base__mass": {
+      "error_exact_gains": 88,
+      "error_exact_losses": 150,
+      "clean_decisions_changed": 0
+    },
+    "base__mass minus innovation5": {
+      "error_exact_gains": 233,
+      "error_exact_losses": 255,
+      "clean_decisions_changed": 0
+    }
+  }
+}

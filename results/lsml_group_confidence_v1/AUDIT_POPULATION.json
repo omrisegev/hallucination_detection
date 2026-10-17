@@ -1,0 +1,176 @@
+{
+  "audit": "population/coverage, no summaries read",
+  "status": "PASS",
+  "answers_checked": 13769,
+  "answers_total": 13769,
+  "steps_checked": 145597,
+  "steps_total": 145597,
+  "arms_checked": 10,
+  "finite_score_checks": 1455970,
+  "decision_checks": 1455970,
+  "source_groups": 3483,
+  "all_writes_exactly_once": true,
+  "input_hashes_checked": 11,
+  "code_hashes_checked": 5,
+  "folds": [
+    {
+      "test": 0,
+      "calibration": 1,
+      "fit_folds": [
+        2,
+        3,
+        4
+      ],
+      "train_steps": 86073,
+      "calibration_steps": 29531,
+      "test_steps": 29993
+    },
+    {
+      "test": 1,
+      "calibration": 2,
+      "fit_folds": [
+        0,
+        3,
+        4
+      ],
+      "train_steps": 87521,
+      "calibration_steps": 28545,
+      "test_steps": 29531
+    },
+    {
+      "test": 2,
+      "calibration": 3,
+      "fit_folds": [
+        0,
+        1,
+        4
+      ],
+      "train_steps": 88675,
+      "calibration_steps": 28377,
+      "test_steps": 28545
+    },
+    {
+      "test": 3,
+      "calibration": 4,
+      "fit_folds": [
+        0,
+        1,
+        2
+      ],
+      "train_steps": 88069,
+      "calibration_steps": 29151,
+      "test_steps": 28377
+    },
+    {
+      "test": 4,
+      "calibration": 0,
+      "fit_folds": [
+        1,
+        2,
+        3
+      ],
+      "train_steps": 86453,
+      "calibration_steps": 29993,
+      "test_steps": 29151
+    }
+  ],
+  "same_model_candidate_calibration_replays": [
+    {
+      "fold": 0,
+      "arm": "confidence_sum",
+      "calibration_max_diff": 1.3322676295501878e-15,
+      "test_max_diff": 1.3322676295501878e-15
+    },
+    {
+      "fold": 0,
+      "arm": "confidence_average",
+      "calibration_max_diff": 1.7763568394002505e-15,
+      "test_max_diff": 1.7763568394002505e-15
+    },
+    {
+      "fold": 1,
+      "arm": "confidence_sum",
+      "calibration_max_diff": 1.7763568394002505e-15,
+      "test_max_diff": 1.7763568394002505e-15
+    },
+    {
+      "fold": 1,
+      "arm": "confidence_average",
+      "calibration_max_diff": 3.1086244689504383e-15,
+      "test_max_diff": 1.3322676295501878e-15
+    },
+    {
+      "fold": 2,
+      "arm": "confidence_sum",
+      "calibration_max_diff": 1.1102230246251565e-15,
+      "test_max_diff": 1.3322676295501878e-15
+    },
+    {
+      "fold": 2,
+      "arm": "confidence_average",
+      "calibration_max_diff": 1.3322676295501878e-15,
+      "test_max_diff": 1.9984014443252818e-15
+    },
+    {
+      "fold": 3,
+      "arm": "confidence_sum",
+      "calibration_max_diff": 1.3322676295501878e-15,
+      "test_max_diff": 1.1102230246251565e-15
+    },
+    {
+      "fold": 3,
+      "arm": "confidence_average",
+      "calibration_max_diff": 1.3322676295501878e-15,
+      "test_max_diff": 1.3322676295501878e-15
+    },
+    {
+      "fold": 4,
+      "arm": "confidence_sum",
+      "calibration_max_diff": 1.7763568394002505e-15,
+      "test_max_diff": 1.4432899320127035e-15
+    },
+    {
+      "fold": 4,
+      "arm": "confidence_average",
+      "calibration_max_diff": 2.3314683517128287e-15,
+      "test_max_diff": 1.3322676295501878e-15
+    }
+  ],
+  "anchors": {
+    "bank11_lsml": {
+      "steps_checked": 145597,
+      "answers_checked": 13769,
+      "max_score_difference": 1.3322676295501878e-15,
+      "decision_mismatches": 0
+    },
+    "bank11_equal": {
+      "steps_checked": 145597,
+      "answers_checked": 13769,
+      "max_score_difference": 2.1094237467877974e-15,
+      "decision_mismatches": 0
+    },
+    "ct7_z": {
+      "steps_checked": 145597,
+      "answers_checked": 13769,
+      "max_score_difference": 8.881784197001252e-16,
+      "decision_mismatches": 0
+    }
+  },
+  "labels": {
+    "prm_answers_checked": 6969,
+    "prm_steps_checked": 94203,
+    "noncontrol_answers": 6211,
+    "noncontrol_steps": 83371,
+    "within_auc_answers": 6030,
+    "pb_error_answers": 4442,
+    "source_labels_identical": true,
+    "raw_one_based_prm_labels_identical": true
+  },
+  "limitations": [
+    "Bank orientation/filter/families were selected using development labels before this experiment; current fold separation does not make bank discovery unsupervised or unbiased.",
+    "Conditional independence is an assumption, not certified by named groups or low observed correlation.",
+    "Anchor scores replay within numerical tolerance, not asserted byte identical; decisions are exact."
+  ],
+  "seal_sha256": "96d13a808fe33d59315d5ac42c90b8a615d080bc0d910432cbec5af58ff54fe8",
+  "predictions_sha256": "f11f978ed82cba32f6ea6f1b823ae353fccb17824bde13c5884adb437a6bd366"
+}

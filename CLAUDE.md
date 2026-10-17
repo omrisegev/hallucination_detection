@@ -16,6 +16,34 @@ Use the dated source-specific findings: teacher-forced scoring versus generation
 
 # CLAUDE.md — MV_EPR Spectral Hallucination Detection
 
+## Omri decision update - 2026-10-01: averaging is not the final fusion; Joint stopped
+
+Decided during the branch-merge review (label-free fusion line, Steps 450-464):
+- **The plain average is not acceptable as the final fusion step.** The current frozen
+  candidate (Dawid-Skene filter, then plain average) is still reported, including to the
+  advisors, as the current result. The next direction for the fusion step is to replace the
+  plain average with a combination that uses the label-free SML or method-of-moments
+  (tensor) estimates. Known obstacle, to address rather than ignore: so far the estimates
+  select channels but have not weighted them better than averaging (Steps 450-452, 457,
+  tensor MoM Step 464).
+- **Joint L-SML is discontinued.** There is no current reason to prefer it over L-SML; do not
+  add it as a new arm. Its historical results stay as records.
+- **Open experiment to run later:** remove 2-3 level-family channels to break the level
+  group's dominance (the level group gets the top Dawid-Skene weight in 40/40 bank-folds,
+  Step 457), then re-run the filter/partition/estimates. Proposed by Omri 2026-09-27; no
+  experiment has tested it yet.
+Record: Research_Directions.md (2026-09-30 section, "Omri decisions 2026-10-01").
+
+## Omri decision update - 2026-09-30: digit features stay in the label-free fusion line
+
+Asked whether to keep the three digit features (digit_alternative, digit_spread,
+digit_alternative_innovation) in the label-free fusion line (Dawid-Skene filter + plain
+average, position, per-model-per-dataset fitting; Steps 457-462 and their external checks),
+Omri answered: keep them. For this line this supersedes the 2026-09-17 exclusion below; the
+banks stay B16/B23/B35/B54. It does not by itself reopen digit-specific gates, digit anchors or
+digit-oriented fusion signs. The next step of the line is decided after the branch merge.
+Record: Research_Directions.md (2026-09-30 section), docs/HANDOFF_LABEL_FREE_ALGORITHM_2026-09-30.md.
+
 ## Omri execution update - 2026-09-24: external telemetry first
 
 Implement Hard2Verify and Socratic-PRMBench transfer on the dedicated
@@ -70,6 +98,19 @@ selection and full source-fold quality. Step400 artifacts are in the atlas
 worktree; the broader robustness goal is still active, not solved by its small
 within-AUC gain or the single synthetic duplicate fixture.
 
+## Frozen development candidate CT7 - Omri, 2026-09-17
+
+Omri instructed freezing `CT7-six-entropy-plus-despiked-chosen-token-z-equal-v1` (Step 418). Recipe and
+hashes: `results/chosen_token_calibration_v1/FROZEN_CANDIDATE_CT7.json`; code
+`spectral_utils/frozen_locator_ct7.py`. Do not change its views, readouts, step-0 rule, weights or gate;
+any change is a new candidate id, and `scripts/freeze_candidate_ct7_v1.py` refuses drift. Its 41.19 PB /
+.7724 within is DEVELOPMENT evidence on already-inspected data (fifth readout of the statistic tried that
+day, fix motivated by a label-using diagnostic); never report it as confirmed. Its views are 1.80
+effective conditionally independent signals of 7, so it is not an L-SML weighting result. Omri wants to
+be consulted on the next direction (confirmation route or new measurement channel) before new builds.
+Never run `git sparse-checkout add/set/reapply` in the atlas worktree: it deletes ignored local results.
+
+
 ## Omri decision update - 2026-09-17: exclude digit-based disagreement
 
 Omri explicitly rejects digit-specific disagreement with the scoring model's
@@ -92,6 +133,52 @@ No new experiment was launched by this documentation update.
 Omri's clarification: the algorithm should handle the broad bank without a
 protected favorite feature or repeatedly designing around digit success.
 Complementarity is not an established certificate of independent errors.
+
+## Omri research execution authorization — 2026-09-15
+
+Omri approved `docs/experiments/TEMPORAL_RESEARCH_PROGRAM_20260915.md` and said
+"RUN THE PLAN". Execute its bounded stages without reopening earlier permission
+gates. Feature selection, fusion and routing are all candidates. Correctness
+labels remain excluded from model/weight/selector fitting; development labels
+may diagnose and select banks/configurations. Other-answer unlabeled learning
+is allowed with source-group exclusion; prefer answer-only when competitive.
+Report a Pareto frontier, not a mandatory two-metric win. Diverging Flows and
+TCN have first-cycle priority alongside a linear context control; linear failure
+does not rule out nonlinear models. Preserve all original results and frozen
+gate q=.33. Require independent baseline verification and repaired PB reporting.
+Read the current worktree's PROGRESS.md for execution state; code/tests alone
+do not mean a new model has been trained or benchmarked.
+
+## Matched supervision clarification - 2026-09-11
+
+The matched token-Top10 coefficient-update experiment is complete in this
+worktree. Both arms share the same frozen answer-local RBM and externally
+fitted13-coefficient correction family; only the training loss/label access
+differs. Neither corrected arm is strictly answer-only. Do not describe the
+experiment as from-scratch supervised versus unsupervised training, or a
+performance ceiling. See PROGRESS.md for outcomes and the next unlaunched
+objective-alignment proposal. First_near_max remains closed for this RBM path.
+
+## Omri RBM readout clarification - 2026-09-11
+
+Use original argmax for the active RBM research path. The first_near_max
+isolation experiment is closed; do not tune or adopt it for RBM. Historical
+near-max scores for other methods remain archived references. The tested
+position-conditioned correction is not adopted after full-data regression;
+see PROGRESS.md for the completed supervised position diagnostic and its limits.
+
+
+## Omri update - 2026-09-10: temporal probability fusion authorized
+
+In this isolated worktree the active stage is
+`docs/experiments/DIRECT_PROBABILITY_TEMPORAL_V3.md`. The user approved revisiting
+all fusion mechanisms on direct probabilities, fixed settings, and adding
+ordered lagged inputs, level/change and two-axis fusion. First complete the
+18-arm temporal representation comparison on all13,769 localization rows;
+do not claim that its shrinkage arms are full Joint or B3. Those mechanisms and
+historical24 transfer remain explicit continuing work. Chat-first results;
+no new HTML reports or performance pass/fail thresholds. Preserve old outputs.
+This current authorization supersedes older no-new-grid restrictions below.
 
 ## Omri decision update - 2026-09-08: consolidate before new experiments
 
@@ -387,6 +474,14 @@ def ensure_flat_dir(repo_id, token=None):
 ---
 
 ## AIRCC cluster (Slurm GPU allocation)
+
+**Live allocation verified 2026-09-13:** `sdata` reports account
+`cycle3_tau_averbuch_prj`, QoS `owner_940` on `power-gpu` (sandbox QoS
+`sandbox_owner_940`). Older `owner_880` examples are historical; rediscover before
+submission. Noninteractive SSH commands need `SLURM_CONF_SERVER=controller-primary`.
+The documented project workspace below remains accessible. Current jobs use
+Pyxis; the old rootless-Docker description below is historical. The dedicated
+answer-position analysis job was accepted without requesting a GPU.
 
 Second GPU backend besides Colab: national AIRCC cluster, 8× NVIDIA B200, ssh alias `aircc`
 (omrisegev1@slurm-login.iucc.ac.il, **TAU VPN required** — a hanging ssh means VPN is down).

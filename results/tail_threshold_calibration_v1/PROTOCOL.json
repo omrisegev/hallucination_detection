@@ -1,0 +1,88 @@
+{
+ "stage": "tail_threshold_calibration_v1",
+ "date": "2026-09-24",
+ "written": "before any fit, score or metric of this stage",
+ "requested_by": "Omri, 2026-09-24: understand exactly what happens in the new tail-mark L-SML method (why K=2); the 20% tail may be arbitrary and not suited to every feature; consider a FUSE-like binarization step with threshold tuning to maximize performance; running experiments on PRMBench now to calibrate this is fine, aiming at better clustering and a better PRMScore.",
+ "plan": "C:/Users/DELL/.claude/plans/enchanted-puzzling-hammock.md (approved)",
+
+ "pre_protocol_probes_disclosed": {
+  "what": "read-only, label-free structure probes on outer fold 0 (fit folds 2,3,4) before this protocol: per-family position of 20% marks, mark and continuous correlation matrices, K of calfix_common.lsml_fit on marks at fractions .05/.10/.20/.30/.50 (K=2 at every fraction), and detect_dependent_groups on the SAME marks after column standardization (K=4 unit, 3 eigen, 4 complete) and on continuous F15 (K=5/3/5).",
+  "labels_used": "none",
+  "consequence": "the hypothesis that step-level K=2 is an input-scale artefact (unstandardized centred marks, variance ~0.16, fed to lsml_continuous whose documented input is z-scored and whose default 'unit' K criterion is not scale invariant) was formed from these probes; Stage 0 tests it on all folds and banks."
+ },
+
+ "external_exposure": "Codex/SOL is running the external evaluation of TRANSFER_LOCK_V1 (Hard2Verify + Socratic-PRMBench); family-tail Hard2Verify metric files existed on disk by 2026-09-24 ~20:43. This stage does not open them and reads no external data. Any recipe frozen after this stage is post-exposure in time and must say so. No external benchmark result is used to choose anything here.",
+
+ "frozen_untouched": ["results/family_tail_calfix_v1/** (incl. TRANSFER_LOCK_V1.json, sha256 65b35336fcc2f66b7843ec040d3bdafbbaa03bb44ae5f61f1d00335abfaea5cf)", "scripts/experiments/calfix_common.py (hash recorded in the lock)"],
+ "frozen_check": "sha256 of every file above recorded at run start and asserted equal at run end (FROZEN_HASHES.json)",
+
+ "population_and_roles": "identical to family_tail_calfix_v1: 13,769 answers (PB+PRMB), source-group folds; outer fold k evaluates fold k, calibrates on (k+1)%5, fits on the other three; one fitted model per (method, fold) scores both roles (calfix_common.ScoreBundle, write-once).",
+ "representation": "F15 exactly as family_tail_calfix_v1: 48 answer-standardized channels, retrospective orientation and kept list from run_20260924_1542/DESIGN.json (label-using development design, unchanged), 15 families of named_group_fusion_v1 S3_M15, equal mean of oriented members, answer-standardized. Anchor family level_entropy.",
+ "application": "every learned weight vector is applied to the continuous F15 features, then within-answer z-score (unchanged from V1).",
+
+ "marks": {
+  "rank": "calfix_common.tail_marks(F15, q, tie_aware=True, centred=True): top ceil(q n) steps per answer and family, boundary ties share mass, centred within answer (V1 marks at q=.20)",
+  "value": "tail_calib_common.value_marks: 1[F15_j > tau_j] with tau_j the (1-q) quantile of family j over the outer fold's FIT rows (label-free), centred within answer; the FUSE-style value cut",
+  "grid": [0.05, 0.10, 0.15, 0.20, 0.30, 0.40, 0.50]
+ },
+
+ "fit_recipes": {
+  "raw": "calfix_common.lsml_fit on the centred marks as they are (the V1 recipe)",
+  "standardized": "tail_calib_common.lsml_fit_scaled(standardize=True): pooled column z-score of the fit-row marks (the documented lsml_continuous input contract), then the same lsml_continuous(small_m_guard=True) fit, Spearman orientation on continuous F15, sum|w|=1",
+  "loading_scale": "'unit' (default, every committed number) unless the arm says 'complete' (exact Lemma-1 completion); it changes only the choice of K/partition"
+ },
+
+ "arms": {
+  "T20raw": "rank q=.20, raw recipe, unit == V1 F15_tailtie_lsml (must replay run_20260924_1542 scores bit-exactly)",
+  "T20s": "rank q=.20, standardized, unit (minimal defect fix; everything else as V1)",
+  "T20s_complete": "rank q=.20, standardized, complete",
+  "T20s_votes": "T20s weights mapped to the uncentred marks (w_j / fit sd_j), answer-z",
+  "T20s_partition_equal": "equal weights (1/(K n_k)) on T20s's discovered groups, applied to continuous F15",
+  "curve Q{05,10,15,30,40,50}r": "rank q, standardized, unit (Q20r is T20s)",
+  "curve Q{05,10,15,20,30,40,50}v": "value q, standardized, unit",
+  "Qnest": "per outer fold, the one of the 14 curve fits (Q..r incl. T20s, Q..v) with the highest FIT-fold PRMScore; ties -> first in the order Q05r..Q50r, Q05v..Q50v",
+  "PFfree": "per-family rank fractions from the grid, chosen label-free by coordinate descent (start .20 for all, 2 sweeps, move only on strict improvement, stop when a sweep moves nothing) MINIMIZING the relative latent-group misfit: Eq.14 residual of the best partition (complete scale, K in 2..8, Eq.15 spectral search) divided by the sum of squared off-diagonal correlations of the standardized fit-row marks; then fitted as T20s",
+  "PFlab": "per-family rank fractions, same coordinate descent MAXIMIZING the FIT-fold PRMScore (label-using, nested); then fitted as T20s. A fit failure during the search counts as -inf and is recorded",
+  "F15_equal": "equal mean of the 15 families (control)",
+  "F15_cov_lsml": "continuous L-SML on F15 (calfix_common.lsml_fit)",
+  "B11_lsml": "frozen bank11 L-SML (calfix_common.lsml_fit on bank11, anchor entropy)",
+  "ct7": "frozen CT7 step scores, answer-z (reference)"
+ },
+
+ "selection_access": {
+  "objective": "PRMScore (official formula) on the fit folds' non-control PRMBench steps; decision threshold = q80 of the model's own calibration-fold scores (P1 rule, label-free)",
+  "labels": "fit folds' PRMBench labels only; calibration- and evaluation-fold labels are set to NaN in the array the selector receives and any read of them raises (tail_calib_common.fit_prmscore)",
+  "processbench": "not used for any choice; secondary panel only"
+ },
+
+ "evaluation": "calfix_evaluate.evaluate unchanged: P1 (primary, pooled cal q80), P1b, P2 (label-using panel); within-answer AUC; PB SLA macro8; paired source-group bootstrap 20,000 draws seed 20260924; official PRMScore replay < 1e-12",
+ "primary_contrasts_P1_prmscore_holm7": [
+  ["T20s", "T20raw", "defect fix: standardized marks vs the V1 recipe"],
+  ["T20s", "F15_equal", "corrected tail L-SML vs matched equal"],
+  ["T20s", "F15_cov_lsml", "learning object: standardized tail marks vs continuous covariance"],
+  ["Qnest", "T20s", "nested common-threshold calibration vs fixed 20%"],
+  ["PFfree", "T20s", "label-free per-family thresholds vs fixed 20%"],
+  ["PFlab", "T20s", "label-selected per-family thresholds (nested) vs fixed 20%"],
+  ["PFlab", "F15_equal", "calibrated tail L-SML vs matched equal"]
+ ],
+ "descriptive_contrasts": [
+  ["T20s", "B11_lsml", "vs frozen bank11 anchor"],
+  ["T20s", "ct7", "vs CT7 reference"],
+  ["T20s_complete", "T20s", "exact Lemma-1 K criterion vs unit"],
+  ["T20s", "T20s_votes", "continuous application vs marks"],
+  ["T20s", "T20s_partition_equal", "learned magnitudes vs equal on discovered groups"],
+  ["T20raw", "F15_equal", "V1 recipe vs equal (replays the calfix contrast)"],
+  ["Q05v", "Q05r", "value vs rank cut at 5%"], ["Q10v", "Q10r", "value vs rank cut at 10%"], ["Q15v", "Q15r", "value vs rank cut at 15%"],
+  ["Q20v", "T20s", "value vs rank cut at 20%"], ["Q30v", "Q30r", "value vs rank cut at 30%"], ["Q40v", "Q40r", "value vs rank cut at 40%"], ["Q50v", "Q50r", "value vs rank cut at 50%"],
+  ["Qnest", "F15_equal", "nested common threshold vs equal"],
+  ["PFfree", "F15_equal", "label-free per-family vs equal"],
+  ["PFlab", "PFfree", "label-selected vs label-free per-family"],
+  ["PFlab", "B11_lsml", "calibrated tail L-SML vs bank11 anchor"],
+  ["PFfree", "B11_lsml", "label-free per-family vs bank11 anchor"],
+  ["PFlab", "ct7", "vs CT7 reference"]
+ ],
+
+ "stage0_diagnosis_label_free": "for F15, K28, A48o and bank11 (tie-aware 20% marks as in calfix) and every outer fold: K, partition, per-K residual curve and relative gap under raw marks, standardized marks and continuous features, each with unit/eigen/complete; pooled mark variances; scale control = continuous F15 covariance x0.16 (data x0.4) under the raw path; cross-fold ARI of the F15 partitions; consistency of raw-unit K with the V1 MODELS.jsonl K. Output DIAGNOSIS.json.",
+ "descriptive_label_using_after_fits": "per family and q (rank and value): d_j(q) = mean mark | error - mean mark | valid on non-control PRMBench steps (all folds, descriptive only); 20% mark correlations within valid steps and within error steps (conditional-independence check) summarized inside vs across T20s groups; mark position (mean relative position, share in the last 20% of steps, answers with >= 5 steps). Never used for selection.",
+ "stop_rule": "report a matched table and a recommendation; no TRANSFER_LOCK_V2 without Omri's decision (a new file; V1 unchanged; records the external-exposure timing above); no commit without request."
+}

@@ -1,0 +1,17 @@
+{
+ "amendment": "A1 to prmscore_decomposition_v1/PROTOCOL.json",
+ "date": "2026-09-27",
+ "written": "after the independent pre-run review of er_prmscore_decomposition.py and after a smoke run that stopped at the population gate; no metric of any arm had been computed or seen",
+ "reason": "The protocol's population text was factually wrong, and the reviewer asked for explicit labels and gates that change no metric.",
+ "changes": {
+  "population": "The 6211 non-control PRMBench answers are 6035 answers with at least one in-range error step, 160 multi_solutions answers (no error step by design), and 16 answers of error classes (confidence, counterfactual, deception, missing_condition) whose annotated error indices all lie past the last step. The official scorer treats out-of-range indices as inert, so these 16 enter PRMScore as all-correct answers of their class. The gate now expects exactly these counts (6035 / 160 / 16) and the 16 IDs are written to GATES.json.",
+  "clean_answer_panel": "reports controls (outside PRMScore), multi_solutions (160) and the 16 inert-annotation answers as separate rows; the share of erroneous answers with a false flag is restricted to answers with at least one correct step",
+  "group_strata_labels": "the three official groups appear twice: '<group>__pooled' (pooled confusion of member classes; used in the paired contrasts) and '<group>__member_mean' (official by_category convention, mean of member-class values; point estimate and interval, no contrast)",
+  "p3_additions": "pair-weighted within-answer AUC (the component that makes pooled AUC an exact mixture of within- and cross-answer pairs) and the within/cross pair shares, next to the answer-weighted within-AUC",
+  "seeds": "20260927 for the main bootstrap; derived 20260928 for the pooled-AUC draws and 20260929 for the S1 panels",
+  "gates_added": "re-run RUN_STATUS COMPLETE and re-run METRICS.csv equal to the frozen METRICS.csv; CHANNELS.npz tied to the frozen run (equal-weight mean of the 13 channels equals frozen B13_equal to 1e-12, channel names equal the frozen manifest); every compared deviation finite (explicit skip only for classes without error steps); class set asserted",
+  "reported_flags": "used_redundancy_head (False: redundency/circular scored through the validity fallback) written to GATES.json and P1",
+  "s1_note": "length bins are label-free quartile edges on non-control step counts (ties make them unequal); first-error position bins use the labels and are descriptive only"
+ },
+ "unchanged": "arms, decision rules, thresholds, contrasts, endpoints, draws, the prohibition on threshold selection and on new weighting experiments"
+}

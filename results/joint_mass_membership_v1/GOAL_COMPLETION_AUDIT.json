@@ -1,0 +1,42 @@
+{
+  "goal_status": "active",
+  "previous_goal_turn": "progress",
+  "current_goal_turn": "progress",
+  "requirements": [
+    {
+      "requirement": "attribute gate versus locator errors",
+      "status": "verified",
+      "evidence": "results/broad50_gate_locator_audit_v1/AUDIT.json"
+    },
+    {
+      "requirement": "investigate feature counts and Top8/Top10",
+      "status": "verified_experiments",
+      "evidence": "results/joint_feature_selection_bocpd_v1/COUNT_PATH_DIAGNOSTIC.json; results/broad50_top8_v1/AUDIT.json"
+    },
+    {
+      "requirement": "feature membership learned inside Joint",
+      "status": "verified_for_implemented_objective",
+      "evidence": "spectral_utils/joint_sparse_membership.py; results/joint_sparse_membership_v1/AUDIT.json"
+    },
+    {
+      "requirement": "preserve useful localization with surplus features",
+      "status": "partially_verified",
+      "evidence": "results/joint_mass_membership_v1/RESULTS.json; AUDIT.json",
+      "remaining": "Step412 preserves prior base and exact/structured additions; iid and near fail native coverage/preservation. Numerical repair is only a mechanism check, not restored full-method performance."
+    },
+    {
+      "requirement": "exploratory over40 target",
+      "status": "not_achieved_by_new_joint",
+      "evidence": "results/joint_sparse_refinement_v1/RESULTS.json",
+      "note": "user phrased this as a hoped-for gain; not a license for label-driven selection"
+    },
+    {
+      "requirement": "full benchmark and visible failure accounting",
+      "status": "verified",
+      "evidence": "results/joint_mass_membership_v1/AUDIT.json"
+    }
+  ],
+  "next_protocol": null,
+  "running_processes": [],
+  "next_direction": "Integrate unchanged-QP active-set polishing, then separately address provisional group discovery versus noise screening. Retain Step412 quality, final native guards, all benchmarks."
+}

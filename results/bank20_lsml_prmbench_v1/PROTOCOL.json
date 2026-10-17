@@ -1,0 +1,34 @@
+{
+  "protocol_id": "bank20_lsml_prmbench_v1",
+  "version": "1.0",
+  "frozen_before_scoring": "2026-09-24",
+  "status": "development_only",
+  "requested_by": "Omri, 2026-09-24: extend the 11-channel bank toward 20 features so that the L-SML advantage over averaging is preserved while PRMBench quality matches or exceeds the current rows; target benchmark is PRMBench",
+  "question": "Does a 20-channel bank built from already-materialized, label-free, GPU-free channels raise PRMBench within-answer ranking under the bank11 CONT L-SML recipe, while L-SML keeps its advantage over averaging?",
+  "starting_point": "Codex month review 2026-09-23, section 1: step_level_bank_baseline_v1 arm continuous = CONT L-SML on the 11-channel Top10 step bank, answer-local standardization, five source folds. within-AUC 76.4531 (L-SML) / 74.9644 (equal) / 75.3084 (learned-partition group equal); CT7 77.2397; fam421_answer 78.0120",
+  "diagnosis_recorded_before_the_run": "the bank11 L-SML edge is a de-noising effect: the fitted weights (identical in all five folds, K=6) give energy_innovation, top15_turnover and top50_js 0.015 each, and under the Top10 readout those channels have single-stream within-AUC 0.407, 0.606 and 0.458 (two are anti-oriented). Equal averaging cannot suppress them; L-SML can. energy_level alone scores 0.7612. Any added channel therefore has to carry signal AND form a group the learned weights can use; copies of the level family would only preserve an artificial edge",
+  "recipe_frozen_from_codex": {
+    "readout": "Top10 mean of the token values inside each step (DERIVATIVE_CHANNELS.npz['level'] for the 11; the same rule applied to the added token channels; profiles_full readouts for the shape family)",
+    "standardization": "answer-local z per column (lsml_gate_locator_research.answer_standardize; constants -> 0); a missing step value is filled with the answer's column mean before standardization (-> 0) and counted",
+    "fusion": "lsml_gate_locator_research.fit_fusion_weights, mode 'continuous' (lsml_continuous method='residual', automatic K, small_m_guard=True), orientation by Spearman against anchor channel 0 = q15_H1, L1-normalized weights",
+    "controls": "equal (1/m) and learned-partition group equal (1/(K|g|) on the partition the L-SML fit found on the SAME fit folds; label-free)",
+    "code": "imported from .worktrees/depth-feature-fusion-v1/spectral_utils (the worktree that carries small_m_guard); nothing there is edited"
+  },
+  "banks_nested": {
+    "B11": ["q15_H1", "q15_VE1", "chosen_surprisal", "logprob_margin", "true_tail50", "energy_level", "energy_innovation", "top15_turnover", "top50_js", "dominant_freq16", "bocpd_p0"],
+    "B15": "B11 + ct7_chosen_std_excess, ct7_bocpd_residual, ct7_H0lim_prefix_innovation, ct7_ve0 (Top10 of results/ct7_token_lsml_v1/CT7_TOKEN_MATRICES.npz over valid tokens; ve1/H0lim/ve0.75 excluded as near-duplicates of q15_VE1/q15_H1)",
+    "B19": "B15 + H1_first_token, H1_slope, H1_jump, H1_frac_above_z (profiles_full.npy[:, 0, {14, 11, 12, 10}] of Step 432: four within-step shape readouts of the anchor channel, declared by construction, not selected)",
+    "B20": "B19 + evidence_drop_risk (Top10 of EVIDENCE_DROP.npz['risk_token'], the Mind-the-Gap negative evidence flux)",
+    "family_rationale": "chosen-token excess = family C of fam421 (conditional corr 0.00-0.06 with the level family at step level); bocpd_residual is a different construction from bocpd_p0 (corr 0.46); ve0 is the strongest single escort varentropy (0.7534); shape readouts diversify by transform (token-head atlas: same-transform |rho| .87 vs same-stream .50); evidence flux is a derivative of a different smoothing"
+  },
+  "splits": {"folds": "source_groups_v2 (FOLDS_V2.json), five outer folds", "per_eval_fold_k": "calibration = (k+1) mod 5 (PRMScore q80 threshold only, label-free); fit = the other three folds; nothing is learned on the calibration or evaluation fold", "fit_rows": "all steps of the fit folds' answers, ProcessBench and PRMBench pooled, as in the original recipe", "replay_reference": "B11 L-SML with fit on the four non-evaluation folds, compared to results/step_level_bank_baseline_v1/STEP_SCORES.npz['continuous'] at tolerance 1e-9; reported as a separate row, not as an arm of the 3-fold protocol"},
+  "arms": "for each bank: lsml, equal, group_equal; references: ct7 (frozen scores), B11_lsml_replay4; fam421_answer 0.7801 quoted as context only",
+  "primary_endpoints": ["prm_within_answer_auc (6,030 eligible answers)", "prmscore_answer_z_q80 (official evaluator; threshold = 0.8-quantile of the calibration fold's answer-standardized PRMBench step scores)"],
+  "primary_family": {"contrasts": ["B20_lsml - B20_equal", "B20_lsml - B11_lsml", "B20_lsml - ct7"], "K": 6, "ci": "95% and Bonferroni 1-0.05/6"},
+  "secondary": ["B15_lsml - B11_lsml, B19_lsml - B15_lsml, B20_lsml - B19_lsml (which family moved it)", "lsml - equal and lsml - group_equal on every bank (does the edge survive)", "per-fold K, groups, weights, IPR, anchor rho", "effective rank per bank", "single-stream within-AUC of the nine additions (label diagnostic)", "within-AUC by PRMBench classification", "ProcessBench macro8 SLA point estimates as context, never a veto"],
+  "predictions_frozen": ["P1 replay: B11 L-SML fit-on-4 reproduces the saved scores to 1e-9", "P2 L-SML beats equal on all four banks (the anti-oriented trio stays in every bank)", "P3 the four CT7 channels raise B11 L-SML by +0.005 to +0.010 within-AUC", "P4 the shape family is neutral (|delta| < 0.003)", "P5 B20 L-SML stays below fam421_answer 0.7801"],
+  "bootstrap": {"unit": "PRMBench source_group", "draws": 100000, "seed": 20260924, "paired": true, "prmscore": "group-level confusion sums over non-control steps, F1/negative-F1 formula validated against the official evaluator in S0"},
+  "budget": "<= 1 CPU-hour; stop INCOMPLETE rather than truncate",
+  "labels": "v3", "digit_features": false, "new_raw_inference": false, "gpu": false, "automatic_stage_chaining": false,
+  "interpretation": "A gain must clear B11 L-SML AND keep L-SML above equal on the same bank; beating equal alone reproduces the de-noising effect and is not a representation gain. Development evidence on the already-evaluated population; nothing is promoted."
+}

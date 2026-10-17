@@ -1,0 +1,30 @@
+{
+  "alias_expansion_max_error": 8.881784197001252e-16,
+  "answers": 13769,
+  "checks": [
+    "frozen hashes and controls",
+    "training-only alias equality and model sharing",
+    "independent signed-observation null covariance",
+    "monotone sparse objectives and variance constraints",
+    "conservative union support and final native checks",
+    "factor covariance and full weight replay",
+    "independent PB counts and pairwise within AUC",
+    "exact-copy score identity"
+  ],
+  "metrics_checked": 35,
+  "native_answers": {
+    "base__sparse": 13769,
+    "duplicates__sparse": 13769,
+    "noise__sparse": 13769
+  },
+  "score_replay_max_error": 0.0,
+  "score_sha256": "14f7a3372d5c5658554a868a0f5e608621f5dcc518ba7108d6a4af5b16560363",
+  "status": "PASS",
+  "steps": 145597,
+  "tests": [
+    "test_alias_coordinates_are_replication_invariant",
+    "test_sparse_joint_can_make_independent_rows_noise_only",
+    "test_extreme_penalty_selects_diagonal_only_model"
+  ],
+  "unique_sparse_rounds_checked": 15
+}

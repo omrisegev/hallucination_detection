@@ -1,0 +1,15 @@
+gate_id,observed,threshold,direction,passed,status,evidence_status,notes
+P2R_SCORE_FREEZE_COMPLETE,8,8 cells,contract,true,COMPLETE,DEVELOPMENT,all registered candidate scores were frozen before labels opened; raw gate status=PASS
+P2R_LABEL_FIREWALL,labels opened after score-freeze manifest,no fit-side labels or targets,contract,true,COMPLETE,DEVELOPMENT,the reducer and score combination are label-free; raw gate status=PASS
+P2R_REFERENCE_THRESHOLD_HASH,5166229e5ad8f812b2b7ee57449cd945612cb986c2ffcdbad98ea00653a72be3,5166229e5ad8f812b2b7ee57449cd945612cb986c2ffcdbad98ea00653a72be3,contract,true,COMPLETE,DEVELOPMENT,candidate uses the immutable top-five threshold artifact; raw gate status=PASS
+P2R_NO_CANDIDATE_RETHRESHOLD,0 threshold fits,0,contract,true,COMPLETE,DEVELOPMENT,all 6800 decisions apply the ten frozen reference thresholds; raw gate status=PASS
+P2R_FOLD_ALIAS,0,0,contract,true,COMPLETE,DEVELOPMENT,source-group fold assignments match the reference; raw gate status=PASS
+P2R_POPULATION_COMPLETE,6800,6800 rows,contract,true,COMPLETE,DEVELOPMENT,same eight Qwen cells and rows as the reference; raw gate status=PASS
+P2R_BOOTSTRAP_ALIGNMENT,20000,20000,contract,true,COMPLETE,DEVELOPMENT,paired samples reuse the frozen seed and source-question groups; raw gate status=PASS
+P2R_WORST_CELL_HARD_BOUND,-0.0017168298967323303,>= -0.03,contract,true,COMPLETE,DEVELOPMENT,worst cell is processbench_math_qwen3_4b; raw gate status=PASS
+P2R_POINT_BENEFIT,0.012936029154168471,>= 0.005,ge,true,COMPLETE,DEVELOPMENT,candidate macro-F1 point delta versus top-five
+P2R_SIMULTANEOUS_CI_BENEFIT,0.0014438677363772625,> 0.005,gt,false,COMPLETE,DEVELOPMENT,multiplicity-aware lower bound
+P2R_NONNEGATIVE_CELLS,6/0,>= 6/8 nonnegative,ge,true,COMPLETE,DEVELOPMENT,cell W/T/L excludes no registered cell
+P2R_WORST_CELL_PROMOTION,-0.0017168298967323303,>= -0.020,ge,true,COMPLETE,DEVELOPMENT,worst cell processbench_math_qwen3_4b
+P2R_EXACT_ERROR_COMPONENT,0.01627408953265691,>= -0.010,ge,true,COMPLETE,DEVELOPMENT,paired exact-error point delta
+P2R_CLEAN_ABSTENTION_COMPONENT,-0.0036403551859929273,>= -0.010,ge,true,COMPLETE,DEVELOPMENT,paired clean-abstention point delta

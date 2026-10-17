@@ -13,7 +13,10 @@ last_digested: 2026-08-03
 > **REWRITTEN 2026-08-03 from the actual PDF (25 pages incl. Appendices A–F).** The previous card
 > was `abstract-only` and stated the PDF did not exist. It does. Everything below is grounded in
 > `papers/extracted/<slug>.md`; the earlier card's `UNVERIFIED` markers on models, baselines and
-> scores are now resolved. Code: https://github.com/QJ0114/evidence-drop (not inspected).
+> scores are now resolved. Code: https://github.com/QJ0114/evidence-drop - **INSPECTED 2026-09-27**,
+> vendored at commit ff14a7d in `papers/code/mind_the_gap_evidence_drop_ff14a7d/`; full audit in
+> `docs/reviews/MIND_THE_GAP_CODE_AUDIT_20260927.md`. **The release does not implement the method this
+> card describes** - see "Released code" below.
 
 ## Summary
 
@@ -159,3 +162,25 @@ E.2 Table 6 instead** (caveat 5 below): Qwen3-8B **66.12 / 66.40 / 65.96**, Qwen
 than LN-S Avg under both ProofWriter settings. The consistent wins are on the harder distributions
 (MATH, OlympiadBench, Omni-MATH) — the same "helps where the signal is hard" pattern our own work
 keeps finding.
+
+## Released code (audited 2026-09-27)
+
+Full audit: `docs/reviews/MIND_THE_GAP_CODE_AUDIT_20260927.md`. Three facts that override anything above
+for anyone who wants to REPRODUCE rather than cite:
+
+1. **No step-level code exists in the release** (14 files, GSM8K + MATH selective prediction only; one
+   branch, three commits, all 2026-05-05). Table 3 SLA is not reproducible from it; the token-to-step
+   mapping and the step-wise threshold remain undefined.
+2. **The released method is not Shannon Drop.** Its per-token signal is `max` over the returned top-20
+   log-probabilities, i.e. the TOP-1 log-probability (full softmax, not renormalized, not an entropy). Under
+   greedy decoding that is the emitted token's log-probability. Its baseline "LN_E, Length-Normalized
+   Entropy" is the paper's LN-S baseline, misnamed.
+3. **An undocumented running mean precedes the EMA.** The first difference of a running mean equals the
+   prefix innovation divided by position (verified to 3.7e-17 with their own functions), so the released
+   statistic weighs a drop at token 20 about 21 times more than the same drop at token 500; the paper's
+   Eq. 11-12 weigh them equally.
+
+Resolved by the code: raw one-shot completion prompt with no chat template (non-thinking), temperature 0,
+max_tokens 1024, logprobs 20, curve truncated at the final answer (inconsistently: MATH keeps `oxed{}`,
+GSM8K cuts before `####`), EMA alpha 2/(span+1) seeded with the first value. Still unresolved: the
+calibration quantile (tau is an input to `eval.py`), AURC, and every Shannon/LogTokU variant.

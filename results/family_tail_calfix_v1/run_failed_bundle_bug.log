@@ -1,0 +1,14 @@
+design, family features and marks built 80s
+fold 0 done (79s); failures so far 0
+fold 1 done (60s); failures so far 0
+fold 2 done (68s); failures so far 0
+fold 3 done (51s); failures so far 0
+fold 4 done (56s); failures so far 0
+Traceback (most recent call last):
+  File "C:\Users\omris\TAU\hallucination_detection\.worktrees\ssl-pseudolabel-residual-v1\scripts\experiments\family_tail_calfix_run.py", line 194, in <module>
+    checks = B.finalize(OUT); dump(OUT / 'FAILURES.json', failures)
+  File "C:\Users\omris\TAU\hallucination_detection\.worktrees\ssl-pseudolabel-residual-v1\scripts\experiments\calfix_common.py", line 168, in finalize
+    assert checks['status'] == 'PASS', checks['problems'][:10]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['A48if_equal eval: 13769 answers never written', 'A48if_equal eval: non-finite scores', 'A48if_equal cal: 10987 answers never written', 'A48if_equal cal: non-finite scores', 'A48n_cov_lsml eval: 13769 answers never written', 'A48n_cov_lsml eval: non-finite scores', 'A48n_cov_lsml cal: 10987 answers never written', 'A48n_cov_lsml cal: non-finite scores', 'A48n_equal eval: 13769 answers never written', 'A48n_equal eval: non-finite scores']
+exit 1

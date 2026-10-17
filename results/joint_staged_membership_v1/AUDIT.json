@@ -1,0 +1,49 @@
+{
+  "answers": 13769,
+  "bootstrap_draws": 10000,
+  "changed_peaks_vs_new_base": {
+    "base": 0,
+    "duplicates": 0,
+    "near_copies": 1411,
+    "noise": 0,
+    "structured_noise": 0
+  },
+  "checks": [
+    "frozen hashes and reference scores",
+    "zero-row removal before stable global-group support",
+    "null covariance and sparse objective",
+    "full information-refinement path",
+    "final factor covariance and weights",
+    "held scores and native coverage",
+    "independent metrics and full bootstrap replay"
+  ],
+  "independent_bootstrap_endpoints": 12,
+  "metrics_checked": 27,
+  "models_checked": 25,
+  "native_answers": {
+    "base": 13769,
+    "duplicates": 13769,
+    "near_copies": 13769,
+    "noise": 13769,
+    "structured_noise": 13769
+  },
+  "near_stage_diagnostic": {
+    "bootstrap_endpoints": 8,
+    "fold_readouts": 10,
+    "metrics": 4,
+    "scope": "separate post-evaluation diagnostic family",
+    "score_replay_max_error": 1.3322676295501878e-15,
+    "status": "PASS"
+  },
+  "score_replay_max_error": 0.0,
+  "score_sha256": "eddd011a969c99c81cc5267bd399f9bf1737b2de81d5d5951b052c3c945b447c",
+  "sparse_rounds_checked": 37,
+  "status": "PASS",
+  "steps": 145597,
+  "tests": [
+    "test_zero_rows_are_removed_before_global_zero_groups",
+    "test_stable_support_excludes_only_global_zero_groups",
+    "test_ordering_is_permutation_equivariant"
+  ],
+  "weight_replay_max_error": 4.163336342344337e-17
+}

@@ -1,0 +1,48 @@
+{
+  "version": 2,
+  "date": "2026-10-04",
+  "status": "Frozen before continuation; correction after viewing development results, not retrospective preregistration",
+  "parent_run": "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\level_reduction_v1\\run_20261003",
+  "parent_top_level_sha256": {
+    "CLAIMS.csv": "6db4369b1f241ab425600ec75583b9b3343cc8c7061f07800e536fcf4e20af37",
+    "CODE_MANIFEST.json": "fe7cbb81d15e85454dda5aa94b186f0868eb59d54686a6665c9d9d067be3fa81",
+    "CODE_MANIFEST_feasibility.json": "c4520bc66224cec2704f2945dae1cf0ccf12370329b8629b1c0483aebab99ebe",
+    "CODE_MANIFEST_level_content.json": "456ec58cb4a8b0d9e509ed60dffd5e59d4ec97c09ba436f6c66c4d73ab85f315",
+    "CODE_MANIFEST_position_decision.json": "fe7cbb81d15e85454dda5aa94b186f0868eb59d54686a6665c9d9d067be3fa81",
+    "CODE_MANIFEST_position_replay.json": "0d2138a0805f4f56c32c7b14fd9a3fed640605319dc31096b25335b800679ab0",
+    "CONTRASTS.csv": "2bb7004b17492c5daf43bf96e760d979476e1edf677b34e30010cec8660f6f69",
+    "DIAGNOSTICS.json": "c5b152180c0508c271073f7fb78b887f80f0c6764430de384b31479047e1b068",
+    "FEASIBILITY.json": "81a4af64723e85f7940db0955a9a1a9c71c17f88763b5636e5280bce67a2ffbd",
+    "FIGURE_STATUS.json": "bbd4a2e17e437ba7a025290f7f01ad15a33b57badde7d88ef196d89a695729f5",
+    "IMPLEMENTATION_NOTES_V1.json": "0136750780a9fb6b1fb15a4ead152d293c3879ec8a583dde8ed298e429272d73",
+    "INPUT_MANIFEST.json": "9465d3d8635dac6fe05ec2b863fc34e3e45bbfc999e7f550a10acc6ccd904645",
+    "METRICS.csv": "02d09bc5ff31ede10bb44b1822ac9907d0268c5584852d298cae82b04862ca31",
+    "PROTOCOL.json": "1cdcefc9f6b32f9c6fb92324ad039ff23bdd1c899018e6a3b2b7e7fde33846e2",
+    "REPORT.md": "d68578e6820bc9476b317c585bcd4099310fd6d2229ef6aa679e13cfa7b4a578",
+    "REVIEW_PACKET.json": "2e0751ff3bd8c8e55e53be4dd62e6b028294e3fd4b9bda6605adf7eb2dfae2f6",
+    "RUN_STATUS.json": "0d02eb654d1de9d3c5073ae65ccc4034f7aca3019d7bfbb26e0b8e6aa23e280f",
+    "SELECTION.json": "85bef101aabd8c73a1534201489ae4c333940e165da6f58b20d795436d28103c"
+  },
+  "reused_completed_chunks": 386,
+  "reuse_policy": "Hardlinks only to immutable sealed checkpoint files; mutable aggregates copied to independent files. No worktree movement.",
+  "selection_corrections": [
+    "Random LEVEL removals are diagnostic controls and excluded from candidate eligibility.",
+    "Preserve equal-weight 8-bank matched-EQ advantage. Remove the artificial zero-gain DS_FILTER_EQ candidate, whose reference differs. Report plain mean separately.",
+    "Keep original/control absolute scores and same-recipe direct intervention contrasts; do not infer removal benefit from a weighting gap."
+  ],
+  "direct_contrasts": {
+    "source": "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\monday_fusion_review_response_20261004\\DIRECT_CONTRASTS.csv",
+    "sha256": "45a54d300607d8dfea45c3613289172445b33d26defa70bfb7041797ae903c88",
+    "scope": "Post-review independent reaggregation and 20000 paired source-question bootstraps. Exploratory; 40 contrasts per experiment per endpoint. No new scoring arms."
+  },
+  "highlight": "HEM_MOM channels_cell vs groups_answer on original banks: PB argmax gain alongside q80 F1 regression. User requests showing both; not a forced final selection.",
+  "unchanged": [
+    "Original frozen protocol, input manifests, labels, folds, fit/score algorithms and all sealed checkpoints",
+    "Position/decision/LR coverage, nested C grid, historical selection continuity and Omri decision-rule gate"
+  ],
+  "user_authorization": "Omri freed disk and explicitly requested continuing the approved plan on 2026-10-04.",
+  "expected_remaining_output_bytes": [
+    500000000,
+    1000000000
+  ]
+}

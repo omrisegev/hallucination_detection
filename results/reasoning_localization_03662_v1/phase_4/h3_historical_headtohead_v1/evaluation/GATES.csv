@@ -1,0 +1,9 @@
+gate_id,variant_id,metric_id,observed,threshold,direction,passed,status,evidence_status,notes
+P4H_HISTORICAL_ALIAS,P4H_HIST_FINALIST,max_abs_error,0.0,1e-15,le,true,PASS,RETROSPECTIVE,Both historical F1 anchors replay exactly.
+P4H_SCORE_FREEZE,P4H_H3_EQUAL_C8,labels_selected_before_freeze,false,false,eq,true,PASS,RETROSPECTIVE,All candidate locators froze before audit labels opened.
+P4H_POPULATION,P4H_H3_EQUAL_C8,audit_rows,1270,1270,eq,true,PASS,RETROSPECTIVE,"Exact 635-group, 1,270-scorer-row Stage-4 audit."
+P4H_PRIMARY_DIRECTIONAL,P4H_H3_EQUAL_C8,macro_f1_ci_low,-0.026890877082303186,0.0,gt,false,INCONCLUSIVE,RETROSPECTIVE,"Positive point estimate, but the paired interval crosses zero; not rejected."
+P4H_PRIMARY_PRACTICAL,P4H_H3_EQUAL_C8,macro_f1_ci_low,-0.026890877082303186,0.003,gt,false,INCONCLUSIVE,RETROSPECTIVE,"+0.003 is practical context, not the inferential null."
+P4H_PRMBENCH_ADVANTAGE,P4H_H3_EQUAL_C8,auroc_ci_low,0.023675457094332514,0.003,gt,true,PASS,RETROSPECTIVE,Previously frozen PRMBench H3-vs-H0 advantage remains supported and separate.
+P4H_DUAL_TASK_PROMOTION,P4H_H3_EQUAL_C8,promotion_eligible,false,true,eq,false,INCONCLUSIVE,RETROSPECTIVE,"PRMBench passes, but matched ProcessBench improvement is unresolved."
+P4H_FRESH_CONFIRMATION,P4H_H3_EQUAL_C8,fresh_population,false,true,eq,false,BLOCKED,RETROSPECTIVE,The exact questions were historically opened; independent questions remain required.

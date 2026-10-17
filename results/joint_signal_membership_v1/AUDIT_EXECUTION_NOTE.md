@@ -1,0 +1,1 @@
+The first full audit completed all numerical assertions and saved PASS, then failed while printing a NumPy int64 changed-peak count. Converting that count to a Python int fixed output serialization only. The full audit was rerun and exited0, including all25 models and12 independently reconstructed bootstrap intervals. Experiment code, scores and parameters were unchanged.

@@ -1,0 +1,41 @@
+{
+  "timestamp": "2026-09-13T19:07:29.086668+00:00",
+  "current_job": 255722,
+  "remote_root": "/shared/cycle2_tau_averbuch_prj/omrisegev1/experiments/answer_position_20260913_0be12cc23",
+  "last_verified_status": "RUNNING_FULL; pb_math_q4 exclude3 factor_rank2 converged",
+  "history": [
+    {
+      "job": 255705,
+      "status": "FAILED before fitting",
+      "reason": "SIGTERM test waitpid-lock deadlock; corrected"
+    },
+    {
+      "job": 255714,
+      "status": "FAILED before fitting",
+      "reason": "legacy STREAM_NAMES helper import missing; fixed to byte-identical maintained names"
+    },
+    {
+      "job": 255722,
+      "status": "RUNNING smoke model fitting"
+    }
+  ],
+  "code_sources": "root base 481381408, prep 0be12cc23, explicit overlay manifests retained",
+  "new_conditional_families": "not submitted yet; code review pending",
+  "smoke": {
+    "answers": 27,
+    "status": "PASS",
+    "elapsed_seconds": 171.97
+  },
+  "full": {
+    "last_model": "pb_math_q4__exclude_3",
+    "last_arm": "factor_rank2",
+    "converged": true,
+    "elapsed_seconds": 1167.6,
+    "training_answers_current_model": 804,
+    "whole_benchmark_completion_count": null
+  },
+  "resources": {
+    "requested_ram_gib": 64,
+    "allocated_cpus": 2
+  }
+}

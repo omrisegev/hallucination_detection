@@ -1,0 +1,142 @@
+{
+ "stage": "tail_lsml_banks_v1",
+ "date": "2026-09-24",
+ "approved_by": "Omri, 2026-09-24: does tail-fitted L-SML also work for bank11 and for the CT7 channels (instead of their current rule)?",
+ "banks": {
+  "B11": "bank11 step channels (pool columns 0-10); native signs (label-free) and PRMBench-AUC-oriented variant",
+  "CT7s": "the 7 CT7 channels as STEP-level pool columns (ct7_H0lim, ct7_ve0, ct7_ve0.75, ct7_ve1, ct7_H0lim_prefix_innovation, ct7_bocpd_residual, ct7_chosen_std_excess), native signs. NOTE: frozen CT7 fuses these at TOKEN level (declared 4/2/1 block-equal) then reads out steps; the step-level rows are a matched re-implementation, and the frozen ct7 score is shown beside them"
+ },
+ "rules": {
+  "equal": "1/m",
+  "block421": "CT7s only: declared 4/2/1 partition {H0lim, ve0, ve0.75, ve1} / {prefix_innovation, bocpd_residual} / {chosen_std_excess}, block-equal",
+  "cov_lsml": "continuous L-SML on the continuous channels (current rule)",
+  "tail20_lsml / tail1_lsml": "continuous L-SML fitted on per-answer top-20% (or argmax) indicators of each channel, centred within answer; weights applied to the continuous channels; oriented by Spearman with q15_H1 (B11) or ct7_H0lim (CT7s)"
+ },
+ "folds_and_endpoints": "identical to named_group_fusion_v1 / tail_weighted_fusion_v1",
+ "reporting": "all rows reported",
+ "splits": {
+  "S3_M15": {
+   "level_entropy": [
+    "q15_H1",
+    "hist_topk_entropy_series",
+    "hist_topk_renyi2_series",
+    "hist_topk_tail_mass_series",
+    "q15_VE1",
+    "ct7_H0lim",
+    "ct7_ve0",
+    "ct7_ve0.75",
+    "ct7_H0lim_prefix_innovation",
+    "hist_topk_varentropy_series"
+   ],
+   "margin": [
+    "logprob_margin"
+   ],
+   "energy": [
+    "energy_level"
+   ],
+   "tail": [
+    "true_tail50"
+   ],
+   "change_evidence": [
+    "evidence_drop_risk",
+    "ct7_bocpd_residual"
+   ],
+   "token_surprise": [
+    "chosen_surprisal",
+    "ct7_chosen_std_excess",
+    "hist_spilled_sw_var_series"
+   ],
+   "entropy_volatility": [
+    "hist_entropy_sw_var_series"
+   ],
+   "changepoint": [
+    "bocpd_p0"
+   ],
+   "frac_above": [
+    "H1_frac_above_z"
+   ],
+   "energy_cusum": [
+    "hist_energy_cusum_abs_series"
+   ],
+   "tail_ratio": [
+    "hist_entropy_rolling_tail_ratio"
+   ],
+   "entropy_cusum": [
+    "hist_entropy_cusum_abs_series"
+   ],
+   "slow_dynamics": [
+    "hist_entropy_rolling_rs_hurst",
+    "hist_entropy_rolling_low_band_power"
+   ],
+   "energy_floor": [
+    "hist_energy_rolling_min"
+   ],
+   "top_turnover": [
+    "top15_turnover"
+   ]
+  },
+  "S4_M16": {
+   "entropy": [
+    "q15_H1",
+    "hist_topk_entropy_series",
+    "hist_topk_renyi2_series",
+    "hist_topk_tail_mass_series"
+   ],
+   "varentropy": [
+    "q15_VE1",
+    "ct7_H0lim",
+    "ct7_ve0",
+    "ct7_ve0.75",
+    "ct7_H0lim_prefix_innovation",
+    "hist_topk_varentropy_series"
+   ],
+   "margin": [
+    "logprob_margin"
+   ],
+   "energy": [
+    "energy_level"
+   ],
+   "tail": [
+    "true_tail50"
+   ],
+   "change_evidence": [
+    "evidence_drop_risk",
+    "ct7_bocpd_residual"
+   ],
+   "token_surprise": [
+    "chosen_surprisal",
+    "ct7_chosen_std_excess",
+    "hist_spilled_sw_var_series"
+   ],
+   "entropy_volatility": [
+    "hist_entropy_sw_var_series"
+   ],
+   "changepoint": [
+    "bocpd_p0"
+   ],
+   "frac_above": [
+    "H1_frac_above_z"
+   ],
+   "energy_cusum": [
+    "hist_energy_cusum_abs_series"
+   ],
+   "tail_ratio": [
+    "hist_entropy_rolling_tail_ratio"
+   ],
+   "entropy_cusum": [
+    "hist_entropy_cusum_abs_series"
+   ],
+   "slow_dynamics": [
+    "hist_entropy_rolling_rs_hurst",
+    "hist_entropy_rolling_low_band_power"
+   ],
+   "energy_floor": [
+    "hist_energy_rolling_min"
+   ],
+   "top_turnover": [
+    "top15_turnover"
+   ]
+  }
+ },
+ "splits_note": "inherited only so the shared loader can verify the AUC>=0.60 kept set; not used by these arms"
+}

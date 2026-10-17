@@ -1,0 +1,66 @@
+{
+  "schema": "reasoning_localization_p0_s0_execution_registry_v1",
+  "state_id": "P0_S0_HISTORICAL_REPLAY",
+  "status": "FROZEN_BEFORE_RUN",
+  "purpose": "Checksum-equivalent replay of the historical Stage-4 Local audit anchor. This state changes no scientific factor and cannot promote a method.",
+  "runner": "scripts/reasoning_localization/run_phase0_historical_replay.py",
+  "runner_sha256": "576c037c08e16338aec72d45a5ec18d2dcbaef59ba5f931ea6fc7cc4dd1b18e3",
+  "protocol": "docs/experiments/LOCAL_ONLINE_COMPREHENSIVE_V1.frozen-c921b0d4.md",
+  "protocol_sha256": "c921b0d446eebd4611c4426168c30410741997ea2c6d23238e5d22b83e8d1e5b",
+  "seed": 20260816,
+  "bootstrap_draws": 2000,
+  "models": ["qwen3_8b", "llama31_8b"],
+  "families": ["gsm8k", "math", "olympiadbench", "omnimath"],
+  "population_id": "historical_stage4_eight_cell_audit",
+  "population_roles": {
+    "fit": "historical deterministic 40 percent calibration role within family",
+    "evaluation": "historical deterministic 20 percent audit role within family",
+    "scorer_copy_grouping": "same source-question draw carries both scorer copies"
+  },
+  "method": {
+    "variant_id": "R2_HISTORICAL_FAMILY6_BRIDGE",
+    "representation": "family6",
+    "transform": "level",
+    "step_reducer": "step_top5mean",
+    "answer_detector": "RegisteredGlobal mixed-v2 ordinary IU",
+    "reference": "max_entropy__step_top5mean",
+    "access_tier": "A",
+    "evidence": "RETROSPECTIVE"
+  },
+  "checkpoints": [
+    {"file": "llama31_8b__gsm8k.pkl", "bytes": 793049, "sha256": "394febebbbc67ee3d07ba5474ee9775f0259c9b6e9fe69d34f28506207a78594"},
+    {"file": "llama31_8b__math.pkl", "bytes": 2145137, "sha256": "4774ad55f0dad42ea7b8e30027f20f5a65cf6be13cd615842083d2ee9da3663d"},
+    {"file": "llama31_8b__olympiadbench.pkl", "bytes": 2371622, "sha256": "43ef3477447edc8ff91224d9e40248226fde3c49878e70db188c4785593140f0"},
+    {"file": "llama31_8b__omnimath.pkl", "bytes": 2355252, "sha256": "c5f82f83c55b566553745075195b0dbae024c162f7b4bc932620bdbb0dc8927b"},
+    {"file": "qwen3_8b__gsm8k.pkl", "bytes": 805739, "sha256": "b02ec0cf94591c8bce11d910368b51a7c4b1ab25f425a2df4477da94bf4c25b8"},
+    {"file": "qwen3_8b__math.pkl", "bytes": 2170684, "sha256": "741c0ee3031355bcde51661ee0ae209a6f53dd46cb43063163e92d5d58a11444"},
+    {"file": "qwen3_8b__olympiadbench.pkl", "bytes": 2376986, "sha256": "cb7f7b559283681d42271d33cd67b259010932bfd24f4bdf5f71e497a75214a7"},
+    {"file": "qwen3_8b__omnimath.pkl", "bytes": 2363405, "sha256": "4c4b7dbe2c0df7f8c94730971835a5a301e654b23518f60b8eb84107face01f1"}
+  ],
+  "frozen_results": [
+    {"file": "STAGE_4_LOCAL_PER_QUESTION.csv", "bytes": 1785826, "sha256": "161c598f5e4d6fbddc52f66da55b8cc485a0c20111346b7fb5dd1f87e5ea0c77"},
+    {"file": "STAGE_4_CELL_METRICS.csv", "bytes": 70843, "sha256": "8d07c8969f255490648621402465f3c55c33d4451e14f10b638af38e82fecde8"},
+    {"file": "STAGE_4_AGGREGATE.csv", "bytes": 867, "sha256": "8072dd180ece6a992221a87684fee196b0dbf4c502cb376a2a3e9c071637e3eb"},
+    {"file": "STAGE_4_INTERVALS.csv", "bytes": 1461, "sha256": "53d156184490df98ea8c709489ebb00f244ebee2610945b42ecf4386925247e5"},
+    {"file": "STAGE_4_DECISION.json", "bytes": 1292, "sha256": "4a1b77d4c79f6ac836701b05795160e3f790a65434f8d46ebd7d4b2f206dd0aa"}
+  ],
+  "expected": {
+    "n_cells": 8,
+    "n_scorer_rows": 1270,
+    "n_source_question_groups": 635,
+    "finalist_macro_f1": 0.3662328341717007,
+    "reference_macro_f1": 0.3614213583669282,
+    "delta": 0.004811475804772508,
+    "ci_low": -0.02638710838275541,
+    "ci_high": 0.037503652325203835,
+    "family_wins": 3,
+    "family_losses": 1
+  },
+  "mutation_boundary": {
+    "new_inference": false,
+    "gpu": false,
+    "source_mutation": false,
+    "allowed_write_root": "results/reasoning_localization_03662_v1/phase_0/p0_s0_historical_replay"
+  },
+  "promotion": "AUDIT_ONLY_NO_PROMOTION"
+}

@@ -1,0 +1,89 @@
+{
+  "schema": "reasoning_localization_p0_s2i_execution_registry_v1",
+  "state_id": "P0_S2I_REDUCER_DETECTOR_INTERACTION_CONTROL",
+  "status": "FROZEN_BEFORE_RUN",
+  "purpose": "Complete the bounded 2x2 reducer-by-detector audit before P0-S2B. Reconstruct P0-S2A exactly and change only its step reducer from max to the historical top-five mean while keeping the DUFS-LIU detector, family6 representation, rows, split, threshold objective, access and bootstrap fixed. Report both the adjacent S2I-vs-S2A edge and the S2I-vs-S0 same-reducer detector edge; treat S2A-vs-S0 only as a cumulative descriptive contrast. Compute the paired difference-in-differences interaction without promoting any method.",
+  "source_commit": "e2123168ddd0a0c07ebee7e904c94a4610615eed",
+  "runner": "scripts/reasoning_localization/run_phase0_interaction_control.py",
+  "runner_sha256": "72a640dfb2aa2fe290011364172314506d97b7b8a031a70cc168c45a51e41db3",
+  "variant_id": "P0_S2I_FAMILY6_TOP5_DUFS_DETECTOR",
+  "parent_variant_id": "P0_S2A_FAMILY6_STEP_MAX_DUFS_DETECTOR",
+  "anchor_variant_id": "R2_HISTORICAL_FAMILY6_BRIDGE",
+  "single_changed_factor": {
+    "factor": "step_reducer",
+    "from": "step_max_token_argmax",
+    "to": "step_top5mean"
+  },
+  "fixed_factors": {
+    "models": ["qwen3_8b", "llama31_8b"],
+    "families": ["gsm8k", "math", "olympiadbench", "omnimath"],
+    "population": "historical_stage4_eight_cell_audit",
+    "calibration_role": "historical deterministic 40 percent per family",
+    "evaluation_role": "historical deterministic 20 percent audit per family",
+    "representation": "family6",
+    "transform": "level",
+    "local_head_fit": "historical calibration-only family6 trajectory head",
+    "answer_detector": "calibration-only answer_dufs_liu_mixed; mixed-v2; k=7; lambda=0.1; seeds 11/23/37; 80 epochs",
+    "threshold_objective": "historical calibration-role ProcessBench macro F1 within each scorer cell",
+    "threshold_tie_break": "first maximum in stable descending risk sweep",
+    "scorer_copy_grouping": "same source-question draw carries both scorer copies and all four factorial states",
+    "access_tier": "A",
+    "supervision": "labels only for the unchanged threshold objective and evaluation metrics; detector and local representation fits remain label-free"
+  },
+  "factorial_states": [
+    {"variant_id": "R2_HISTORICAL_FAMILY6_BRIDGE", "detector": "RegisteredGlobal", "reducer": "step_top5mean"},
+    {"variant_id": "P0_S1_FAMILY6_STEP_MAX", "detector": "RegisteredGlobal", "reducer": "step_max_token_argmax"},
+    {"variant_id": "P0_S2A_FAMILY6_STEP_MAX_DUFS_DETECTOR", "detector": "answer_dufs_liu_mixed_calibration_only", "reducer": "step_max_token_argmax"},
+    {"variant_id": "P0_S2I_FAMILY6_TOP5_DUFS_DETECTOR", "detector": "answer_dufs_liu_mixed_calibration_only", "reducer": "step_top5mean"}
+  ],
+  "contrast_contract": {
+    "adjacent_attribution": "S2I minus S2A changes only max to top5 under DUFS-LIU",
+    "same_reducer_detector": "S2I minus S0 changes only RegisteredGlobal to DUFS-LIU under top5",
+    "cumulative_anchor": "S2A minus S0 is pooling plus detector and is descriptive, never a detector-only effect",
+    "interaction": "(S2A-S1) - (S2I-S0), paired on the same source-question bootstrap draws",
+    "interpretation": "Adjacent contrasts support factor attribution; anchor contrasts report total displacement; neither audit contrast promotes a method."
+  },
+  "bootstrap_draws": 20000,
+  "bootstrap_seed": 2026082901,
+  "bootstrap_contract": "One common paired source-question bootstrap for all four factorial states. A family-unit draw carries both scorer copies and all four predictions; family estimates are averaged before the four-family macro effect and difference-in-differences interval.",
+  "s2a_execution_registry": {
+    "path": "results/reasoning_localization_03662_v1/phase_0/P0_S2A_EXECUTION_REGISTRY.json",
+    "sha256": "134009cbb801ffb6a59a41281cd660f1c8babfd0f512e3fbd05e19309f91971c"
+  },
+  "source_artifacts": [
+    {"role": "s0_per_question", "path": "results/reasoning_localization_03662_v1/phase_0/p0_s0_historical_replay/P0_S0_LOCAL_PER_QUESTION.csv", "sha256": "161c598f5e4d6fbddc52f66da55b8cc485a0c20111346b7fb5dd1f87e5ea0c77"},
+    {"role": "s0_cell_metrics", "path": "results/reasoning_localization_03662_v1/phase_0/p0_s0_historical_replay/P0_S0_LOCAL_CELL_METRICS.csv", "sha256": "c5cc0c1c5328fdca81fb4b8d288d631f69d293e96c6ad1af857751f6a3da6dd7"},
+    {"role": "s1_per_question", "path": "results/reasoning_localization_03662_v1/phase_0/p0_s1_reducer_bridge/P0_S1_LOCAL_PER_QUESTION.csv", "sha256": "dab19e4cdeebcf172184f829dc89fb8e2d546674253b0a0bfd5b8e761312a366"},
+    {"role": "s1_cell_metrics", "path": "results/reasoning_localization_03662_v1/phase_0/p0_s1_reducer_bridge/P0_S1_LOCAL_CELL_METRICS.csv", "sha256": "071822af570e92ca21dd591e55862a3b12edf79fc1e580bf9bc9e94d067616a1"},
+    {"role": "s1_contrasts", "path": "results/reasoning_localization_03662_v1/phase_0/p0_s1_reducer_bridge/P0_S1_CONTRASTS.csv", "sha256": "9fab134d6cc21f08c57996cfd5aeab157402dae181e41ca97a4de7917c134421"},
+    {"role": "s2a_per_question", "path": "results/reasoning_localization_03662_v1/phase_0/p0_s2a_detector_bridge/P0_S2A_LOCAL_PER_QUESTION.csv", "sha256": "b46dfc5d09e890fc4455b3e3237c10168b3d4ac427a95febc41458cd59cbb8cf"},
+    {"role": "s2a_cell_metrics", "path": "results/reasoning_localization_03662_v1/phase_0/p0_s2a_detector_bridge/P0_S2A_LOCAL_CELL_METRICS.csv", "sha256": "92fba21ed801de1ca77dad03747ac706a3d2e4ad15d33ea74ed404cae80aefd6"},
+    {"role": "s2a_contrasts", "path": "results/reasoning_localization_03662_v1/phase_0/p0_s2a_detector_bridge/P0_S2A_CONTRASTS.csv", "sha256": "f49aa46ed9e594496f4380d3cc8e87fb2e622bee8cdd06c4f5667889daee130a"},
+    {"role": "s2a_population", "path": "results/reasoning_localization_03662_v1/phase_0/p0_s2a_detector_bridge/P0_S2A_POPULATION.json", "sha256": "a1b2e2f471f00bbc212743c2727f2e022f00b240ca72745ef65cba42ee316e73"},
+    {"role": "s2a_verification", "path": "results/reasoning_localization_03662_v1/phase_0/p0_s2a_detector_bridge/P0_S2A_VERIFICATION.json", "sha256": "2534182fc610e233a5b73e52d8adc4950b803414e2300c5ca6e309b54548c458"},
+    {"role": "s2a_run_manifest", "path": "results/reasoning_localization_03662_v1/phase_0/p0_s2a_detector_bridge/RUN_MANIFEST.json", "sha256": "b499209ecf44264836c33b2ccc880867165577d1a486e9899414f707f70a5f57"}
+  ],
+  "expected_population": {
+    "n_cells": 8,
+    "n_scorer_rows": 1270,
+    "n_source_question_groups": 635,
+    "source_question_group_sha256": "d12d651cad9bec326686c2c83070644d22ca058ed57e942f683452050e757a05"
+  },
+  "hard_fail_conditions": [
+    "any registered S0, S1 or S2A source, artifact, runner or registry hash differs",
+    "any S2A unit, target, locator, prediction, detector score, threshold or metric fails reconstruction within 1e-12",
+    "the 1270-row, 635-source-question population or grouping hash changes",
+    "any factor besides step_max_token_argmax to step_top5mean changes",
+    "the detector sees labels during fitting or its frozen mixed-v2 DUFS-LIU contract changes",
+    "the common-draw factorial bootstrap fails to reproduce the frozen S1 and S2A edge intervals within 1e-12",
+    "P0-S2B or any later bridge is opened in the same run"
+  ],
+  "mutation_boundary": {
+    "new_model_inference": false,
+    "gpu": false,
+    "source_mutation": false,
+    "method_fit": "CPU label-free calibration-only reconstruction",
+    "allowed_write_root": "results/reasoning_localization_03662_v1/phase_0/p0_s2i_interaction_control"
+  },
+  "promotion": "AUDIT_ONLY_NO_PROMOTION"
+}

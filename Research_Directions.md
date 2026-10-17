@@ -38,6 +38,14 @@ ARI and participation ratios remain diagnostics or constraints, not objectives.
 
 The advisors asked for a narrower story. The next meeting (Thursday 2026-10-15) focuses on PRMBench: within-AUC and official PRMScore with the Overall/Simplicity/Soundness/Sensitivity and error-type breakdown, generalization tests, conditional feature dependence on error vs correct steps, teacher forcing (including the open empty-think-block issue), and an analysis against supervised LR (where each is right, and weights vs LR weights). ProcessBench becomes a low-priority secondary panel: no meaningful gain over the plain average there and a small gap to supervised LR. Plan: [meeting record](docs/meetings/advisor_meeting_2026-10-08/README_HE.md); handoff: [docs/HANDOFF_prmbench_meeting_and_consolidation_2026-10-10.md](docs/HANDOFF_prmbench_meeting_and_consolidation_2026-10-10.md). Older dated sections below keep their historical scope.
 
+## 2026-09-30 (Claude) pointer: current state of the label-free algorithm
+
+Steps 447-462 (the Dawid-Skene filter + plain average line, position, per-model-per-dataset fitting) are summarized, with the
+algorithm stages, a reference table and the proposed next directions, in the section "2026-09-30 (Claude): the label-free algorithm line" at the end of this file. It supersedes, for this line, the 2026-09-24
+statement below that bank11 L-SML is the leading method (Step 457: L-SML loses to plain averaging on 8/8 banks; Step 459:
+external comparisons are dominated by step position). The fitting contract is now per model per dataset (Omri, 2026-09-29).
+
+
 ## 2026-10-02: research synthesis organizes existing directions
 
 Start with the [sourced scope](docs/research_notes/RESEARCH_SYNTHESIS_SCOPE_20261002_HE.md) and [new-agent handoff with the 21-topic coverage map](docs/research_notes/HANDOFF_RESEARCH_SYNTHESIS_20261002.md). First identify complete recipes, historical matched experiments, comparator analyses and evidence gaps. Then propose a bounded protocol for estimator-based fusion against matched averaging controls across banks, followed by analysis of the same selected recipes against PRM and Mind the Gap. This is planning: existing decisions, open alternatives and deferrals remain in force. Monday preparation proceeds in parallel; implementation uses an explicitly verified merged base.
@@ -197,6 +205,37 @@ has been launched. Residual/pseudo-label mechanisms and exact H1 RBM remain
 bounded follow-ups; no broad sweep, extra inference or GPU training is implied.
 This priority supersedes the older next-action recommendations below, which are
 retained as historical records.
+## Step413-418 update: fusion collapse explained; entropy-free chosen-token evidence; candidate CT7 frozen (2026-09-17)
+## CT7 fixed-profile cumulative fusion comparison (2026-09-22)
+
+Completed binary/soft/DS/hierarchical-EM comparison on all13769 answers, using
+the original seven CT7 profiles and readouts, corrected source folds and gate.
+Soft continuous L-SML reaches39.996% SLA vsCT7 39.886%, but the paired gain
+is uncertain: +.109pp, CI[-.600,+.829]. PRMB within-AUROC regresses by.003765,
+CI[-.004880,-.002680], Holm p=.02320. Binary fusion and EM are weaker. CT7's
+bank/readouts improve the earlier eleven-channel experiment, without a measured
+fusion advantage over CT7 itself. Frozen CT7 unchanged; no promotion.
+Evidence: docs/experiments/CT7_VOTE_FUSION_V1_SESSION_REPORT.md.
+
+## Step413-418 update: fusion collapse explained; entropy-free chosen-token evidence; candidate CT7 frozen (2026-09-17)
+
+* Step 413: on the digit-free 20-stream bank no fusion rule (partition, SML at any K, Continuous
+  L-SML, Joint reliability weights, IU-PCR) beats block averaging; equal20 39.19 PB.
+* Step 414/415: the evidence families have **2.46** conditionally independent signals; tail is
+  entropy, prefix innovations are captive. Below three the L-SML eigen-stage is undetermined and
+  its output is an average by construction. This is the structural reason for Step 413.
+* Step 415-417: the standardized excess surprisal of the provided token is entropy-free on real data
+  (token correlation -.016). As a length-free pooled step z-test with the step-0 spike removed, it
+  improves the six-stream locator on both benchmarks (+0.92 to +0.97 PB, +.0135 to +.0146 within);
+  the token evidence, not the position prior, carries the PB gain (+1.59 over prior-only).
+* Step 418: candidate **CT7** frozen (six entropy/BOCPD views + de-spiked chosen-token z, equal
+  weight): development 41.19 PB / .7724 within; effective independent views **1.80 of 7**.
+
+Open directions, in the order proposed to Omri: (1) untouched confirmation of CT7 unchanged;
+(2) raise the independent view count with a new measurement channel (intermediate layers, context
+ablation), since L-SML can only add value over averaging above three conditionally independent views;
+(3) understand why the first step is surprising to the model. Doc:
+`docs/experiments/CHOSEN_TOKEN_CALIBRATION_V1.md`.
 
 ## Step412 update: preserve the new base gain while repairing two explicit failure modes
 
@@ -3711,6 +3750,1190 @@ neutral choice: LOCO-5's 0.33 cost 2.77 pp against its own optimum.
 comparison on one fixed bank. No document records a decision to abandon answer-only fitting;
 CLAUDE.md forbade pooling on 2026-09-07 and permitted it conditionally on 2026-09-15, with nothing
 in between. The 20.38% versus 34.29% figures from Step329 are explicitly NOT that comparison.
+
+## Step398 (Codex) - native SLA reporting for localization, 2026-09-17
+
+The frozen Step397 scores were evaluated under Mind the Gap's native erroneous-trace-only SLA without refitting. Digit025 reaches 38.1810% pooled and 41.1784%/40.7501% equal-cell Qwen-4B/8B SLA; L08 reaches 38.9689% pooled and 41.9567%/40.9557%. Published Shannon Drop averages 39.1375%/39.3925%, putting L08 +2.8192pp/+1.5632pp higher at the point-estimate level, but exact trace/generation identity is not verified and the comparison remains contextual. Future localization reports must separate raw SLA, gated exact-error accuracy and full ProcessBench macro F1; never use SLA alone as evidence of clean/error gating quality. Artifact: `results/lsml_gate_locator_research_v1/SLA_METRICS.json`.
+
+## Step397 (Codex) - fusion independence atlas and automatic L-SML follow-up, 2026-09-16
+
+The full development atlas replayed the Step396 incumbent at 43.2546% PB/.776036 within, screened 5,443 definitions and retained 114 representatives from 13 provenance families. None of the 2,879 evaluated pairs passed the combined PB+PRMB independence contract at any insertion point; the useful combinations are dependent-complementary, not independent. The strongest simple diagnostic is digit-disagreement Top2 + logtail15 Top10 equal-rank at 43.3671%/.776019, stable in 5/5 folds.
+
+Nested source-fold selection found an eight-stream locator roster selected in 5/5 folds. Continuous L-SML reaches 43.7402%/.778143 versus the incumbent, but both paired source-group intervals include zero. The same three automatically discovered families recurred in all folds; a post-hoc fixed family-equal simplification reaches 43.7745%/.778222, but requires a separately frozen comparison because it was formulated after inspecting the discovered structure. These are the two retained development candidates; do not claim a successor yet.
+
+Automatic Soft Joint did not rescue the broader roster. L12 failed the identifiability guard; the valid L14 fallback found K=3 groups of sizes 4/5/5 with ARI 1.0 across folds, making soft co-assignment identical to the hard mask. Hard hierarchical reaches 40.3024%/.764044 and no-K affinity 40.1639%/.759190; the affinity fit is rank-deficient and multistart-blocked in 5/5 folds. Keep the Step396 incumbent. The next bounded comparison is incumbent versus frozen L08 Continuous L-SML versus the frozen three-family equal simplification, ideally on confirmation data; do not reopen roster search or promote affinity Joint. Atlas report: `results/fusion_independence_atlas_v1/report/REPORT.md`; L-SML summary: `results/lsml_gate_locator_research_v1/SUMMARY_HE.md`; Soft Joint run: `results/soft_joint_auto_v1/RUN.json`.
+
+## Step396 (Claude) - digit disagreement as gate evidence, 2026-09-16
+
+COMPLETE on all PB answers with locators frozen and the same within-cell midrank>=.33 rule for every detector. Equal within-cell rank mean of tail15 and digit_rate: innovation5 locator 41.0671% PB (clean 63.19%, error exact 28.75%) versus current 39.8314%; digit025 locator 43.2546%/.776036 versus 41.3300%. Primary contrast (innovation5, 97.5%) +1.2357pp [-0.0077,+2.4775]; secondary (digit025, 95%) +1.9246pp [+0.7875,+3.0645]. Digit presence alone is near chance (AUC .568; PB 29.80%), so the gain is the disagreement, not digit count. Development only; untouched confirmation and the historical gate-selection contract comparison remain open. Report results/claude_real_checks_v1/DIGIT_GATE_REPORT.md; protocol docs/experiments/DIGIT_GATE_EVIDENCE_20260916.md. Step 395 (Codex, completed but uncommitted) and Claude's review artifacts are now committed.
+
+## Step395 - corrected alternative views and fusion, 2026-09-16
+
+COMPLETE_REVIEWED on all13,769 answers/145,597 steps/6,968,779 tokens:28 new arms plus30 frozen references. Recomputed seven Claude views (surprisal, censored rank, mass-above, gap, logtail15/50, digit), plus raw-tail controls. Correct tail formula checked on every token; base/digit scores and all30 reference metric rows replay exactly.
+All new heads use answer-token standardization/centered covariance, separate per-stream Top10, then one .25 correction to unchanged innovation5. Banks new7 and augmented12 compare equal, family-equal, native IU, diagonal-shrunk IU and block-shrunk IU. Provenance groups are NOT assumed independent-error groups. Gate unchanged; new heads answer-local, other-source-fold PRMScore quantiles; neural references retain nested calibration.
+PB%/within/PRMScore: new7 equal39.5741/.765523/.648901, family equal40.1790/.770944/.651520, IU39.0974/.763182/.647318, diagonal39.0973/.763214/.647342, block39.0789/.762915/.647187. Augmented12 equal39.8702/.764164/.646543, family equal40.3862/.768851/.648635, IU39.5951/.761803/.644356; both shrunk heads same PB and within~.7618.
+Eight primary pairs x2 endpoints,10000 source-group bootstrap draws,CI99.6875%. IU loses within vs equal in both banks: -.002341[-.003365,-.001355] and -.002362[-.003358,-.001394]. PB intervals include0. Family equal improves within over equal: +.005421[.003985,.007049] and +.004687[.003432,.006018]; PB intervals include0. No positive primary IU/shrinkage gain. Family equal still below digit025 on PB/within; new7 family equal offers a PRMScore tradeoff.
+Corrected tails as corrections: logtail15 38.8583/.758550; logtail50 38.5761/.759324; rawtail15 37.0738/.754336; rawtail50 36.5538/.754394. Not useful in this localization recipe; no new gate test. Best non-digit singleton mass-above40.0411/.762159, PB change+0.2098pp with exploratory95% interval[-.3197,+.7252]. Digit025 still41.3300/.776036; previous secondary TCN+digit sum42.0781/.774945/.652284 retained, with different total correction amplitude.
+Shrinkage active: median diagonal/block alpha new7 .13148/.05909, augmented12 .04664/.02120; no fit fallback. Among10282 variable-digit answers, IU digit negative2.88%/20.23%, absolute-weight share median2.44%/.55%. Thus do not reuse prior IU6's nearly-universal negative-digit explanation; new banks mostly keep the sign but assign little weight.
+Operational PB raw-failure phi: surprisal/gap.981, logtail15/logtail50.864, logtail15/base.665, digit/base.103. Digit standalone has794 unique raw hits but loses989 base raw hits; digit025 gains310/loses239 final hits. Error complementarity is not latent-residual independence. Same-answer/pair diagnostics include PB cell/position strata and PRMB answer-balanced ranking errors; no labels enter fitting. Full4442-row ledger, historical707 rescues and plots saved.
+All58 PB/within bundles independently checked; five numerical tests pass; canonical IU and provided probability discrepancies0. Scoring152.18s/evaluation72.82s; no models/gate/flow restart. Development-only, secondary95% contrasts not winner-corrected. Decision: retain digit/TCN+digit; no broader bank adoption or automatic parameter sweep.
+Report results/alternative_views_fusion_v1/REPORT.html; map docs/reviews/fusion_insertion_map_2026-09-16.md distinguishes raw-view, predictor-residual, pre-innovation background, gate, first-error decision and final-answer targets. Bounded future questions: conditional digit evidence at gate; fusion of forecasts of the same observable feature before residualization. Neither launched here. Bulk scores/checkpoints remain local with hashes.
+
+## Step394 - tail-screening normalization audit
+
+Code/formula audit only: Claude new-view screening subtracts token_logsumexp from already normalized saved logprobs. Its tail15/tail50 rank1/correlation results are invalid as measurements of true missing mass. One71-token implementation check reproduces near-one malformed tails versus correct tail15 up to.00899; not a quality subset experiment. The current residual_tail_mass gate is correct; digit-ID results are unaffected. Corrected full-population tail screening remains pending. See docs/reviews/claude_tail_normalization_audit_2026-09-15.md. Seven views were screened; only digit reached the reported full fusion experiment. Operator/equality and digit-gate ideas remain proposals.
+
+## Step393 - digit disagreement replay and fusion
+
+Step393 COMPLETE_REVIEWED: independent digit-disagreement replay and a fixed12-arm full-data fusion/control experiment on all13769 answers/145597 steps/6968779 tokens. Verified ASCII digit IDs15..24 from both cached Qwen tokenizers, scalar event predicate on every token, sorted top-k, spans, baseline and Claude's auxiliary/scores. One teacher-forced pass reused; no model training, operator extension, gate change or flow restart.
+PB%/within/PRMScore: base39.8314/.760293/.638830; digit02541.3300/.776036/.649780; digit1 41.1806/.779274/.649223; TCN40.9718/.761592/.641153; TCN+digit sum42.0781/.774945/.652284; amplitude-matched TCN+digit41.4627/.772607/.649612.
+Controls: digit presence39.7521/.771779; disagreement-per-digit rate41.1532/.774964; disagreements permuted among provided-digit positions38.9219/.760928. Real disagreement beats permuted location on both primary endpoints; within also beats presence. Rate retains a gain in points. These controls do not prove removal of all length effects.
+Six primary pairs x2 endpoints,10000 source-group bootstrap draws,CI99.5833%. Digit025-base PB+1.4986pp[-.1632,+3.0960],within+.015744[+.012740,+.018865]. Same points as Claude; its historical97.5% contrast remains recorded, but the broader primary correction includes0 for PB. Digit025-permuted PB+2.4080pp[+.8932,+3.8858],within+.015109[+.011878,+.018292]. Matched TCN+digit versusTCN: within+.011015[+.008581,+.013455],PB interval[-.7061,+1.7018]pp includes0.
+The42.0781% sum is a prespecified SECONDARY arm: versusTCN PB+1.1062pp,exploratory95%CI[+.1269,+2.1044],within+.013353[+.011450,+.015226]. Keep as development candidate/Pareto tradeoff; no primary-confirmed or untouched winner claim. Higher gamma and auxiliary selection were already exposed to development outcomes.
+Direct bank comparison, same token standardization/per-stream Top10/readout: bank5 equal39.3043/.755063;bank5 IU39.3825/.757218;bank6 equal41.3961/.773468;bank6 IU30.5284/.637115. IU6 loses to equal6 and IU5 with adjusted negative intervals in both endpoints. Digit coefficient negative in99.98% of10282 variable-digit answers,median-.27978;30 additional variable-digit canonical fits reproduce weights. Not convergence to equal: the new view is largely subtracted. No label-guided sign fix applied.
+Digit is constant in3487 answers. Participation ratio on mean within-answer covariance: bank5 1.34024 -> bank6 1.71884; among variable-digit answers1.33970 ->1.83060. Claude's3.55 was for ALL seven new views, not digit alone. Low covariance and higher effective dimension do not imply a more accurate IU reliability estimate.
+Final error hits: digit0251339(+310/-239 vsbase; common885 raw30/open707 final28); TCN+digit1385(+255/-204 vsTCN,net51; common885 raw16/open707 final14); matched1358(net24 vsTCN); equal6 1354(common70759). Standalone digit hits145/707,143 with positive digit evidence at gold; do not count zero ties as positive telemetry. Full4442-row ledger and length/digit-count strata saved.
+All30 PB/within metric bundles independently audited;18 reference rows and all3 Claude rows replay exactly, including PRMScore. Nested PRMScore calibration reuses15 excluded-group TCN score sets; no cross-fold model exposure. Five new tests passed. Source, tokenizer, score and model-score provenance saved.
+Decision: retain digit correction and TCN+digit as useful development fusion candidates; reject this native IU6 bank. Do not equate simple-combination gains with learned-IU gains. Next algorithmic question is how to respect a useful sparse view's direction while estimating reliability under the dependent old bank; no automatic post-result clipping or hyperparameter sweep in this stage. Report results/digit_fusion_v1/REPORT.html.
+
+## Step392 - complementary step evidence fusion
+
+Step392 COMPLETE_REVIEWED: one fixed three-view step-evidence bank on all13769 answers/145597 steps. Preserved innovation5 base ONCE; compared bounded .25 corrections from TCN signed Top10, raw last4, and per-stream best contiguous10. Answer-local step covariance/standardization; maintained canonical IU2PC versus equal, three singletons, two equal pair ablations, and shape-order shuffled controls. No predictor training, alpha/gate/subset sweep, or new first-error decoder.
+PB% / within / PRMScore: TCN40.9718/.761592/.641153; end38.0611/.761946/.642517; sustained38.3463/.754040/.638746; equal three39.6301/.761989/.643185; IU three39.0007/.755534/.639643. Equal context+end39.5281/.765898/.644000 is a secondary Pareto tradeoff, not a replacement. Equal context+sustained39.8711/.759397/.640088.
+Five primary pairs x2 endpoints;10000 source-group draws,CI99.5%. IU-TCN PB-1.9712pp[-3.1357,-.7801],within-.006058[-.009134,-.003069]. Equal-TCN PB-1.3418pp[-2.5859,-.1335],within+.000397[-.002084,+.002921]. IU-equal within-.006455[-.008535,-.004398],PB interval includes0. True shape order improves within over shuffle for both heads, with adjusted positive intervals, but PB intervals include0.
+Secondary context+end versusTCN: within+.004306,exploratory95%CI[+.002627,+.005931]; PB-1.4437pp[-2.3416,-.5778]. Earlier bank and last4 motivation used development outcomes; no untouched confirmation or primary multiplicity claim for this ablation.
+Final PB error hits: TCN1334; equal1256(gain143/lose221); IU1232(gain120/lose222); context+end1254(gain156/lose236). Among fixed885 prior raw misses, equal finds1 raw/0 final;IU1/1;context+end5/3. Direct last4 previously recovered119 raw, but a bounded last4 correction is a different detector; no contradiction and no demonstrated recovery of the broad missed cohort.
+Native IU13710/13769, explicit equal fallback59 answers with fewer than3 steps. Median weights[.20871,.13505,.25262];59.19% native fits contain a negative coefficient;99.16% g2 at ceiling;42.58% have a Spearman pair>=.75. Three-pair identity is exactly identified, not an assumption test. Few steps remain a limitation. No correlated-view automatic bank search.
+Reused15 source-excluded TCN score sets including10 pair exclusions for PRMScore calibration. All27 metric bundles independently audited for PB/within;18 reference headlines and context identity replayed. Five unit tests pass; all-answer weighted-score replay max1.78e-15, baseline max5.33e-15, canonical weight max4.58e-16. Scoring150.68s plus45.36s evaluation; existing FM/DiFlo queue unchanged.
+Decision: do not adopt three-view equal/IU; retain context+end as a development tradeoff for within, and preserve current references. No automatic follow-up sweep. Report results/step_evidence_fusion_v1/REPORT.html; full table, cell metrics, corrected intervals, error ledger, input/score hashes and scope saved.
+
+## Step391 - audit readout claims; retain fusion as an open research option
+
+Replayed all eight Claude readout ranks on all4442 PB error answers from frozen tokens; innovation5 score agreement max3.56e-15. No training or new quality sweep.
+Among885 previously common raw localization misses, last4 yields119 exact raw peaks (83 open,36 closed); the eight-readout label oracle yields244 (176 open,68 closed). This disproves a zero-recoverability claim, not evidence of net quality improvement.
+For707 open common misses, any-stream maximum hit18.95%; independent-five reference42.64%, common circular shift33.82%, shared permutation35.85%. Geometric references do not correct failure-cohort selection or boundary nonstationarity; no below-chance significance or information-impossibility conclusion.
+The643 gated oracle successes span the archive. Actual correct peaks suppressed: innovation5 321, ridge310, TCN316, leading IU313. Top2 is not exact localization. Earlier/later peak buckets are relative to innovation5, not the41% leader.
+User explicitly welcomes fusion. Next research direction remains complementary evidence about each step, with historical readout audit, standalone/equal/IU comparisons and full13769-answer evaluation. Do not reopen identical weight sweeps or assume missing per-stream maxima excludes fusion. No method promotion or neural restart.
+Review: docs/reviews/claude_readout_claims_audit_2026-09-15.md. Replay and new geometric diagnostics: scripts/audit_claude_readout_claims.py; results/readout_claim_audit_v1/AUDIT.json. Claude source files preserved.
+
+## Step390 — common missed-error profiles
+
+Step390 COMPLETE_REVIEWED: descriptive missed-error atlas on all4442 PB error model-answer records (1979 sources), within the13769-answer benchmark. No model fitting, score changes or new method selection.
+Initial32-combination cohorts: found1589, gate-open missed2032, gate-closed821. Adding five standalone predictors reduces final common misses to2807. User then requested all-method common failures: examined11 aligned full-score archives,254 columns,178 unique score arrays,173 distinct all-answer peak vectors. Full-array shared-reference anchors matched for every archive. Includes weak methods/controls; not every historical experiment or completed flows.
+Broad union:2914 found with current gate;1528 final misses=885 with no correct peak even without gate+643 correct peaks suppressed.885 raw localization misses comprise707 open+178 closed. Without name-tagged controls, gate-open misses946 rather than707. Union is a label oracle, not an attainable detector or fusion bound.
+All885 raw misses vs3557 with a correct raw peak, medians: tokens778 vs631; steps9 vs7; error-step fraction.1051 vs.1994; feature-change L2 1.5639 vs1.8384; predictor disagreement.2505 vs.2707. Overlapping distributions, not a universal signature.
+Gate-open broad comparison707 vs2914, after cell/length-quartile/position-third standardization: error-step fraction difference-.07722,CI99.5833%[-.08830,-.06672]; feature-change L2-.43738[-.62415,-.24749]; disagreement-.02900[-.03706,-.02063]. Support2405/650, or2066/628 for history-dependent change.10000 source-group draws,6 diagnostics x2 contrasts within each analysis. Post-selection descriptive associations; repeated population, no causal or future quality claim.592 broad draws have an empty retained stratum; fixed harmonic weights renormalized over available strata.
+Boundary control added after inspecting event plots: in missed cohort684 paired answers, first4 feature mean.822 error versus.762 preceding correct; found2471 pairs .910 versus.574. Step-onset spikes are not error-specific. Labels are steps, not token error positions; aligned positive offsets may leave the annotated step.
+Among707 gate-open common misses, TCN first-error median rank5, only42 in top2; IU median5/top2=44. All-archive oracle has a peak one step away in494; this is not a deployable decoder. One inspected math case already contains questionable reasoning before its annotated first error; no relabeling performed.
+Plots: full distributions, feature/residual event profiles, paired correct-boundary control, full-token traces for a covariate-matched found/missed pair, two earlier text examples and a remaining broad common miss. Scalar model predictions are means of five feature predictions reconstructed exactly from cached residuals, not full model vectors. Offline answer z-normalization is explicit.
+Report: results/predictor_error_profiles_v1/REPORT.html; RAW_OVERVIEW.png shows all885 common raw misses. COMMON_MISSES.csv lists1528 final misses with flags; ANSWER_DIAGNOSTICS.csv covers4442. Data, score and source hashes, cohort accounting, text/span identities, scalar reconstruction and artifact links verified. No quality experiment, neural restart or automatic method promotion.
+
+## 2026-09-15 — compare all predictor subsets (Step389)
+
+All16 subsets of ridge,tcn,bocpd,noreset,mean16 at sizes3/4/5 x IU/equal=32 configurations; all13769 answers/145597 steps/6968779 tokens. Reused15 excluded-group fits and nested calibration; no new training. Answer-standardized signed predictor residuals -> answer-local canonical IU2PC or equal -> token Top10 -> signed.25 correction -> innovation5 base ONCE, same tail15 gate.
+PB leader: IU ridge+tcn+noreset41.0378%/.760656/.640647; versus TCN40.9718%/.761592/.641153 only+.0659pp, exploratory95%CI[-.3226,+.4354]pp. No demonstrated replacement.
+Within leader: equal ridge+bocpd+noreset40.5585%/.763829/.642625. Balanced equal ridge+tcn+bocpd40.9665%/.762346/.641925. IU ridge+bocpd+noreset40.7726%/.763281/.642567. Retain point Pareto; no single winner.
+Best PB by size:3 above;4 IU ridge+tcn+bocpd+noreset40.9681%/.762033;5 IU all40.7495%/.762642. Best within by size:3 above;4 equal ridge+tcn+bocpd+noreset40.7209%/.763351;5 equal all40.6251%/.763231.
+16 primary matched IU-equal pairs x2 endpoints;10000 source-group bootstrap draws,CI99.84375%. No positive primary interval on either endpoint. All16 PB intervals include0; IU within lower in15/16 point estimates, four adjusted negative intervals. Leading PB triple within-minus-equal -.002243,CI[-.004226,-.000202]. Do not infer equivalence from intervals containing0.
+PB-leader median standardized-residual weights[.3549,.3800,-.1394];99.88% answers have a negative coefficient. noreset is chiefly subtracted, not positively voted. This does not establish a semantic noise-removal mechanism. Three-view pair fit is exactly identified, so zero residual is not an assumption check.
+All48 metric bundles independently audited; all32 readouts replayed across full population,maxdelta1.07e-14. All16 reference headlines exact; singleton scores replayed under15 outer/nested exclusions; canonical weights match on50 audit answers, three tests with45 covariance checks PASS. Scoring691.79s,evaluation90.77s.
+Decision KEEP_POINT_PARETO_NO_DEMONSTRATED_IU_ADVANTAGE. Development-only seed0; selector uses labels, fitting does not.96 secondary comparisons have exploratory95% intervals without winner-selection correction. Old FM/DiFlo queue unchanged,paused4/90.
+Post-selection PB error audit:4442 error model-answer records,1979 source groups. All32 miss2853:821 gated closed,2032 gate open but wrong localization. IU PB leader gains45/loses39 vs TCN (net6); equal within leader gains103/loses122. All IDs and step decisions in PB_ERROR_LEDGER.csv; four deterministic GSM8K/Q4 text examples in ERRORS.html. Descriptive, not a new selection or significance test.
+Report: results/predictor_subset_iu_v1/REPORT.html; METRICS.json contains all32+16 results, per-cell bundles,112 contrasts and diagnostics; AUDIT.json verifies coverage and provenance.
+
+## 2026-09-15 — complete TCN aligned predictor (Step388)
+
+PREVIOUS — Step388 [Codex TCN] COMPLETE_REVIEWED, standalone predictors before fusion.
+All13769 answers/145597 steps/6968779 tokens;15 source-excluded fits, seed0 only.
+Existing TCN, innovation5, signed .25 residual correction, Top10 and tail15 gate
+unchanged. Reused old fold0; completed4 outer+10 pair-exclusion calibration fits.
+PB% / within / PRMScore:
+- tcn__real: 40.9718% / 0.761592 / 0.641153
+- ridge: 40.8472% / 0.761620 / 0.641765
+- bocpd: 40.3676% / 0.763223 / 0.642268
+- noreset: 39.8608% / 0.762839 / 0.642239
+- innovation5: 39.8314% / 0.760293 / 0.638830
+- tcn__shuffled: 39.8180% / 0.761273 / 0.641283
+- tcn__zero: 39.4342% / 0.760106 / 0.640019
+
+6 primary pairs x2 endpoints;10000 source-group bootstrap draws,CI99.5833%:
+- TCN minus ridge: PB +0.1246pp [-0.5355,+0.8233]; within -0.000028 [-0.001343,+0.001288]
+- TCN minus bocpd: PB +0.6042pp [-0.4108,+1.6229]; within -0.001631 [-0.003680,+0.000544]
+- TCN minus noreset: PB +1.1111pp [-0.0386,+2.3124]; within -0.001247 [-0.003906,+0.001581]
+- TCN minus innovation5: PB +1.1405pp [+0.0883,+2.1731]; within +0.001300 [-0.001299,+0.003976]
+- TCN minus tcn__shuffled: PB +1.1539pp [+0.1292,+2.2830]; within +0.000319 [-0.001880,+0.002507]
+- TCN minus tcn__zero: PB +1.5376pp [+0.5082,+2.5485]; within +0.001487 [-0.000848,+0.003945]
+
+Prediction MSE: TCN 0.647035, Ridge 0.688936.
+TCN/Ridge signed residual median correlation .963236; after removing shared
+current scalar .902422. Better telemetry prediction is not a detection proof.
+Architecture audit:16 input slots but15 effective past tokens; unchanged.
+Shuffling16 slots can change which of the15 visible observations is omitted;
+not a pure order-only intervention. Zero-history is also an inference
+intervention; the current innovation target still contains past information.
+13 tests PASS; independent PB/within on16 methods; all13 reference headlines
+exact; signed readout independently replayed on all answers, maxdelta0.
+Source/data/checkpoint/group provenance verified; no fitting failures.
+Decision: KEEP_RIDGE_REFERENCE_TCN_CONTEXT_EVIDENCE_NO_FUSION_YET.
+Development evidence only; bank/readout selected earlier on this population.
+No predictor fusion fitted. Original90-job FM/DiFlo queue remains paused4/90.
+Report: results/tcn_aligned_predictor_seed0_v1/REPORT.html.
+Full audit: results/tcn_aligned_predictor_seed0_v1/AUDIT.json.
+
+## 2026-09-15 — predictors before fusion (Step387)
+
+User asks to establish whether alternative context predictors improve the
+existing signed-residual correction BEFORE learning fusion between predictors.
+Bounded full-population comparison: saved Ridge16, mean16, Gaussian BOCPD
+predictive means, no-reset and zero controls. Hold innovation5, Top10, .25
+correction and tail15 gate fixed. Separate MSE, shared-observation residual
+agreement and localization quality. Protocol:
+`docs/experiments/ALIGNED_CONTEXT_PREDICTORS_20260915.md`.
+Step385 residual-only scores and Step38616-anchor conditional IU did not
+displace the additive Ridge reference. Neither closes all contextual fusion.
+No new neural training or predictor fusion in Step387; existing neural queue
+is paused4/90. Step387 is COMPLETE: BOCPD correction40.3676% PB/.763223
+within versus Ridge40.8472%/.761620. BOCPD-base within gain+.002930 has
+positive primary99.5%CI; BOCPD-Ridge and BOCPD-noreset intervals include0.
+Keep Ridge and BOCPD, with noreset as a mandatory mechanism control. A better
+MSE does not select the better localizer; no fusion has been fitted. Full
+report: results/aligned_context_predictors_v1/REPORT.html. Current execution
+state and detailed conclusions are in PROGRESS.md.
+
+## 2026-09-15 — approved temporal research program in execution
+
+Execute `docs/experiments/TEMPORAL_RESEARCH_PROGRAM_20260915.md`.
+The full raw-data baseline is independently reproduced exactly. H0lim prefix
+innovation is now a strong development candidate: its gain survives duplication,
+centering and shuffled-prefix controls. Preserve it beside the original bank
+when testing new learned context models; novelty alone is not a selection rule.
+Feature selection, fusion and routing remain open; evaluate the Pareto frontier.
+All 47 PB-report corrections and DUFS31 are complete. Locked banks are the
+original4 and innovation5. Corrected DUFS audit: gates remained saturated and
+selection was unstable between seeds; selection validity was not established.
+Innovation loses on late-error strata; its PB advantage over the historical
+earlier-VE0/VE075-peak rule is not established (CI includes zero). Preserve that
+strong readout control. Full linear evaluation is complete: the secondary signed
+residual on innovation5 reaches40.8472% PB/.761620 within, but the gain over
+shuffled lag order is not established. The primary squared-residual arm loses
+within on innovation5. This favors testing signal-preserving readouts and warns
+against equating generic prediction error with reasoning errors. Actual
+Diverging Flows first fit and held-fold scoring completed on innovation5. The
+sequential seed0 queue is paused after4 of90 registered jobs;
+see results/temporal_neural_queue_seed0_v1/RUN_STATE.json. TCN/DiFlo
+training and scoring smoke tests pass, not a full neural quality benchmark;
+GraphTV current completion remains unverified while AIRCC is unreachable.
+See PROGRESS.md and the result directories for current execution evidence.
+
+## 2026-09-15 — remote-review decision context, not a new experiment
+
+Latest pulled evidence is cf01849a7, through Steps 374–375. The retained
+development locator is natural-unit q15 {H0lim, VE0, VE0.75, VE1}, per-view
+Top10 then equal fusion; its PB gate is tail15 answer-Top10, within-cell
+midrank q=.33. This gate is transductive, and q was selected on PB labels.
+PRMB-within is essentially tied with single VE0; strongest single/RBM
+comparators still need the same final gate before a fusion-gain claim.
+
+Independent review found stale old-gate per-cell/suppressed-peak diagnostics
+in 47 new rows and a top15/full-vocabulary H1 description mismatch. Preserve
+source outputs and repair these before using the diagnostics. Proposal for
+discussion after matched controls: short residual temporal convolution using
+past context, keeping original token evidence and Top10. Conditional-context
+RBM and KalmanNet remain alternatives, not completed tests. GraphTV's current
+live state was not established; older running snapshots below are historical.
+Review: docs/reviews/remote_temporal_review_2026-09-15.md.
+
+## 2026-09-13 - answer-local IU with external position/context priors
+
+The user authorized completing and submitting all three independent follow-ups,
+without waiting for the already running whole-answer position/RBM experiment.
+Core files: conditional_iu_fusion.py and conditional_iu_graph.py. Protocol:
+`docs/experiments/CONDITIONAL_IU_FUSION_V1.md`.
+
+Keep native answer-local rho and top-two subspace, change only the covariance
+in a fixed-signal quadratic solve. This is a LIU-style extension, not estimated
+conditional Cov(X,Y). Position effects need a scale-only control: apparent gains
+can arise from scaling all feature weights together. Pooled covariance averages
+the same within-region centered covariances; do not confound mean variation.
+
+Graph-local versus uniform windows tests the complete neighborhood/shrinkage
+recipe. GraphTV penalizes coefficient differences with an unsquared edge L2 norm;
+it does not average output scores. Report convergence and spike-related losses.
+Multi-Target Shrinkage supplies covariance-borrowing inspiration, not an optimality
+claim for our fixed alpha or serial tokens. Independent literature/code review
+precedes cluster submission. Conditional RBM and Temporal Convolution remain open.
+
+Execution update: all three implementations passed independent review and actual-data
+smoke; AIRCC 255752/255753/255754 are running the full benchmark. Statistical
+conclusions and the next research decision wait for full metrics and coverage.
+Second-machine instructions are in docs/research_notes/CONDITIONAL_IU_SECOND_MACHINE.md.
+
+## Codex answer-position fusion - 2026-09-13 - IMPLEMENTED; no full results yet
+
+Omri corrected the coordinate to position across the COMPLETE answer and requested
+several learning algorithms. Branch codex/answer-position-fusion-v1 (base 6249db384)
+implements Gaussian factor, exact Gaussian/Bernoulli H1 RBM, and canonical IU-PCR.
+All use the frozen 12 features, token scores, Top10, entropy-q0.3 gate, v3 labels,
+v2 groups and nested PRMScore folds. New fits use other answers WITHOUT labels.
+Fixed-weight and mean-only controls isolate position-specific coefficient changes;
+position shuffling moves assignments, never tokens across annotation boundaries.
+The prior within-step model completed smoke only and is preserved, not rejected
+by a full benchmark. No new experiment winner or numerical gain is claimed.
+
+Protocol: docs/experiments/ANSWER_POSITION_FUSION_V1.md.
+Review/decisions: docs/research_notes/ANSWER_POSITION_IMPLEMENTATION_2026-09-13.md.
+Run: scripts/complete_answer_position_fusion.py --source-root C:/Users/omris/TAU/hallucination_detection
+Live files: results/answer_position_fusion_v1/PROGRAM_STATE.json and smoke/RUN_STATE.json.
+One process/BLAS1, minimum 4GiB available RAM, resumable eight-hour invocations.
+Stop and present the complete matched findings before another model family.
+# Research Directions — Thesis Roadmap
+
+## Steps 430-432 (Claude) — drift is a start-of-answer excess; readout families are not error-complementary; per-channel evidence closed, 2026-09-23
+
+Branch `claude/readout-quickest-detection-v1`. Step 430 measured the generation-drift
+hypothesis on the label-free gate-closed population: every channel and fused locator falls
+about 1 SD along the answer with the first two steps highest, which explains the early misses
+(27 %) and not the late ones (34 %, 42 % on 11+ steps) that sit where the null is lowest. No
+readout family misses different answers than top-k beyond the shuffled-token null, closing
+fusion-before-readout with readouts as voters unrun; no non-max decision rule beats the argmax.
+Step 432 built the per-channel log-likelihood-ratio evidence with pseudo-labels and a
+position-conditional null: half the decisions change and the construction is far above its
+random-seed null, but it never beats the linear fusion it is seeded from, its label ceiling is
+below label-free equal fusion (independent per-channel ratios over-count a 1.8-effective-view
+bank), and the position null trades early for late misses as predicted. Roadmap consequence:
+readout, readout-as-voter, non-max rule and per-channel evidence are closed on this bank; the
+remaining levers are new independent views and the gate. Protocols:
+`docs/experiments/COMPETITION_DIAGNOSTICS_V1.md`, `docs/experiments/STEP_EVIDENCE_V1_PROTOCOL.md`;
+note `docs/research_notes/generation_drift_hypothesis_2026-09-22.md`; HISTORY Steps 430-432.
+
+## Steps 428-429 (Claude) — readout family closed; long-chain collapse is competition, 2026-09-22
+
+Branch `claude/readout-quickest-detection-v1`. Ten within-step reducers inspired by temporal
+statistics, a sequential first-crossing column, a label-free consensus readout choice and pmf
+fitting of the soft weights were run on the frozen eleven-channel bank (300 + 320 jobs, parity
+with Codex's cumulative-vote-v2 on 61 shared methods). No roster approaches CT7 (best -3.5 pp,
+CI excludes zero); the label-selected ceiling over 17 readouts equals the one over 7; the
+consensus rule scores below its shuffled null. Diagnostics: the first-error step outscores a
+random error-free step MORE on long chains while SLA falls, so the deficit is the argmax losing
+to competition; PRMBench errors persist weakly (60 % single-step runs) and the first-error hazard
+is far from constant. Roadmap consequence: retire readout / reducer sweeps on this bank; next
+levers are the decision among competing steps (position prior, non-constant hazard, gate), fusion
+before the readout with pmf fitting (HANDOFF_TOKEN_PROBABILITIES 5.1), and new independent views.
+Protocols: `docs/experiments/READOUT_FAMILY_V1_PROTOCOL.md`,
+`docs/experiments/QUICKEST_DETECTION_DIAGNOSTICS_V1.md`; HISTORY Steps 428-429.
+
+## Codex hierarchical time fusion v1 ? 2026-09-13 ? COMPLETE REVIEWED
+## 2026-09-14 — authorized Rényi position-varying fusion
+
+Merge the reviewed probability-head representation evidence with the reviewed
+whole-answer position learners. Freeze the token feature bank to `H0lim`,
+`VE_0`, `VE_0.75` and `VE_1` (varentropy15). Learn a weight map over normalized
+whole-answer position without labels, rather than choosing alpha from the true
+error location.
+
+The primary candidate families are: (1) other-answer, source-group-excluded
+position-conditioned IU-PCR; and (2) answer-local shrinkage-IU drawn toward a
+position-conditioned covariance prior fitted on other answers. Preserve the
+four single-view references, equal/static IU controls, shuffled-position
+control, and a scale-only position control that separates direction changes
+from magnitude changes.
+
+Keep the frozen v3 labels, v2 source groups, entropy-q0.3 gate, token-to-step
+mapping, Top10 token readout, earliest argmax and nested PRMScore calibration.
+The early/late complementarity is post-hoc development evidence and is a
+hypothesis only. A valid method receives no error-position label or per-answer
+oracle choice. Compare PB first-error localization, PRMB within-answer AUC and
+PRMScore separately; require full coverage and grouped uncertainty before any
+promotion.
+
+Source evidence: `results/renyi_alpha_sweep_v1/` and
+`results/aircc_results_20260913/{answer_position,conditional_position}/`.
+
+- Rényi entropy within-AUC improves toward alpha=0; H0lim reaches 0.7440 while
+  PB remains effectively flat across the family.
+- Escort varentropy VE_0 reaches within 0.7534 / PRMScore 0.6355; VE_0.75 has
+  PB 36.76% with intervals including zero and lower within-AUC.
+- Large-alpha views are descriptively stronger on early errors and small-alpha
+  views on late errors. Oracle unions are not fusion results.
+
+## Update 2026-09-13 (Claude): Stage 2/3 fusion boundary
+
+- Static fusion of multiple Rényi orders does not beat the best single order
+  on within-AUC; cross-rank varentropy products hurt both primary endpoints
+  under IU-PCR.
+- These negatives do not test a position-varying coefficient map. The new
+  experiment therefore changes the fusion geometry while freezing the selected
+  representation bank and readout/evaluation contract.
+
+## Comparison presentation repair - 2026-09-12
+## Codex hierarchical time fusion v1 ? 2026-09-13 ? COMPLETE REVIEWED
+
+Full 13,769-answer run completed in 1,792.85 seconds (about 30 minutes, excluding implementation and preflight). All scoring and nested calibration covered the registered population. Independent PB, within-answer AUC and official PRMScore reconstruction PASS; 13 frozen reference rows reproduced; four additional DUFS/shared-variance reference rows re-evaluated against matching contract hashes. No numerical failures or nonconverged selected fits; the one-step answer uses the declared rules. 55 unique training exclusion sets and 41,645 answer/exclusion records were checked. Current-answer RBM12 coefficients never changed.
+
+| Frozen RBM12 readout / time weights | PB all8 % | PRMB within AUC | PRMScore |
+|---|---:|---:|---:|
+| Original Top10 | 36.271 | 0.74520 | 0.62222 |
+| All-token mean | 29.429 | 0.66050 | 0.56348 |
+| Best contiguous 10 | 31.653 | 0.70476 | 0.60425 |
+| Local time | 28.142 | 0.64238 | 0.57764 |
+| Shared time | 29.728 | 0.66991 | 0.57134 |
+| Hierarchical time | 29.385 | 0.66454 | 0.57272 |
+| Shuffled hierarchical time | 29.190 | 0.65985 | 0.56285 |
+| Supervised positive time weights | 30.242 | 0.68101 | 0.59483 |
+
+Primary, 10,000 paired source-group draws, 97.5% CI: shared-local PB +1.586 pp [0.044, 3.115], within-AUC +0.02753 [0.02290, 0.03204], but PRMScore -0.00631 [-0.01013, -0.00251]. Hierarchical-shared PB -0.343 pp [-1.260, 0.557], within-AUC -0.00537 [-0.00740, -0.00330]; PRMScore +0.00138 has an interval including zero. Sharing data helps relative to local covariance fitting on two endpoints, not across every metric. Local adaptation supplies no overall gain.
+
+The hierarchy loses to original Top10 in every PB cell: it gains 281 exact successes and loses 608 (269 early, 339 late; zero gate or computation losses). Top10-to-all-mean alone loses 6.842 PB points before fitting any time weights. This isolates a substantial loss from replacing score-adaptive selection with averaging. Supervised fixed positive time weights do not recover it; this diagnostic is not a supervised ceiling for other architectures.
+
+Average shared mass over successive step quarters: 12.6%, 21.5%, 29.7%, 36.2% (uniform: 25% each). Hierarchy: 12.7%, 21.9%, 29.4%, 36.1%. The median answer-level L1 change from shared weights is 0.258, despite similar aggregate profiles. Shuffling yields nearly uniform quarters. Descriptive original-order versus shuffled hierarchy within-AUC +0.00470 [0.00238, 0.00700], PB +0.195 pp [-0.972, 1.348]: evidence for modest within-answer ordering information, not a PB gain.
+
+Boundary diagnostics are not promoted: Top10 without the first token gives PB 36.360% (difference not clear), within-AUC 0.74387 (slightly worse), PRMScore 0.62747 (better). Removing the first token from hierarchy gives 29.546% PB; it does not close the gap. Regions do not create observations: 22,333 of 145,597 steps have fewer than 16 tokens; 91 have one token. Median step length is 31 tokens; median answer has eight steps and alpha=0.304.
+
+Decision: retain original RBM12 Logit + Top10 as this temporal experiment's reference. Do not adopt the tested positive fixed-position averaging hierarchy. More data stabilizes temporal weights but cannot by itself recover information discarded by the readout. A next family should preserve score-adaptive high-risk token selection while isolating added temporal/context information. No tensor, conditional RBM, convolution or new feature experiment was started; discussion is required before the next family. Findings remain development evidence, not untouched confirmation. Historical low-correlation RBM6 and Varentropy50 remain explicit competing references, not replaced by this run.
+
+Artifacts: results/rbm_hierarchical_time_v1/{REPORT.md,COMPARISON.csv,PER_CELL.csv,METRICS.json,CONTRASTS.json,CONTROL_CONTRASTS.json,PRMSCORE_CONTRASTS.json,WEIGHTS.csv,WEIGHT_SUMMARY.json,ANSWER_DIAGNOSTICS.csv,RESULT_REVIEW.json,POSTFIT_REVIEW.json}. Protocol: docs/experiments/RBM_HIERARCHICAL_TIME_V1.md. Preflight archives preserve the JSON-reader/audit repairs; PROFILE_REUSE_REVIEW.json verifies the unchanged extraction and inputs. No original source, Claude run, or historical result was modified. No HTML was produced.
+
+## Comparison presentation repair - 2026-09-12
+# Research Directions — Thesis Roadmap
+## Step332 completion — consolidation reviewed
+
+## Mechanism interpretation after the variance result - 2026-09-12
+
+Separate state variance improves fitted density more than shared variance,
+while leaving approximately the same off-diagonal covariance mismatch. It
+also adds quadratic terms to token Logit. In922/934 lost bank12 PB decisions,
+these terms reverse a linear preference for the true step over the selected
+wrong step. This is exact score decomposition, not a repaired-model result.
+It narrows the explanation beyond generic optimizer failure or the gate.
+
+Complete the existing capacity and chronology contrasts to test different
+mechanisms: multiple common latent factors versus context from adjacent
+tokens. Do not promote covariance fit, density fit or a coefficient ablation
+as task improvement without the matched full benchmark.
+
+## Full variance result - 2026-09-12
+
+State-specific diagonal variance does not justify promotion: bank6 Posterior
+beats the newly fitted shared-variance control on within-answer AUC but has
+no clear gain over the original RBM. Bank12 Logit degrades strongly: -15.09 PB
+points versus shared variance, with925/934 lost successes moving earlier.
+Shared bank12 Logit gives a small descriptive within-AUC gain but no PB gain;
+shared Posterior has a higher PB point estimate with an interval crossing zero.
+Retain existing bases, disclose both readouts, and complete the registered
+capacity/CD and temporal mechanisms. Density fit alone is not task improvement.
+
+## Evidence status, 2026-09-12
+
+Corrected literature residual diagnostics retain serial dependence after
+source-group bootstrap and the retained RBM readouts. This motivates the
+registered temporal comparison; it does not demonstrate localization gain.
+Full variance scores and paired intervals exist; independent arithmetic
+checks pass for21 metric bundles. Saved-state review must finish before
+interpreting or promoting these new rows. Reviewer v2 fixes percent/fraction
+units, preserving frozen predictions and original manifests.
+
+The evidence registry explicitly retains answer-local RBM6/8/10/12,
+initial controls, Logit/Posterior, shrinkage, shared variance, position
+correction and moment B3. They are valid unsupervised comparisons. External
+entropy/PRMScore calibration is disclosed separately from fusion fitting.
+
+## 2026-09-12: authorized completion of the remaining literature tests
+
+The latest user request explicitly authorizes the previously deferred tests.
+Use measured covariance/variance and serial mismatch as hypotheses, not proof
+of task gain. V shared versus state-specific variance; C exact/CD with1/4 units;
+S three exact starts and NLL-only selection; D continuous second fusion layer;
+T original-RBM evidence with actual token chronology versus step resets and
+shuffled tokens. Both banks6/12, full matched benchmark, fixed gate/Top10/argmax.
+Do not adopt first_near_max or introduce new q, moment order or lambda sweeps.
+The existing DUFS6-of12 run remains separate and is resumed unchanged.
+
+Scope and primary contrasts: docs/experiments/RBM_LITERATURE_COMPLETION_V1.md.
+Fusion stays answer-local and unlabeled; gates are externally calibrated.
+Exact/CD comparisons preserve the model; multi-unit mean versus second-layer
+comparisons preserve the hidden representation. The temporal experiment keeps
+the saved feature-fusion model and directly tests cross-step token adjacency.
+All are Gaussian adaptations, not reproductions of the cited binary models.
+
+## 2026-09-11: first-error objective closed under Top10
+
+The matched correction experiment tested categorical first-error training
+against step BCE with the same saved answer-local RBM, token matrices,
+Top10 readout, gate and source-group folds. The first-error loss excludes
+clean training answers because they have no first-error target. It loses in
+all eight PB cells:35.6451% versus37.2042%, delta -1.5591pp,
+97.5%CI[-3.1739,+.0887]pp. Late losses dominate (412 of556).
+
+This rejects the full-answer softmax competition as the next correction
+objective under the frozen contract. It does not prove every first-error or
+local objective is unhelpful. Keep step BCE as the supervised diagnostic
+reference; do not expand graphs, positions or capacity from this result.
+PRMB rows were inherited unchanged and are not new transfer evidence.
+
+## 2026-09-11: matched token-Top10 supervision completed
+
+Corrected the prior diagnostic's input/readout confounding. Two identical
+13-coefficient updates above saved answer-local RBM12 differ only in loss:
+exact density without labels versus step BCE with training labels. Both use
+identical other-fold answers and preserve the original token Top10 and gate.
+Unlabeled update stays zero. Supervised PB36.27->37.20%, within.74520->.74730,
+but both primary97.5% CIs include zero; mean-fold AUC and PRMScore decline.
+No verified winner or broad supervised performance ceiling. Full13769,
+90 model/loss replays and metrics reviewed. This is a constrained correction
+comparison, not an entirely supervised-from-scratch RBM.
+
+Next proposed only: isolate first-error versus step-classification learning
+objectives inside this same PB scoring family.193/271 lost successes are
+late; this suggests a test, not a proven cause. Do not automatically add
+position terms, new features, CD, hidden units, graphs or variance models.
+Held-out BCE improves but remains above the .5 constant baseline: do not
+mistake improved latent-score loss for well-calibrated error probabilities.
+See results/rbm_supervision_matched_v1/DECISION.json. Stop for discussion.
+
+## 2026-09-11: joint supervised position diagnostic narrows the next question
+
+The fixed12-feature step-mean diagnostic is complete (135 fits,13769 answers).
+Conditional weights versus a position-only prior improve PRMB within-answer
+AUC by .006881 (97.5%CI .003997 to .009723), but PB +.5779pp remains uncertain
+(CI -.2671 to +1.4332pp). Most PB gain over static comes from the prior.
+The supervised conditional head still trails the original answer-local RBM
+on within AUC, and uses a different token aggregation. Do not claim a ceiling
+or add unlabeled capacity on this evidence alone. Next proposed: retain the
+original token Top10 signal in a matched diagnostic before the next model.
+
+Keep cross-step TOKEN adjacency separate from early/late weight modulation.
+A future neighbor-information test needs a shuffled-adjacency control and
+must preserve first-error sharpness. Do not call temporal smoothing proven.
+Separate latent-state diagonal variance is an untested candidate, restrained
+toward shared variance with a positive floor; its latent states need not be
+correct/error classes. Existing DUFS selection of6 from12 columns is ACTIVE,
+not just backlog, and does not test token selection or chronological coupling.
+No automatic next experiment. RBM first_near_max remains closed.
+See results/rbm_supervised_position_diagnostic_v1/NEXT_STEPS.json and REPORT.md.
+
+## RBM position fusion COMPLETE - 2026-09-11
+
+Branch codex/rbm-position-fusion-v1, base a9cda144e; corrected scoring freeze
+258393249. One bank12 chronological weight-correction candidate plus shared
+and shuffled controls. Exact answer-local conditional likelihood, same gate,
+top10/argmax, no first_near_max.35 total configurations,13769 answers.
+Candidate PB35.5837 vs fixed36.2712; within AUC .742490 vs .745204.
+Paired97.5%CI: PB delta[-1.2541,-.1256]pp; within[-.003756,-.001684].
+Shared update retains baseline task metrics. Shuffled PB35.6343/.743963 within.
+65 PB successes gained,104 lost. All models converge, all outputs valid;
+median relative correction4.747%. Better density fit did not improve the task.
+
+Decision: do not adopt this correction. Preserve fixed RBM and IU/Varentropy
+references; no RBM near-max tuning. Prior marginal reliability reversal still
+exists, but joint predictive value and label-free learnability remain unproved.
+Next proposed diagnostic (NOT launched): static vs position-dependent joint
+predictive value, potentially using labels under source-group-disjoint folds
+as a clearly separated diagnostic, never as the claimed answer-only method.
+No automatic lambda sweep, CD, new moments, units or layers.
+
+A guard exposed3 PRMB source records sharing boundary tokens; first run stopped
+at8112 committed rows, preserved in results/rbm_position_fusion_v1. Corrected
+run restarted from zero with latest-step context ownership and unchanged spans.
+All8112 prior rows replay bit-exactly. Full metric35-arm and41307-state audits
+PASS; no data/label/gate changes. The one single-step answer uses explicit d=0.
+Results: results/rbm_position_fusion_v1_overlap_fix/REPORT.md,COMPARISON.csv,
+PB_CELLS.csv,NEXT_STEPS.json. Full development evidence, no untouched test.
+No HTML; prior worktrees and DUFS unchanged.
+
+## RBM logit/readout isolation COMPLETE - 2026-09-11
+
+Dedicated codex/rbm-logit-readout-v1 from7575cb237; code freeze5d18172de.
+All13769 answers,32 configurations, no refit. All24 original references replay;
+32-arm independent arithmetic metric review PASS;432 scalar replay checks,
+110152 near-max vector checks and80000 bootstrap interaction checks PASS.
+Primary logit/near versus posterior/max: RBM6 PB36.2017->34.7246,
+delta-1.4771pp (97.5%CI[-2.7656,-.2263]); RBM12 36.3750->36.3998,
+delta+.0247pp[-1.2677,1.3213]. Bank12 within-answer AUC .738702->.748781
+(CI for delta[.007569,.012683]), but PRMScore .629276->.624156.
+No PB advantage over Var15/IU or Varentropy was established.
+
+Reasoning: logits remove much of the damaging posterior/near interaction;
+425/732 and577/882 prior lost successes recover. Training helps strongly under
+matched logit readouts, so do not infer that learned weights are useless.
+The initial posterior remains a strong control. Near-max is not a universal
+RBM default; bank6 retains its original posterior/max reference. Next proposal
+is one answer-local position-conditioned bank12 fusion, motivated jointly by
+this interface result and the prior matched reliability reversal. Define its
+objective and shared-weight restraint before implementation; retain static IU
+and Varentropy controls. CD/capacity/variance extensions remain deferred.
+See results/rbm_logit_readout_v1/REPORT.md,COMPARISON.csv,PB_CELLS.csv,
+NEXT_STEPS.json. No next model started; DUFS and prior results unchanged.
+Full cached development, not untouched confirmation. No HTML.
+
+## RBM data diagnostics COMPLETE - 2026-09-11
+
+Dedicated codex/rbm-data-diagnostics-v1 from44f9bced8; scoring freeze13e75a8fd.
+All13769 answers, both banks6/12, no refit. Full metric review24 arms PASS;
+diagnostic review27538 bank-answer records PASS;8860 direct-pair reliability
+checks PASS. Four synthetic draws per bank-answer;10000 source-group bootstrap.
+PB old -> near: RBM6 36.2017 ->31.0950; RBM12 36.3750 ->27.5159.
+Var15/IU 35.3498 ->36.6546; Var50 35.6755 ->36.4366. Gate unchanged.
+Do not adopt near-max universally: every lost RBM success shifted earlier.
+Readout interface is next; matched feature-reliability reversal supports later
+conditional fusion. Class variance and residual/serial mismatch do not prove
+task gain from more units/CD. See results/rbm_data_diagnostics_v1/REPORT.md,
+NEXT_STEPS.json and EVIDENCE.json. Stop before another model experiment.
+DUFS unchanged. No HTML. Original readout references remain available.
+
+## Step345 [Codex RBM shrinkage] completion - 2026-09-11
+
+COMPLETE: all13769 answers/145597 steps. Frozen124ead81d, two below-normal
+workers,408.2s scoring. All24 method/reference metric bundles replay and
+separate arithmetic review PASS. State audit41307 model records PASS.
+No fit failures/collapse. Original RBM13768 converged/1 flagged finite;
+regularized RBM13769 converged. Fixed lambda0.1 shrinks raw weight distance
+on every answer: median3.10452->1.18637. Median iterations25->16. This is
+weight restraint, not evidence of temporal stability or hallucination semantics.
+
+PB / within-answer PRMB / PRMScore:
+- Original RBM:36.2017% / .735982 / .630749.
+- Shrinkage RBM:35.8711% / .738630 / .629544.
+- Initial RBM:35.9662% / .744068 / .613085.
+Primary shrinkage-minus-original: PB-.3305pp,97.5%CI[-.8852,+.1966];
+within+.0026483[+.0007774,+.0045989]. Gains58 PB successes, loses65;
+only2/8 PB cell points improve. Gate clean accuracy identical. Against initial,
+within-.0054373,95%CI[-.0070236,-.0038670], PB difference uncertain.
+Varentropy50:35.6755%/.742465/.632777; Var15raw35.9610%/.737786/.625781.
+No overall winner and no clear added PB value from this regularizer. Retain
+as negative/mixed development evidence; no lambda sweep, DUFS or new graph
+was launched. Existing B3 and other worktrees untouched. Return to discussion
+before another candidate. Full tables/errors/weights in results/rbm_weight_shrinkage_v1;
+REPORT.md, METRICS.json, SUMMARY.csv, RESULT_REVIEW.json and STATE_REVIEW.json.
+
+## Step345 [Codex RBM shrinkage] - fixed regularization follow-up (2026-09-11)
+
+User requested a separate agent to execute the proposed bounded weight-shrinkage
+experiment. Parent295011d4, branch codex/rbm-weight-shrinkage-v1. Prior m3/powers
+full13769 run and arithmetic review COMPLETE/PASS verified. Preserve original
+six moment columns, original mean6 anchor and shared gate/top10 readout. Test
+ONLY lambda0.1 toward w0=2/P against original trained and initial RBM; coefficient
+fixed as engineering choice, no grid. Reuse entropy/Varentropy and matched Claude
+length/random controls. Four mechanism tests PASS;27-answer full-budget mechanical preflight PASS
+with zero failures and exact original RBM step replay. Full run pending freeze. Full protocol docs/experiments/RBM_WEIGHT_SHRINKAGE_V1.md.
+No HTML; checkpoint/results results/rbm_weight_shrinkage_v1. Other runs untouched.
+
+## Step344 [Codex RBM] - m3 ablation and raw rank powers (2026-09-11)
+
+User explicitly authorized (1) isolate distribution m3 in compact RBM, and
+(2) test raw degree1/2/3 rank powers with RBM, previously tested only mean/IU.
+Separate codex/rbm-m3-powers-v1 from47eb162f; frozen code/protocol943ad2aa.
+Primary localization only, same13769 rows, frozen benchmark/gate/readout.
+Remove ONLY m3: H,V,a,a^2,a^3 retained. Both compared RBMs use common mean5
+direction; preserve original6/mean6 output as exact per-answer bridge.
+Raw-power48 RBM uses frozen T x48 representation and old entropy orientation,
+plus initial RBM control. Reuse all prior power/moment/Varentropy references.
+No higher-order sweep or new global24 fitting in this experiment.
+
+Three tests PASS: column semantics, original scorer and parameter replay,
+changing removed m3 cannot affect reduced score. All27 real-answer preflight
+rows produce finite scores and exact original6 step replay. No collapsed
+outputs; one reduced5 fit reports nonconvergence and remains explicitly
+flagged (not silently retried/removed). Scoring22.3s, no quality ranking.
+Full run uses2 CPU workers, WAL checkpoints, Windows JSON replacement retry,
+10000 grouped draws, two primary97.5% contrasts. Separate metric verification
+automatically follows. Check results/rbm_m3_powers_v1/LAUNCH.json and live
+RUN_STATE.json for actual status. No HTML. Existing B3 localization untouched;
+global24 experiment has separately reached COMPLETE/PASS.
+## Step343 [Codex global24] - frozen moment fusion transfer (2026-09-11)
+
+User authorized a background24-cell global hallucination comparison of current
+methods. Separate branch/worktree codex/global-moment-fusion-24-v1 from75fdcb35.
+All24 source artifacts are local (8.4GB), with prior SHA256 data audits.
+Historical complete-case/crop/order/label contract retained: top10 mean for each
+token feature, then N answers x6 pooled cell-local unsupervised fitting. This
+is different from primary localization's within-answer fitting; explicitly
+stated in chat before launch. No labels enter fit. QA9/math15 are the original
+strata; not a new benchmark population.
+
+Compare mean/IU/RBM/B3 on H15,V15,m3,a,a^2,a^3; initial energy controls,
+Varentropy15/50 and15-contribution mean/IU. Five saved direct/entropy/historical
+references replay; historical IU refit must match its saved AUC.
+Four estimator tests plus three aggregation/refactor/group-AUC tests passed.
+The new fit_matrix entrypoint exactly replays the frozen same-answer code
+on identical matrices. No tail in the new bank. No new candidate/grid selection.
+Full-cell outputs/CSV and all24/QA9/math15 macros,10000 grouped bootstrap
+exploratory intervals, automatic separate arithmetic and parameter replay.
+Check results/global_moment_fusion_24_v1/LAUNCH.json and RUN_STATE.json for
+actual runtime state. Single CPU thread/BelowNormal priority; localization
+continues in its own worktree. No new HTML.
+
+## Step342 [Codex] - moment RBM fusion ready for full execution (2026-09-11)
+
+User authorized the discussed compact six-column bank: H15,V15,m3_15,a,a^2,a^3.
+Worktree .worktrees/moment-rbm-fusion-v1, branch codex/moment-rbm-fusion-v1,
+parent d92f88f8; fitting/evaluation protocol frozen in5075f024. Same-answer
+mean, IU-PCR, one-hidden-unit Gaussian RBM, B3; initial-model controls.
+RBM uses exact normalized likelihood, analytic gradient and L-BFGS-B; fixed
+unit visible variance. B3 retains its existing continuous one-group energy.
+No native DEEM or tail in this experiment; no target-class semantics claimed
+for raw features. Latent posterior uses explicit mean-risk orientation.
+
+Four tests PASS: independent likelihood/gradient, representation, score/state
+replay and deterministic fitting. All27 full-budget feasibility answers PASS,
+zero failures,74.2s scoring. No quality inference from this subset. Full13769
+benchmark is the next authorized operation, with unchanged labels/groups,
+external gate/calibration,top10 readout,nine saved references and bootstrap.
+The runner automatically invokes the separate arithmetic metric verifier.
+Check actual LAUNCH.json PID plus RUN_STATE.json/RUN.log, not this prose, for
+liveness and completion. Results: results/moment_rbm_fusion_v1/. No HTML.
+
+## DEEM/B3 preflight stopped: input semantics correction (2026-09-11)
+
+Isolated worktree .worktrees/deem-b3-probability-moments-v1, branch
+codex/deem-b3-probability-moments-v1, frozen code a09fb334 from490f4b6c.
+Three mechanical tests passed; only3 real-answer smoke records were persisted.
+Full13769 benchmark was NOT started. The smoke process was interrupted.
+
+User correctly challenged native DEEM input semantics: vocabulary probabilities
+are not soft classifier decisions over a common hallucination target. The
+[1-p,p] mapping satisfies tensor shape only; selected1-p and empirical moment
+ranks also remain uncalibrated proxies. The protocol had disclosed proxies,
+but this does not establish native DEEM applicability. Do not infer a failure
+of DEEM from this pilot. Direct-probability DEEM was nearly constant in3 saved
+answers; this is an engineering diagnostic only, not a benchmark finding.
+
+B3 can accept continuous covariates through the existing adapted energy model;
+its latent output is still a risk proxy requiring evaluation, not automatically
+a calibrated hallucination probability. Preserve original smoke and protocol.
+Next design should keep B3 continuous-input and native DEEM soft-detector paths
+explicitly distinct. No replacement mapper, new threshold or full run launched.
+User considers residual tail unnecessary: omit it from the next minimal direct
+bank unless an explicit ablation justifies the redundant representation. Tail
+is deterministic from retained probabilities; no claim that redundancy alone
+proves it can never help a restricted learner. No new HTML.
+## 2026-09-15 — complete TCN aligned predictor (Step388)
+
+## 2026-09-14 — authorized Rényi position-varying fusion
+
+## Codex hierarchical time fusion v1 ? 2026-09-13 ? COMPLETE REVIEWED
+
+## Comparison presentation repair - 2026-09-12
+
+Use results/rbm_literature_completion_v1/RBM_FUSION_COMPARISON.csv for the
+cross-experiment RBM table. It includes moment orders3-6 and their IU/equal/
+initial controls, the m3/raw-power tests, B3, shrinkage, diagonal and separate
+variance, score/readout ablations, and position adaptation. Other-answer
+corrections are retained with their access explicitly marked. The original
+PRIOR_METHODS.csv remains the full source-alias inventory. Newly completed
+suites and DUFS enter only after full review, never from partial checkpoints.
+Compare the stated access/readout and paired source contrasts before claiming
+an improvement. Unlabeled answer-local RBM fitting is eligible for comparison;
+its use of externally calibrated gate/PRMScore thresholds must remain visible.
+
+Three tests PASS: column semantics, original scorer and parameter replay,
+changing removed m3 cannot affect reduced score. All27 real-answer preflight
+rows produce finite scores and exact original6 step replay. No collapsed
+outputs; one reduced5 fit reports nonconvergence and remains explicitly
+flagged (not silently retried/removed). Scoring22.3s, no quality ranking.
+Full run uses2 CPU workers, WAL checkpoints, Windows JSON replacement retry,
+10000 grouped draws, two primary97.5% contrasts. Separate metric verification
+automatically follows. Check results/rbm_m3_powers_v1/LAUNCH.json and live
+RUN_STATE.json for actual status. No HTML. Existing B3 localization untouched;
+global24 experiment has separately reached COMPLETE/PASS.
+
+B3 can accept continuous covariates through the existing adapted energy model;
+its latent output is still a risk proxy requiring evaluation, not automatically
+a calibrated hallucination probability. Preserve original smoke and protocol.
+Next design should keep B3 continuous-input and native DEEM soft-detector paths
+explicitly distinct. No replacement mapper, new threshold or full run launched.
+User considers residual tail unnecessary: omit it from the next minimal direct
+bank unless an explicit ablation justifies the redundant representation. Tail
+is deterministic from retained probabilities; no claim that redundancy alone
+proves it can never help a restricted learner. No new HTML.
+
+## Claude handoff: verified final DUFS and stopped queue - 2026-09-12
+
+DUFS COMPLETE13769/13769, metric and state reviews PASS; actual completion
+2026-09-12 04:46:51 Israel. V/C/T suites also COMPLETE13769 and full review PASS.
+DUFS trained PB36.1235%, within .740974, PRMScore .626847. Against all12 trained,
+within +.002273 CI97.5[.000990,.003543], PB -.2516pp CI[-.8346,.3144]. No clear
+advantage over low-correlation6 and no automatic DUFS integration.
+
+Queue exited05:49:35; no Python processes found in elevated process audit at
+handoff. Stability smoke27 PASS, separate review/full pending. Depth smoke
+FAIL:6/27 answers,14 model records, fewer than three varying hidden views.
+Do not blindly restart queue or silently change the failed depth protocol.
+
+Capacity interpretation warning: exact4 nonconverged13769/13769 bank12 and
+13768/13769 bank6. Its large losses do not isolate capacity from optimization.
+CD has a fixed epoch budget, not a convergence PASS; H1 posterior has a local
+AUC gain but worse PRMScore. Temporal actual order loses within-answer AUC
+against shuffle in both retained banks; no demonstrated chronological gain.
+
+Full handoff (in source root, not only this worktree):
+../../docs/research_notes/CODEX_TO_CLAUDE_HANDOFF_2026-09-12.md
+Fresh machine snapshot: results/rbm_literature_completion_v1/HANDOFF_STATUS_20260912.json.
+Readable comparison now106 rows including reviewed DUFS, capacity and temporal.
+The handoff turn refreshed inventories/docs only; no models or jobs restarted.
+The full authorized program remains INCOMPLETE. Generated outputs and these
+latest documents include uncommitted files; preserve them when transferring.
+
+## Step-mass attribution along numeral dependencies (2026-09-11, Step 355)
+
+Transferring standardised step surprise to numeric parent steps (α=0.5, one
+hop, conserving) does not beat the reference or a shuffled-parent control on
+either benchmark and lowers PRMB within-answer AUC (−0.0067 / −0.0038, CIs
+below 0); α=1 clearly harms. A dependency-free uniform-earlier transfer does
+as well or better. Only 14% of late misses have the true step as a numeric
+parent of the peak step, so numeral provenance is not the mechanism of the
+late bias. Closed for numeric dependencies; logical/textual dependencies and
+attention-based attribution remain open. HISTORY Step 355,
+results/step_mass_attribution_v1/.
+
+## Readout controls and late bias (2026-09-11, Step 354)
+
+Length is a strong localization prior on ProcessBench: `argmax(step length)`
+alone reaches 33.69% PB all-8 under the frozen gate (entropy top-10 35.44%;
+random 20.28%). Every step readout that sums or takes top-k over tokens
+inherits it; sum-type / mixture readouts gain only where the true step is the
+longest. Misses are late (late/early 1.7-1.9). Numeral-provenance token
+reassignment does not reduce the late bias (null vs shuffled control).
+"Earliest near-max step" on varentropy is the only readout change that moved
+both benchmarks together (+0.76pp PB, +0.0014 within; label-selected threshold,
+development only). Report `length`/`random_step` rows and the stratified panel
+in all localization tables; do not read top-k gains as entropy signal without
+the split. Details: HISTORY Step 354, results/readout_length_control_and_provenance_v1/.
+
+## Binary contribution benchmark conclusion (2026-09-11)
+
+Step341 full benchmark complete and independently replayed.18/33-bank binary
+SML/L-SML do not beat continuous means or the established Varentropy references.
+33-bank PB: continuous35.27%, binary equal26.60%, SML24.04%, L-SML21.84%.
+PRMB within:.7421/.7012/.7011/.6738. More entropy-contribution columns give only
+small changes inside the weak binary pipelines. PB maximum-step ties occur
+in6554/6800 SML and6763/6800 L-SML answers; frozen first-tie readout selects early.
+Preserve this result; no automatic threshold or graph sweep. Consider retaining
+continuous/soft information in the explicitly requested native DEEM/B3 follow-up.
+Distinguish solver weakness from lost information due to median voting and
+saturating top10 readout; no counterfactual readout or soft-DEEM result exists.
+See PROGRESS.md Step341 and results/binary_moment_fusion_v1/ for all8 arms,
+paired intervals, references, coverage and independent arithmetic review.
+
+## Persistent request - B3 on probability and moment inputs (2026-09-11)
+
+Omri explicitly reiterated B3 in both direct-probability and newer -log(p)
+moment/contribution representations. This is OPEN continuing work, not tested
+by the current SML/L-SML run or by prior diagonal/Joint-inspired shrinkage.
+Canonical B3 entry: spectral_utils/residual_graph_deem.py, arm B3, continuous
+family-additive DEEM energy model. Generic contract adapter exists in
+spectral_utils/deem_b3_contract_ablation.py. Temporal innovations exist in
+spectral_utils/token_temporal_innovation_b3.py and crossed innovation modules.
+Do not describe B3 as another name for SML or a single static weight vector.
+
+Two requested lanes: (1) existing direct Top-15 probability + selected-token
+representation (declare retained tail and transforms exactly as its frozen
+reference); (2) existing -log(p) powers / probability-weighted moment or
+entropy-varentropy contribution representations, against their matched controls.
+Freeze one exact input bank per initial comparison; do not conflate powers,
+moments and centered contributions. Keep current binary run unchanged.
+
+Before implementation choose explicit groups appropriate to new coordinates;
+old entropy/spectral feature families cannot be silently inherited. Preserve
+B3 energy/fitting semantics, state any adaptation. Audit fit scope: historical
+token B3/innovation implementations may use donor answers, which is NOT an
+answer-only fit. Primary localization lane fits this answer alone, or openly
+reports inability to do so; no silent pooling. Measure runtime/stability in a
+feasibility-only smoke before full matched evaluation. Compare same inputs,
+groups/folds/labels/gate/readout, equal and existing best fusion, plus incumbent.
+Temporal/graph B3 extensions remain later variants requiring a distinct causal
+question; no automatic multivariant sweep or claim of completed B3 evidence.
+
+## 2026-09-10 - polynomial result: useful expansion within a weak baseline, no incumbent gain
+
+Full6-arm polynomial run completed/reviewed. Cubic-IU PB33.0050% versus
+linear-surprisal-IU27.4646%: +5.5405pp,97.5% CI[3.6159,7.4839]. PRMB within
+.7341053 vs .7346211, no gain. Quadratic-only expansion decreases within AUC.
+Prior RAW15 PB35.9610%, normalized-EQUAL Varentropy15 within .7469804 and
+RAW50 PRMScore .6327769 remain stronger on their respective endpoints;
+cubic-IU PRMScore .5911668. These are matched full-development comparisons.
+
+The EQUAL raw-surprisal baseline has an orientation limitation: higher surprisal
+at rank1/chosen and at lower-ranked alternatives need not share a risk direction.
+Positive equal weights were frozen; IU alone has entropy-based global sign.
+Post-hoc label-free score/entropy correlations support this concern. Preserve
+those results and do not call IU vs this mean a clean weighting-only gain.
+The degree2/3 versus degree1 IU comparisons retain the same orientation rule.
+Before opening SU-PCR/L-SML on this representation, discuss consistent sign
+treatment; no extra arm or post-hoc score flip has been run. Do not infer all
+raw-power methods fail. Also do not infer the selected-token powers caused the
+gain: their inclusion is joint with the rank powers. Selected powers receive
+15.53% of cubic-IU absolute standardized coefficients; that is descriptive.
+
+## 2026-09-10 - authorized experiment: polynomial surprisal with chosen token
+
+Before changing solvers to SU-PCR/L-SML, Omri proposed s,s^2,s^3 with s=-log(p),
+then explicitly included a,a^2,a^3 for actual chosen-token surprisal a. Test
+six arms: three nested degrees, each equal and unchanged IU-PCR. K15 and all
+benchmark/readout/gate contracts fixed. Original logprobs, not renormalized
+Top-K Varentropy probabilities; standardize each polynomial column afterwards.
+This expands the linear fusion's function class without adding information or
+observations, and jointly changes ranked/selected powers. It does not isolate
+chosen-token effects or exactly contain Varentropy's weighted centered formula.
+Keep existing per-task leaders and normalized controls. Protocol:
+`docs/experiments/SURPRISAL_POWER_FUSION_V1.md`. Full results pending.
+
+## 2026-09-10 - completed Varentropy contribution comparison: normalization helps ranking, IU does not add a demonstrated gain
+
+All six arms completed with full coverage. RAW15 leads PB point estimates
+(35.9610%); RAW50 leads PRMScore(.63278); normalized-EQUAL15 leads within-answer
+AUC(.74698). IU15=.74682/35.3498%, IU50=.74583/34.4139% (within/PB).
+IU15 improves within AUC over RAW15, but EQUAL15 gives the same improvement;
+IU-EQUAL within contrasts include0 at both K. IU50 decreases PB relative to
+RAW50 by1.2616pp,97.5% CI[-2.3850,-.1254]. Do not promote learned contribution
+fusion or describe its ranking increase as better first-error localization.
+
+Support comparison is now measured: RAW50 improves within AUC over RAW15 by
+.00468,95% CI[.00278,.00662]; PB difference is inconclusive. Thus the earlier
+15-versus50 input distinction matters for ranking, but is not a blanket
+explanation for raw Varentropy's strength. Every RAW50 token replays exactly
+from the frozen50-rank cached inputs. Labels, spans, source groups and gates
+remain unchanged. Five core tests, three evaluator/bootstrap/resume tests and
+separate full arithmetic result replay pass. This is development evidence.
+
+Keep both raw references and normalized-EQUAL15. Any next fusion change must
+demonstrate benefit over BOTH RAW and matched normalized-EQUAL controls, with
+the fixed ProcessBench readout. The present IU shifts absolute standardized
+weight toward low-probability ranks; most lost exact hits move late. This is
+descriptive evidence for error analysis, not proof that those weights cause
+the loss. No new constraints, solver families or parameter sweep were run.
+The previous temporal/full-family/historical24 backlog remains open.
+
+## 2026-09-10 - authorized question: learn Varentropy rank contributions
+
+Omri requested a focused full comparison of original Varentropy, normalized
+equal contributions and IU-PCR contribution fusion at K15 and K50. The historical
+token Varentropy reference uses50 retained ranks, not the15 of direct fusion.
+First attribute support, normalization and learned-weight effects separately.
+Six arms only, same top10 step readout, benchmark labels/groups and gates.
+Contribution C[t,k]=q[t,k]*(-log(q[t,k])-H[t])^2. All normalization and IU fitting
+use this answer's tokens only. RAW sum recovers Varentropy; signed IU output
+is a fused score, not a mathematical variance. No solver change is claimed.
+The full roster/temporal-control/historical24 backlog stays open; this request
+takes precedence as the next bounded experiment. Protocol:
+`docs/experiments/VARENTROPY_CONTRIBUTION_FUSION_V1.md`.
+
+## 2026-09-10 - completed temporal evidence: prioritize level plus change
+
+The full18-arm/13,769-answer comparison is complete and independently replayed
+arithmetically within the same Codex session. Current17-IU versus Delta34-IU:
+PB34.5021% ->34.8085% (primary97.5% CI of difference includes zero), PRMB
+within-answer AUC .73275655 ->.73693101 (CI of difference wholly positive).
+Lag8-IU falls to32.3665% PB and .71149969 AUC. Hierarchical time/rank fusion
+and tested shrinkage solvers do not repair that loss. Keep this negative result
+specific to this representation/fit/readout, not a rejection of temporal fusion.
+
+Recommendation: keep the17-input anchor; retain level-plus-signed-change as
+the narrow direction. A matched shuffled-change control can next distinguish
+temporal alignment from changed feature count/normalization. It is not yet run.
+The current lag-shuffle control addresses lag inputs, not this Delta question.
+Do not start extra window/lambda sweeps on the losing136-input representation.
+The chain graph produces only four additional PB successes and no clear PRMB
+gain. Equal-weight Delta is competitive with learned weights. Neither result
+demonstrates full Joint or graph superiority; no new overall leader is claimed.
+
+Entropy PB35.4444% and saved varentropy PB35.6755% remain above the new arms;
+varentropy also has higher PRMB within-AUC (.74246455) and PRMScore (.63277687).
+Full mechanism roster (B3/CONT/full Joint graphs), positional encoding and
+historical24 temporal transfer remain outstanding. Avoid calling singleton-group
+Joint-inspired shrinkage the full Joint L-SML mechanism. Historical24 transfer
+needs an explicit temporal aggregation order; this localization result is not
+a result on whole-answer detection. EDIS burst/rebound findings motivate changes
+but do not establish exact first-error localization on these benchmarks.
+
+## 2026-09-10 - user-authorized temporal probability fusion comparison
+
+The user now wants to revisit every developed fusion mechanism on the changed
+probability space, with fixed settings rather than all old parameter sweeps.
+He proposed eight ordered 17-coordinate token vectors (136 columns), motivated
+by entropy spikes and EDIS. The first isolated full comparison tests that
+representation, level-plus-change, two-axis IU and chronological-graph controls
+against the same Current17 anchor. Preserve the existing gate/readout and all
+benchmark rows so a new gain can be attributed to temporal representation.
+
+This supersedes the earlier prohibition on reopening fusion experiments below.
+The full B3/LIU/CONT/Joint graph roster remains authorized continuing work; it
+must not be silently equated with the18 first-stage arms. Positional encoding
+alone is lower priority because it does not supply past observations to a
+linear fuse. Final-answer historical24 transfer remains separate and has a
+different fitting scope. Keep tail fixed for this comparison; selected-only/
+tail-only ablation remains uncompleted, not rejected. No automatic promotion
+threshold; judge paired complete-population evidence and return results in chat.
+
+## 2026-09-10 - direct selected-token/tail fusion: keep the answer-level signal, narrow the next question
+
+The frozen v2 augmentation is complete. It adds selected-token surprisal and
+residual Top-15 tail mass to the direct probability matrix while leaving fusion,
+K=15, readout, gates, splits and labels unchanged. The experiment has full
+coverage and no fallbacks, and an independent replay verified every reported
+localization summary and all 24 historical cells.
+
+For one-answer localization, the augmentation does not solve the current
+bottleneck. Selected+Tail IU-PCR scores 34.5021% on ProcessBench versus 35.4444%
+for Token Entropy; its -0.9423pp paired interval includes zero at the upper edge.
+PRMB within-answer is 0.732757 versus 0.730111, but that interval also includes
+zero, and PRMScore remains lower. Token Entropy stays the localization anchor.
+Do not open a K, readout, gate or Joint sweep from this result.
+
+For complete-answer detection, a small signal is present. Selected+Tail IU-PCR
+improves its direct Top-15 v1 counterpart by +0.005718 with a positive
+hierarchical 97.5% interval and 20/24 cell wins. The simpler Equal Weights route
+has the highest point estimate, 0.778108, but its exploratory +0.002022 over
+Historical IU-PCR has paired-cell CI[-0.0031,+0.0073]. This does not establish a
+new overall leader. It says that the two raw inputs can add answer-level
+information and that the current learned covariance weights are not the best
+way to use it. Joint shrinkage remains uncompetitive.
+
+The next justified question is attribution, not a wider method search: compare
+the frozen Top-15 Equal Weights matrix with selected-token only, tail only, and
+both, first on the existing 24 cells. This one ablation will identify whether
+the gain comes from Actual Token Probability, residual distribution shape, or
+their combination. If one coordinate survives, carry only that coordinate into
+the one-answer localization route and analyze why it changes late versus exact
+peaks. DEEM stays outside this primary sequence; it becomes relevant only if a
+nonlinear adapter is later justified by the ablation.
+
+No automatic continuation threshold was applied. Evidence:
+`results/direct_probability_fusion_v2_selected_tail/REPORT.html`,
+`RESULT_REVIEW.json`, and
+`docs/research_notes/los_direct_probability_fusion_review_2026-09-10.md`.
+
+## 2026-09-10 - close direct rank-only probability fusion v1; isolate the missing inputs
+
+Direct fusion of the sorted top-15 probability ranks does not replace token
+entropy for localization. On the full frozen contract, all three direct arms
+(equal, IU-PCR and Joint shrinkage) are below entropy on ProcessBench and
+PRMScore. The small positive PRMB within-answer differences for IU-PCR and Joint shrinkage
+include zero in their predeclared 97.5% intervals; Equal had no predeclared
+primary interval. In the historical 24 cells, direct IU is below
+Historical IU-PCR and its primary hierarchical interval also includes zero.
+Equal has a post-hoc +0.001085 macro point difference but does not transfer to
+the localization endpoints. Do not promote a v1 arm and do not open a K,
+readout or shrinkage sweep from this result.
+
+The experiment nevertheless identifies a narrow representation question. The
+v1 matrix contains `T_answer x 15` sorted probabilities. It does not identify
+the sampled token as a separate coordinate and has no explicit residual-tail
+coordinate. Existing caches contain the sampled token negative log-probability
+(`token_spilled_energies`) and enough top-K probabilities to calculate residual
+mass. If direct probability work continues, test one frozen augmentation that
+adds these two semantically distinct signals while keeping fusion, benchmarks,
+splits, gate and readout fixed. This is the smallest justified follow-up; it must
+not be described as part of v1 or as a LOS-Net reproduction.
+
+Keep Token Entropy as the ProcessBench localization anchor and Historical
+IU-PCR as the 24-cell anchor. Evidence:
+`results/direct_probability_fusion_v1/REPORT.html` and stage-specific run
+manifests in the same directory.
+
+### DEEM clarification from Omri (2026-09-11)
+
+B3 adapted DEEM to the previous continuous feature contract. Do NOT assume
+B3 adaptations remain necessary for new inputs. Check native DEEM first as
+an explicit alternative, retaining B3 as a comparison rather than the only
+implementation. Official README confirms soft input (N,classes,learners).
+The existing deem_adapter.py pins0.2.0 and already supplies hard and soft-rank
+adapters. Soft ranks are pseudo-probabilities, not calibrated hallucination
+probabilities. Raw ranked token probability is not automatically a learner's
+probability of the correctness class: distinguish accepted tensor shape from
+valid target semantics. Do not confuse Top-K alternatives with classifier axis.
+Native model plus explicit input mapping is possible; no automatic need to
+modify model architecture. Preserve class-permutation alignment checks.
+User request and native probability support acknowledged in chat; no DEEM/B3
+fit launched yet, current binary benchmark remains unchanged.
+
+## User-authorized compact higher moments (2026-09-11)
+
+Evaluate fixed orders3..6 with IU and original RBM plus matched controls.
+Rationale: m3 ablation established ranking contribution within the compact
+bank; wide48 RBM learning failed, so retain compact probability-weighted
+moments rather than adding rank-level powers. No claim that degree6 is optimal.
+Keep frozen gate/readout, exact d3 bridge, failures and full development cohort.
+See docs/experiments/HIGHER_MOMENT_FUSION_V1.md.
+
+### Higher-moment result (2026-09-11)
+
+Orders3..6 complete/PASS on full13769. Degree6 RBM modest point increase does
+not establish improvement with predeclared97.5% intervals; IU regresses. The
+untrained same-bank RBM still ranks better, reinforcing the need to separate
+representation/readout benefits from learning. Retain original compact bank;
+no expansion beyond6, no automatic DUFS/covariance test. See local result
+REPORT.md and HISTORY for exact matched evidence. This does not reject all
+higher-moment or spectral fusion models, only supplies evidence for this
+fixed bank/fit/readout recipe.
+
+## RBM diagonal conditional variance [Codex] - prepared 2026-09-11
+
+User authorized full assumption audit, then one bounded variance extension.
+Branch codex/rbm-diagonal-variance-v1 from50d9ef17a. Audit complete13769,
+no labels/refits: model predicted feature variance median1.36154 vs observed1;
+median covariance relative error.60196, offdiagonal error.68665, varianceRMSE
+.44161. This is model mismatch, not proof of the cause of localization errors.
+
+Candidate original6 bank only, shared diagonal D learned, D>=.05, penalty
+.1*sum(log D)^2. Fixed coefficients, not tuned. Exact partition/gradients;
+100extra iterations from original100 fit, with matched continued-D=I control.
+Same anchor/gate/readout/v3 benchmark. Primary diagonal-vs-continued;10000
+source-group draws,97.5% intervals. Five mathematical tests PASS. Full run
+awaits27-answer smoke and code freeze; see protocol RBM_DIAGONAL_VARIANCE_V1.
+
+User paper lookup found Shaham et al., ICML2016, Lemma4.1. DS binary
+conditional-independence model is bijective to single-hidden-node BINARY RBM.
+Historical Step141 saying our L-SML already IS an RBM overstates the theorem:
+continuous Gaussian likelihood and spectral fitting are not that equivalence.
+Official paper https://proceedings.mlr.press/v48/shaham16.pdf; local
+papers/A Deep Learning Approach to Unsupervised Ensemble Learning.pdf.
+
+## RBM conditional diagonal variance [Codex] - COMPLETE 2026-09-11
+
+Full13769 answers/four arms; scoring271.16s,4 workers. Source freeze57f0f7edf,
+branch codex/rbm-diagonal-variance-v1.28 metric/reference bundles arithmetic
+reviewPASS;55076 model states and108 independent Gaussian-mixture/token/step
+replays across27 real answers PASS (maxerror3.33e-16). No failed/collapsed
+outputs.25 diagonal fits nonconverged at100 extra iterations, retained/flagged;
+all continued fixed-D fits converge. No floor hits; minimumD.09064>.05.
+
+Original and continued fixed-D RBM: PB36.2017%,within.735982,PRMScore.630749.
+Learned-D: PB35.8069%,within.733045,PRMScore.625301. Primary diagonal-minus-
+continued PB-.3947pp,97.5%CI[-1.0278,+.2255]; within-.002937,
+CI[-.004973,-.000890].84 PB gains,105 losses. No PB benefit; ranking regresses.
+Both covariance and variance fit improve on every answer, but this does not
+improve task accuracy. Median varianceRMSE.44161->.10068; covariance relative
+error.60196->.53832; offdiagonalerror.68665->.68704 (essentially unchanged).
+Conditionalvariance median.7310. New bounds/penalty tested as one frozen recipe,
+not optimized hyperparameters; no automatic follow-up. Keep original references.
+This clarifies that generative moment-fit gains do not prove useful fusion.
+
+Artifacts results/rbm_diagonal_variance_v1/{REPORT.md,SUMMARY.csv,METRICS.json,
+RESULT_REVIEW.json,STATE_REVIEW.json,ASSUMPTIONS_SUMMARY.json}. Full no-label
+assumption audit in results/rbm_covariance_assumptions_v1/AUDIT.json.
+
+Paper requested during execution found in HISTORY Step141: Shaham et al.,
+A Deep Learning Approach to Unsupervised Ensemble Learning, ICML2016,
+https://proceedings.mlr.press/v48/shaham16.html. Lemma4.1 (PDFpage3) concerns
+binary Dawid-Skene and one-hidden-unit binary RBM. Historical phrase 'our
+L-SML IS already an RBM' is too broad: model-distribution equivalence is not
+optimizer equivalence and does not establish the continuous Gaussian case.
+No old entries edited; clarification preserved here and in experiment protocol.
+
+## DUFS moment selection [Codex] - READY 2026-09-11
+
+User authorized feature selection before RBM. Dedicated branch
+codex/dufs-moment-selection-v1 from6e8f46100. Fixed order6 compact bank;
+all12, original6, adapted DUFS-select6 and squared-Pearson-select6, each
+trained RBM versus its untrained initialization. Same original6 risk anchor,
+external entropy q0.3 gate and Top10 token readout; full13769 benchmark.
+Why: learned diagonal variance improved covariance fit without improving
+localization. Test selection quality separately from RBM training, not more
+moment orders or new graph penalties. DUFS historical recipe:120 epochs,
+seeds0/1/2, hard top6; no labels or hyperparameter selection. Four workers.
+Four synthetic tests PASS;27 real mechanics answers PASS,108 exact saved
+reference replays, no failures. No subset performance conclusions.
+Scoring is expected to take hours. Check RUN_STATE and process liveness;
+READY is not a running or completion claim. Resumable pipeline proceeds to
+full10000-group bootstrap, separate arithmetic/model-state reviews, and
+concise result notes. No subsequent experiment or HTML is launched.
+Protocol: docs/experiments/DUFS_MOMENT_SELECTION_V1.md.
+Outputs: results/dufs_moment_selection_v1. Existing worktrees untouched.
+
+## DUFS moment selection launch - 2026-09-11 10:25 local
+
+Source freeze a69bd2445. Pipeline PID23524, four below-normal workers.
+Full13769 scoring launched after synthetic and27-real-answer preflight.
+No quality results yet. Read results/dufs_moment_selection_v1/RUN_STATE.json,
+PIPELINE_STATE.json and RUN.log and verify process liveness for current status.
+Pipeline automatically follows scoring with10000-draw paired evaluation,
+metric arithmetic review, saved-state review and concise REPORT.md.
+No new HTML or further experiment. READY entry below is pre-launch history.
+
+## User research preference - first_near_max (2026-09-11)
+
+Omri explicitly asks to retain first_near_max as a preferred direction for
+integration after the current frozen DUFS run. Claude's Varentropy50 result:
+PB36.4366%, within-answer AUC.743826, PRMScore.632903, versus original
+35.6755%/.742465/.632777. This is a promising development result, not
+confirmation:0.25 SD was selected after inspecting labels on this population.
+Keep the exact rule; do not tune another threshold. Before a new experiment,
+check the actual saved-score transformation (not only the argmax description).
+Compare the same readout rule across fusion candidates and preserve the
+original Top10/common-gate controls. Untouched confirmation remains required.
+Do not change or stop the frozen DUFS run. Length-stratified analysis and
+length/random rows in the concise table remain reporting follow-ups.
+
+### RBM reference and first_near_max audit - 2026-09-11
+
+Inspected ushaham/RBMpaper rbm.m, usageExample.m and forward.m. Author
+implementation uses Bernoulli visible samples (data>rand), CD training,
+optional L1/L2 and an SVD-sized stack. Our moment_rbm_fusion.py is an
+independent one-hidden Gaussian RBM with unit conditional variance and exact
+analytic likelihood/L-BFGS-B. It is not a reproduction of their binary/deep
+training. Their single-layer sigmoid forward agrees with our conditional
+posterior, but their visible conditional/partition function do not validate
+ours. New audit_rbm_reference_bridge.py checks12 parameter cases in2/6/12
+columns: quadrature loss maxerror1.78e-15, gradient finite-difference error
+1.60e-10, energy-posterior error6.67e-16. PASS. No MATLAB was executed; shared
+forward expression transcribed. No correctness/calibration claim from this.
+Artifact results/rbm_reference_bridge_v1/REVIEW.json. Active DUFS untouched.
+
+first_near_max implementation detail verified: provenance_readout.py lifts
+ALL steps within0.25 SD of the maximum above the old maximum, ordered by
+chronology (epsilon=1e-6*max(sd,1e-12)). Thus it changes the score vector and
+PRMB rankings too, not only ProcessBench's selected index. Preserve the exact
+transformation in any follow-up; original signed risk and common gate stay.
+
+Literature distinction: Welinder et al., The Multidimensional Wisdom of
+Crowds (NIPS2010), models item heterogeneity and annotator expertise/bias
+from binary decisions. Inspiration for instance-dependent reliability, not
+a drop-in likelihood for our continuous, dependent moment features.
+Direct citing follow-ups verified: CoNAL (AAAI2021) and Label Correction of
+Crowdsourced Noisy Annotations with an Instance-Dependent Noise Transition
+Model (NeurIPS2023). Related sequential/networked ensemble classification
+(Traganitis/Giannakis,TKDE2022) is relevant to trajectory fusion; not claimed
+here as a verified direct citation. The2025 signal-processing crowdsourcing
+review (arxiv2407.06902v2) is already present locally. No new sweep launched.
+
+## AIRCC position evidence - 2026-09-13
+
+Whole-answer position benefits IU within-answer ranking and conditional coefficient changes beat scale-only, but PB does not beat frozen RBM12 and PRMScore regresses. Finish graph-local/GraphTV and analyze late-peak failures before extending architecture. Rank-2 RBM is not promoted; poor performance occurred despite optimizer convergence flags. Full evidence: results/aircc_results_20260913/RESULTS_INTERPRETATION.md.
+
+Graph-local update 2026-09-13: current affinity-weighted neighborhood is not promoted; it loses to sliding-window and permuted controls on the full benchmark. Preserve possible concentration/shrinkage confounding for diagnosis; do not reject all graphs. Await separate coefficient-GraphTV result.
+
+## Rényi position-temporal integration - 2026-09-14
+
+The integration experiment answers the immediate merge question. Position can
+recover the *direction* of the alpha complementarity without labels: the
+answer-local map emphasizes `VE_0.75`/`VE_1` early and `H0lim`/`VE_0` late.
+This produces a small confirmed PRMB within-answer improvement over scale-only,
+but no confirmed PB improvement; wholly external position coefficients regress
+PB materially. The best observed endpoints remain split between `VE_0.75`
+(PB) and `VE_0` (PRMB), so do not promote one fused detector or revisit an
+alpha sweep on this development set.
+
+For presentation, use the task-dependent alpha frontier plus the learned
+weight trajectory as the constructive result, and the external-position loss
+as the boundary. A next experiment is justified only if it is a bounded
+confirmation or adds a pre-registered calibration/PB-safety mechanism while
+keeping the local temporal update fixed. Evidence:
+`results/renyi_position_temporal_fusion_v1/REPORT.md`.
+
+For presentation, use the task-dependent alpha frontier plus the learned
+weight trajectory as the constructive result, and the external-position loss
+as the boundary. A next experiment is justified only if it is a bounded
+confirmation or adds a pre-registered calibration/PB-safety mechanism while
+keeping the local temporal update fixed. Evidence:
+`results/renyi_position_temporal_fusion_v1/REPORT.md`.
+diagnostic so that they do not contaminate this frozen comparison.
+
+**Open, and never run despite being specified three times.** The matched answer-local versus pooled
+comparison on one fixed bank. No document records a decision to abandon answer-only fitting;
+CLAUDE.md forbade pooling on 2026-09-07 and permitted it conditionally on 2026-09-15, with nothing
+in between. The 20.38% versus 34.29% figures from Step329 are explicitly NOT that comparison.
+
+
 ## 2026-09-24: Family15 tail20 external transfer completed
 
 The source-frozen Family15 tail20 L-SML variant was evaluated on all three
@@ -3738,3 +4961,94 @@ official components, literature-access caveats and restore instructions are in
   - bank11 max-step 44.48 / 62.38 / 63.65: the best Hard2Verify score (n.s.), significantly below bank11 L-SML on both Socratic cells, clearly above bank11 equal
   - frozen bank11 L-SML 43.67 / 63.22 / 64.24 stays the lead
 - **Open direction.** In three locks, source PRMScore rank did not predict external rank. The next priority is a source-side transfer proxy (e.g. leave-one-benchmark-out), labelled as proxy validation on exposed data. See `docs/HANDOFF_FAMILY_TAIL_LSML_2026-09-24.md`. No tuning on the inspected external labels.
+
+## 2026-09-30 (Claude): the label-free algorithm line, Steps 447-462 - current state and next directions
+
+This section records Claude's line from Step 447 to Step 462 in one place: the algorithm as it now stands, what was decided or
+closed, and the proposed next directions in priority order. Step-by-step narrative: HISTORY.md Steps 447-462. Files, commands and
+untracked artefacts: [docs/HANDOFF_LABEL_FREE_ALGORITHM_2026-09-30.md](docs/HANDOFF_LABEL_FREE_ALGORITHM_2026-09-30.md).
+Every experiment since Step 456 had a frozen protocol, a smoke, an independent pre-run review (from Step 460), a full run, a
+red team of three agents and a documented verdict.
+
+### Fitting contract (Omri, 2026-09-29)
+The method is fitted **per model per dataset, on that dataset's own unlabeled answers**, and scores the same answers (real use:
+ask a model n questions, run the method on those answers). Nothing fitted is shared across datasets or benchmarks. Without labels,
+fitting on the scored answers is legitimate. Step 462 showed this contract costs nothing on PRMBench. Steps 456-461 still used
+PRMBench learning folds and applied the fit to ProcessBench; their ProcessBench numbers are superseded by Step 462.
+
+### The algorithm as it stands (per model, per dataset)
+1. **Channels.** Per-step telemetry channels, each z-scored within its answer. Best bank on PRMBench: the 13 core channels plus the
+   three digit features (16). The signs of the pool channels are set label-free per dataset (correlation with the level mean).
+2. **Marks.** Each channel marks the top 20% of steps within each answer.
+3. **Filter.** Dawid-Skene on the marks; keep the channels whose estimated balanced accuracy exceeds 0.5. It removes exactly the
+   anti-oriented channels (Step 451), and the selection transfers to larger banks (Step 455).
+4. **Fusion.** Plain average of the kept channels (the frozen candidate of Step 457). The grouped variant (label-free partition +
+   one merge step + group-level Dawid-Skene weights) helps only on the heterogeneous 32(+d) bank. L-SML loses to plain averaging
+   on 8/8 banks (Steps 450, 452, 456, 457).
+5. **Position.** The step index enters as one more channel in the same filter (Step 460). Fitted per dataset, the filter keeps it
+   on PRMBench (4/4 banks) and drops it on every ProcessBench cell (32/32), so it helps the step-validity task and costs nothing on
+   first-error localization (Step 462). The stronger position prior inside the Dawid-Skene model (Step 461) is not safe per
+   dataset (Step 462, below).
+6. **Readout.** Step validity: the fused score; PRMScore threshold = the 80% quantile of the answer-z scores within the dataset.
+   First error: the plain argmax. The first-error readout q_t prod(1 - q_s) fails by 10-20 points (Step 462).
+
+Reference numbers under the per-dataset contract (Step 462; PRMBench within-answer AUC / PRMScore; ProcessBench first-error
+accuracy, macro over 8 cells):
+
+| Method | PRMBench within-AUC | PRMScore | ProcessBench |
+|---|---:|---:|---:|
+| ct7 (incumbent) | 0.7724 | 0.6457 | 0.3989 |
+| fam421 | 0.7801 | 0.6572 | 0.3980 |
+| 16-channel bank, filter + plain average | 0.7918 | 0.6616 | **0.4131** |
+| same + position channel (**current method**) | 0.8002 | 0.6650 | **0.4131** |
+| grouped + position prior (Step 461 recipe, per dataset) | 0.8054 | 0.6677 | 0.3133 |
+| plain average + prior with cross-fitted slope (not adopted) | **0.8089** | 0.6658 | 0.4035 |
+| step index alone | 0.6617 | 0.5275 | 0.0484 |
+
+### Decided or closed in this line
+- Label-free sensitivity/specificity estimates (SML, Dawid-Skene, latent-group EM) select channels but cannot weight them; the
+  latent class is not the error class (prevalence 0.28-0.41 vs 0.14) (Steps 450-452).
+- L-SML over this bank adds nothing over averaging, with or without the merge step; its losses are mostly positional (450, 452,
+  456, 457). The partition-switch rule is a lookup of one bank family, not a transferable rule (458).
+- External (Hard2Verify, Socratic; exposed, exploratory): the 13+d candidate beats ct7 on Socratic mostly through step position;
+  the step index alone beats every method there (within-AUC 0.73 / 0.86) (459). External protocols must carry the step-index row,
+  swap nulls and equal-share comparisons (LESSONS 2026-09-29).
+- Position: its direction is identified without labels (a flipped position channel is dropped in 20/20 fits); its weight is not
+  (460). The Dawid-Skene prior weighs it 2-5x below the PRMBench optimum because the latent class shares the content channels, and
+  what it adds over the channel is the size of the weight, not the shape (461). Per dataset, on ProcessBench the prior latches onto
+  a start-of-answer telemetry artefact (every answer, clean ones included, is high on step 0) and 17/32 grouped fits predict step 0
+  always (462).
+- The first-error product readout fails, with or without a prior; the plain argmax stays (462).
+- Also in this line: the exhaustive partition ceiling (447), the Mind the Gap code audit and reproduction (448-449), the fold-role
+  fix of six older runners (453), the PRMScore decomposition (454).
+
+### Next directions (Claude's proposals, in priority order; none started - Omri, 2026-09-30: the next step is chosen after the branch merge, among all options on the table)
+1. **Use the filter's position decision as the gate for the position prior.** Per dataset, the Dawid-Skene decision on the position
+   channel behaved correctly everywhere (kept on PRMBench 4/4, dropped on ProcessBench 32/32). Apply the stronger prior only in
+   datasets where the filter keeps the position channel. Label-free, no new parameter. It was suggested by Step 462's outcome, so it
+   needs a fresh frozen protocol and, for a claim, data other than PRMBench/ProcessBench.
+2. **A position weight that does not re-weight the content.** Use the cross-fitted slope only to set the position weight (plain
+   average + logit(pi_b)/a_cf), keeping the plain average unchanged. In Step 462 the cross-fit reached the post-hoc dose optimum on
+   13+d and 32+d; its loss on 20+d came from re-weighting the content halves (0.75 vs 3.05), not from the position weight.
+3. **Remove positional telemetry artefacts before any position term.** Per dataset, estimate the content score's mean position
+   profile over all answers (label-free) and test whether a prior fitted after its removal still latches onto step 0. On its own the
+   removal does not beat the argmax (Step 462: -0.7 to +1.0 points, better on 4/8), so it is a safeguard, not a method.
+4. **External check under the per-dataset contract** (Hard2Verify, Socratic), with the step-index row, swap nulls and equal-share
+   comparisons: does the filter keep the position channel there, and how does the method compare with the step index alone?
+5. **Digit features - DECIDED (Omri, 2026-09-30): keep them** in this line's banks (B16/B23/B35/B54); for this line this supersedes
+   the 2026-09-17 exclusion in CLAUDE.md (recorded there).
+6. **Untouched confirmation** (MedPRMBench; needs the cluster). PRMBench, ProcessBench, Hard2Verify and Socratic are all exposed.
+7. **The advisor report** - paused by Omri until the findings from the other conversations are collected.
+
+### Omri decisions 2026-10-01 (branch-merge review)
+- **The plain average is not acceptable as the final fusion step.** The frozen candidate (filter + plain average) is still
+  reported as the current result, also to the advisors. New direction: replace the plain average with a combination that uses the
+  label-free **SML** or **method-of-moments (tensor)** estimates. The obstacle to face: the estimates select channels but have not
+  weighted them better than averaging (450-452, 457), and the tensor MoM run was negative (464: closer prevalence, worse per
+  channel). The closest existing recipe is the runner-up of Step 457: filter, label-free partition + one merge step, latent-group
+  EM (HEM) weights within groups and Dawid-Skene weights between groups - 8-bank mean 0.7670 vs 0.7656 for the plain average,
+  gains on 32/32+d, losses on 20+d and 51 (`results/algorithm_decisions_v1/SUMMARY.md`).
+- **Joint L-SML is discontinued** (no incentive over L-SML). Historical results stay as records.
+- **Open experiment (Omri, 2026-09-27, still wanted):** drop 2-3 level-family channels to break the level group's dominance (top
+  Dawid-Skene weight in 40/40 bank-folds, Step 457), then re-run the filter, partition and estimates. Omri's caveat: going from 5
+  to 3 level channels need not leave two level groups; check the resulting partition, not only the score.

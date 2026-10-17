@@ -1,0 +1,24 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Why the single-answer score fell on full ProcessBench</title><style>body{font:16px/1.6 system-ui;max-width:1100px;margin:30px auto;padding:20px;color:#243449}table{border-collapse:collapse;width:100%;margin:20px 0}th,td{padding:8px;border-bottom:1px solid #cbd5e1;text-align:left}.note{padding:18px;background:#fff1d6}h1{line-height:1.25}</style>
+<h1>We did see better single-answer scores. They were pilot results.</h1>
+<p class="note">The same IU method scores 30.16% on the original 86 ProcessBench answers and 20.38% on all 3,400 Qwen3-8B answers.
+The original pilot scores and decisions replay exactly. The other 3,314 answers score 20.12%.
+This weakens the evidence for the current method; it is not an algorithm improvement.</p>
+<p>Every row below still fits within one answer. The scorer, step mapping, no-error rule and metric stay fixed.
+The pilot sampled source-disjoint questions with quotas across trace-length bins. Its small cells did not estimate full-population performance reliably.</p>
+<table><tr><th>Identical method</th><th>Pilot: 86 PB answers</th><th>Additional: 3314</th><th>Full: 3400</th></tr><tr><td>dual__iu</td><td>30.16%</td><td>20.12%</td><td>20.38%</td></tr><tr><td>dual__joint0</td><td>25.33%</td><td>20.98%</td><td>21.09%</td></tr><tr><td>dual__graph010</td><td>29.94%</td><td>21.20%</td><td>21.42%</td></tr><tr><td>dual__graph_perm</td><td>25.73%</td><td>21.24%</td><td>21.35%</td></tr><tr><td>dual__equal</td><td>25.55%</td><td>20.56%</td><td>20.70%</td></tr><tr><td>moment__iu</td><td>26.38%</td><td>20.06%</td><td>20.24%</td></tr><tr><td>context__iu</td><td>18.39%</td><td>17.97%</td><td>17.95%</td></tr></table><h2>Most of the IU gap comes from OmniMath</h2><table><tr><th>IU subset</th><th>Pilot n</th><th>Pilot score</th><th>Full n</th><th>Full score</th><th>Contribution to macro drop (pp)</th></tr><tr><td>gsm8k</td><td>16</td><td>22.73%</td><td>400</td><td>19.05%</td><td>0.92</td></tr><tr><td>math</td><td>24</td><td>25.00%</td><td>1000</td><td>22.58%</td><td>0.61</td></tr><tr><td>olympiadbench</td><td>22</td><td>23.53%</td><td>1000</td><td>19.09%</td><td>1.11</td></tr><tr><td>omnimath</td><td>24</td><td>49.38%</td><td>1000</td><td>20.81%</td><td>7.14</td></tr></table>
+<p>OmniMath contributes 7.14 percentage points, about 73% of the 9.78-point IU macro drop. This is an arithmetic decomposition, not a causal finding.
+Each subset contributes one quarter of the macro score, even though the pilot has only 24 OmniMath answers.</p>
+<p>In OmniMath, clean-answer accuracy changes from 8/10 (80%) to 85/241 (35.27%).
+Exact first-error decisions change from 5/14 (35.71%) to 112/759 (14.76%).
+Before the no-error gate, the peak is correct in 7/14 (50%) versus 191/759 (25.16%).
+Both localization and the no-error decision weaken across these populations.</p><table><tr><th>OmniMath IU outcome</th><th>Pilot</th><th>Full</th></tr><tr><td>clean</td><td>10</td><td>241</td></tr><tr><td>erroneous</td><td>14</td><td>759</td></tr><tr><td>clean_correct</td><td>8</td><td>85</td></tr><tr><td>error_correct</td><td>5</td><td>112</td></tr><tr><td>peak_correct</td><td>7</td><td>191</td></tr><tr><td>correct_peak_suppressed</td><td>2</td><td>79</td></tr></table>
+<h2>The newer promising pilot methods still need full results</h2><table><tr><th>Newer method</th><th>Pilot score</th><th>Full result in this anchor pass</th></tr><tr><td>dual__cond100_graph010</td><td>30.22%</td><td>Not included</td></tr><tr><td>traj_iu_joint_graph__mean</td><td>31.98%</td><td>Not included</td></tr><tr><td>traj_iu_joint_graph__gls</td><td>30.35%</td><td>Not included</td></tr><tr><td>sample_risk_top__equal_graph_perm</td><td>33.92%</td><td>Not included</td></tr></table>
+<p>Original Joint and graph rows above use condition1000. The newer graph uses condition100.
+Do not substitute one row for the other or claim the whole new shortlist has already failed at 21%.
+The 33.92% row is a simple equal-fusion plus permuted-graph control, not evidence of learned graph superiority.</p>
+<h2>Research decision</h2><p>Do not promote the answer-only recipe from its pilot score. Finish the registered full shortlist and restore corrected historical comparisons before opening another feature or parameter sweep.
+Investigate the full error/gate breakdown on a fixed development split, then require improvement over the matched incumbent on both tasks.
+Full cached data are exposed development data; untouched confirmation remains required.</p>
+<p>Review: 110 pilot rows × 19 original methods replayed, all 19 pilot macros and 76 full Q8 cell summaries recomputed, invalid/gate accounting fixture passed. No new fit or prediction.
+<a href="FINDINGS.json">All 19 methods and population support</a> · <a href="REVIEW.json">Review and hashes</a></p></html>

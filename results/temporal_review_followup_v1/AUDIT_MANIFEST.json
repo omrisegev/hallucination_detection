@@ -1,0 +1,32 @@
+{
+  "schema": "temporal-review-checkpoint-audit-v1",
+  "checkpoints": [
+    "diflo__innovation5__seed0__exclude0",
+    "fm__innovation5__seed0__exclude0"
+  ],
+  "contract_sha256": "bf12996944bfe42a6f9049b0f5573c98f748245d2b3bc69d5f7e5806877be94a",
+  "code_sha256": "f9ea0ab36d6d674deb346231c98d6706f3d929231ce428f3646418e0e37a1bfd",
+  "paper_deviations": {
+    "width": {
+      "ours": 128,
+      "paper_synthetic": 512
+    },
+    "max_updates": {
+      "ours": 50000,
+      "paper_synthetic": 200000
+    },
+    "margins": {
+      "repel": 1.0,
+      "curve": 0.9,
+      "task_scale_justified": false
+    },
+    "early_stop": "6 validation checkpoints without improvement"
+  },
+  "adaptations": [
+    "q15-logit-constrained PGD",
+    "reasoning telemetry condition",
+    "DOT assigned to current token",
+    "residual readout"
+  ],
+  "no_new_training": true
+}

@@ -1,0 +1,262 @@
+{
+  "protocol": "docs/experiments/COMPETITION_DIAGNOSTICS_V1.md",
+  "config": {
+    "schema": "readout-family-v1",
+    "development_only": true,
+    "seed": 20260922,
+    "bootstrap_draws": 10000,
+    "temperature": 1.0,
+    "em_max_iter": 1000,
+    "em_relative_tolerance": 1e-08,
+    "em_stable_iterations": 3,
+    "em_probability_clip": 1e-06,
+    "inner_threshold_quantiles": [
+      0.5,
+      0.99,
+      50
+    ],
+    "readouts_ext": [
+      "top30",
+      "std",
+      "iqr",
+      "frac_above_z",
+      "slope",
+      "jump",
+      "q90",
+      "first_token",
+      "boxcar8_max",
+      "page_wmax"
+    ],
+    "frac_z_threshold": 1.0,
+    "boxcar_width": 8,
+    "quantile": 0.9,
+    "page_k": 0.5,
+    "page_h_quantile": 0.5,
+    "consensus_sweeps": 2,
+    "pmf_arms": true,
+    "rosters": [
+      [
+        "top5",
+        "all"
+      ],
+      [
+        "top30",
+        "all"
+      ],
+      [
+        "onset80",
+        "all"
+      ],
+      [
+        "page_cross",
+        "all"
+      ],
+      [
+        "consensus",
+        "all"
+      ],
+      [
+        "consensus10",
+        "all"
+      ],
+      [
+        "selected",
+        "all"
+      ],
+      [
+        "selected_all",
+        "all"
+      ],
+      [
+        "shuffle",
+        "all"
+      ],
+      [
+        "shuffle_consensus",
+        "all"
+      ]
+    ],
+    "pb_extra_rosters": [
+      [
+        "top5",
+        "errors"
+      ]
+    ],
+    "channel_drop": {
+      "consensus10": [
+        "energy_level"
+      ]
+    },
+    "frozen_profiles_sha256": "f932ad81095a0c80937a39c0fe55bf2e7421dae9279f529a9174db858a94f5f3",
+    "frozen_shuffle_sha256": "60d6ba3aea2304256099f69e2a328fd53a4394e8c35aeada8498078ecf73a065",
+    "reference_run": "C:/Users/omris/TAU/hallucination_detection/.worktrees/cumulative-vote-fusion-v2/results/cumulative_vote_fusion_v2",
+    "anchor_parity_strict": true,
+    "paths": {
+      "roster": "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_full_benchmark_v3\\evaluation\\JOINED.json",
+      "joined": "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_full_benchmark_v3\\evaluation\\JOINED.npz",
+      "folds": "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_source_group_audit_v1\\FOLDS_V2.json",
+      "tokens": "C:\\Users\\omris\\TAU\\hallucination_detection\\.worktrees\\token-probability-fusion-v1\\results\\token_probability_fusion_v1\\TOKEN_MATRICES.npz",
+      "mindgap": "C:\\Users\\omris\\TAU\\hallucination_detection\\.worktrees\\token-probability-fusion-v1\\results\\token_probability_fusion_v1\\EVIDENCE_DROP.npz",
+      "ct7": "C:\\Users\\omris\\TAU\\hallucination_detection\\.worktrees\\token-probability-fusion-v1\\results\\chosen_token_calibration_v1\\CT7_DEV_SCORES.npz",
+      "ct7_manifest": "C:\\Users\\omris\\TAU\\hallucination_detection\\.worktrees\\token-probability-fusion-v1\\results\\chosen_token_calibration_v1\\FROZEN_CANDIDATE_CT7.json",
+      "token_fusion": "C:\\Users\\omris\\TAU\\hallucination_detection\\.worktrees\\token-probability-fusion-v1\\results\\claude_feature_bank_token_lsml_v1\\OOF_SCORES.npz",
+      "prm_metadata": "C:\\Users\\omris\\TAU\\hallucination_detection\\dataset_cache\\four_localization\\prmbench_qwen25math7b_full\\prmbench_prm.pkl",
+      "output": "C:\\Users\\omris\\TAU\\hallucination_detection\\.worktrees\\readout-quickest-detection-v1\\results\\readout_family_v1"
+    }
+  },
+  "profiles_full_sha256": "203aa4280ed3226033c88edefc601f5994a473893aa4f721f752e05f0c1f1b19",
+  "shuffled_full_sha256": "ca60305a5db076c4b0651ae497b6a4667012101279c8413139ae75a98c1ab0b6",
+  "oof_step_scores_sha256": "fe51e9e52856687a0af1008c82d09c7ec0ae803ad1c1ab3601fe3d2555ae53c6",
+  "ct7_sha256": "9d10d2ff04402f56d6b04c643bfc87a55413786e67d721ad4a28b1578cd3b430",
+  "tokens_sha256": "ab4943bf72b3d27436721d7e2ce8d95dd1254e10d3d05b7c25b65706c1c729e5",
+  "joined_sha256": "31c1fe06ac62f7dbd3f3e9fe5653148db718f32258bb45a246992476da0cb2c2",
+  "labels_used_for": "evaluation only; no fitting, selection or threshold choice",
+  "bootstrap_draws": 2000,
+  "strata": [
+    "steps_2_to_5",
+    "steps_6_to_10",
+    "steps_11_plus"
+  ],
+  "bins": 10,
+  "families": {
+    "peak": [
+      "max",
+      "q90",
+      "top10",
+      "top30",
+      "log_top5",
+      "boxcar8_max"
+    ],
+    "spread": [
+      "std",
+      "iqr",
+      "frac_above_z"
+    ],
+    "trend": [
+      "slope",
+      "jump"
+    ],
+    "sequential": [
+      "cusum_top5",
+      "page_wmax",
+      "onset80"
+    ],
+    "first_token": [
+      "first_token"
+    ],
+    "mean": [
+      "mean"
+    ]
+  },
+  "degenerate_tie_rate": 0.9,
+  "deltas": [
+    0.25,
+    0.5,
+    1.0
+  ],
+  "primary_delta": 0.5,
+  "fused": [
+    "ct7",
+    "token_lsml",
+    "top5__all__soft__equal",
+    "top5__all__pmf__equal"
+  ],
+  "series": 191,
+  "degenerate_locators": [
+    "dominant_freq16__frac_above_z",
+    "dominant_freq16__max",
+    "dominant_freq16__q90",
+    "dominant_freq16__top10",
+    "dominant_freq16__top5",
+    "logprob_margin__max",
+    "top15_turnover__first_token",
+    "top15_turnover__frac_above_z",
+    "top15_turnover__max",
+    "top15_turnover__q90",
+    "top15_turnover__top10",
+    "top15_turnover__top5",
+    "top50_js__first_token",
+    "top50_js__frac_above_z",
+    "top50_js__max",
+    "top50_js__page_wmax",
+    "top50_js__q90",
+    "top50_js__top10",
+    "top50_js__top5"
+  ],
+  "stages_run": "a1",
+  "seconds": 423.51001209998503,
+  "outputs": {
+    "A1_DRIFT.png": {
+      "bytes": 215236,
+      "sha256": "b51c5b93ad282b01c5006db94b750e37c7ff3f713fefe05941194823694e06e4"
+    },
+    "A1_DRIFT_BY_POSITION.csv": {
+      "bytes": 1691013,
+      "sha256": "596c51d5266026e286457dadcbd6bb5bcb1703eaaccff0306d069d5d51fca9d7"
+    },
+    "A1_DRIFT_BY_STEP_INDEX.csv": {
+      "bytes": 699034,
+      "sha256": "ce5ef888d4e0a0ee27ff299750fdc0cef303ff36d35b8f349d9d68ec07433450"
+    },
+    "A1_DRIFT_SLOPES.csv": {
+      "bytes": 306755,
+      "sha256": "ac0e036ba774f1af3f5bfd87492c2166d350aa87c19decb3bddce1707bac71ca"
+    },
+    "A1_MISS_GEOMETRY.csv": {
+      "bytes": 5701,
+      "sha256": "a30cf21f5f2e1ae8e54de06b51a155af71363c8ac1db72a2fed42362d7242379"
+    },
+    "A1_RANK_DRIFT.csv": {
+      "bytes": 101179,
+      "sha256": "49d7d8283a70b8739563ae2ca3d66f7b00b5c8f667fb3779e28a8493ddafe235"
+    },
+    "A1_TOKEN_DRIFT.csv": {
+      "bytes": 38447,
+      "sha256": "18d1a96d31bc4b8220839af542b0003ba73855717575766131780907c952fa96"
+    },
+    "A2_COMPLEMENTARITY.png": {
+      "bytes": 75636,
+      "sha256": "6e7cba975bd74876ca483ae7d0d54d092bfec8a5685e6ff15e5a792b462edd49"
+    },
+    "A2_CONDITIONAL_HITS.csv": {
+      "bytes": 1152569,
+      "sha256": "f5c092209e035b6d2e8353ac2028e0849f2a453953ef2a89618c128ede6aaaff"
+    },
+    "A2_FAMILY_COMPLEMENTARITY.csv": {
+      "bytes": 24831,
+      "sha256": "60545f6e471007d3db8c5865b1726da5ba8558a822ea0983dd8d2489c3fad8d7"
+    },
+    "A2_HIT_MATRIX.npz": {
+      "bytes": 316553,
+      "sha256": "5513313cfce7f8e5cd82c01d29feab76db9e988b6f115ae068c890e2822573d0"
+    },
+    "A2_PHI.csv": {
+      "bytes": 150982,
+      "sha256": "9a8e64db42ea1442381670ecfbc6c664feac0ef3d97006d71473b20ad760a644"
+    },
+    "A2_TIED_RATES.csv": {
+      "bytes": 25474,
+      "sha256": "0741084525ba4d78cb8b4ce4db1a9bb133a08d6699796a74f541bb3dc4f05e02"
+    },
+    "A2_UNION_CEILINGS.csv": {
+      "bytes": 127457,
+      "sha256": "25172cb47b9fcd82e95347cc9f5ce882f00d7e3a2e52db7e22d4a8ae0781cf5b"
+    },
+    "A3_DECISION_RULES.csv": {
+      "bytes": 12375,
+      "sha256": "cf6a075410d936cd177575606c158459bd966e178659789cb0747afb46d661d8"
+    },
+    "A3_DECISION_RULES.png": {
+      "bytes": 55523,
+      "sha256": "cecb84d09200cbd96bec39de12f2cefbd672c9a2301444df2df6c6b3fc56bae8"
+    },
+    "run.err": {
+      "bytes": 270,
+      "sha256": "9210ac181d5228e88637784a29782b0148b535007b3616f0a97a04232918ffad"
+    },
+    "run.log": {
+      "bytes": 434,
+      "sha256": "30580253c796e081ee13f8048a73ed854690664b6fb4a5861d68c0ea2c872c89"
+    }
+  }
+}

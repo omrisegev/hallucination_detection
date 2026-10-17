@@ -1,0 +1,47 @@
+                      macro8  within_TLdecile  within_TL20  per_fold_mean
+detector                                                                 
+D1_upcr_full          0.7734           0.7447       0.7436         0.7757
+D2_lsml_cont_good5    0.7548           0.7359       0.7341         0.7561
+D3_lsml_full          0.6848           0.6433       0.6397         0.6855
+D4_equal_full         0.7812           0.7507       0.7514         0.7817
+D5_epr                0.7418           0.7700       0.7722         0.7422
+CTRL_epr_plus_loglen  0.7771           0.7690       0.7727         0.7777
+
+null: permute labels within cell x trace-length decile (100)
+  D1_upcr_full           null mean 0.5827 [0.5714,0.5968]  obs 0.7734  obs-nullmean +0.1907
+  D2_lsml_cont_good5     null mean 0.5771 [0.5647,0.5900]  obs 0.7548  obs-nullmean +0.1776
+  D3_lsml_full           null mean 0.5942 [0.5845,0.6055]  obs 0.6848  obs-nullmean +0.0906
+  D4_equal_full          null mean 0.5791 [0.5676,0.5931]  obs 0.7812  obs-nullmean +0.2021
+  D5_epr                 null mean 0.5011 [0.4877,0.5165]  obs 0.7418  obs-nullmean +0.2407
+  CTRL_epr_plus_loglen   null mean 0.6102 [0.6012,0.6202]  obs 0.7771  obs-nullmean +0.1669
+
+D1-D2 within TL decile: +0.0088 ; D1-D5: -0.0252 ; D4-D1: +0.0060 ; D1-CTRL: raw -0.0037
+PRMBench err vs multi_solutions D1_upcr_full: AUROC 0.9216   within TL decile 0.9709
+PRMBench err vs multi_solutions D2_lsml_cont_good5: AUROC 0.9811   within TL decile 0.9811
+PRMBench err vs multi_solutions D4_equal_full: AUROC 0.8872   within TL decile 0.9426
+PRMBench err vs multi_solutions D5_epr: AUROC 0.9479   within TL decile 0.9244
+  trace_length alone: 0.2068  steps alone: 0.4124  median TL err/ms: 284.0 555.5  median steps err/ms: 11.0 13.0
+
+PRMBench erroneous non-control: P(step is error | within-answer rank of S)
+0     0.604
+1     0.369
+2     0.260
+3     0.180
+4     0.149
+5     0.124
+6     0.106
+7     0.089
+8     0.083
+9     0.076
+10    0.054
+by relative rank decile:
+0    0.461
+1    0.251
+2    0.178
+3    0.129
+4    0.110
+5    0.099
+6    0.082
+7    0.070
+8    0.068
+9    0.051

@@ -1,0 +1,44 @@
+{
+  "schema": "joint-lsml-existing-localization-analysis-plan-v1",
+  "experiment_id": "JOINT_LSML_EXISTING_LOCALIZATION_V1",
+  "scope": "RETROSPECTIVE_OPENED_DEVELOPMENT",
+  "candidate": "joint_lsml23_hierarchical_v1_1",
+  "controls": [
+    "iu_pcr_active23",
+    "equal_family_active23",
+    "fixed_family_continuous_lsml_active23"
+  ],
+  "candidate_slots": 1,
+  "efficacy_control_slots": 3,
+  "pairwise_diagnostic_cap": 32768,
+  "pairwise_diagnostic_sampling": "deterministic_uniform_pair_sample_when_population_exceeds_cap",
+  "fit_token_cap": 60000,
+  "k_range": [3, 4, 6, 8],
+  "k_selection": "median_ari_then_mean_ari_then_minimum_ari_then_smaller_k",
+  "minimum_held_admissible_fraction": 0.95,
+  "minimum_weight_map_score_spearman": 0.5,
+  "weight_map_policy": "hierarchical_joint_irrevocably_primary; inverse and same-partition maps diagnostics only",
+  "fit_seed": 2026090405,
+  "processbench": {
+    "models": ["qwen3_4b", "qwen3_8b"],
+    "subsets": ["gsm8k", "math", "olympiadbench", "omnimath"],
+    "folds": 5,
+    "fold_namespace": "joint-lsml-existing-localization-v1",
+    "bootstrap_draws": 2000,
+    "bootstrap_seed": 2026090406,
+    "bootstrap_strata": "subset_x_frozen_fold",
+    "primary_metric": "equal_model_mean_equal_subset_macro_f1",
+    "detector": "max_token_risk",
+    "locator": "argmax_fixed_top10_mean_step_risk"
+  },
+  "prmbench": {
+    "bootstrap_draws": 2000,
+    "bootstrap_seed": 2026090407,
+    "primary_metric": "error_positive_step_auroc",
+    "reducer": "max_token_risk_inside_official_step_span"
+  },
+  "intervals": "paired_two_sided_95_percentile_descriptive",
+  "multiplicity": "one candidate versus three frozen controls; all opened-development contrasts descriptive",
+  "promotion_allowed": false,
+  "generalization_claim_allowed": false
+}

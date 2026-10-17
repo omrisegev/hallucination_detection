@@ -1,0 +1,15 @@
+{
+  "schema": "monday-implementation-clarifications-v1",
+  "frozen_before": "experiment2, position/decision/LR, combined and comparator arms",
+  "content_selection": "Keep committed matched control: equal between-group weights on the same group scores and within weights. Also report DS-filtered simple feature average; optional Omri clarification has no reply yet.",
+  "secondary_intervals": "50,000 shared source-question bootstrap draws, seed 20261003; descriptive 95% only. Original/reference and selected content variant, all recipes: position versus CONTENT under q80, decision rules versus q80 for CONTENT, HEM versus MEAN under each between method, and matched non-AUC endpoints. Combined recipe and component controls receive the same intervals.",
+  "ALL_EQ_POS": "Append position to the unfiltered bank and average. The broad ungrouped-DS phrase in PROTOCOL applies to DS_FILTER_EQ; ALL_EQ remains its unfiltered matched control.",
+  "raw_digit_R2": "Use saved pre-answer-standardization digit values as raw channels in the per-cell global standardization. No new digit extraction.",
+  "position_choice": "Registered primary endpoint is content-only. Position variants are diagnostic; the combined candidate retains CONTENT. No label-based position selection is introduced.",
+  "combined_selection": "Keep the within/between recipe from LEVEL selection; choose its full-coverage input variant by equal-weight eight-bank matched advantage. Test BASE, LEVEL_ONLY, INPUT_ONLY, COMBINED on all cells. Highest full-coverage matched advantage wins, deterministic tie order BASE, LEVEL_ONLY, INPUT_ONLY, COMBINED.",
+  "runtime": "Content runtime_s is elapsed shared cell fit/evaluation time, not isolated recipe runtime; do not interpret it as method speed.",
+  "step_retention": "Core chunks keep original-bank main scores and experiment-2 MEAN_DS/MEAN_MOM input comparisons. Experiment STEP_SCORES.npz holds the selected development content recipe and matched EQ for all banks; final combined scores are separately locked only after Omri chooses the decision.",
+  "undefined_metrics": "Correct-control-only PRMB subsets have undefined PRMScore; PB F1 requires both clean and erroneous answers. Keep unknown entries blank, not zero.",
+  "disk": "Notify Omri: projected next stages 250-400 MB, compress intermediate metric tables and stop before free space drops below 100 MB. No frozen deletion, overwrite or worktree move.",
+  "review": "Every scientific result remains CLAUDE_PENDING; no independent review is fabricated."
+}

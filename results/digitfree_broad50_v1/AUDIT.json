@@ -1,0 +1,88 @@
+{
+  "checks": [
+    "all implementation and compact source hashes unchanged",
+    "all fold weight maps replay",
+    "independent sklearn within-answer AUC",
+    "independent eight-cell PB formula",
+    "both historical non-digit PB anchors replay",
+    "native coverage / invalid-as-failure accounting"
+  ],
+  "independent_metrics": {
+    "continuous": {
+      "pb": 0.3776320971678758,
+      "within": 0.7479257597346517,
+      "within_n": 6030
+    },
+    "entropy_H1": {
+      "pb": 0.36347608376893104,
+      "within": 0.7301113611124387,
+      "within_n": 6030
+    },
+    "equal50": {
+      "pb": 0.37896260023229245,
+      "within": 0.74890166041546,
+      "within_n": 6030
+    },
+    "innovation5": {
+      "pb": 0.3983135319816689,
+      "within": 0.7602926245660656,
+      "within_n": 6030
+    },
+    "joint": {
+      "pb": 0.3804845589948068,
+      "within": 0.746069782403117,
+      "within_n": 6030
+    },
+    "joint_balanced": {
+      "pb": 0.37990349437502346,
+      "within": 0.7460459620032179,
+      "within_n": 6030
+    },
+    "original4": {
+      "pb": 0.37474898261944,
+      "within": 0.7534358509472404,
+      "within_n": 6030
+    }
+  },
+  "input_shape": [
+    145597,
+    50
+  ],
+  "manifest_sha256": "0281b4c12cceb72b78fc25cb3a45bd6d46c40048c09472cdcd1bd36eca9a0e30",
+  "missing_entries": 0,
+  "native_failure_accounting": {
+    "continuous": {
+      "answers": 13769,
+      "pb_counting_invalid_as_failures": 0.3776320971678758,
+      "within_available": 0.7479257597346517,
+      "within_n": 6030
+    },
+    "entropy_H1": {
+      "answers": 13769,
+      "pb_counting_invalid_as_failures": 0.36347608376893104,
+      "within_available": 0.7301113611124387,
+      "within_n": 6030
+    },
+    "equal50": {
+      "answers": 13769,
+      "pb_counting_invalid_as_failures": 0.37896260023229245,
+      "within_available": 0.74890166041546,
+      "within_n": 6030
+    },
+    "joint": {
+      "answers": 13769,
+      "pb_counting_invalid_as_failures": 0.3804845589948068,
+      "within_available": 0.746069782403117,
+      "within_n": 6030
+    },
+    "joint_balanced": {
+      "answers": 13769,
+      "pb_counting_invalid_as_failures": 0.37990349437502346,
+      "within_available": 0.7460459620032179,
+      "within_n": 6030
+    }
+  },
+  "score_replay_max_absolute_difference": 0.0,
+  "score_sha256": "0b10857892cb32dafbdc1d11b947323e57de54ca530efcfc4a31438f10a2b5a3",
+  "status": "PASS"
+}

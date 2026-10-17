@@ -1,0 +1,104 @@
+{
+  "schema": "reasoning_localization_p0_s3a_execution_registry_v1",
+  "state_id": "P0_S3A_RAW_ENTROPY_REPRESENTATION_BRIDGE",
+  "status": "FROZEN_BEFORE_RUN",
+  "purpose": "First representation-only retrospective bridge from P0-S2B. Keep the exact historical rows, 40/20 roles, purely-local detector construction, step-max reducer, threshold objective, access tier and grouped bootstrap while replacing only the fitted family6 level risk curve with raw token entropy. The IU29 representation bridge remains unopened.",
+  "source_commit": "e2123168ddd0a0c07ebee7e904c94a4610615eed",
+  "runner": "scripts/reasoning_localization/run_phase0_raw_entropy_representation_bridge.py",
+  "runner_sha256": "fc741d3389e1eff7d3202c4cd7b765afa5b2b3bc70d48642dfa8804c026c53c1",
+  "variant_id": "P0_S3A_RAW_ENTROPY_STEP_MAX_LOCAL_DETECTOR",
+  "parent_variant_id": "P0_S2B_FAMILY6_STEP_MAX_LOCAL_DETECTOR",
+  "single_changed_factor": {
+    "factor": "local_risk_representation",
+    "from": "fitted family6 level risk curve",
+    "to": "raw token entropy"
+  },
+  "fixed_factors": {
+    "models": ["qwen3_8b", "llama31_8b"],
+    "families": ["gsm8k", "math", "olympiadbench", "omnimath"],
+    "population": "historical_stage4_eight_cell_audit",
+    "calibration_role": "historical deterministic 40 percent per family",
+    "evaluation_role": "historical deterministic 20 percent audit per family",
+    "answer_detector_construction": "maximum of the same token-risk curve used by the locator",
+    "step_reducer": "step_max_token_argmax",
+    "threshold_objective": "historical calibration-role ProcessBench macro F1 within each scorer cell",
+    "threshold_tie_break": "first maximum in stable descending risk sweep",
+    "scorer_copy_grouping": "same source-question draw carries both scorer copies",
+    "access_tier": "A",
+    "supervision": "labels only for the unchanged historical threshold and metrics"
+  },
+  "raw_entropy_contract": {
+    "curve": "token_entropies",
+    "orientation": "higher_is_riskier",
+    "answer_detector": "max_t token_entropy[t]",
+    "step_locator": "token argmax mapped to known step span",
+    "labels_seen_during_representation_construction": false
+  },
+  "bootstrap_draws": 20000,
+  "bootstrap_seed": 2026082901,
+  "bootstrap_contract": "Paired source-question bootstrap. A family-unit draw carries both scorer copies and both S2B/S3A predictions; family estimates are averaged before the four-family macro contrast.",
+  "s2b_execution_registry": {
+    "path": "results/reasoning_localization_03662_v1/phase_0/P0_S2B_EXECUTION_REGISTRY.json",
+    "sha256": "071e12e6450d2267ac2f60b65bec731a916906457686688cf07bfd6d15e7f446"
+  },
+  "s2b_artifacts": [
+    {
+      "role": "per_question",
+      "path": "results/reasoning_localization_03662_v1/phase_0/p0_s2b_pure_local_detector_bridge/P0_S2B_LOCAL_PER_QUESTION.csv",
+      "sha256": "d2f2a8e6598342f73c8bb19a56c923538a5f0983c1db20d33de64bee3c3fe108"
+    },
+    {
+      "role": "cell_metrics",
+      "path": "results/reasoning_localization_03662_v1/phase_0/p0_s2b_pure_local_detector_bridge/P0_S2B_LOCAL_CELL_METRICS.csv",
+      "sha256": "9c6051eb4fab9f5f27663fac3174d3509fa783691e31744ac26b084ca2dfa8fd"
+    },
+    {
+      "role": "population",
+      "path": "results/reasoning_localization_03662_v1/phase_0/p0_s2b_pure_local_detector_bridge/P0_S2B_POPULATION.json",
+      "sha256": "fdd9714cc1bfdf334b394c5f8ac52b24350ff97560af89bf9f7dcd475d16085c"
+    },
+    {
+      "role": "verification",
+      "path": "results/reasoning_localization_03662_v1/phase_0/p0_s2b_pure_local_detector_bridge/P0_S2B_VERIFICATION.json",
+      "sha256": "ab6381dd3574bf82deac0239e516d3eed8b9ae81aa0d00c0b631bc6c96b3a829"
+    },
+    {
+      "role": "run_manifest",
+      "path": "results/reasoning_localization_03662_v1/phase_0/p0_s2b_pure_local_detector_bridge/RUN_MANIFEST.json",
+      "sha256": "3974cfb649bbf6e80acf0baa2448128b85bf691219cbc0020512ee808bce79a7"
+    }
+  ],
+  "code_dependencies": [
+    {
+      "path": "scripts/reasoning_localization/run_phase0_pure_local_detector_bridge.py",
+      "sha256": "48e1f74d7c4e6b93e394d77d43a70478b44e13df4211e782e565e7032dcf5448"
+    }
+  ],
+  "expected_population": {
+    "n_cells": 8,
+    "n_scorer_rows": 1270,
+    "n_source_question_groups": 635,
+    "source_question_group_sha256": "d12d651cad9bec326686c2c83070644d22ca058ed57e942f683452050e757a05"
+  },
+  "expected_parent": {
+    "macro_f1": 0.3065027012935364,
+    "reconstruction_tolerance": 1e-12
+  },
+  "hard_fail_conditions": [
+    "any registered S2B source, artifact, dependency, runner or registry hash differs",
+    "any S2B unit, target, locator, prediction, score, threshold or metric fails reconstruction within 1e-12",
+    "the 1270-row, 635-source-question population or its grouping hash changes",
+    "any factor besides the local-risk representation changes",
+    "raw token entropy is not used identically by both the max detector and step-max locator",
+    "a label enters representation construction",
+    "the IU29 or any later split/population bridge is opened in the same run"
+  ],
+  "mutation_boundary": {
+    "new_model_inference": false,
+    "gpu": false,
+    "source_mutation": false,
+    "method_fit": "none for raw entropy; historical labels remain confined to threshold selection and metrics",
+    "allowed_write_root": "results/reasoning_localization_03662_v1/phase_0/p0_s3a_raw_entropy_representation_bridge"
+  },
+  "promotion": "AUDIT_ONLY_NO_PROMOTION"
+}

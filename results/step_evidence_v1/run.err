@@ -1,0 +1,23 @@
+Traceback (most recent call last):
+  File "C:\Users\omris\TAU\hallucination_detection\.worktrees\readout-quickest-detection-v1\scripts\experiments\step_evidence_v1.py", line 253, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\omris\TAU\hallucination_detection\.worktrees\readout-quickest-detection-v1\scripts\experiments\step_evidence_v1.py", line 249, in main
+    report(d, html=False)
+    ~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\omris\TAU\hallucination_detection\.worktrees\readout-quickest-detection-v1\scripts\experiments\cvf_v2\report.py", line 159, in report
+    anchor_parity(d,pb,pr)
+    ~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\omris\TAU\hallucination_detection\.worktrees\readout-quickest-detection-v1\scripts\experiments\cvf_v2\report.py", line 124, in anchor_parity
+    ref=Path(ref);rpb=json.loads((ref/'PB_METRICS.json').read_text(encoding='utf8'));rpr=json.loads((ref/'PRM_RANKING_METRICS.json').read_text(encoding='utf8'))
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\DELL\AppData\Local\Programs\Python\Python313\Lib\pathlib\_local.py", line 546, in read_text
+    return PathBase.read_text(self, encoding, errors, newline)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\DELL\AppData\Local\Programs\Python\Python313\Lib\pathlib\_abc.py", line 632, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\DELL\AppData\Local\Programs\Python\Python313\Lib\pathlib\_local.py", line 537, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '..\\results\\readout_family_v1\\PB_METRICS.json'

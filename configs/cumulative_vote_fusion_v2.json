@@ -1,0 +1,24 @@
+{
+  "schema": "cumulative-vote-fusion-v2",
+  "development_only": true,
+  "seed": 20260922,
+  "bootstrap_draws": 10000,
+  "temperature": 1.0,
+  "em_max_iter": 1000,
+  "em_relative_tolerance": 1e-8,
+  "em_stable_iterations": 3,
+  "em_probability_clip": 1e-6,
+  "inner_threshold_quantiles": [0.5, 0.99, 50],
+  "paths": {
+    "roster": "C:/Users/omris/TAU/hallucination_detection/results/localization_full_benchmark_v3/evaluation/JOINED.json",
+    "joined": "C:/Users/omris/TAU/hallucination_detection/results/localization_full_benchmark_v3/evaluation/JOINED.npz",
+    "folds": "C:/Users/omris/TAU/hallucination_detection/results/localization_source_group_audit_v1/FOLDS_V2.json",
+    "tokens": "C:/Users/omris/TAU/hallucination_detection/.worktrees/token-probability-fusion-v1/results/token_probability_fusion_v1/TOKEN_MATRICES.npz",
+    "mindgap": "C:/Users/omris/TAU/hallucination_detection/.worktrees/token-probability-fusion-v1/results/token_probability_fusion_v1/EVIDENCE_DROP.npz",
+    "ct7": "C:/Users/omris/TAU/hallucination_detection/.worktrees/token-probability-fusion-v1/results/chosen_token_calibration_v1/CT7_DEV_SCORES.npz",
+    "ct7_manifest": "C:/Users/omris/TAU/hallucination_detection/.worktrees/token-probability-fusion-v1/results/chosen_token_calibration_v1/FROZEN_CANDIDATE_CT7.json",
+    "token_fusion": "C:/Users/omris/TAU/hallucination_detection/.worktrees/token-probability-fusion-v1/results/claude_feature_bank_token_lsml_v1/OOF_SCORES.npz",
+    "prm_metadata": "C:/Users/omris/TAU/hallucination_detection/dataset_cache/four_localization/prmbench_qwen25math7b_full/prmbench_prm.pkl",
+    "output": "../results/cumulative_vote_fusion_v2"
+  }
+}

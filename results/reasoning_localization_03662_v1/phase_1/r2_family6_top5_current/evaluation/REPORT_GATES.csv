@@ -1,0 +1,7 @@
+gate_id,observed,threshold,direction,passed,status,evidence_status,notes
+P1_SCORE_FREEZE_COMPLETE,13,13,contract,true,COMPLETE,DEVELOPMENT,exact registered 12 ProcessBench cells plus PRMBench cell
+P1_LABEL_FIREWALL,labels opened after score-freeze manifest,no fit-side labels or targets,contract,true,COMPLETE,DEVELOPMENT,score records and manifest declare labels_seen_during_fit=false and targets_accessed_during_fit=false
+P1_FINITE_AND_COMPLETE_SCORES,171203,all registered step scores finite; no missing-score population change,contract,true,COMPLETE,DEVELOPMENT,validated after frozen-score checksum verification
+P1_GROUP_SAFE_FOLDS,1,one fold per source-question group across scorer copies,contract,true,COMPLETE,DEVELOPMENT,checked on family x source-group keys
+P1_R3_EXACT_ALIAS,NOT_APPLICABLE,max absolute reconstruction error <= 1e-12,contract,true,COMPLETE,DEVELOPMENT,strict-release alias check applies only to R3
+P1_PRM_SOURCE_STRATA,membership absent,prm_train/prm_test membership for source-stratum reporting,contract,NA,BLOCKED,DEVELOPMENT,"the sealed prmbench_steps.npz evaluator exposes response IDs, source_idx groups, error families, and labels but not prm_train/prm_test membership"

@@ -1,0 +1,208 @@
+{
+  "n": 256,
+  "rho": 0.9,
+  "replicate": 14,
+  "jump": false,
+  "source": {
+    "seed": 811362509,
+    "source_scale": {
+      "mean": 0.13060720281463994,
+      "sd": 0.7081084820459767
+    }
+  },
+  "model": {
+    "observation_variance": 0.1542987943003918,
+    "scales": {
+      "raw": {
+        "mean": 6.938893903907228e-18,
+        "sd": 0.9999999999999999
+      },
+      "kalman_cold": {
+        "mean": 0.032999364404406026,
+        "sd": 0.5985452891602379
+      },
+      "imm_cold": {
+        "mean": 0.00769110266891067,
+        "sd": 0.9123131023148049
+      },
+      "kalman_warm": {
+        "mean": -0.024418724495019424,
+        "sd": 0.5795803438992031
+      },
+      "imm_warm": {
+        "mean": 0.006427787868298208,
+        "sd": 0.9116699238007104
+      }
+    }
+  },
+  "methods": {
+    "raw": {
+      "valid": true,
+      "gate_open": false,
+      "gate": {
+        "bic": [
+          737.586885169581,
+          752.2953406191612
+        ],
+        "bic_gain": -14.708455449580129,
+        "log_likelihood": [
+          -363.24826514031093,
+          -362.2847266983817
+        ],
+        "duplicated_fixed_parameter_bic_gain": -14.860820107401544,
+        "two_components_selected": false,
+        "threshold": null,
+        "prediction": -1,
+        "means": [
+          -0.6416091297980273,
+          0.7357501469915313
+        ],
+        "variances": [
+          0.5290544522282493,
+          0.5268680890958068
+        ],
+        "weights": [
+          0.5341744593367587,
+          0.46582554066324133
+        ],
+        "lag1_correlation": 0.8240317860991265,
+        "warnings": []
+      }
+    },
+    "kalman_cold": {
+      "valid": true,
+      "gate_open": true,
+      "gate": {
+        "bic": [
+          737.5868851695809,
+          726.9459191400662
+        ],
+        "bic_gain": 10.640966029514743,
+        "log_likelihood": [
+          -363.2482651403109,
+          -349.6100159588342
+        ],
+        "duplicated_fixed_parameter_bic_gain": 35.8380228507882,
+        "two_components_selected": true,
+        "threshold": 0.11856912819443949,
+        "prediction": 0,
+        "means": [
+          0.9267250361814544,
+          -0.6895867797925754
+        ],
+        "variances": [
+          0.4320235039109514,
+          0.3082250074198369
+        ],
+        "weights": [
+          0.4266421695228486,
+          0.5733578304771514
+        ],
+        "lag1_correlation": 0.989629089111914,
+        "warnings": []
+      }
+    },
+    "imm_cold": {
+      "valid": true,
+      "gate_open": false,
+      "gate": {
+        "bic": [
+          737.5868851695809,
+          752.5549542864129
+        ],
+        "bic_gain": -14.968069116831998,
+        "log_likelihood": [
+          -363.2482651403109,
+          -362.41453353200757
+        ],
+        "duplicated_fixed_parameter_bic_gain": -15.380047441905283,
+        "two_components_selected": false,
+        "threshold": null,
+        "prediction": -1,
+        "means": [
+          0.6118773911890204,
+          -0.7504782188297576
+        ],
+        "variances": [
+          0.5668592506444406,
+          0.5090590717753604
+        ],
+        "weights": [
+          0.5508680797515219,
+          0.44913192024847826
+        ],
+        "lag1_correlation": 0.9259416948465475,
+        "warnings": []
+      }
+    },
+    "kalman_warm": {
+      "valid": true,
+      "gate_open": true,
+      "gate": {
+        "bic": [
+          737.5868851695809,
+          728.3720467396917
+        ],
+        "bic_gain": 9.214838429889255,
+        "log_likelihood": [
+          -363.2482651403109,
+          -350.32307975864694
+        ],
+        "duplicated_fixed_parameter_bic_gain": 32.98576765153722,
+        "two_components_selected": true,
+        "threshold": 0.2907398915569629,
+        "prediction": 14,
+        "means": [
+          1.1087045378313618,
+          -0.527224754717436
+        ],
+        "variances": [
+          0.5027619029560152,
+          0.3740978803771624
+        ],
+        "weights": [
+          0.3222784487806398,
+          0.6777215512193602
+        ],
+        "lag1_correlation": 0.9898809937510393,
+        "warnings": []
+      }
+    },
+    "imm_warm": {
+      "valid": true,
+      "gate_open": false,
+      "gate": {
+        "bic": [
+          737.5868851695809,
+          752.7305575895813
+        ],
+        "bic_gain": -15.143672420000371,
+        "log_likelihood": [
+          -363.2482651403109,
+          -362.50233518359175
+        ],
+        "duplicated_fixed_parameter_bic_gain": -15.731254048242029,
+        "two_components_selected": false,
+        "threshold": null,
+        "prediction": -1,
+        "means": [
+          0.6083832107046175,
+          -0.7484575678021964
+        ],
+        "variances": [
+          0.57171906148968,
+          0.5115737623359
+        ],
+        "weights": [
+          0.5516178314052919,
+          0.4483821685947082
+        ],
+        "lag1_correlation": 0.9254384441546154,
+        "warnings": []
+      }
+    }
+  },
+  "uid": "n256_rho90_jump0_rep14",
+  "manifest_sha256": "22f4750b34b9976b6653f42be856108423af228041f6bb4978270ac52dc711de",
+  "array_sha256": "7724eeca351bd03becaa7faa4daf5389f4b5b6df3206798bfa7f87606b085a3e"
+}

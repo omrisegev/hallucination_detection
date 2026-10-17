@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fusion research: eight-hour progress update — 7 September 2026</title>
+<style>
+:root{color-scheme:light;--ink:#182839;--muted:#526779;--line:#d9e2e9;--blue:#145d82;--paper:#fff;--bg:#f2f6f8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 system-ui,sans-serif}main{max-width:1150px;margin:auto;padding:32px 22px 70px}h1{font-size:2.1rem;line-height:1.2}h2{font-size:1.4rem;margin-top:2rem}a{color:var(--blue)}p{max-width:95ch}.card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:20px;margin:20px 0}.warning{border-left:6px solid #b76816}.muted{color:var(--muted)}.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:15px}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line);vertical-align:top}th{background:#e9f1f5}.flow{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.flow span{border:1px solid #b9d0dd;background:#edf6fa;border-radius:9px;padding:10px}.flow b{color:var(--blue)}code{font-size:.9em}li{margin-bottom:8px}@media print{body{background:#fff}main{padding:0}.card{break-inside:avoid}}
+</style>
+</head>
+<body><main>
+<p class="muted">7 September 2026 · Work window approximately 05:34–13:34 Israel time. The latest review finished while preparing this update.</p>
+<h1>We developed the fusion method and repaired the benchmark. We do not yet have a proven winner.</h1>
+<p>The record contains thirteen completed stages in this window (305–317), followed by trajectory experiment 318. These are experiments, mathematical audits and historical rescoring stages, not thirteen new algorithms. Step318 scoring and comparisons finished within the window; its same-session review has now passed. Its detailed experiment report is still pending.</p>
+<div class="card"><div class="flow" aria-label="Our fusion architecture"><span>One provided answer</span><b>→</b><span>N windows × P features</span><b>→</b><span>IU-PCR / Joint L-SML</span><b>→</b><span>Fused trajectory</span><b>→</b><span>First-error step or no error</span></div>
+<p>Fusion remains the core. Graphs, prediction features, window selection and IMM serve it. Current fitting uses each answer's own unlabeled trace under fixed declared rules. The 110 answers are evaluation cases, not a pool used to learn one common fusion. All recent work used cached, one-pass, teacher-forced gray-box traces; no new model inference was run.</p></div>
+<h2>What was done</h2>
+<p class="muted">Times are local review/report file milestones, not exact runtime measurements. Older reports remain frozen; PRMB results below use the corrected v3 labels.</p>
+<div class="scroll"><table><thead><tr><th>Stages / time</th><th>Direction and development</th><th>What we learned</th></tr></thead><tbody>
+<tr><td>305, 313, 316<br>06:09–12:19</td><td>Repaired source-question groups and PRMB labels. Recomputed current and historical comparisons.</td><td>The old folds separated some versions of the same question. PRMB error-step indices were shifted by one. Previously trained multi-answer methods still need corrected-label/fold refits.</td></tr>
+<tr><td>306<br>06:33–06:36</td><td>Evaluated 19 fixed fusion recipes on a 110-answer development cohort.</td><td>Established shared references. The earlier single-Joint fallback advantage did not replicate consistently.</td></tr>
+<tr><td>307–308<br>07:02–07:39</td><td>Implemented safe two-feature groups in Joint, including covariance and identifiability checks.</td><td>At least one bank can fit Joint on 110/110 answers instead of 107/110. Better fit coverage did not produce better localization.</td></tr>
+<tr><td>309–310<br>07:53–08:32</td><td>Tested inverse condition limits 30/100/300 against 1000, with real/permuted graph and matched equal-fusion controls.</td><td>Some Joint variants improved, especially on PB, but no consistent advantage over IU and simple controls was established.</td></tr>
+<tr><td>311–312, 315<br>08:52–11:51</td><td>Added same-answer AR(1), previous-value and EMA prediction residuals; separately tested supplied-token preference gap.</td><td>Residual features allowed all 330 tested Joint fits to pass, with more groups in many answers. Quality did not improve consistently. These are not KalmanNet or Diverging Flows.</td></tr>
+<tr><td>314<br>11:13–11:17</td><td>Inspected raw text, token spans, step labels, peaks and no-error decisions.</td><td>Both location and gating fail. IU has 20/53 correct raw first-error peaks, but only 12 remain correct after its gate. Choosing between existing IU/Joint peaks cannot fix their shared misses.</td></tr>
+<tr><td>317<br>12:55–13:05</td><td>Tested full, uniform, entropy-risk, transposed DUFS, permuted DUFS and window-diffusion selection across seven fusion cores.</td><td>Risk selection raises pooled PRMB AUC, but lowers IU/Joint PB points. Much of the AUC rise reflects score scale between answers. All windows are still scored; sparse end-to-end savings and short-error retention remain untested.</td></tr>
+<tr><td>318<br>Scores 13:25; comparisons 13:30</td><td>Combined full IU/Joint trajectories using mean and correlation-aware GLS, then tested chronological IMM with single-source and shuffled-time controls.</td><td>27 additions, preserving 149 anchors: 176 entries total. GLS has a small uncertain point advantage. This IMM setting weakens PB. Seven tests and the subsequent review pass.</td></tr>
+</tbody></table></div>
+<h2>Matched current results</h2>
+<p>All rows use the same 24 PRMBench and 86 ProcessBench answers, corrected v3 labels and v2 source groups. PRMB is pooled step AUROC. PB is the mean across four subsets of the harmonic mean of clean-answer accuracy and exact first-error accuracy; it is not ordinary overall accuracy. These are development results.</p>
+<div class="scroll"><table id="results"><thead><tr><th>Method</th><th>PRMB AUROC ↑</th><th>PB score ↑</th></tr></thead><tbody>
+<tr data-arm="dual__iu"><td>IU-PCR reference</td><td>0.68131</td><td>30.16%</td></tr>
+<tr data-arm="dual__cond100_graph010"><td>Joint + graph, condition100 reference</td><td>0.65545</td><td>30.22%</td></tr>
+<tr data-arm="ar1__graph010"><td>AR(1) residual features + Joint graph</td><td>0.64714</td><td>18.01%</td></tr>
+<tr data-arm="sample_risk_top__iu"><td>Entropy-risk sampling + IU</td><td>0.75835</td><td>28.35%</td></tr>
+<tr data-arm="sample_risk_top__graph010"><td>Entropy-risk sampling + Joint graph</td><td>0.74133</td><td>28.20%</td></tr>
+<tr data-arm="sample_risk_top__equal_graph_perm"><td>Entropy-risk sampling + equal fusion + permuted graph: strong simple control</td><td>0.76842</td><td>33.92%</td></tr>
+<tr data-arm="traj_iu_joint_graph__mean"><td>Mean of full IU and Joint graph trajectories</td><td>0.66944</td><td>31.98%</td></tr>
+<tr data-arm="traj_iu_joint_graph__gls"><td>GLS of full IU and Joint graph trajectories</td><td>0.68338</td><td>30.35%</td></tr>
+<tr data-arm="traj_iu_joint_graph__imm"><td>IU + Joint graph trajectories, followed by IMM</td><td>0.69325</td><td>16.69%</td></tr>
+</tbody></table></div>
+<div class="card warning"><p><strong>A high pooled AUC is not automatically better localization.</strong> Risk-IU raises pooled AUC from 0.68131 to 0.75835, while within-answer AUC changes from 0.76881 to 0.77892 with an improvement interval including zero. Applying the sampled answer scale to the original IU ranking already gives pooled AUC 0.74876. This is a post-evaluation diagnostic, not a new candidate or a causal decomposition.</p>
+<p>The strong simple control's PB improvement over its full-grid version has a 95% exploratory interval of −3.29 to +8.03 percentage points. GLS versus IU has intervals of −0.0261 to +0.0288 AUROC and −8.76 to +9.33 PB points. Neither establishes a reliable winner. A permuted graph result cannot demonstrate useful graph alignment or learned Joint superiority.</p></div>
+<h2>The important repairs and limits</h2>
+<ul>
+<li><strong>Label repair:</strong> the PRMB writer used a one-based error-step number as a zero-based index. Codex inherited these derived targets. Earlier reviews compared derived arrays and missed the raw annotation contract. All 6,969 rows were checked and repaired; 6,035 target arrays changed. PB labels and scores were unchanged.</li>
+<li><strong>Reproducibility:</strong> frozen protocols, source/output hashes, explicit fallback coverage, common-ID comparisons and source-group bootstrap intervals were added or extended. Historical rescoring preserves original predictions rather than calling a benchmark correction an algorithm improvement.</li>
+<li><strong>Latest review:</strong> 110 raw label/span joins, 16,390 inherited row records, 880 independent noise/GLS reconstructions, 990 direct vector-IMM replays, 2,970 trajectory/step/GMM checks, 176 metric bundles, 50 paired comparisons and five explicit 1,000-draw bootstraps passed. This is same-session code/mathematical review, not external review or a new model-forward audit.</li>
+<li><strong>Still open:</strong> actual LOCA, Diverging Flows and KalmanNet adaptations; sparse/short-error sampling; full comparator coverage; corrected multi-answer refits; untouched confirmation; historical 24-cell final-answer transfer. No publishable superiority claim yet.</li>
+</ul>
+<p>The next bounded decision should use the separate peak and no-error evidence. The tested IMM level readout lost 13 correct PB decisions and gained four relative to its static hold control. GLS and the strong simple control stay in the comparison; a small point lead does not justify a broad parameter search.</p>
+<h2>Evidence you can open</h2>
+<ul>
+<li><a href="../../results/localization_prm_label_audit_v1/REPORT.html">Raw label repair and corrected benchmark bridge</a></li>
+<li><a href="../../results/localization_history_bridge_v3/REPORT.html">Historical comparisons under corrected labels</a></li>
+<li><a href="../../results/fusion_localization_forensics_v3/REPORT.html">Text, first-error peaks and no-error forensics</a></li>
+<li><a href="../../results/fusion_sampling_replication_v1/REPORT.html">Window selection: full visual report</a></li>
+<li><a href="../../results/fusion_trajectory_imm_v1/EVALUATION.json">Latest trajectory experiment: all 176 entries</a> · <a href="../../results/fusion_trajectory_imm_v1/REVIEW.json">Review</a> · <a href="../../results/fusion_trajectory_imm_v1/DIAGNOSTICS.json">Peak/gate diagnostics</a></li>
+<li><a href="../../spectral_utils/fusion_trajectory_imm.py">Latest fusion/IMM implementation</a> · <a href="../../spectral_utils/joint_pair_jacobian.py">Checked Joint pair implementation</a></li>
+</ul>
+</main></body></html>

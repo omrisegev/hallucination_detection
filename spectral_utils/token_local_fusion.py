@@ -508,8 +508,18 @@ def _stg_probabilities(
 
 def learn_stg_sparse_support(
     preparation: TokenFusionPreparation,
+    *,
+    probability_threshold: float = STG_PROBABILITY_THRESHOLD,
+    minimum_fold_fraction: float = STG_MIN_FOLD_FRACTION,
 ) -> STGSupportResult:
     """Select a stable sparse pair support using only held token covariance."""
+
+    probability_threshold = float(probability_threshold)
+    minimum_fold_fraction = float(minimum_fold_fraction)
+    if not 0.0 < probability_threshold <= 1.0:
+        raise ValueError("probability_threshold must lie in (0, 1]")
+    if not 0.0 < minimum_fold_fraction <= 1.0:
+        raise ValueError("minimum_fold_fraction must lie in (0, 1]")
 
     F = preparation.F
     token_folds = preparation.row_folds[preparation.fit_row_indices]
@@ -552,11 +562,11 @@ def learn_stg_sparse_support(
             for fold in range(STG_FOLDS)
         ])
         fold_fraction = np.mean(
-            per_fold >= STG_PROBABILITY_THRESHOLD, axis=0
+            per_fold >= probability_threshold, axis=0
         )
         selected = (
-            (pair_probability >= STG_PROBABILITY_THRESHOLD)
-            & (fold_fraction >= STG_MIN_FOLD_FRACTION)
+            (pair_probability >= probability_threshold)
+            & (fold_fraction >= minimum_fold_fraction)
         )
         penalty_consensus[penalty] = (
             pair_probability, fold_fraction, selected
@@ -609,8 +619,8 @@ def learn_stg_sparse_support(
         ),
         "penalty_roster": penalty_rows,
         "selected_penalty": selected_penalty,
-        "probability_threshold": STG_PROBABILITY_THRESHOLD,
-        "minimum_fold_fraction": STG_MIN_FOLD_FRACTION,
+        "probability_threshold": probability_threshold,
+        "minimum_fold_fraction": minimum_fold_fraction,
         "maximum_support_pairs": max_pairs,
         "support_cap_applied": False,
         "selected_support_pairs": int(len(selected_pair_indices)),

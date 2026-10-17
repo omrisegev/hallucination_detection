@@ -1,0 +1,9 @@
+{
+ "amendment": "A1 to decision_rule_v1/PROTOCOL.json - POST HOC",
+ "date": "2026-09-29",
+ "written": "after the full run run_20260929 and its red team; labelled post hoc in every report",
+ "reason": "Red-team agent B found that the frozen DS rules (R3, R4, R5) fitted Dawid-Skene on marks pooled over ProcessBench and PRMBench fit steps, unlike stage B (which fits on PRMBench fit steps only). Several channels fire far more on ProcessBench steps, and the DS 'error' class partly encodes ProcessBench membership (posterior AUC 0.719 for PB vs PRMB). The frozen test of Omri's 'classic threshold from estimated sensitivity/specificity' therefore confounded it with the benchmark mix. Also, the stored 'truth' mixed ProcessBench placeholder labels (all PB steps are labelled True in OOF_STEP_SCORES; PB uses 'target').",
+ "change": "Re-run with --ds-population prm: the per-channel mark thresholds (0.8 quantile) and the DS fit use the PRMBench fit-fold steps only, mirroring stage B. Standardization, R0, R1, R2 unchanged (marks are invariant to the per-channel affine standardization, so only the row set changes). DS diagnostics report truth on PRMBench fit steps only.",
+ "output": "run_20260929_a1 (the frozen run_20260929 is kept unchanged)",
+ "status_of_results": "post hoc; the frozen conclusion on R3-R5 stays the frozen result, and A1 is reported beside it as a corrected-design check, not as a new selection"
+}

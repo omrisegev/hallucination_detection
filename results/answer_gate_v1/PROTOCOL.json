@@ -1,0 +1,50 @@
+{
+ "protocol": "answer_gate_v1",
+ "date": "2026-09-30",
+ "status": "FROZEN before any answer-level feature is related to a label and before any rule is scored. Changes need an amendment written before the affected numbers are seen.",
+ "requested_by": "Omri 2026-09-29/30: use the project's original answer-level detection (answers x features, label-free fusion) to decide whether and how many steps to flag in each answer; 'you can try both' = the original spectral features + continuous L-SML AND U-PCR on the full pool.",
+ "question": "Does a label-free answer-level detector, fused from answer-level telemetry features, (a) separate erroneous from clean answers where the comparison is fair, and (b) improve the per-answer flag decision over the frozen rule R0 and over decision_rule_v1's R2, on PRMBench (official PRMScore) and ProcessBench (official F1)?",
+ "access": "Development evidence on the already-evaluated population (13,769 answers). Not untouched confirmation. Labels enter only the evaluation. The step scores (S_equal, stage B) and their within-answer ranking are frozen; only the flag decision changes.",
+ "features": {
+  "source": ".worktrees/token-probability-fusion-v1/results/token_probability_fusion_v1/TOKEN_MATRICES.npz (per-token channels, token_offsets aligned with OOF_ANSWERS; teacher-forced one-pass telemetry already used by every stage)",
+  "pool_27": "spectral_utils.feature_utils.extract_all_features on the per-token q15_H1 entropy series (the 16 FEAT_NAMES entropy features: epr, trace_length, spectral_entropy, low_band_power, high_band_power, hl_ratio, dominant_freq, spectral_centroid, stft_max_high_power, stft_spectral_entropy, rpdi, sw_var_peak, pe_mean, hurst_exponent, cusum_max, cusum_shift_idx) + compute_spilled_energy_features on chosen_surprisal (epr_spilled, sw_var_peak_spilled, cusum_max_spilled, min_spilled) + the same function on energy_level (epr_energy, sw_var_peak_energy, cusum_max_energy, min_energy) + answer means of q15_VE1 (varentropy), logprob_margin (logprob_margin), true_tail50 (tail50_mass)",
+  "adaptation": "The canonical 30-view pool's mean_top1_logprob, mean_logprob_entropy and renyi_entropy_2 need the full top-k lists, which this token file does not hold; they are omitted. Tail mass is the top-50 tail (true_tail50), not the canonical top-5 tail. Labelled as an adaptation of the canonical pool, not the pool itself.",
+  "missing_values": "a non-finite feature value is replaced by the median of that feature over the fit-fold answers of the same cell (label-free); counts reported"
+ },
+ "cells_and_folds": "Fitting is per cell (the 8 ProcessBench cells and the PRMBench cell), as in the original answer-level work. For evaluation fold k: calibration fold c = (k+1)%5, fit folds = the other three. Every learned quantity for fold k uses only fit- or calibration-fold answers.",
+ "detectors": {
+  "D1_upcr_full": "Omri's method 2. U-PCR (spectral_utils.upcr.upcr_fit) with the maintained configuration of scripts/labelfree_standing_report.py (loss l2, exclusion on, difficulty_gate off, simple_avg_fallback on, recompute_after_exclusion on, g2_projection_k 1, scale_ratio 0.25) on the 27 z-scored views (fit-fold statistics), relative polarity derived from sign(rho) of a probe fit (upcr_pipeline_faithful 'derived' mode), weights applied to evaluation answers",
+  "D2_lsml_cont_good5": "Omri's method 1, the original configuration: continuous L-SML (fusion_utils.lsml_continuous) on GOOD_5 = epr, low_band_power, sw_var_peak, cusum_max, spectral_entropy, oriented with FEATURE_SIGNS, z-scored with fit-fold statistics; the fitted linear weights (cross-group x within-group) applied to evaluation answers",
+  "D3_lsml_full": "continuous L-SML on the same 27 views and polarities as D1 (L-SML vs equal on the same bank, Omri 2026-09-23)",
+  "D4_equal_full": "plain average of the same 27 oriented z-scored views (control)",
+  "D5_epr": "mean token entropy alone (the anchor; simplest reference)",
+  "D6_length": "trace_length alone (length control)",
+  "global_sign": "every detector is oriented on the fit-fold answers so that it correlates positively with epr (spectral_utils.streaming_utils.anchor_orient convention: higher mean entropy = more suspicious); the fit-fold decision is applied to evaluation answers"
+ },
+ "decision_rule": {
+  "OFFSET (per detector)": "D_is = zA_i + answer-z(S)_is, where zA_i = (A_i - mean) / sd of the detector over the fit-fold answers of the cell. Flag step s of answer i iff D_is >= tau(k, b) = 0.8 quantile of D over the calibration-fold steps of the same benchmark b. Within an answer the order of flags is exactly the frozen ranking of S; only how many steps are flagged changes, and it can be zero. Weight 1:1 declared; weights 0.5 and 2 reported as descriptive sensitivity only.",
+  "SHUFFLED_A (control for D1 and D2)": "zA permuted among answers of the same cell, fold and step count (20 draws), then the same OFFSET rule: tests whether the answer's own level matters beyond length",
+  "references": "R0 = frozen answer-z q80 (reproduces PRMScore 0.6565188557935739); R2 = decision_rule_v1 primary rule (reproduces 0.6635359749948694, PRMBench-calibrated as frozen); R2pb = R2 with its tau_G calibrated per benchmark (ProcessBench tau from ProcessBench calibration steps), because the new rules are calibrated per benchmark"
+ },
+ "primary_family": "OFFSET(D1) - R0 and OFFSET(D2) - R0, each on PRMBench official PRMScore and on ProcessBench official F1 macro-8 (4 tests, Holm). Secondary: every rule vs R0 and vs R2/R2pb, D3 vs D4 (L-SML vs equal on the same bank).",
+ "endpoints": {
+  "answer_level_detection": "AUROC of each detector for 'answer contains an error' on evaluation answers: ProcessBench erroneous vs correct (per cell and macro); PRMBench erroneous (in-range error) vs multi_solutions (modified but correct) = the FAIR PRMBench comparison; PRMBench erroneous vs controls reported separately and labelled as confounded by original-vs-modified text",
+  "prmbench": "official PRMScore (6,211 answers), F1 on correct / error steps, flag share, share of erroneous answers with an error step flagged, clean-answer panel: multi_solutions vs erroneous share with at least one flag (length-matched as well), controls separately",
+  "processbench": "official F1 per cell and macro-8 (first flagged step or -1; F1 0 when both accuracies are 0), accuracy on erroneous and on correct answers, share of correct answers with no flag"
+ },
+ "uncertainty": "paired bootstrap over source groups, 10,000 draws (PRMBench seed 20261011, ProcessBench seed 20261012); answer-level AUROC intervals by the same group bootstrap",
+ "hard_stops": [
+  "token spans do not align with the OOF step structure (answer order, step counts)",
+  "R0 or R2 does not reproduce its frozen PRMScore to 1e-12",
+  "a U-PCR or L-SML fit fails, or a detector is non-finite on any evaluation answer",
+  "any fold-k quantity uses fold-k answers"
+ ],
+ "predictions_frozen": {
+  "P1": "D1 separates erroneous from correct ProcessBench answers with macro AUROC >= 0.60",
+  "P2": "on PRMBench the fair comparison (erroneous vs multi_solutions) is much weaker than erroneous vs controls",
+  "P3": "OFFSET rules raise ProcessBench official F1 over R0 (answers left unflagged), D1 by more than D5 (epr alone)",
+  "P4": "on PRMScore the OFFSET rules gain over R0 but not over R2",
+  "P5": "D1 >= D2 on answer-level AUROC; D3 does not beat D4 (L-SML vs equal on the same bank)"
+ },
+ "not_done": "no change to step scores, channels or their ranking; no threshold or quantile chosen from outcomes; no feature selected with labels; no new inference"
+}

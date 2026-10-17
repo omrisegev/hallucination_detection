@@ -128,6 +128,30 @@ optimum at 0.41 (34.08 → 36.84). That optimum is label-selected and is a **cei
 a candidate**. A label-free rule — the q=0.3 quantile constant from Step 331/332 is the
 precedent — is what should actually be fitted.
 
+### 5.7 Addendum, 2026-09-22 (Steps 428-429, branch `claude/readout-quickest-detection-v1`)
+
+What this stage covered: the readout family (ten new within-step reducers + a sequential
+first-crossing column, label-free consensus choice and label-selected ceilings, pmf fitting of
+the learned soft weights) and three quickest-detection diagnostics. Outcome: the readout lever on
+the eleven-channel bank is closed (label-free and label-selected); the learned soft weights must
+be fitted on the pmf (the cumulative fit was an artefact) and then equal equal weighting; the
+long-chain deficit is an argmax competition effect with per-step signal intact. Still open from
+this list: 5.1 (fusion before the readout, now to be run with pmf fitting), 5.2 (answer-local
+standardisation arm), 5.3 (conditional participation ratio at step level), 5.5 (derivative
+channel), 5.6 (label-free retune of the LOCO-5 threshold). 5.4 is superseded by the frozen-gate
+protocol of cumulative-vote-v2 and the readout-family run. See HISTORY Steps 428-429.
+
+### 5.8 Addendum, 2026-09-23 (Steps 430-432, branch `claude/readout-quickest-detection-v1`)
+
+Closed by measurement: 5.1 (fusion before the readout with the readouts as voters) is closed
+without running, because no readout family misses different answers than top-k beyond the
+shuffled-token null (Step 430 A2). The per-channel likelihood-ratio evidence with pseudo-labels
+(Step 432) is a working mechanism but a worse decision statistic than equal linear fusion of
+the same readouts, with or without labels; the position-conditional null corrects only the
+early misses. The generation drift is a start-of-answer excess (+0.7 SD at step 0), stated and
+measured in `docs/research_notes/generation_drift_hypothesis_2026-09-22.md`. Still open: 5.2,
+5.3, 5.5, 5.6, and above all new independent views. See HISTORY Steps 430-432.
+
 ## 6. Standing rules this line has to respect
 
 - Plain averaging between features is not an acceptable final method, but it **is** the

@@ -1,0 +1,27 @@
+{
+  "scope": "Development findings; no further model launched.",
+  "decisions": [
+    {
+      "priority": 1,
+      "status": "Do not adopt this candidate",
+      "finding": "Chronological correction lowers both PB and within-answer PRMB versus fixed and shared-update weights.",
+      "evidence": "PB -0.6876pp,97.5%CI[-1.2541,-.1256]; within AUC -.002714,CI[-.003756,-.001684]. Gains65/losses104; 6 PB cells lower,1 higher,1 equal.",
+      "action": "Retain static RBM and IU/Varentropy references. Do not change the gate or reintroduce first_near_max for RBM."
+    },
+    {
+      "priority": 2,
+      "status": "Recommended next diagnostic, not implemented",
+      "finding": "The earlier marginal feature-reliability reversal did not translate into useful likelihood-trained conditional weights.",
+      "evidence": "All optimizations converge; median relative correction4.747%; NLL improves even on lost successes. Shuffled groups perform similarly on PB and slightly better on within-AUC.",
+      "action": "Before another conditional model or lambda search, test whether position adds predictive value JOINTLY with the same correlated feature bank. A tightly scoped label-using diagnostic could compare static versus position-dependent fusion under source-group-disjoint evaluation. It must be labeled a supervised diagnostic, not the answer-only method.",
+      "alternative": "If joint conditional predictive value is absent, marginal AUC reversals may be redundant or reflect subgroup distributions. If present, study how an unlabeled objective could identify it. Neither result is known yet."
+    },
+    {
+      "priority": 3,
+      "status": "Deferred",
+      "finding": "No numerical failure or unchanged-weight explanation for the negative result.",
+      "evidence": "Three arms full coverage; no nonconverged states. Shared update changes PB peaks0 times, position481 times. Prior residual correlations also occur in successful answers.",
+      "action": "Do not automatically add CD, hidden units, layers, new moments, graphs or separate variances. A single zero-start fit does not prove global optimality; this closes only the tested correction, not every conditional-fusion model."
+    }
+  ]
+}

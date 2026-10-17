@@ -1,0 +1,50 @@
+{
+  "version": 2,
+  "date": "2026-10-04",
+  "status": "Frozen before continuation; correction after viewing development results, not retrospective preregistration",
+  "parent_run": "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\estimator_input_v1\\run_20261003",
+  "parent_top_level_sha256": {
+    "ANSWER_QUOTA_COMPLETE.json": "19ad93f6472dd5c38ff2fe3b1b23eac2f9d5c41cdefa184369fcc3686ec376b9",
+    "CELL_QUOTA_COMPLETE.json": "19ad93f6472dd5c38ff2fe3b1b23eac2f9d5c41cdefa184369fcc3686ec376b9",
+    "CLAIMS.csv": "6db4369b1f241ab425600ec75583b9b3343cc8c7061f07800e536fcf4e20af37",
+    "CODE_MANIFEST.json": "676e547c834303b74525c6b4a9ab6582ee12be625f094a75bb1ac0c11bb44f44",
+    "CODE_MANIFEST_estimator_answer.json": "946e727e89b822253b7e8f8d1f98017998dae9b287e83408ab9605a1ff62c488",
+    "CODE_MANIFEST_estimator_cell.json": "676e547c834303b74525c6b4a9ab6582ee12be625f094a75bb1ac0c11bb44f44",
+    "CONTRASTS.csv": "f94b04796b4d0b208a9be5c1cd0e17c880c65f598c897f78fdc950e41f310b53",
+    "DIAGNOSTICS.json": "91fda7c85acb34fb174c37c86d2395344e5a9a58a52a68ce4fd9061cadeed573",
+    "ESTIMATOR_ACCURACY.csv": "fef0c52eb59f61795d148ce933400d77b7e66110bdd70c8522d94c7b6920c37a",
+    "ESTIMATOR_ACCURACY_answer.csv": "619f9a1b2a88c3632661fd2bc16fcc7f4ee83c4095da7d86507f73bc0bb0100f",
+    "ESTIMATOR_ACCURACY_cell.csv": "7213657ae9e5ef0f45dffb24e06b4f45733356d873009edffb25e5c12fde83ba",
+    "FIGURE_STATUS.json": "bbd4a2e17e437ba7a025290f7f01ad15a33b57badde7d88ef196d89a695729f5",
+    "IMPLEMENTATION_NOTES_V1.json": "0136750780a9fb6b1fb15a4ead152d293c3879ec8a583dde8ed298e429272d73",
+    "INPUT_MANIFEST.json": "9465d3d8635dac6fe05ec2b863fc34e3e45bbfc999e7f550a10acc6ccd904645",
+    "METRICS.csv": "3ef97170a43f34b61758a3b8a54b6fdf7a1aea99512e9cf95fcbdb2ef5c1087d",
+    "PROTOCOL.json": "5eea48e844c32801840ad5278057a4b48f54cd83301b61d6a4df15735102a468",
+    "REPORT.md": "aec010c09c26b2f15fbcde8efd0201e4c717dc99792a4b20542cb4c5ab660aa7",
+    "REVIEW_PACKET.json": "5e878e89d74b3cf23adaa3e21fedeee3e737d80f1adf433965ae15907510f79a",
+    "RUN_STATUS.json": "9bb198f0679be24c447fd5937db2312d51d06bd5977b3a5895ae58275f2baf06",
+    "SELECTION.json": "c31744e3ba64cd3e37c60aae5a57c3ee4d9d1cf37b6fd66e3ff0e8e45b626a8e"
+  },
+  "reused_completed_chunks": 288,
+  "reuse_policy": "Hardlinks only to immutable sealed checkpoint files; mutable aggregates copied to independent files. No worktree movement.",
+  "selection_corrections": [
+    "Random LEVEL removals are diagnostic controls and excluded from candidate eligibility.",
+    "Preserve equal-weight 8-bank matched-EQ advantage. Remove the artificial zero-gain DS_FILTER_EQ candidate, whose reference differs. Report plain mean separately.",
+    "Keep original/control absolute scores and same-recipe direct intervention contrasts; do not infer removal benefit from a weighting gap."
+  ],
+  "direct_contrasts": {
+    "source": "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\monday_fusion_review_response_20261004\\DIRECT_CONTRASTS.csv",
+    "sha256": "45a54d300607d8dfea45c3613289172445b33d26defa70bfb7041797ae903c88",
+    "scope": "Post-review independent reaggregation and 20000 paired source-question bootstraps. Exploratory; 40 contrasts per experiment per endpoint. No new scoring arms."
+  },
+  "highlight": "HEM_MOM channels_cell vs groups_answer on original banks: PB argmax gain alongside q80 F1 regression. User requests showing both; not a forced final selection.",
+  "unchanged": [
+    "Original frozen protocol, input manifests, labels, folds, fit/score algorithms and all sealed checkpoints",
+    "Position/decision/LR coverage, nested C grid, historical selection continuity and Omri decision-rule gate"
+  ],
+  "user_authorization": "Omri freed disk and explicitly requested continuing the approved plan on 2026-10-04.",
+  "expected_remaining_output_bytes": [
+    500000000,
+    1000000000
+  ]
+}

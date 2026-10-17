@@ -1,0 +1,208 @@
+{
+  "status": "PASS",
+  "counts": {
+    "direct_label_group_joins": 110,
+    "exact_parent_arrays": 11351,
+    "exact_parent_metadata": 4950,
+    "original_gate_replays": 182,
+    "source_graph_reconstructions": 220,
+    "equal_zero_graph_replays": 220,
+    "independent_laplacians": 440,
+    "equal_graph_cap_invariance": 440,
+    "independent_inverse_projections": 1880,
+    "independent_step_maps": 1880,
+    "independent_native_gmm_decisions": 1880,
+    "fixed_route_inheritances": 1760,
+    "invalid_native_graph_families_preserved": 80,
+    "metric_bundles": 77,
+    "parent_metric_replays": 45,
+    "paired_point_bundles": 101
+  },
+  "coverage": {
+    "moment__equal": 110,
+    "moment__iu": 110,
+    "moment__joint0": 78,
+    "moment__graph010": 78,
+    "moment__graph_perm": 78,
+    "context__equal": 110,
+    "context__iu": 110,
+    "context__joint0": 102,
+    "context__graph010": 102,
+    "context__graph_perm": 102,
+    "entropy_parent": 110,
+    "single__joint0": 110,
+    "single__graph010": 110,
+    "single__graph_perm": 110,
+    "dual__joint0": 110,
+    "dual__graph010": 110,
+    "dual__graph_perm": 110,
+    "dual__equal": 110,
+    "dual__iu": 110,
+    "pair_moment__joint0": 106,
+    "pair_moment__graph010": 106,
+    "pair_moment__graph_perm": 106,
+    "pair_context__joint0": 108,
+    "pair_context__graph010": 108,
+    "pair_context__graph_perm": 108,
+    "pair_single__joint0": 110,
+    "pair_single__graph010": 110,
+    "pair_single__graph_perm": 110,
+    "pair_dual__joint0": 110,
+    "pair_dual__graph010": 110,
+    "pair_dual__graph_perm": 110,
+    "pair_dual__equal": 110,
+    "pair_dual__iu": 110,
+    "moment__cond30": 78,
+    "moment__cond100": 78,
+    "moment__cond300": 78,
+    "context__cond30": 102,
+    "context__cond100": 102,
+    "context__cond300": 102,
+    "single__cond30": 110,
+    "single__cond100": 110,
+    "single__cond300": 110,
+    "dual__cond30": 110,
+    "dual__cond100": 110,
+    "dual__cond300": 110,
+    "moment__equal_graph010": 110,
+    "moment__equal_graph_perm": 110,
+    "moment__cond30_graph010": 78,
+    "moment__cond100_graph010": 78,
+    "moment__cond300_graph010": 78,
+    "moment__cond30_graph_perm": 78,
+    "moment__cond100_graph_perm": 78,
+    "moment__cond300_graph_perm": 78,
+    "context__equal_graph010": 110,
+    "context__equal_graph_perm": 110,
+    "context__cond30_graph010": 102,
+    "context__cond100_graph010": 102,
+    "context__cond300_graph010": 102,
+    "context__cond30_graph_perm": 102,
+    "context__cond100_graph_perm": 102,
+    "context__cond300_graph_perm": 102,
+    "single__cond30_graph010": 110,
+    "single__cond30_graph_perm": 110,
+    "single__cond100_graph010": 110,
+    "single__cond100_graph_perm": 110,
+    "single__cond300_graph010": 110,
+    "single__cond300_graph_perm": 110,
+    "single__equal_graph010": 110,
+    "single__equal_graph_perm": 110,
+    "dual__cond30_graph010": 110,
+    "dual__cond30_graph_perm": 110,
+    "dual__cond100_graph010": 110,
+    "dual__cond100_graph_perm": 110,
+    "dual__cond300_graph010": 110,
+    "dual__cond300_graph_perm": 110,
+    "dual__equal_graph010": 110,
+    "dual__equal_graph_perm": 110
+  },
+  "routes": {
+    "single/moment_joint": 78,
+    "dual/moment_joint": 78,
+    "single/moment_iu": 32,
+    "dual/context_joint": 29,
+    "dual/moment_iu": 3
+  },
+  "new_equal_control_gate_refits": [
+    [
+      "pb_gsm8k_q8",
+      "context"
+    ],
+    [
+      "pb_gsm8k_q8",
+      "moment"
+    ],
+    [
+      "pb_math_q8",
+      "context"
+    ],
+    [
+      "pb_math_q8",
+      "moment"
+    ],
+    [
+      "pb_olympiadbench_q8",
+      "context"
+    ],
+    [
+      "pb_olympiadbench_q8",
+      "moment"
+    ],
+    [
+      "pb_omnimath_q8",
+      "context"
+    ],
+    [
+      "pb_omnimath_q8",
+      "moment"
+    ],
+    [
+      "prmbench_qwen3_8b",
+      "context"
+    ],
+    [
+      "prmbench_qwen3_8b",
+      "moment"
+    ]
+  ],
+  "bootstrap_checks": [
+    {
+      "left": "dual__cond30_graph010",
+      "right": "dual__cond30_graph_perm",
+      "draws": 1000,
+      "four_intervals_and_counts": "MATCH"
+    },
+    {
+      "left": "dual__cond30_graph010",
+      "right": "dual__cond30",
+      "draws": 1000,
+      "four_intervals_and_counts": "MATCH"
+    },
+    {
+      "left": "dual__cond30_graph010",
+      "right": "dual__iu",
+      "draws": 1000,
+      "four_intervals_and_counts": "MATCH"
+    },
+    {
+      "left": "dual__cond30_graph010",
+      "right": "dual__equal_graph010",
+      "draws": 1000,
+      "four_intervals_and_counts": "MATCH"
+    },
+    {
+      "left": "dual__equal_graph010",
+      "right": "dual__equal",
+      "draws": 1000,
+      "four_intervals_and_counts": "MATCH"
+    },
+    {
+      "left": "dual__cond100_graph010",
+      "right": "dual__iu",
+      "draws": 1000,
+      "four_intervals_and_counts": "MATCH"
+    },
+    {
+      "left": "moment__cond300_graph010",
+      "right": "moment__cond300",
+      "draws": 1000,
+      "four_intervals_and_counts": "MATCH"
+    }
+  ],
+  "max_reconstructed_risk_difference": 5.0487392044828994e-14,
+  "maximum_equal_graph_condition": 3.1828894123774885,
+  "seconds": 68.69672070001252,
+  "scope": "Source graph-builder/DUFS/GMM kernels reused. Independent Laplacians, trace matching, inverse solves, simple-control invariance, step/decision/routing/metric reconstruction. No Joint refits.",
+  "hashes": {
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\fusion_graph_conditioning_v1\\MANIFEST.json": "d00d316f57647a433349475de1b37866cd0b3d764b11a2f4816c801b691f737a",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\fusion_graph_conditioning_v1\\SCORES_FROZEN.json": "5aa8176e5530bcbc15d3930bafd43f2c6475c6c115c71cbe1fa08e2d64030415",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\fusion_graph_conditioning_v1\\EVALUATION.json": "48e750c9200151a80101aa8baf4a76dc35af80c909788409b472b2441d45dc54",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\fusion_graph_conditioning_v1\\CONTRASTS.json": "490be8970bf96b96d5ea3a11c39e846f46f6e6fdfdd0dd855251049b41f31ebf"
+  },
+  "review_dependencies": {
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\scripts\\review_fusion_explicit_fallback_v1.py": "d240914943ae496e8b45f5e88b3cec9529dede61b84ece0915a0cdade57249f2",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\scripts\\review_fusion_context_bank_v1.py": "b65adafba3572b1947b8d2c7c314c155b17426e8e4e3bf64148c3d8a3bc571a5"
+  },
+  "review_script_sha256": "92b5ae1dd4198ccbae0f6affd95b487f535b503f93fb8bf5640ccc41fd195318"
+}

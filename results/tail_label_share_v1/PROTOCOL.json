@@ -1,0 +1,24 @@
+{
+ "stage": "tail_label_share_v1",
+ "date": "2026-09-24",
+ "question": "Is the label-driven part of the between-channel dependence larger in the TAIL (top-k co-exceedance within an answer) than in the ordinary within-answer covariance? If so, a label-free fusion rule could estimate the worth of an independent channel from the tail; if not, covariance-type methods cannot weight independent channels from one answer's telemetry.",
+ "type": "mechanism diagnostic. Labels are used to MEASURE, never to select a method, channel, k or weight. No method is proposed or scored here.",
+ "inputs": "52-column step pool pool_z.npy (same file as declared_joint_prmbench_v1 / indbank_lsml_prmbench_v1), OOF_STEP_SCORES.npz labels/offsets, OOF_ANSWERS.csv targets. No new inference.",
+ "channels": "all 52 minus exact duplicates of a bank11 channel (|r|>=0.999: ct7_ve1, hist_entropy_series, hist_spilled_series) and the constant hist_trace_length_series. Native sign as stored (no orientation by labels). 'independent' = |r_level_marginal| < 0.45 from POOL_STRUCTURE.csv, the same rule as the declared-Joint protocol. 'core' = level family A_level of the declared partition.",
+ "population": {
+  "prmbench": "answers with at least one error and one non-error step; all their steps; step label = PRMBench error flag (primary panel)",
+  "processbench": "answers with target>=0; steps 0..target; label 1 at target, 0 before; steps after the first error excluded (secondary panel)"
+ },
+ "objects": {
+  "covariance": "per-answer z-scored channels; pooled covariance over steps",
+  "tail_top20": "per answer, indicator that the step is in the channel's top k=max(1,ceil(0.2 n)) steps, centred within answer; pooled covariance (PRIMARY tail object)",
+  "tail_top1": "same with k=1 (argmax indicator), secondary"
+ },
+ "decomposition": "within-answer law of total covariance: Sigma = Sigma_within_class + Sigma_between_class, exact. Sigma_between is the label-driven part.",
+ "metrics": {
+  "label_share": "PRIMARY: ||offdiag Sigma_between||_F / ||offdiag Sigma||_F, for each object; with a within-answer label-permutation null (200 permutations, seed 20260924)",
+  "satellite_share": "for each independent channel i: sum_{j in core} Sigma_between[i,j] / sum_{j in core} |Sigma[i,j]|",
+  "accuracy_recovery": "rank-1 off-diagonal factor of the object's correlation matrix (iterated communalities), sign fixed by q15_H1 loading > 0; Spearman across channels with the channel's signed within-answer AUC minus 0.5; all channels and independent-only. Oracle row: same fit on Sigma_between alone."
+ },
+ "decision_rule_declared_before_running": "Tail is 'promising' only if its PRMBench label share exceeds the covariance label share by at least 2x AND its independent-only accuracy recovery Spearman is positive with the channel-permutation p<0.05. Otherwise the tail route is reported as not supported. ProcessBench is reported beside it, not required."
+}

@@ -1,0 +1,286 @@
+channels ready (2s); checks {'input_hashes_equal_stage_A': True, 'joined_uid_order_equals_oof': True, 'joined_step_counts_equal_oof': True, 'ct7_profile_mean_vs_oof_ct7': 1.3322676295501878e-15, 'marks_exact_count': True}
+fold 0: fit [2, 3, 4] cal 1
+   base       groups [['chosen_surprisal', 'realized_z', 'realized_drv'], ['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'q15_VE1', 'logprob_margin'], ['true_tail50', 'energy_level']]; prev est/true 0.245/0.141; w_est [2.34, 1.58, 4.89, 3.61] w_oracle [1.59, 0.89, 1.33, 1.31]; clean max|r| 0.517; L_own level share 0.523
+   merge      groups [['chosen_surprisal', 'realized_z', 'realized_drv'], ['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'q15_VE1', 'logprob_margin', 'true_tail50', 'energy_level']]; prev est/true 0.225/0.141; w_est [2.88, 1.82, 3.6] w_oracle [1.59, 0.89, 1.35]; clean max|r| 0.312; L_own level share None
+   rm_H1_VE1  groups [['bocpd_p0'], ['chosen_surprisal', 'realized_z', 'realized_drv'], ['true_tail50', 'energy_level'], ['logprob_margin', 'top15_turnover', 'dominant_freq16']]; prev est/true 0.268/0.141; w_est [1.52, 2.79, 2.86, 2.54] w_oracle [0.78, 1.59, 1.31, 0.98]; clean max|r| 0.27; L_own level share 0.286
+   rm_H1_LM   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_VE1', 'true_tail50', 'energy_level'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.227/0.141; w_est [1.71, 3.16, 3.11] w_oracle [0.89, 1.34, 1.59]; clean max|r| 0.303; L_own level share 0.302
+   rm_H1_TT   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_VE1', 'logprob_margin', 'energy_level'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.224/0.141; w_est [1.86, 3.72, 2.82] w_oracle [0.89, 1.42, 1.59]; clean max|r| 0.31; L_own level share 0.265
+   rm_H1_EL   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_VE1', 'logprob_margin', 'true_tail50'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.22/0.141; w_est [1.75, 3.46, 3.04] w_oracle [0.89, 1.32, 1.59]; clean max|r| 0.317; L_own level share 0.436
+   rm_VE1_LM  groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'true_tail50', 'energy_level'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.233/0.141; w_est [1.79, 3.28, 2.9] w_oracle [0.89, 1.33, 1.59]; clean max|r| 0.293; L_own level share 0.258
+   rm_VE1_TT  groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'logprob_margin', 'energy_level'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.23/0.141; w_est [1.99, 3.62, 2.59] w_oracle [0.89, 1.34, 1.59]; clean max|r| 0.278; L_own level share 0.266
+   rm_VE1_EL  groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'logprob_margin', 'true_tail50'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.22/0.141; w_est [1.87, 3.49, 2.81] w_oracle [0.89, 1.27, 1.59]; clean max|r| 0.293; L_own level share 0.304
+   rm_LM_TT   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['chosen_surprisal', 'realized_z', 'realized_drv'], ['q15_H1', 'q15_VE1', 'energy_level']]; prev est/true 0.226/0.141; w_est [1.85, 2.82, 3.63] w_oracle [0.89, 1.59, 1.37]; clean max|r| 0.307; L_own level share 0.266
+   rm_LM_EL   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'q15_VE1', 'true_tail50'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.224/0.141; w_est [1.77, 3.41, 3.0] w_oracle [0.89, 1.31, 1.59]; clean max|r| 0.308; L_own level share 0.297
+   rm_TT_EL   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'q15_VE1', 'logprob_margin'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.222/0.141; w_est [1.92, 3.88, 2.73] w_oracle [0.89, 1.33, 1.59]; clean max|r| 0.309; L_own level share 0.269 (51s)
+fold 1: fit [0, 3, 4] cal 2
+   base       groups [['chosen_surprisal', 'realized_z', 'realized_drv'], ['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'q15_VE1', 'logprob_margin'], ['true_tail50', 'energy_level']]; prev est/true 0.244/0.14; w_est [2.27, 1.58, 4.87, 3.69] w_oracle [1.57, 0.89, 1.35, 1.32]; clean max|r| 0.526; L_own level share 0.524
+   merge      groups [['chosen_surprisal', 'realized_z', 'realized_drv'], ['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'q15_VE1', 'logprob_margin', 'true_tail50', 'energy_level']]; prev est/true 0.237/0.14; w_est [2.79, 1.83, 3.58] w_oracle [1.57, 0.89, 1.37]; clean max|r| 0.301; L_own level share None
+   rm_H1_VE1  groups [['bocpd_p0'], ['chosen_surprisal', 'realized_z', 'realized_drv'], ['true_tail50', 'energy_level'], ['logprob_margin', 'top15_turnover', 'dominant_freq16']]; prev est/true 0.265/0.14; w_est [1.54, 2.71, 2.91, 2.55] w_oracle [0.77, 1.57, 1.32, 1.0]; clean max|r| 0.266; L_own level share 0.311
+   rm_H1_LM   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_VE1', 'true_tail50', 'energy_level'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.231/0.14; w_est [1.72, 3.18, 3.03] w_oracle [0.89, 1.36, 1.57]; clean max|r| 0.295; L_own level share 0.302
+   rm_H1_TT   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_VE1', 'logprob_margin', 'energy_level'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.231/0.14; w_est [1.87, 3.73, 2.74] w_oracle [0.89, 1.45, 1.57]; clean max|r| 0.301; L_own level share 0.264
+   rm_H1_EL   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_VE1', 'logprob_margin', 'true_tail50'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.231/0.14; w_est [1.76, 3.46, 2.94] w_oracle [0.89, 1.34, 1.57]; clean max|r| 0.308; L_own level share 0.436
+   rm_VE1_LM  groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'true_tail50', 'energy_level'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.241/0.14; w_est [1.8, 3.27, 2.83] w_oracle [0.89, 1.32, 1.57]; clean max|r| 0.285; L_own level share 0.3
+   rm_VE1_TT  groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'logprob_margin', 'energy_level'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.238/0.14; w_est [1.98, 3.63, 2.55] w_oracle [0.89, 1.36, 1.57]; clean max|r| 0.273; L_own level share 0.265
+   rm_VE1_EL  groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'logprob_margin', 'true_tail50'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.234/0.14; w_est [1.87, 3.44, 2.73] w_oracle [0.89, 1.29, 1.57]; clean max|r| 0.282; L_own level share 0.304
+   rm_LM_TT   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'q15_VE1', 'energy_level'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.234/0.14; w_est [1.85, 3.62, 2.76] w_oracle [0.89, 1.39, 1.57]; clean max|r| 0.298; L_own level share 0.264
+   rm_LM_EL   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'q15_VE1', 'true_tail50'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.235/0.14; w_est [1.78, 3.42, 2.88] w_oracle [0.89, 1.32, 1.57]; clean max|r| 0.297; L_own level share 0.297
+   rm_TT_EL   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'q15_VE1', 'logprob_margin'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.234/0.14; w_est [1.92, 3.79, 2.64] w_oracle [0.89, 1.35, 1.57]; clean max|r| 0.29; L_own level share 0.288 (49s)
+fold 2: fit [0, 1, 4] cal 3
+   base       groups [['chosen_surprisal', 'realized_z', 'realized_drv'], ['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'q15_VE1', 'logprob_margin'], ['true_tail50', 'energy_level']]; prev est/true 0.241/0.137; w_est [2.32, 1.53, 4.97, 3.65] w_oracle [1.57, 0.88, 1.34, 1.31]; clean max|r| 0.531; L_own level share 0.525
+   merge      groups [['chosen_surprisal', 'realized_z', 'realized_drv'], ['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'q15_VE1', 'logprob_margin', 'true_tail50', 'energy_level']]; prev est/true 0.241/0.137; w_est [2.93, 1.78, 3.48] w_oracle [1.57, 0.88, 1.35]; clean max|r| 0.312; L_own level share None
+   rm_H1_VE1  groups [['bocpd_p0'], ['chosen_surprisal', 'realized_z', 'realized_drv'], ['true_tail50', 'energy_level'], ['logprob_margin', 'top15_turnover', 'dominant_freq16']]; prev est/true 0.267/0.137; w_est [1.51, 2.79, 2.84, 2.56] w_oracle [0.77, 1.57, 1.31, 0.97]; clean max|r| 0.275; L_own level share 0.411
+   rm_H1_LM   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_VE1', 'true_tail50', 'energy_level'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.236/0.137; w_est [1.65, 3.05, 3.24] w_oracle [0.88, 1.35, 1.57]; clean max|r| 0.308; L_own level share 0.302
+   rm_H1_TT   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_VE1', 'logprob_margin', 'energy_level'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.235/0.137; w_est [1.84, 3.68, 2.84] w_oracle [0.88, 1.42, 1.57]; clean max|r| 0.315; L_own level share 0.265
+   rm_H1_EL   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_VE1', 'logprob_margin', 'true_tail50'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.236/0.137; w_est [1.72, 3.38, 3.06] w_oracle [0.88, 1.32, 1.57]; clean max|r| 0.32; L_own level share 0.436
+   rm_VE1_LM  groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'true_tail50', 'energy_level'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.248/0.137; w_est [1.74, 3.13, 3.0] w_oracle [0.88, 1.29, 1.57]; clean max|r| 0.293; L_own level share 0.3
+   rm_VE1_TT  groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'logprob_margin', 'energy_level'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.242/0.137; w_est [1.93, 3.59, 2.67] w_oracle [0.88, 1.34, 1.57]; clean max|r| 0.288; L_own level share 0.266
+   rm_VE1_EL  groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'logprob_margin', 'true_tail50'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.24/0.137; w_est [1.81, 3.3, 2.87] w_oracle [0.88, 1.27, 1.57]; clean max|r| 0.291; L_own level share 0.304
+   rm_LM_TT   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'q15_VE1', 'energy_level'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.238/0.137; w_est [1.82, 3.55, 2.87] w_oracle [0.88, 1.37, 1.57]; clean max|r| 0.309; L_own level share 0.265
+   rm_LM_EL   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'q15_VE1', 'true_tail50'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.237/0.137; w_est [1.74, 3.35, 3.02] w_oracle [0.88, 1.3, 1.57]; clean max|r| 0.313; L_own level share 0.298
+   rm_TT_EL   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'q15_VE1', 'logprob_margin'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.236/0.137; w_est [1.89, 3.77, 2.74] w_oracle [0.88, 1.34, 1.57]; clean max|r| 0.304; L_own level share 0.269 (49s)
+fold 3: fit [0, 1, 2] cal 4
+   base       groups [['chosen_surprisal', 'realized_z', 'realized_drv'], ['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'q15_VE1', 'logprob_margin'], ['true_tail50', 'energy_level']]; prev est/true 0.244/0.139; w_est [2.38, 1.58, 5.01, 3.62] w_oracle [1.55, 0.86, 1.31, 1.29]; clean max|r| 0.53; L_own level share 0.525
+   merge      groups [['chosen_surprisal', 'realized_z', 'realized_drv'], ['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'q15_VE1', 'logprob_margin', 'true_tail50', 'energy_level']]; prev est/true 0.235/0.139; w_est [2.97, 1.83, 3.52] w_oracle [1.55, 0.86, 1.33]; clean max|r| 0.321; L_own level share None
+   rm_H1_VE1  groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['logprob_margin', 'true_tail50', 'energy_level'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.245/0.139; w_est [1.8, 3.19, 2.99] w_oracle [0.86, 1.32, 1.55]; clean max|r| 0.297; L_own level share 0.285
+   rm_H1_LM   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_VE1', 'true_tail50', 'energy_level'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.239/0.139; w_est [1.69, 3.09, 3.26] w_oracle [0.86, 1.33, 1.55]; clean max|r| 0.314; L_own level share 0.302
+   rm_H1_TT   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_VE1', 'logprob_margin', 'energy_level'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.233/0.139; w_est [1.88, 3.7, 2.89] w_oracle [0.86, 1.39, 1.55]; clean max|r| 0.323; L_own level share 0.266
+   rm_H1_EL   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_VE1', 'logprob_margin', 'true_tail50'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.233/0.139; w_est [1.76, 3.42, 3.13] w_oracle [0.86, 1.3, 1.55]; clean max|r| 0.332; L_own level share 0.436
+   rm_VE1_LM  groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'true_tail50', 'energy_level'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.241/0.139; w_est [1.8, 3.2, 3.0] w_oracle [0.86, 1.3, 1.55]; clean max|r| 0.3; L_own level share 0.258
+   rm_VE1_TT  groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'logprob_margin', 'energy_level'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.234/0.139; w_est [1.99, 3.67, 2.7] w_oracle [0.86, 1.32, 1.55]; clean max|r| 0.294; L_own level share 0.267
+   rm_VE1_EL  groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'logprob_margin', 'true_tail50'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.231/0.139; w_est [1.88, 3.41, 2.9] w_oracle [0.86, 1.25, 1.55]; clean max|r| 0.303; L_own level share 0.263
+   rm_LM_TT   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['chosen_surprisal', 'realized_z', 'realized_drv'], ['q15_H1', 'q15_VE1', 'energy_level']]; prev est/true 0.234/0.139; w_est [1.87, 2.9, 3.63] w_oracle [0.86, 1.55, 1.36]; clean max|r| 0.319; L_own level share 0.267
+   rm_LM_EL   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'q15_VE1', 'true_tail50'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.233/0.139; w_est [1.77, 3.39, 3.1] w_oracle [0.86, 1.28, 1.55]; clean max|r| 0.325; L_own level share 0.297
+   rm_TT_EL   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'q15_VE1', 'logprob_margin'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.228/0.139; w_est [1.93, 3.85, 2.81] w_oracle [0.86, 1.31, 1.55]; clean max|r| 0.32; L_own level share 0.271 (49s)
+fold 4: fit [1, 2, 3] cal 0
+   base       groups [['chosen_surprisal', 'realized_z', 'realized_drv'], ['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'q15_VE1', 'logprob_margin'], ['true_tail50', 'energy_level']]; prev est/true 0.246/0.141; w_est [2.36, 1.58, 4.88, 3.57] w_oracle [1.6, 0.88, 1.31, 1.29]; clean max|r| 0.515; L_own level share 0.525
+   merge      groups [['chosen_surprisal', 'realized_z', 'realized_drv'], ['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'q15_VE1', 'logprob_margin', 'true_tail50', 'energy_level']]; prev est/true 0.226/0.141; w_est [2.92, 1.83, 3.52] w_oracle [1.6, 0.88, 1.33]; clean max|r| 0.312; L_own level share None
+   rm_H1_VE1  groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['logprob_margin', 'true_tail50', 'energy_level'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.237/0.141; w_est [1.83, 3.24, 2.9] w_oracle [0.88, 1.33, 1.6]; clean max|r| 0.291; L_own level share 0.285
+   rm_H1_LM   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['chosen_surprisal', 'realized_z', 'realized_drv'], ['q15_VE1', 'true_tail50', 'energy_level']]; prev est/true 0.235/0.141; w_est [1.7, 3.18, 3.1] w_oracle [0.88, 1.6, 1.32]; clean max|r| 0.308; L_own level share 0.258
+   rm_H1_TT   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_VE1', 'logprob_margin', 'energy_level'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.227/0.141; w_est [1.86, 3.69, 2.87] w_oracle [0.88, 1.4, 1.6]; clean max|r| 0.316; L_own level share 0.266
+   rm_H1_EL   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_VE1', 'logprob_margin', 'true_tail50'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.225/0.141; w_est [1.76, 3.42, 3.08] w_oracle [0.88, 1.3, 1.6]; clean max|r| 0.322; L_own level share 0.436
+   rm_VE1_LM  groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'true_tail50', 'energy_level'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.234/0.141; w_est [1.82, 3.24, 2.92] w_oracle [0.88, 1.31, 1.6]; clean max|r| 0.294; L_own level share 0.259
+   rm_VE1_TT  groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'logprob_margin', 'energy_level'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.228/0.141; w_est [2.01, 3.66, 2.62] w_oracle [0.88, 1.34, 1.6]; clean max|r| 0.282; L_own level share 0.267
+   rm_VE1_EL  groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'logprob_margin', 'true_tail50'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.22/0.141; w_est [1.9, 3.45, 2.83] w_oracle [0.88, 1.25, 1.6]; clean max|r| 0.294; L_own level share 0.263
+   rm_LM_TT   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['chosen_surprisal', 'realized_z', 'realized_drv'], ['q15_H1', 'q15_VE1', 'energy_level']]; prev est/true 0.227/0.141; w_est [1.86, 2.87, 3.62] w_oracle [0.88, 1.6, 1.37]; clean max|r| 0.313; L_own level share 0.267
+   rm_LM_EL   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'q15_VE1', 'true_tail50'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.227/0.141; w_est [1.76, 3.37, 3.07] w_oracle [0.88, 1.28, 1.6]; clean max|r| 0.317; L_own level share 0.297
+   rm_TT_EL   groups [['top15_turnover', 'dominant_freq16', 'bocpd_p0'], ['q15_H1', 'q15_VE1', 'logprob_margin'], ['chosen_surprisal', 'realized_z', 'realized_drv']]; prev est/true 0.222/0.141; w_est [1.93, 3.85, 2.76] w_oracle [0.88, 1.31, 1.6]; clean max|r| 0.313; L_own level share 0.27 (48s)
+checks: {'input_hashes_equal_stage_A': True, 'joined_uid_order_equals_oof': True, 'joined_step_counts_equal_oof': True, 'ct7_profile_mean_vs_oof_ct7': 1.3322676295501878e-15, 'marks_exact_count': True, 'replay_max_abs_diff': 8.881784197001252e-16, 'replays_pass': True}
+metric               within_auc  prmscore     sla
+method                                           
+B_sml__rm_H1_LM          0.7864    0.6615  0.3798
+B_oracle__rm_H1_LM       0.7863    0.6618  0.3793
+B_oracle__rm_LM_TT       0.7860    0.6614  0.3856
+B_oracle__rm_H1_TT       0.7860    0.6608  0.3826
+B_oracle__rm_H1_VE1      0.7857    0.6595  0.3680
+E_equal__rm_H1_LM        0.7854    0.6604  0.3756
+B_sml__rm_LM_TT          0.7851    0.6592  0.3851
+B_sml__rm_H1_TT          0.7850    0.6591  0.3855
+B_oracle__rm_VE1_LM      0.7846    0.6612  0.3786
+B_sml__rm_VE1_LM         0.7844    0.6592  0.3718
+E_equal__rm_LM_TT        0.7844    0.6586  0.3858
+E_equal__rm_H1_VE1       0.7841    0.6592  0.3746
+E_equal__rm_H1_TT        0.7841    0.6576  0.3868
+B_oracle__rm_VE1_TT      0.7838    0.6596  0.3811
+E_equal__rm_VE1_LM       0.7835    0.6591  0.3769
+L_grp__rm_H1_LM          0.7834    0.6581  0.3722
+B_equal__rm_H1_LM        0.7830    0.6575  0.3694
+B_sml__rm_H1_VE1         0.7829    0.6579  0.3677
+E_equal__rm_VE1_TT       0.7825    0.6569  0.3784
+B_oracle__base           0.7824    0.6586  0.3750
+B_oracle__merge          0.7823    0.6607  0.3782
+L_grp__rm_LM_TT          0.7819    0.6557  0.3843
+B_sml__merge             0.7818    0.6587  0.3788
+L_own__rm_H1_LM          0.7816    0.6564  0.3704
+B_equal__rm_LM_TT        0.7813    0.6563  0.3750
+L_grp__rm_VE1_LM         0.7812    0.6573  0.3746
+B_sml__rm_VE1_TT         0.7811    0.6563  0.3771
+B_equal__rm_VE1_LM       0.7808    0.6567  0.3702
+L_grp__rm_H1_VE1         0.7806    0.6531  0.3660
+B_equal__rm_H1_TT        0.7806    0.6549  0.3738
+L_grp__rm_H1_TT          0.7803    0.6551  0.3814
+E_equal__base            0.7802    0.6565  0.3750
+fam421                   0.7801    0.6573  0.3980
+B_equal__base            0.7797    0.6552  0.3708
+L_own__rm_H1_VE1         0.7797    0.6571  0.3756
+L_grp__rm_VE1_TT         0.7790    0.6538  0.3779
+L_grp__merge             0.7788    0.6548  0.3779
+B_equal__rm_VE1_TT       0.7786    0.6538  0.3756
+B_equal__merge           0.7783    0.6547  0.3741
+B_oracle__rm_H1_EL       0.7780    0.6587  0.3751
+B_equal__rm_H1_VE1       0.7779    0.6518  0.3694
+B_oracle__rm_LM_EL       0.7776    0.6586  0.3758
+B_oracle__rm_TT_EL       0.7772    0.6562  0.3756
+B_sml__rm_LM_EL          0.7767    0.6579  0.3727
+B_sml__rm_H1_EL          0.7766    0.6575  0.3769
+E_equal__rm_LM_EL        0.7766    0.6571  0.3743
+E_equal__rm_H1_EL        0.7766    0.6561  0.3759
+B13_lsml                 0.7765    0.6504  0.3579
+B_oracle__rm_VE1_EL      0.7763    0.6583  0.3700
+L_grp__base              0.7754    0.6495  0.3557
+L_own__rm_H1_EL          0.7754    0.6555  0.3763
+L_own__base              0.7751    0.6491  0.3594
+B13_equal                0.7749    0.6527  0.3698
+L_own__rm_VE1_LM         0.7747    0.6500  0.3633
+L_own__rm_LM_EL          0.7744    0.6549  0.3733
+L_grp__rm_LM_EL          0.7744    0.6549  0.3733
+E_equal__rm_TT_EL        0.7744    0.6537  0.3802
+E_equal__rm_VE1_EL       0.7742    0.6555  0.3751
+B_equal__rm_LM_EL        0.7740    0.6542  0.3695
+L_grp__rm_H1_EL          0.7740    0.6537  0.3776
+B_equal__rm_H1_EL        0.7737    0.6527  0.3732
+B_sml__rm_TT_EL          0.7737    0.6528  0.3794
+B_sml__base              0.7729    0.6492  0.3639
+B_sml__rm_VE1_EL         0.7728    0.6552  0.3706
+ct7                      0.7724    0.6458  0.3989
+L_own__rm_LM_TT          0.7722    0.6468  0.3685
+L_grp__rm_VE1_EL         0.7721    0.6535  0.3696
+B_equal__rm_TT_EL        0.7720    0.6504  0.3718
+L_grp__rm_TT_EL          0.7718    0.6507  0.3784
+B_equal__rm_VE1_EL       0.7715    0.6523  0.3697
+L_own__rm_H1_TT          0.7691    0.6446  0.3681
+L_own__rm_VE1_EL         0.7684    0.6492  0.3618
+L_own__rm_VE1_TT         0.7670    0.6429  0.3601
+L_own__rm_TT_EL          0.7638    0.6434  0.3721
+step_index               0.6617    0.5275  0.0484
+           family                 contrast_id        endpoint   delta  min_config  max_config  configs_positive  ci_adj_lo  ci_adj_hi  ci95_lo  ci95_hi
+0         primary         C1_Bsml_vs_B13equal  prm_within_auc  0.0071     -0.0022      0.0115               8.0     0.0043     0.0099   0.0051   0.0090
+1         primary         C1_Bsml_vs_B13equal        prmscore  0.0052      0.0001      0.0087              10.0     0.0023     0.0082   0.0032   0.0073
+2         primary           C2_Bsml_vs_Bequal  prm_within_auc  0.0031      0.0012      0.0050              10.0     0.0013     0.0049   0.0019   0.0044
+3         primary           C2_Bsml_vs_Bequal        prmscore  0.0033      0.0024      0.0062              10.0     0.0015     0.0053   0.0021   0.0047
+4         primary           C3_Lown_vs_Eequal  prm_within_auc -0.0073     -0.0155     -0.0012               0.0    -0.0095    -0.0052  -0.0089  -0.0058
+5         primary           C3_Lown_vs_Eequal        prmscore -0.0077     -0.0140     -0.0006               0.0    -0.0102    -0.0052  -0.0094  -0.0060
+6         primary            C4_Lown_vs_Slsml  prm_within_auc -0.0018     -0.0113      0.0064               3.0    -0.0057     0.0015  -0.0045   0.0005
+7         primary            C4_Lown_vs_Slsml        prmscore  0.0005     -0.0062      0.0081               6.0    -0.0036     0.0045  -0.0023   0.0033
+8         primary      C5_merge_Lgrp_vs_Slsml  prm_within_auc  0.0036      0.0036      0.0036               1.0     0.0001     0.0072   0.0012   0.0061
+9         primary      C5_merge_Lgrp_vs_Slsml        prmscore  0.0058      0.0058      0.0058               1.0     0.0015     0.0099   0.0028   0.0087
+10  position_bank     C1_Bsml_vs_B13equal_pos  prm_within_auc  0.0050      0.0002      0.0103              10.0        NaN        NaN   0.0031   0.0069
+11  position_bank     C1_Bsml_vs_B13equal_pos        prmscore  0.0057      0.0018      0.0082              10.0        NaN        NaN   0.0038   0.0078
+12  position_bank       C2_Bsml_vs_Bequal_pos  prm_within_auc  0.0155      0.0128      0.0182              10.0        NaN        NaN   0.0130   0.0175
+13  position_bank       C2_Bsml_vs_Bequal_pos        prmscore  0.0147      0.0132      0.0168              10.0        NaN        NaN   0.0129   0.0172
+14  position_bank       C3_Lown_vs_Eequal_pos  prm_within_auc -0.0043     -0.0063     -0.0014               0.0        NaN        NaN  -0.0061  -0.0030
+15  position_bank       C3_Lown_vs_Eequal_pos        prmscore -0.0042     -0.0062     -0.0014               0.0        NaN        NaN  -0.0060  -0.0025
+16  position_bank        C4_Lown_vs_Slsml_pos  prm_within_auc  0.0061      0.0043      0.0114              10.0        NaN        NaN   0.0034   0.0094
+17  position_bank        C4_Lown_vs_Slsml_pos        prmscore  0.0042     -0.0001      0.0091               9.0        NaN        NaN   0.0015   0.0069
+18  position_bank  C5_merge_Lgrp_vs_Slsml_pos  prm_within_auc  0.0044      0.0044      0.0044               1.0        NaN        NaN   0.0030   0.0059
+19  position_bank  C5_merge_Lgrp_vs_Slsml_pos        prmscore  0.0015      0.0015      0.0015               1.0        NaN        NaN  -0.0003   0.0033
+{
+ "C1_Bsml_vs_B13equal": {
+  "answers": 6030,
+  "observed_on_null_set": 0.007072337297669817,
+  "within_answer_shuffle": {
+   "mean": -7.654906923707738e-05,
+   "sd": 0.001082467468795407,
+   "p01": -0.0021496217855687502,
+   "p99": 0.002401395902587792,
+   "share_ge_observed": 0.0,
+   "share_le_observed": 1.0,
+   "permutations": 200
+  },
+  "whole_answer_same_length_swap": {
+   "mean": 0.005629798493103842,
+   "sd": 0.0010103225357850592,
+   "p01": 0.0029972321734511153,
+   "p99": 0.0077915918914713365,
+   "share_ge_observed": 0.06,
+   "share_le_observed": 0.94,
+   "permutations": 200
+  }
+ },
+ "C2_Bsml_vs_Bequal": {
+  "answers": 6030,
+  "observed_on_null_set": 0.0031156323625113336,
+  "within_answer_shuffle": {
+   "mean": 2.482658867691237e-05,
+   "sd": 0.0006348412411404245,
+   "p01": -0.0014091070742782768,
+   "p99": 0.0016756543190345585,
+   "share_ge_observed": 0.0,
+   "share_le_observed": 1.0,
+   "permutations": 200
+  },
+  "whole_answer_same_length_swap": {
+   "mean": -0.00113412525396243,
+   "sd": 0.0005803764971278615,
+   "p01": -0.0026173291055691665,
+   "p99": 0.00028591068102585795,
+   "share_ge_observed": 0.0,
+   "share_le_observed": 1.0,
+   "permutations": 200
+  }
+ },
+ "C3_Lown_vs_Eequal": {
+  "answers": 6030,
+  "observed_on_null_set": -0.007305851789331241,
+  "within_answer_shuffle": {
+   "mean": -2.237724702930516e-06,
+   "sd": 0.0006054967148565664,
+   "p01": -0.0013738094718292024,
+   "p99": 0.0013267580597956326,
+   "share_ge_observed": 1.0,
+   "share_le_observed": 0.0,
+   "permutations": 200
+  },
+  "whole_answer_same_length_swap": {
+   "mean": 0.0027451486219501253,
+   "sd": 0.0008197370313941154,
+   "p01": 0.0009747438232529415,
+   "p99": 0.004438038559936986,
+   "share_ge_observed": 1.0,
+   "share_le_observed": 0.0,
+   "permutations": 200
+  }
+ },
+ "C4_Lown_vs_Slsml": {
+  "answers": 6030,
+  "observed_on_null_set": -0.0018367041811894191,
+  "within_answer_shuffle": {
+   "mean": 5.136277616219681e-05,
+   "sd": 0.0012007558315173215,
+   "p01": -0.0024288758233445913,
+   "p99": 0.0033117255682444256,
+   "share_ge_observed": 0.955,
+   "share_le_observed": 0.045,
+   "permutations": 200
+  },
+  "whole_answer_same_length_swap": {
+   "mean": -0.012225762142404641,
+   "sd": 0.0011878262464231704,
+   "p01": -0.015286526508412782,
+   "p99": -0.009670001227481571,
+   "share_ge_observed": 0.0,
+   "share_le_observed": 1.0,
+   "permutations": 200
+  }
+ },
+ "C5_merge_Lgrp_vs_Slsml": {
+  "answers": 6030,
+  "observed_on_null_set": 0.003624808409426916,
+  "within_answer_shuffle": {
+   "mean": 5.9696756066557335e-05,
+   "sd": 0.0012300403105113267,
+   "p01": -0.0024677756701353103,
+   "p99": 0.002784002147102808,
+   "share_ge_observed": 0.005,
+   "share_le_observed": 0.995,
+   "permutations": 200
+  },
+  "whole_answer_same_length_swap": {
+   "mean": -0.016617557760651835,
+   "sd": 0.001137029366249347,
+   "p01": -0.019295514690868,
+   "p99": -0.013982439670100622,
+   "share_ge_observed": 0.0,
+   "share_le_observed": 1.0,
+   "permutations": 200
+  }
+ }
+}
+{
+ "channels_s": 1.6281597999986843,
+ "fit_s": 251.10468409999885,
+ "eval_s": 144.72033560000273,
+ "bootstrap_s": 239.90630789999705,
+ "nulls_s": 53.09889059999841,
+ "total_s": 697.6950582999998
+}
+status COMPLETE failures 0

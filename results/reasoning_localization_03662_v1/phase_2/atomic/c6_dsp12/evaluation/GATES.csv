@@ -1,0 +1,9 @@
+gate_id,status,observed,required,detail
+P2A_SCORE_FREEZE_COMPLETE,PASS,8,8 cells,reference and candidate scores froze before labels
+P2A_LABEL_FIREWALL,PASS,labels opened after score freeze,no fit-side labels or targets,all transforms and fusion are target-free
+P2A_TOP10_LOCAL_ALIAS,PASS,0.0,<=1e-12,atomic top-ten local alias
+P2A_TOP10_COMBINED_ALIAS,PASS,0.0,<=1e-12,atomic top-ten combined alias
+C6_DSP12_SUFFIX_INVARIANCE,PASS,0.0,<=1e-12,fixed-map prefix replay
+C6_DSP12_WORST_CELL_HARD_BOUND,HARD_FAIL,-0.08165877237277486,>=-0.03,minimum across both required comparators
+C6_DSP12_PROMOTION_ELIGIBILITY,NOT_ELIGIBLE,false,registered promotion-eligible branch,Neither preregistered source parent C4 nor C5 passed the atomic promotion premise; user-authorized completion is diagnostic only
+C6_DSP12_PREMISE_PROMOTION,FAIL,false,eligible and all promotion gates pass,atomic survivor gate
