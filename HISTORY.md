@@ -18522,3 +18522,37 @@ Derived `FEATURES_*/SCORES_*.npz` (~19 MB) are kept out of Git.
 Caveat: only the first token of each concatenated trace was masked.
 
 ---
+
+### Step 454 [Claude agent telemetry] - CPU pilot: label-free fusion of competitor judgments with Qwen3-8B telemetry, 2026-10-17
+
+**What**: Fused, with no labels, the published competitor outputs with our telemetry scores, under the Step 453 fair protocols (helpers imported unchanged from `fair_protocols/fair.py`).
+- **ToolPRMBench:** Skywork-o1-PRM-7B's continuous score, Nemotron-49B-GenRM's `ranking_score` (1-6) and Qwen3-Coder-Next's binary vote, each fused with our Qwen3-8B per-variant score (mean_ent or IU-PCR cellz, raw and length-residualized). This is **cross-backbone**: the competitors' own backbones were not run.
+- **AgentProcessBench:** the Qwen3-8B LLM judge's step label fused with Qwen3-8B telemetry (IU-PCR / L-SML ansz, mean_ent), raw, length-residualized and length+position-residualized. This is **same-backbone**.
+- **Fusion rule, fixed a priori:** equal weights, each view scaled to unit size.
+  - TPRM: pair preference divided by its per-subset RMS (sign-invariant, so no label is needed).
+  - APB: per-subset z over all labelled steps.
+- **Alignment:** competitor rows map to our pairs by release row (`case<N>`); for tooltalk, by task:index. Missing competitor output counts as an abstention, i.e. a tie. Competitor-alone accuracy reproduces the published numbers up to those abstentions.
+
+**Why**: Omri asked whether fusing a model's output with features from its backbone's probability behaviour beats Qwen3-Coder-Next, Skywork-o1-PRM-7B and Nemotron-49B-GenRM. On PRMBench the same idea gave +3.08 PRMScore (`122500e2`).
+
+**Result**:
+- **APB, same backbone: positive.** On first error vs prior clean steps (n=468), the judge alone scores 0.592. Judge + IU-PCR ansz, with length and position residualized out, scores **0.681 (+0.089 [0.055, 0.121])**. Step AUROC goes from 0.581 to 0.637. L-SML is similar (+0.092). mean_ent alone adds nothing (+0.021, n.s.). The judge's 3-level label leaves many within-trajectory ties, and the fused score breaks them better than chance without using length or position.
+- **TPRM, cross-backbone: mixed and subset-dependent.**
+  - Gains for weak competitors:
+    - Nemotron on ToolSandbox: 0.429 → 0.619 with resid IU-PCR (+0.190).
+    - Nemotron on bfcl: 0.396 → 0.505 with resid mean_ent (+0.108).
+    - Coder-Next on bfcl: +0.081 with resid IU-PCR.
+  - Small gains on ToolSandbox:
+    - Skywork: 0.788 → 0.841 with resid mean_ent.
+    - Coder-Next: 0.827 → 0.867 with resid mean_ent.
+  - Consistent losses on tooltalk, where our score is anti-predictive: Nemotron −0.157, Coder-Next −0.087 with mean_ent.
+  - GTA is a format probe only.
+- **Caveats.**
+  - The CIs are not corrected for the many cells.
+  - TPRM uses the non-canonical `cellz` normalization.
+  - Judge+length / judge+position controls were not run.
+  - The own-backbone TPRM test needs GPU telemetry from each competitor's backbone.
+
+Delivery: [results/agent_step_telemetry_v1_competitor_fusion_pilot_2026-10-17/README.md](results/agent_step_telemetry_v1_competitor_fusion_pilot_2026-10-17/README.md).
+
+---

@@ -1,3 +1,16 @@
+## 2026-10-17: competitor-fusion pilot: same-backbone judge + telemetry helps on APB (Claude)
+
+**START HERE:** HISTORY Step 454 and [the pilot README](results/agent_step_telemetry_v1_competitor_fusion_pilot_2026-10-17/README.md).
+
+- **APB (same backbone): positive.** Fusing the Qwen3-8B LLM judge with Qwen3-8B telemetry (IU-PCR ansz, length+position residualized) raises first error vs prior clean from 0.592 to **0.681 (+0.089 [0.055, 0.121])**, and step AUROC from 0.581 to 0.637. This is the first positive agent-benchmark result.
+- **TPRM (cross-backbone, Qwen3-8B features): mixed.**
+  - Clear gains for weak competitors: Nemotron +0.19 on ToolSandbox, +0.11 on bfcl.
+  - Small gains for strong ones on ToolSandbox (+0.04 to +0.05).
+  - Losses on tooltalk.
+- **Next, if pursued.**
+  - Add judge+length / judge+position controls on APB.
+  - Run the own-backbone TPRM test: GPU telemetry from Skywork-o1-PRM-7B first (Qwen2.5-7B, the same pattern as PRMBench `122500e2`), then Nemotron-49B and Qwen3-Coder-Next. Needs Omri's GPU go.
+
 ## 2026-10-16: agent-step telemetry evaluated: no robust label-free signal (Claude)
 
 **START HERE:** HISTORY Step 453 [Claude agent telemetry] and [the fair-protocol README](results/agent_step_telemetry_v1_n16_2026-10-16/fair_protocols/README.md).
