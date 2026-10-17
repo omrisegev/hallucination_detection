@@ -1,0 +1,233 @@
+....You are using the default legacy behaviour of the <class 'transformers.models.llama.tokenization_llama.LlamaTokenizer'>. This is expected, and simply means that the `legacy` (previous) behavior will be used so nothing changes for you. If you want to use the new behaviour, set `legacy=False`. This should only be set if you understand what it means, and thoroughly read the reason why this was added as explained in https://github.com/huggingface/transformers/pull/24565 - if you loaded a llama tokenizer from a GGUF file you can ignore this message
+You are using the default legacy behaviour of the <class 'transformers.models.llama.tokenization_llama_fast.LlamaTokenizerFast'>. This is expected, and simply means that the `legacy` (previous) behavior will be used so nothing changes for you. If you want to use the new behaviour, set `legacy=False`. This should only be set if you understand what it means, and thoroughly read the reason why this was added as explained in https://github.com/huggingface/transformers/pull/24565 - if you loaded a llama tokenizer from a GGUF file you can ignore this message.
+....[prm-tel] lm_head check {'lm_head_source': 'own_used', 'lm_head_vs_base_max_abs_diff': None, 'hidden_after_final_norm': True, 'adapter': 'rlhflow_prm', 'official_wrapper_commit': 'fixture', 'prm_lm_head_shape': [32, 8]}
+[prm-tel] 1/2 rows (0.00s last)
+[prm-tel] counted context failure bad: 12 > 10
+.[prm-tel] mode=prm model=RLHFlow/Llama3.1-8B-PRM-Mistral-Data rows=1
+[prm-tel] lm_head check {'lm_head_source': 'own_used', 'lm_head_vs_base_max_abs_diff': None, 'hidden_after_final_norm': True, 'adapter': 'rlhflow_prm', 'official_wrapper_commit': 'fixture', 'prm_lm_head_shape': [32, 8]}
+{
+  "driver": "run_prmbench_prm_telemetry.py",
+  "mode": "prm",
+  "model": "RLHFlow/Llama3.1-8B-PRM-Mistral-Data",
+  "dataset_diagnostics": {
+    "meta_source": "/var/folders/lr/yrsn18ds1jl4tkjzb6yytsr80000gn/T/tmp3_usylu_/meta.pkl",
+    "n_rows": 1
+  },
+  "n_rows": 1,
+  "logprob_top_k": 15,
+  "system_prompt": null,
+  "n_boundary_whitespace": 0,
+  "token_surprisal_median": 3.4193520545959473,
+  "token_surprisal_mean": 3.4193520545959473,
+  "token_entropy15_median": 2.686739444732666,
+  "n_step_text_mismatch": 0,
+  "n_rows_step_text_mismatch": 0,
+  "max_input_tokens": 4,
+  "n_rows_over_4096_tokens": 0,
+  "lm_head_check": {
+    "lm_head_source": "own_used",
+    "lm_head_vs_base_max_abs_diff": null,
+    "hidden_after_final_norm": true,
+    "adapter": "rlhflow_prm",
+    "official_wrapper_commit": "fixture",
+    "prm_lm_head_shape": [
+      32,
+      8
+    ]
+  },
+  "reward_path_max_abs_gap": 0.0,
+  "status": "COMPLETE",
+  "n_failed_rows": 0,
+  "n_successful_rows": 1,
+  "failed_rows": {},
+  "n_rows_context_overflow": 0,
+  "adapter": "rlhflow_prm",
+  "lm_head_source": "own_used",
+  "lm_head_vs_base_max_abs_diff": null,
+  "hidden_after_final_norm": true,
+  "official_wrapper_commit": "fixture",
+  "elapsed_sec": 0.0015208721160888672,
+  "job_id": "",
+  "written_utc": "2026-10-17T14:45:29+00:00"
+}
+COMPLETE -> /var/folders/lr/yrsn18ds1jl4tkjzb6yytsr80000gn/T/tmp3_usylu_/run
+[prm-tel] mode=prm model=RLHFlow/Llama3.1-8B-PRM-Mistral-Data rows=2
+[prm-tel] lm_head check {'lm_head_source': 'own_used', 'lm_head_vs_base_max_abs_diff': None, 'hidden_after_final_norm': True, 'adapter': 'rlhflow_prm', 'official_wrapper_commit': 'fixture', 'prm_lm_head_shape': [32, 8]}
+{
+  "driver": "run_prmbench_prm_telemetry.py",
+  "mode": "prm",
+  "model": "RLHFlow/Llama3.1-8B-PRM-Mistral-Data",
+  "dataset_diagnostics": {
+    "meta_source": "/var/folders/lr/yrsn18ds1jl4tkjzb6yytsr80000gn/T/tmp3_usylu_/meta.pkl",
+    "n_rows": 2
+  },
+  "n_rows": 2,
+  "logprob_top_k": 15,
+  "system_prompt": null,
+  "n_boundary_whitespace": 0,
+  "token_surprisal_median": 3.4193520545959473,
+  "token_surprisal_mean": 3.4193520545959473,
+  "token_entropy15_median": 2.686739444732666,
+  "n_step_text_mismatch": 0,
+  "n_rows_step_text_mismatch": 0,
+  "max_input_tokens": 4,
+  "n_rows_over_4096_tokens": 0,
+  "lm_head_check": {
+    "lm_head_source": "own_used",
+    "lm_head_vs_base_max_abs_diff": null,
+    "hidden_after_final_norm": true,
+    "adapter": "rlhflow_prm",
+    "official_wrapper_commit": "fixture",
+    "prm_lm_head_shape": [
+      32,
+      8
+    ]
+  },
+  "reward_path_max_abs_gap": 0.0,
+  "status": "COMPLETE",
+  "n_failed_rows": 0,
+  "n_successful_rows": 2,
+  "failed_rows": {},
+  "n_rows_context_overflow": 0,
+  "adapter": "rlhflow_prm",
+  "lm_head_source": "own_used",
+  "lm_head_vs_base_max_abs_diff": null,
+  "hidden_after_final_norm": true,
+  "official_wrapper_commit": "fixture",
+  "elapsed_sec": 0.001271963119506836,
+  "job_id": "",
+  "written_utc": "2026-10-17T14:45:29+00:00"
+}
+COMPLETE -> /var/folders/lr/yrsn18ds1jl4tkjzb6yytsr80000gn/T/tmp3_usylu_/run
+.[prm-tel] mode=prm model=RLHFlow/Llama3.1-8B-PRM-Mistral-Data rows=2
+[prm-tel] lm_head check {'lm_head_source': 'own_used', 'lm_head_vs_base_max_abs_diff': None, 'hidden_after_final_norm': True, 'adapter': 'rlhflow_prm', 'official_wrapper_commit': 'fixture', 'prm_lm_head_shape': [32, 8]}
+[prm-tel] counted context failure b: 12 > 10
+{
+  "driver": "run_prmbench_prm_telemetry.py",
+  "mode": "prm",
+  "model": "RLHFlow/Llama3.1-8B-PRM-Mistral-Data",
+  "dataset_diagnostics": {
+    "meta_source": "/var/folders/lr/yrsn18ds1jl4tkjzb6yytsr80000gn/T/tmp7p7xsbh3/meta.pkl",
+    "n_rows": 2
+  },
+  "n_rows": 2,
+  "logprob_top_k": 15,
+  "system_prompt": null,
+  "n_boundary_whitespace": 0,
+  "token_surprisal_median": 3.4193520545959473,
+  "token_surprisal_mean": 3.4193520545959473,
+  "token_entropy15_median": 2.686739444732666,
+  "n_step_text_mismatch": 0,
+  "n_rows_step_text_mismatch": 0,
+  "max_input_tokens": 12,
+  "n_rows_over_4096_tokens": 0,
+  "lm_head_check": {
+    "lm_head_source": "own_used",
+    "lm_head_vs_base_max_abs_diff": null,
+    "hidden_after_final_norm": true,
+    "adapter": "rlhflow_prm",
+    "official_wrapper_commit": "fixture",
+    "prm_lm_head_shape": [
+      32,
+      8
+    ]
+  },
+  "reward_path_max_abs_gap": 0.0,
+  "status": "COMPLETE_WITH_FAILURES",
+  "n_failed_rows": 1,
+  "n_successful_rows": 1,
+  "failed_rows": {
+    "1": {
+      "idx": "b",
+      "source_idx": "b",
+      "classification": "confidence",
+      "category": "soundness",
+      "question": "long",
+      "steps": [
+        "fixture"
+      ],
+      "error_steps": [],
+      "failure": "context_overflow",
+      "n_input_tokens": 12,
+      "context_limit": 10
+    }
+  },
+  "n_rows_context_overflow": 1,
+  "adapter": "rlhflow_prm",
+  "lm_head_source": "own_used",
+  "lm_head_vs_base_max_abs_diff": null,
+  "hidden_after_final_norm": true,
+  "official_wrapper_commit": "fixture",
+  "elapsed_sec": 0.0019850730895996094,
+  "job_id": "",
+  "written_utc": "2026-10-17T14:45:29+00:00"
+}
+[prm-tel] COMPLETE_WITH_FAILURES: 1 counted rows; fusion blocked
+.[prm-tel] mode=prm model=RLHFlow/Llama3.1-8B-PRM-Mistral-Data rows=1
+[prm-tel] lm_head check {'lm_head_source': 'own_used', 'lm_head_vs_base_max_abs_diff': None, 'hidden_after_final_norm': True, 'adapter': 'rlhflow_prm', 'official_wrapper_commit': 'fixture', 'prm_lm_head_shape': [32, 8]}
+{
+  "driver": "run_prmbench_prm_telemetry.py",
+  "mode": "prm",
+  "model": "RLHFlow/Llama3.1-8B-PRM-Mistral-Data",
+  "dataset_diagnostics": {
+    "meta_source": "/var/folders/lr/yrsn18ds1jl4tkjzb6yytsr80000gn/T/tmpsj5y12sp/meta.pkl",
+    "n_rows": 1
+  },
+  "n_rows": 0,
+  "logprob_top_k": 50,
+  "system_prompt": null,
+  "n_boundary_whitespace": 0,
+  "token_surprisal_median": null,
+  "token_surprisal_mean": null,
+  "token_entropy15_median": null,
+  "n_step_text_mismatch": 0,
+  "n_rows_step_text_mismatch": 0,
+  "max_input_tokens": 0,
+  "n_rows_over_4096_tokens": 0,
+  "lm_head_check": {
+    "lm_head_source": "own_used",
+    "lm_head_vs_base_max_abs_diff": null,
+    "hidden_after_final_norm": true,
+    "adapter": "rlhflow_prm",
+    "official_wrapper_commit": "fixture",
+    "prm_lm_head_shape": [
+      32,
+      8
+    ]
+  },
+  "reward_path_max_abs_gap": 0.0,
+  "status": "INCOMPLETE",
+  "n_failed_rows": 0,
+  "n_successful_rows": 0,
+  "failed_rows": {},
+  "n_rows_context_overflow": 0,
+  "adapter": "rlhflow_prm",
+  "lm_head_source": "own_used",
+  "lm_head_vs_base_max_abs_diff": null,
+  "hidden_after_final_norm": true,
+  "official_wrapper_commit": "fixture",
+  "elapsed_sec": 0.0009150505065917969,
+  "job_id": "",
+  "written_utc": "2026-10-17T14:45:29+00:00"
+}
+[prm-tel] INCOMPLETE; resubmit with the same --out to resume
+[prm-tel] mode=prm model=RLHFlow/Llama3.1-8B-PRM-Mistral-Data rows=1
+.[prm-tel] lm_head check {'lm_head_source': 'own_used', 'lm_head_vs_base_max_abs_diff': None, 'hidden_after_final_norm': True, 'adapter': 'rlhflow_prm', 'official_wrapper_commit': 'fixture', 'prm_lm_head_shape': [32, 8]}
+[prm-tel] 1/1 rows (0.00s last)
+.[prm-tel] SIGTERM received; will checkpoint after the current row
+[prm-tel] lm_head check {'lm_head_source': 'own_used', 'lm_head_vs_base_max_abs_diff': None, 'hidden_after_final_norm': True, 'adapter': 'rlhflow_prm', 'official_wrapper_commit': 'fixture', 'prm_lm_head_shape': [32, 8]}
+[prm-tel] lm_head check {'lm_head_source': 'own_used', 'lm_head_vs_base_max_abs_diff': None, 'hidden_after_final_norm': True, 'adapter': 'rlhflow_prm', 'official_wrapper_commit': 'fixture', 'prm_lm_head_shape': [32, 8]}
+[prm-tel] 1/1 rows (0.00s last)
+[prm-tel] lm_head check {'lm_head_source': 'own_used', 'lm_head_vs_base_max_abs_diff': None, 'hidden_after_final_norm': True, 'adapter': 'rlhflow_prm', 'official_wrapper_commit': 'fixture', 'prm_lm_head_shape': [32, 8]}
+...s...............................................EVALUATING N16
+COMPLETE N16 IU_PCR
+COMPLETE N16 LSML_CONT
+EVALUATING N56
+COMPLETE N56 IU_PCR
+COMPLETE N56 LSML_CONT
+Matplotlib is building the font cache; this may take a moment.
+......................................................
+----------------------------------------------------------------------
+Ran 118 tests in 13.509s
+
+OK (skipped=1)

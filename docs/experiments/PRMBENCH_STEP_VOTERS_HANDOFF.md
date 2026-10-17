@@ -23,9 +23,9 @@ step. Only PRM-7B has been run there so far. This handoff adds the other voters.
 | j14b | Qwen/Qwen2.5-14B-Instruct (same control) | A | same |
 | c72b | Qwen/Qwen2.5-72B-Instruct (ProcessBench critic prompt) | A | `--kind critic` |
 | prm72b | Qwen/Qwen2.5-Math-PRM-72B | B | `cluster/run_prmbench_prm_telemetry.py --adapter qwen_prm_72b` (Codex branch) |
-| rlhflow | RLHFlow/Llama3.1-8B-PRM-Mistral-Data | B | `--adapter rlhflow` |
-| pure | jinachris/PURE-PRM-7B | B | `--adapter pure` (needs the Qwen2.5-Math-7B base head cached) |
-| mshep | peiyi9979/math-shepherd-mistral-7b-prm | B | `--adapter mathshepherd` |
+| rlhflow | RLHFlow/Llama3.1-8B-PRM-Mistral-Data | B | `--adapter rlhflow_prm` |
+| pure | jinachris/PURE-PRM-7B | B | `--adapter pure_prm` (needs the Qwen2.5-Math-7B base head cached) |
+| mshep | peiyi9979/math-shepherd-mistral-7b-prm | B | `--adapter math_shepherd` |
 
 **Do NOT run Skywork or ReasonEval.** Both are blocked:
 - Skywork: n+1 rewards for n steps; the protocol awaits Omri's decision.
@@ -39,7 +39,7 @@ other sessions run jobs from there.
 
 ```bash
 git fetch origin
-git worktree add ../hd-prm-voters   origin/claude/prm-voters-processbench-pilot   # Track A (+ analysis)
+git worktree add ../hd-prm-voters   65bcf88310d7ee98a2b4b314bd0602e7db064b9c       # Track A: integrated voters + error_count dependencies
 git worktree add ../hd-prm-gen      fba8e8d9672313551bed341cb9b9ef6a55e4db07       # Track B, Codex package, use UNCHANGED
 ```
 Sync each tree to its own dir with a narrow tar (run from inside each worktree):
@@ -91,7 +91,10 @@ $B --mode prm --adapter qwen_prm --meta-pkl $T7 --n-samples 40 --compare-to $T7 
 **Gate: T1 must pass before any new PRM runs** (exact rewards / ids / spans; telemetry within 1e-5).
 🛑 If T1 fails, stop and report it; do not run the new adapters. When it passes:
 ```bash
-for a in rlhflow pure mathshepherd; do $B --mode prm --adapter $a --meta-pkl $T7 --n-samples 30 --out $OUT/${a}_pilot; done
+for pair in rlhflow:rlhflow_prm pure:pure_prm mathshepherd:math_shepherd; do
+  name=${pair%%:*}; adapter=${pair#*:}
+  $B --mode prm --adapter "$adapter" --meta-pkl "$T7" --n-samples 30 --out "$OUT/${name}_pilot"
+done
 sbatch $ACC --time=08:00:00 --export=ALL,CODE_DIR=$SH/code_prm_boost_gen_v1 cluster/submit_prmbench_prm_telemetry.sbatch \
   --mode prm --adapter qwen_prm_72b --meta-pkl $T7 --n-samples 30 --out $OUT/qwen_prm_72b_pilot
 ```
@@ -125,8 +128,9 @@ done
 cd $SH/code_prm_boost_gen_v1
 P=cluster/submit_prmbench_prm_telemetry.sbatch
 G=--export=ALL,CODE_DIR=$SH/code_prm_boost_gen_v1
-for a in rlhflow pure mathshepherd; do
-  chain 2 $G -- $P --mode prm --adapter $a --meta-pkl $T7 --out $OUT/${a}_full
+for pair in rlhflow:rlhflow_prm pure:pure_prm mathshepherd:math_shepherd; do
+  name=${pair%%:*}; adapter=${pair#*:}
+  chain 2 $G -- $P --mode prm --adapter "$adapter" --meta-pkl "$T7" --out "$OUT/${name}_full"
 done
 chain 3 $G --time=08:00:00 -- $P --mode prm --adapter qwen_prm_72b --meta-pkl $T7 --out $OUT/qwen_prm_72b_full
 ```

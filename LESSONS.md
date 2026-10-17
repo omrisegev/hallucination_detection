@@ -495,3 +495,16 @@ What happened: a v17 handoff append normalized pre-existing CRLF lines in HISTOR
 Why: read_text/write_text rewrote the entire historical prefix with a different newline convention.
 Rule: preserve the original byte prefix and append only the new entry; inspect the scoped diff before staging publication records.
 Enforced by: publication byte/hash and Git diff checks.
+
+
+## 2026-10-17 — A positive-weight diagnostic can still subtract original channels
+What happened: the LR-gap summary attributed a small LR/NNLR difference to negative weights, but NNLR first flipped channel signs using training labels and used different regularization.
+Why: the coordinate convention and fitting objective were omitted from the conclusion.
+Rule: report training-label orientation separately and use the same inputs and penalty before attributing a gain to allowing signed coefficients. NNLR-selected channels are a supervised diagnostic.
+Enforced by: prose (corrected LR-gap descriptions; source and exact coefficients retained in the integration review).
+
+## 2026-10-17 — Replay scripts must preserve their original results
+What happened: the independent PRM audit used a temporary reported-table path and wrote replay outputs into its original package.
+Why: a one-session numerical check was published without a portable output boundary.
+Rule: resolve versioned inputs before output creation and require a fresh destination; preserve the original script and result hashes. Explicitly preserve ignored scientific figures and payloads in Git or a verified archive.
+Enforced by: code (replay.py preflight and tests/test_integration_completion.py; per-member archive hashes and remote checksum verification).

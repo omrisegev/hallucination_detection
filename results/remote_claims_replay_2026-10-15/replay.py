@@ -8,6 +8,7 @@ development diagnostics selected from previously inspected feature families.
 """
 from __future__ import annotations
 
+import argparse
 import os
 for key in ('OMP_NUM_THREADS', 'OPENBLAS_NUM_THREADS', 'MKL_NUM_THREADS'):
     os.environ[key] = '2'
@@ -26,7 +27,11 @@ ROOT = HERE.parents[1]
 sys.path.insert(0, str(ROOT))
 from spectral_utils.fusion_utils import lsml_continuous, sml_fuse_signed
 
-RAW = HERE / 'inputs/unpacked/results'
+DATA_ROOT = ROOT
+INPUTS = HERE / 'inputs'
+RAW = INPUTS / 'unpacked/results'
+OUT = None
+REPORTED = ROOT / 'results/advisor_page_v19_2026-10-15/sources/eval_slide12/SLIDE12_RESULTS_qwen_prm_7b.csv'
 S3 = ['energy_level', 'hist_entropy_cusum_abs_series', 'realized_drv']
 BANKS = {'S3': S3,
          'S5': S3 + ['ct7_H0lim_prefix_innovation', 'digit_spread'],
@@ -36,11 +41,11 @@ DRAWS = 2000
 
 
 def write_json(name, obj):
-    (HERE / name).write_text(json.dumps(obj, ensure_ascii=False, indent=2, default=lambda x: x.item() if isinstance(x, np.generic) else x.tolist())+'\n')
+    (OUT / name).write_text(json.dumps(obj, ensure_ascii=False, indent=2, default=lambda x: x.item() if isinstance(x, np.generic) else x.tolist())+'\n')
 
 
 def write_csv(name, rows):
-    with (HERE / name).open('w', newline='') as f:
+    with (OUT / name).open('w', newline='') as f:
         w = csv.DictWriter(f, list(dict.fromkeys(k for r in rows for k in r)))
         w.writeheader(); w.writerows(rows)
 
@@ -112,11 +117,11 @@ def primary_replay():
     with np.load(folder/'SCORES_prm_backbone.npz',allow_pickle=True) as z:
         assert np.array_equal(z['idx'].astype(str),ids) and np.array_equal(z['offsets'],offsets)
         prm=z['prm_risk']
-    with np.load(ROOT/'results/advisor_completion_2026-10-11/inputs/population.npz') as z:
+    with np.load(DATA_ROOT/'results/advisor_completion_2026-10-11/inputs/population.npz') as z:
         assert np.array_equal(z['idx'],ids) and np.array_equal(z['offsets'],offsets)
         assert np.array_equal(z['y'],y)
         cls=z['classification']; groups=z['group']
-    meta=json.loads((ROOT/'results/advisor_completion_2026-10-11/inputs/prmbench_meta.json').read_text())['rows']
+    meta=json.loads((DATA_ROOT/'results/advisor_completion_2026-10-11/inputs/prmbench_meta.json').read_text())['rows']
     lookup={r['idx']:r for r in meta}; reconstructed=np.zeros_like(y)
     for j,i in enumerate(ids):
         a,b=offsets[j:j+2]
@@ -187,7 +192,7 @@ def primary_replay():
             cons.append({'contrast':a+' - '+b,'metric':mt,'delta':rowmap[a][mt]-rowmap[b][mt],'ci_low':lo,'ci_high':hi,'draws':DRAWS,'source_groups':len(unique),'pointwise':True})
     write_csv('PRM7B_METRICS.csv',rows);write_csv('PRM7B_CONTRASTS.csv',cons);write_csv('PRM7B_BY_TYPE.csv',bytype)
     write_json('FUSION_DIAGNOSTICS.json',diagnostics)
-    reported=list(csv.DictReader(Path('/tmp/advisor_remote_review_20261015/external/results/advisor_page_v19_2026-10-15/sources/eval_slide12/SLIDE12_RESULTS_qwen_prm_7b.csv').open()))
+    reported=list(csv.DictReader(REPORTED.open()))
     mapping={'LSML_CONT':'S3_HEAD_LSML','LSML3':'S3_ONLY_LSML','EQ4':'S3_HEAD_FLAT_MEAN','S3':'FIXED_HALF','SML4':'S3_HEAD_FLAT_SML'}
     checks=[]
     for r in reported:
@@ -202,7 +207,7 @@ def external_replay():
     results=[]
     for bench in ['socratic','hard2verify']:
         panel=RAW/'monday_external_panel_v1'/f'{bench}_qwen3_8b/PREDICTIONS.npz'
-        gold={g['uid']:g for g in json.loads((HERE/'inputs'/f'{bench}_gold.json').read_text())}
+        gold={g['uid']:g for g in json.loads((INPUTS/f'{bench}_gold.json').read_text())}
         with np.load(panel) as z:
             uids=z['uids'].astype(str); off=z['starts']; ne=z['nonempty'].astype(bool)
         assert set(uids)==set(gold)
@@ -239,12 +244,62 @@ def external_replay():
     write_csv('EXTERNAL_METRICS.csv',results)
 
 
-if __name__=='__main__':
-    t=time.time()
-    primary_replay();external_replay()
-    tracked=[HERE/'replay.py',ROOT/'spectral_utils/fusion_utils.py']
-    tracked+=list((HERE/'inputs').glob('*.tar'))+list((HERE/'inputs').glob('*gold.json'))
-    tracked+=[ROOT/'results/advisor_completion_2026-10-11/inputs'/s for s in ['population.npz','prmbench_meta.json']]
-    write_json('REPLAY_MANIFEST.json',{'seconds':time.time()-t,'interpreter':sys.executable,'seed':SEED,'bootstrap_draws':DRAWS,
-                                     'scope':'PRM7B and external PRM/LR scores only. Other four PRM raw banks not located on Drive.',
-                                     'files':[{'path':str(p),'size':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()} for p in tracked]})
+def required_inputs():
+    """Enumerate every data dependency before any output directory is created."""
+    paths = [RAW/'prm_boosting_v1'/name for name in
+             ['CHANNEL_CONDCORR_prm_backbone.npz', 'CHANNEL_ATLAS_prm_backbone.csv', 'SCORES_prm_backbone.npz']]
+    paths += [DATA_ROOT/'results/advisor_completion_2026-10-11/inputs'/name
+              for name in ['population.npz', 'prmbench_meta.json']]
+    paths.append(REPORTED)
+    for bench in ['socratic', 'hard2verify']:
+        paths += [INPUTS/f'{bench}_gold.json',
+                  RAW/'monday_external_panel_v1'/f'{bench}_qwen3_8b/PREDICTIONS.npz',
+                  RAW/'external_lr_prm_v1/prm_raw'/bench/'external_prm.pkl',
+                  RAW/'monday_cont_baselines_v1/ext'/f'{bench}_qwen3_8b/PREDICTIONS.npz']
+        paths += [RAW/'external_lr_prm_v1/scores'/f'LR_noncontrol_{size}_{bench}.npy' for size in ['8B', '4B']]
+    return paths
+
+
+def preflight(destination):
+    if destination.exists():
+        raise ValueError('Refusing to overwrite or resume an existing destination: '+str(destination))
+    if destination == HERE or destination.is_relative_to(HERE):
+        raise ValueError('Choose a destination outside the preserved original audit package')
+    missing = [str(p) for p in required_inputs() if not p.is_file()]
+    if missing:
+        raise FileNotFoundError('Missing replay inputs (no output created): '+', '.join(missing))
+    return required_inputs()
+
+
+def main(argv=None):
+    global DATA_ROOT, INPUTS, RAW, OUT, REPORTED
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--destination', type=Path, required=True,
+                        help='New output directory; existing destinations are always refused')
+    parser.add_argument('--data-root', type=Path, default=ROOT,
+                        help='Checkout containing the frozen advisor input arrays')
+    parser.add_argument('--inputs', type=Path, default=HERE/'inputs',
+                        help='Directory containing gold JSON and unpacked/results inputs')
+    parser.add_argument('--reported-csv', type=Path, default=REPORTED)
+    args = parser.parse_args(argv)
+    DATA_ROOT, INPUTS = args.data_root.resolve(), args.inputs.resolve()
+    RAW, REPORTED = INPUTS/'unpacked/results', args.reported_csv.resolve()
+    destination = args.destination.resolve()
+    inputs = preflight(destination)
+    OUT = destination
+    OUT.mkdir(parents=True, exist_ok=False)
+    t = time.time()
+    primary_replay(); external_replay()
+    tracked = [Path(__file__).resolve(), ROOT/'spectral_utils/fusion_utils.py', *inputs]
+    write_json('REPLAY_MANIFEST.json', {
+        'seconds': time.time()-t, 'interpreter': sys.executable, 'seed': SEED,
+        'bootstrap_draws': DRAWS, 'destination': str(OUT),
+        'scope': 'PRM7B and external PRM/LR scores only. No other-PRM numerical claim.',
+        'input_precision': 'Exported step channels, not token feature reconstruction',
+        'files': [{'path': str(p), 'size': p.stat().st_size,
+                   'sha256': hashlib.sha256(p.read_bytes()).hexdigest()} for p in tracked]})
+    print('REPLAY_COMPLETE', OUT, flush=True)
+
+
+if __name__ == '__main__':
+    main()
