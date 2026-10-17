@@ -97,7 +97,10 @@ class ReadingVerification(unittest.TestCase):
 class Handoff(unittest.TestCase):
     def test_pinned_track_a_contains_dependencies_and_adapter_names_are_valid(self):
         text = (ROOT/'docs/experiments/PRMBENCH_STEP_VOTERS_HANDOFF.md').read_text()
-        self.assertIn('65bcf88310d7ee98a2b4b314bd0602e7db064b9c', text)
+        # Track A now runs from the integration tip, which adds the offline --no-deps wheel
+        # install (6afa897) that 65bcf88 lacks.
+        self.assertIn('origin/claude/integration-2026-10-17', text)
+        self.assertIn('--no-deps', (ROOT/'cluster/submit_prmbench_step_voters.sbatch').read_text())
         self.assertIn('rlhflow:rlhflow_prm pure:pure_prm mathshepherd:math_shepherd', text)
         for alias in ['pure', 'rlhflow', 'mathshepherd']:
             self.assertNotRegex(text, r'--adapter '+alias+r'(?=[`\s])')

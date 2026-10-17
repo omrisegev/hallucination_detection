@@ -1,0 +1,46 @@
+{
+  "driver": "run_prmbench_step_voters.py",
+  "kind": "uprm_judge",
+  "model": "Qwen/Qwen2.5-14B-Instruct",
+  "dataset": "hitsmy/PRMBench_Preview",
+  "dataset_revision": null,
+  "dataset_diagnostics": {
+    "dataset_id": "hitsmy/PRMBench_Preview",
+    "split": "train",
+    "revision": null,
+    "n_raw_rows": 30,
+    "n_meta_rows": 35,
+    "n_raw_steps": 387,
+    "n_duplicate_rows_dropped": 0,
+    "n_steps_total": 442,
+    "n_steps_error_classes": 387,
+    "n_rows_empty_error_steps": 2,
+    "n_rows_out_of_range_error_steps": 0,
+    "counts_by_classification": {
+      "confidence": 7,
+      "step_contradiction": 5,
+      "multi_solutions": 2,
+      "circular": 2,
+      "counterfactual": 2,
+      "domain_inconsistency": 3,
+      "deception": 4,
+      "correct": 5,
+      "redundency": 5
+    }
+  },
+  "protocol": "uPRM paper Eq.6 LLM-as-a-Judge control, our marker reconstruction (spectral_utils/uprm_baseline.py)",
+  "n_samples": 30,
+  "shard": 0,
+  "n_shards": 1,
+  "max_new_tokens": null,
+  "attn_impl": "sdpa",
+  "stats": {
+    "n_rows": 35,
+    "n_unscored": 0,
+    "n_failed": 0,
+    "n_truncated": 0
+  },
+  "elapsed_sec": 1.9854331016540527,
+  "job_id": "286483",
+  "written_utc": "2026-10-16T16:31:11+00:00"
+}

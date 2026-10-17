@@ -41,5 +41,6 @@ mkdir -p "$PYTHONUSERBASE"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 cd "${CODE_DIR:-$SHARED/code_prm_voters_v1}"
 echo "[sbatch] job $SLURM_JOB_ID on $(hostname) in $(pwd), args: $*"
-pip install -q --user -r cluster/requirements.txt
+WHEELS=$SHARED/wheelhouse/tf_thinkfix_20261010
+python -m pip install -q --user --no-deps "$WHEELS"/*.whl
 exec python cluster/run_prmbench_step_voters.py "$@"

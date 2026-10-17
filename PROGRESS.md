@@ -1009,7 +1009,16 @@ Do not infer scientific progress from the old waiting PID or touch Claude runs.
 
 # Spectral Hallucination Detection — Session Progress Handoff
 
-
+**Branch addendum (2026-10-17 — PRMBench Step Voters Pilots Verified on AIRCC):**
+The PRMBench step voters pilots (N=30) were executed and verified on the `aircc` compute cluster
+(B200 GPU, `power-gpu`, `owner_940`, base image `nvcr.io/nvidia/pytorch:25.01-py3`).
+- **Offline environment fix**: Compute nodes have no internet; dependencies (`transformers 4.57.6`, `accelerate 1.15.0`, `datasets 5.0.1`, `pyarrow 25.0.1`, `scikit-learn 1.9.1`) are installed offline via `--no-deps "$WHEELS"/*.whl` from `/shared/cycle2_tau_averbuch_prj/omrisegev1/wheelhouse/tf_thinkfix_20261010`. Fixed in `cluster/submit_prmbench_step_voters.sbatch` and committed (`6afa897af`).
+- **Gate verification**: All three pilot arms passed all gate criteria with 0 failures, 0 unscored, and 0 truncations:
+  - `uprm_qwen3_8b_pilot` (Job 286481): 35 rows, 1.8s, 0 failed, 0 unscored.
+  - `uprm_qwen25_14b_pilot` (Job 286483): 35 rows, 2.0s, 0 failed, 0 unscored.
+  - `critic_qwen72b_pilot` (Job 286484): 35 rows, 12m50s, 0 failed, 0 unscored, 0 truncated.
+- **Track B PRMs**: Verified already completed on Oct 13-14 by Codex in `/shared/cycle2_tau_averbuch_prj/omrisegev1/results/prm_boost_gen_v1/full_*` (1.1 GB telemetry each for `qwen_prm_72b`, `rlhflow`, `pure`, `mathshepherd`). Track B will NOT be re-run.
+- **Handoff for Claude**: Full documentation, exact cluster commands, and analysis protocol are in `docs/experiments/PRMBENCH_STEP_VOTERS_CLAUDE_HANDOFF.md` and `results/prmbench_voters_pilot_v1/README.md`.
 
 **Branch addendum (2026-08-26 — Step 290, CIW-DEEM):** The revised B3 input
 line is complete and documented. **CIW-DEEM (Cross-fitted

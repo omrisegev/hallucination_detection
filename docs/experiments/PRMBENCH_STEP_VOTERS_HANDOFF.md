@@ -39,7 +39,7 @@ other sessions run jobs from there.
 
 ```bash
 git fetch origin
-git worktree add ../hd-prm-voters   65bcf88310d7ee98a2b4b314bd0602e7db064b9c       # Track A: integrated voters + error_count dependencies
+git worktree add ../hd-prm-voters   origin/claude/integration-2026-10-17       # Track A: integrated voters + error_count deps + offline --no-deps wheel install (6afa897). 65bcf88 lacks that fix and fails offline
 git worktree add ../hd-prm-gen      fba8e8d9672313551bed341cb9b9ef6a55e4db07       # Track B, Codex package, use UNCHANGED
 ```
 Sync each tree to its own dir with a narrow tar (run from inside each worktree):
