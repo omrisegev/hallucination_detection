@@ -1,0 +1,43 @@
+{
+  "observed_cache_sha256": "e73260d33db3a289766bcce44f681d0428bbdb5088d90eeb41e408ad3a7ac083",
+  "historical_cache_hash_verified": false,
+  "order_gate": "All argmax positions and eligible top1 labels match frozen NPZ for ALL_EQ,DS_FILTER_EQ,MEAN_MOM_ga.",
+  "script_sha256": "bded8b8fde4c97a3e0d0de2ee3f04ed04af0a3fdf102a973cb41cda0aa9bd110",
+  "n_canonical_groups": 707,
+  "bootstrap": "5000 whole-source-group resamples seed20261011; pointwise percentile95%, development data",
+  "limits": [
+    "No full LR step scores reconstructed.",
+    "No label-driven choice of examples or new combination fitted.",
+    "Paired CI conditions on this cached nested OOF fit; not a fresh fitted-system generalization estimate."
+  ],
+  "summary": [
+    {
+      "method": "LSML_CONT",
+      "n_error_answers": 6035,
+      "both_hit": 3123,
+      "ours_only_hit": 489,
+      "lr_only_hit": 371,
+      "neither_hit": 2052,
+      "same_top_step": 4349,
+      "ours_top1": 0.5985086992543496,
+      "lr_top1": 0.5789560894780448,
+      "difference": 0.019552609776304887,
+      "ci_low": 0.00971017397390017,
+      "ci_high": 0.029186336752465843
+    },
+    {
+      "method": "IU_PCR",
+      "n_error_answers": 6035,
+      "both_hit": 3131,
+      "ours_only_hit": 461,
+      "lr_only_hit": 363,
+      "neither_hit": 2080,
+      "same_top_step": 4438,
+      "ours_top1": 0.5951946975973488,
+      "lr_top1": 0.5789560894780448,
+      "difference": 0.01623860811930406,
+      "ci_low": 0.006154998748560485,
+      "ci_high": 0.025696520439377084
+    }
+  ]
+}

@@ -1,0 +1,136 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Mind the Gap Deep Dive</title><style>
+/* Layout: one reading column with a sticky section index; figures sit on white plates so light-theme PNGs read in both themes */
+:root{--bg:#f6f7f9;--fg:#1b2430;--muted:#5b6676;--line:#d8dde5;--plate:#ffffff;--accent:#2a78d6;--warn:#c4561f;--good:#e3eefb;--bad:#fbe9e1;
+--display:'Source Serif 4',Georgia,serif;--body:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12161d;--fg:#e6eaf0;--muted:#9aa5b5;--line:#2c3440;--plate:#f4f5f7;--accent:#6aa8f0;--warn:#f08a5a;--good:#1d3350;--bad:#43281c;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#12161d;--fg:#e6eaf0;--muted:#9aa5b5;--line:#2c3440;--plate:#f4f5f7;--accent:#6aa8f0;--warn:#f08a5a;--good:#1d3350;--bad:#43281c;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:24px 80px}
+nav{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);border-bottom:1px solid var(--line);padding-block:10px;z-index:2;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px}
+nav a{color:var(--accent);text-decoration:none}nav a:hover{text-decoration:underline}
+h1{font-family:var(--display);font-size:clamp(28px,4vw,40px);line-height:1.15;text-wrap:balance;margin:18px 0 6px}
+h2{font-family:var(--display);font-size:28px;margin:48px 0 8px;padding-top:12px;border-top:2px solid var(--fg);text-wrap:balance}
+h3{font-size:18px;margin:28px 0 6px}
+p,li{max-width:75ch}.lede{color:var(--muted);font-size:17px}
+.note{color:var(--muted);font-size:14px}
+.key{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:18px 0}
+.key div{border:1px solid var(--line);border-radius:8px;padding:14px 16px;min-width:0}
+.key b{display:block;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.tw{overflow-x:auto;margin:14px 0}
+table{border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums;min-width:100%}
+caption{text-align:left;font-weight:600;padding-bottom:6px}
+th,td{border-bottom:1px solid var(--line);padding:6px 9px;text-align:right;white-space:nowrap}
+tr th:first-child{text-align:left}
+table.wide td,table.wide th{text-align:left;white-space:normal;vertical-align:top}table.wide tr th:first-child{white-space:nowrap}
+ol li{margin-block:2px}
+td.best{font-weight:700;color:var(--accent)} td.lr{color:var(--muted);font-style:italic}
+tr.good td,tr.good th{background:var(--good)} tr.bad td,tr.bad th{background:var(--bad)} tr.refrow th,tr.refrow td{color:var(--muted)}
+figure{margin:18px 0}figure img{background:var(--plate);border-radius:6px;padding:8px;max-width:100%;display:block}
+figcaption{color:var(--muted);font-size:14px;margin-top:6px;max-width:90ch}
+.warn{border-left:4px solid var(--warn);padding:8px 14px;margin:14px 0}
+code{font-family:var(--mono);font-size:13px}
+</style><style>
+.slide{border-top:2px solid var(--fg);margin-top:40px;padding-top:6px}
+.slide div{display:block;min-width:0}.slide p,.slide li{margin:6px 0}
+.slide img{background:var(--plate);border-radius:6px;padding:8px;max-width:100%;height:auto!important;width:auto!important}
+.slide table{margin:10px 0}.slide td,.slide th{white-space:normal;text-align:left;vertical-align:top}
+.slide svg{max-width:100%;height:auto;background:var(--plate);border-radius:6px}
+.src{color:var(--muted);font-size:13px}
+details{margin-top:10px;border:1px solid var(--line);border-radius:6px;padding:8px 12px}
+details div{white-space:pre-line;direction:rtl;text-align:right;font-size:15px}
+x-shape,x-icon,x-connector{display:none}
+</style></head>
+<body><div class="wrap"><nav><a href="https://claude.ai/artifact/NQNTYpFqVyx6xRnRS4NENV">← Findings page</a><a href="deep_mtg.html">Mind the Gap</a><a href="deep_tf.html">Teacher forcing</a><a href="deep_pipeline.html">Tail pipeline</a><span>Slides: <a href="#metrics">1</a><a href="#competitors">2</a><a href="#mtgmethod">3</a><a href="#mtgvsours">4</a><a href="#pb">5</a></span></nav>
+<h1>Mind the Gap Deep Dive</h1><p class="lede">How Mind the Gap works, how we reproduced it, and how it compares with our method per cell. Collected from the full slide deck; figures are light-theme images.</p>
+<section class="slide" id="metrics"><h2>1. Metrics: three rank the steps, three also test the flags</h2>
+
+<table>
+<tr><th>Metric</th><th>What it counts</th><th>Used on</th><th>Threshold?</th></tr>
+<tr><td><b>Within-answer AUC</b></td><td>In one answer: chance that an error step scores above a correct step. Mean over answers.</td><td>PRMBench</td><td><b>No</b></td></tr>
+<tr><td><b>Top-step hit</b></td><td>Wrong answers whose top step is an error step (any error step).</td><td>PRMBench</td><td><b>No</b></td></tr>
+<tr><td><b>SLA</b><br><span>Mind the Gap's metric</span></td><td>Wrong answers only: the chosen step is exactly the first error. Clean answers are not scored.</td><td>ProcessBench</td><td><b>No</b></td></tr>
+<tr><td><b>PRMScore</b></td><td>½ · (F1 on correct steps + F1 on error steps)</td><td>PRMBench, Socratic</td><td><b>Yes</b></td></tr>
+<tr><td><b>ProcessBench F1</b></td><td>Harmonic mean of first-error accuracy on wrong answers and "no error" accuracy on clean answers</td><td>ProcessBench</td><td><b>Yes</b></td></tr>
+<tr><td><b>Balanced F1</b></td><td>Harmonic mean of recall on correct steps and recall on error steps</td><td>Hard2Verify</td><td><b>Yes</b></td></tr>
+</table>
+<p>We compare to Mind the Gap on SLA. Their step is the first one over a threshold. Our step is the top-scoring step.</p>
+
+
+<p class="src">Source: Metrics · source: Mind the Gap (ICML 2026) §4 SLA definition, Table 3; ProcessBench arXiv 2412.06559 §4.1; PRMBench arXiv 2501.03124 §4.2; monday_nested_banks_v1 dev_run.py; evaluate_prmscore_adapter_v1.py; LSML_EXTERNAL_GENERALIZATION_V1.md</p><details><summary>Speaker notes (Hebrew)</summary><div>• שלושה metrics בודקים רק את דירוג הצעדים, בלי threshold. שלושה בודקים גם את כלל ההחלטה (אילו צעדים לסמן, או "אין שגיאה"). כלל ההחלטה הוא החלק החלש שלנו.
+• SLA = Step-level Localization Accuracy. זה ה-metric ש-Mind the Gap (Chen et al., ICML 2026) מודדים בו את עצמם על ProcessBench (סעיף 4, Table 3).
+• ההגדרה שלהם: הצלחה אם הצעד הראשון שבו ה-Evidence Drop עובר threshold צעדי שווה בדיוק לצעד השגוי הראשון שסימנו המומחים.
+• הם מודדים רק על תשובות שגויות: לתשובה נקייה אין צעד שגוי ראשון. הם לא מדווחים accuracy על תשובות נקיות ולא מדווחים ProcessBench F1. כלומר אין אצלם gate.
+• אצלנו SLA הוא אותה מטרה: על 4,442 התשובות השגויות ב-8 התאים, האם ה-top step (argmax) הוא בדיוק השגיאה הראשונה. ההבדל היחיד הוא כלל בחירת הצעד: אצלם first crossing של threshold, אצלנו argmax.
+• המאמר לא מגדיר את ה-threshold, את המעבר מ-token ל-step, ומה קורה כשהגלאי לא יורה. אצלנו תשובה בלי צעד נבחר נספרת כהחטאה.
+• Top-step hit (רק PRMBench) שונה מ-SLA: מספיק שה-top step הוא צעד שגוי כלשהו, לא דווקא הראשון. לא לקרוא לו SLA.
+• Within-answer AUC: מחושב בתוך כל תשובת PRMBench שיש בה גם צעדי שגיאה וגם צעדים נכונים (6,030 תשובות), ואז ממוצע (dev_run.py prm_stats).
+• PRMScore: לפי קוד mr_eval הרשמי, חצי F1 על צעדים נכונים וחצי F1 על צעדים שגויים. ה-positive class הוא צעד VALID, ולכן הופכים קודם את ה-risk score.
+• ProcessBench F1 (סעיף 4.1 במאמר): harmonic mean של accuracy על תשובות שגויות (צעד ראשון מדויק) ו-accuracy על תשובות נקיות (חיזוי -1). מחושב לכל subset ואז ממוצע על 4 ה-subsets.
+• Balanced F1 (Hard2Verify): harmonic mean של שני ה-recalls, לא macro-F1.
+• אנחנו לא ממצעים metrics בין benchmarks.</div></details></section><section class="slide" id="competitors"><h2>2. Competitors: a supervised PRM, an LLM judge, Mind the Gap</h2>
+
+<table>
+<tr><th>Competitor</th><th>What it uses</th><th>ProcessBench SLA</th><th>ProcessBench F1</th><th>PRMBench within-answer AUC</th></tr>
+<tr><td><b>Supervised PRM</b><br><span>Qwen2.5-Math-PRM-7B</span></td><td>Trained on step labels</td><td>0.619</td><td>0.729</td><td>0.801</td></tr>
+<tr><td><b>LLM judge</b><br><span>Qwen2.5-72B-Instruct</span></td><td>No training; a 72B model writes a critique</td><td>0.447</td><td>0.594</td><td>–</td></tr>
+<tr><td><b>Mind the Gap</b><br><span>label-free, one signal</span></td><td>No step labels; one pass; confidence drops</td><td>0.332</td><td>–</td><td>0.714</td></tr>
+<tr><td><b>Ours, N16</b><br><span>label-free, fused</span></td><td>No labels; one pass; 16 channels fused</td><td>0.396–0.408</td><td>0.389–0.412</td><td>0.788–0.796</td></tr>
+</table>
+<p>Only Mind the Gap has our access: no labels, no training, one pass. The PRM is a reference, not a target.</p>
+
+
+<p class="src">Source: Competitors · Development data; all rows are our runs on the same answers, 8-cell means · PRM SLA uses its own 0.5 rule · source: monday_nested_banks_v2 PANEL_B_PROCESSBENCH(_F1).csv, PANEL_B_PRMBENCH.csv; EVIDENCE_DROP.npz</p><details><summary>Speaker notes (Hebrew)</summary><div>• המסר: אלה שלושת המתחרים שלנו. רק Mind the Gap עובד באותם תנאים כמונו: בלי labels, בלי אימון, pass אחד.
+• Supervised PRM, Qwen2.5-Math-PRM-7B: אומן על step labels. מחזיר הסתברות לכל צעד; הצעד הראשון מתחת ל-0.5 הוא השגיאה הראשונה. הוא reference ולא מטרה, כי הוא למד מ-labels שאנחנו לא משתמשים בהם.
+• LLM judge, Qwen2.5-72B-Instruct: ה-critique prompt של ProcessBench, greedy, דגימה אחת. המאמר של ProcessBench מדווח 61.2 עם majority vote על 8 דגימות; אנחנו קיבלנו 0.594 עם דגימה אחת. אין לו ציון לכל צעד, ולכן אין לו PRMBench AUC.
+• Mind the Gap: Chen et al., ICML 2026. signal אחד, ירידה פתאומית בביטחון של המודל. אין לו החלטה על תשובה נקייה, ולכן אין לו ProcessBench F1. ה-0.332 הוא ההרצה שלנו שלו; את מספרי המאמר ואת ההשוואה לכל cell מראה השקף הבא.
+• SLA: על תשובות שגויות בלבד, הצעד שנבחר חייב להיות בדיוק הצעד השגוי הראשון (מוגדר בשקף המדדים). ה-PRM עם ה-rule שלו (0.5) מקבל 0.619; עם top step (argmax) הוא מקבל 0.566.
+• ProcessBench F1: דורש גם להשאיר תשובות נקיות נקיות. אצלנו זה כלל ה-count rule, 0.389 עד 0.412. PRMBench AUC: within-answer AUC, בלי threshold.
+• איפה אנחנו עומדים: ה-PRM חזק מאיתנו בכל שלושת המדדים. ה-judge מעלינו ב-SLA וב-F1, אבל הוא מודל 72B שכותב critique לכל תשובה. אנחנו מעל Mind the Gap ב-SLA (+0.064 עד +0.076) וב-PRMBench AUC (+0.074 עד +0.082), עם paired 95% intervals מעל אפס לכל 4 הווריאנטים.
+• כל המספרים מהרצות שלנו על אותן תשובות, ממוצע שווה על 8 תאים (4 subsets × Qwen3-4B, Qwen3-8B). N16 נבחר אחרי שראינו תוצאות; זה development data.
+• מספרי מאמרים של שיטות אחרות נמצאים בשקף ה-published competitors.</div></details></section><section class="slide" id="mtgmethod"><h2>3. Mind the Gap per cell: above our run in all 8; mixed vs the paper</h2>
+
+<div>
+<div><p><b>1 · Evidence per token</b><br>E = −entropy of the top-20 probabilities (rescaled to sum 1)</p></div>
+<div><p><b>2 · Smooth</b><br>Exponential moving average, span 5</p></div>
+<div><p><b>3 · Drop</b><br>Δ = change from the previous token; a large fall is a drop</p></div>
+<div><p><b>4 · Pick the step</b><br>Paper: first step whose drop passes a threshold (not given).<br>Our run: mean of the 5 largest drops per step; top step.</p></div>
+</div>
+<img src="fig/M2_mtg_per_cell_light.png" alt="ProcessBench SLA per cell (4 subsets by Qwen3-4B and Qwen3-8B), wrong answers only. Ours N16, mean of 4 pipeline variants: 8-cell mean 0.403; N16 plain average: 0.414. Mind the Gap, our run: 0.332, below both of ours in all 8 cells. Mind the Gap, paper Table 3: 0.393; above ours on OlympiadBench and Omni-MATH, below ours on GSM8K and MATH.">
+<p>Hatched bars are the paper's own numbers: context only. They use threshold crossing, not the top step.</p>
+
+
+<p class="src">Source: Mind the Gap per cell · Development data; N16 chosen after seeing results · source: M2_mtg_per_cell.json; PANEL_B_CONTRASTS.csv; Mind the Gap Table 3</p><details><summary>Speaker notes (Hebrew)</summary><div>• המסר: Mind the Gap משתמש ב-signal אחד, ירידה פתאומית בביטחון. מול ההרצה שלנו שלו אנחנו גבוהים יותר בכל 8 התאים; מול המספרים של המאמר התמונה מעורבת: 4 תאים לנו ו-4 להם.
+• המאמר: Chen et al., Mind the Gap, ICML 2026. ה-evidence לכל token הוא מינוס ה-entropy של top-20 probabilities אחרי נרמול לסכום 1. מחליקים ב-EMA עם span 5. ה-flux הוא ההפרש בין token ל-token הקודם. ירידה גדולה = drop.
+• ברמת התשובה (לא בשקף): ציון התשובה הוא ממוצע 5 ה-drops הגדולים. ה-threshold שם הוא quantile של ציוני תשובות שגויות על calibration split של 50%, כלומר משתמש ב-labels.
+• ברמת הצעד המאמר אומר רק: הצעד הראשון שבו ה-drop עובר step-wise threshold. הוא לא מגדיר את ה-threshold, לא את המיפוי מ-tokens לצעדים, ולא מה קורה כשאין חציה. הקוד שפורסם לא כולל קוד ברמת הצעד ומשתמש ב-signal אחר (top-1 log-prob).
+• המדד הוא SLA, כמו בשקף המדדים: על תשובות שגויות בלבד, הצעד שנבחר חייב להיות בדיוק הצעד השגוי הראשון. ההבדל היחיד: אנחנו בוחרים את ה-top step (argmax), והמאמר בוחר את חציית ה-threshold הראשונה.
+• ההרצה שלנו של Mind the Gap: אותו signal ואותם קבועים; ציון הצעד = ממוצע 5 ה-drops הגדולים בצעד; argmax; כל תשובה שגויה נספרת. זו בחירה שלנו שנקבעה מראש, כי המאמר לא מגדיר אותה. ממוצע 8 תאים 0.332.
+• שלנו: N16, ממוצע 4 וריאנטים של ה-pipeline, 0.403 (טווח 0.396 עד 0.408). ה-plain average על אותם 16 channels מקבל 0.414, קצת מעל ה-pipeline, וזה מתאים לתמונת ה-saturation בהמשך. גם הוא מעל ההרצה שלנו של Mind the Gap בכל 8 התאים (+0.081, paired interval +0.061 עד +0.104). ההפרש מול ההרצה שלנו של Mind the Gap: +0.064 עד +0.076, paired 95% interval מעל אפס לכל 4 הווריאנטים. כל וריאנט מעל ההרצה שלנו בכל 8 התאים.
+• מול מספרי המאמר (Table 3, ממוצע 0.393): גם ה-pipeline וגם ה-plain average גבוהים יותר ב-GSM8K וב-MATH (4 תאים), והמאמר גבוה יותר ב-OlympiadBench וב-Omni-MATH (4 תאים). זה הקשר בלבד: כלל צעד אחר ולא ידוע איך נספרות תשובות בלי חציה.
+• בדיקת שחזור: ניסינו 572 settings על 8 התאים. הכי קרוב למאמר: 37.00, בממוצע 3.33 נקודות לתא, אבל הוא נבחר עם labels וסופר רק תשובות שבהן הגלאי יורה. כשכל תשובה שגויה נספרת, אותו setting נותן 23.92. זו בדיקת שחזור, לא comparator.
+• מספרי המאמר גבוהים משלנו רק ב-OlympiadBench וב-Omni-MATH, ושם גם השחזור הכי קרוב שלנו רחוק מהם: 33.76/35.08 מול 43.06/41.52 ו-34.63/35.40 מול 38.04/37.04.
+• N16 נבחר אחרי שראינו תוצאות, ו-ProcessBench הוא development data.</div></details></section><section class="slide" id="mtgvsours"><h2>4. Mind the Gap vs ours: one signal vs many fused</h2>
+
+<table>
+<tr><th></th><th>Mind the Gap (paper)</th><th>Ours</th></tr>
+<tr><td><b>Signal source</b></td><td>The model's own top-20 entropy</td><td>Token probabilities of Qwen3-4B/8B</td></tr>
+<tr><td><b>Signals</b></td><td>One series (−H) and its change</td><td>11 to 56 step channels</td></tr>
+<tr><td><b>Fusion</b></td><td>None</td><td>Label-free filter, then average or weights</td></tr>
+<tr><td><b>Labels</b></td><td>Wrong-answer labels set a threshold</td><td>None in fitting</td></tr>
+<tr><td><b>Step choice</b></td><td>First step over an undefined threshold</td><td>Top-ranked step (argmax)</td></tr>
+<tr><td><b>Clean answers</b></td><td>No decision</td><td>Explicit rule for F1 and PRMScore</td></tr>
+</table>
+
+
+<p class="src">Source: Mind the Gap vs ours · source: papers/digests/mind-the-gap; BENCHMARKS_MTG.md §C4; EVIDENCE_DROP.npz</p><details><summary>Speaker notes (Hebrew)</summary><div>פירוט לשאלות. המסר: Mind the Gap קורא signal אחד, ואנחנו ממזגים הרבה. מקור ה-signal: Mind the Gap משתמש בטקסט שהמודל עצמו ייצר ברמת התשובה, וב-chains עם teacher forcing ב-ProcessBench, דרך ה-entropy של top-20. אצלנו הסתברויות token של Qwen3-4B/8B, 11 עד 56 step channels: level, change ו-written-token surprisal. ה-fusion שלנו: Dawid-Skene filter מוריד channels שמצביעים הפוך, ואז plain average, או משקלי method-of-moments, HEM או L-SML. תשובות נקיות: אצלם אין החלטה; אצלנו answer-level z-score rule ב-q80, step-count rule R2 או entropy gate, ל-F1 ול-PRMScore. Labels: ה-threshold שלהם ברמת התשובה הוא quantile של ציוני תשובות שגויות על calibration split של 50%; ברמת הצעד אין labels. ה-fitting שלנו בלי labels, אבל בחרנו בין שיטות על PRMBench ו-ProcessBench, שה-labels שלהם שימשו אותנו, אז אלה תוצאות פיתוח. ה-SLA שלהם סופר רק תשובות שגויות. בפאנלים שני הצדדים עם אותו readout: argmax step, כל תשובה שגויה נספרת. ה-comparator שלנו מקפל tokens לצעדים לפי ממוצע 5 הירידות הגדולות בצעד - בחירה pre-registered שלנו, כי המאמר לא מגדיר אותה.</div></details></section><section class="slide" id="pb"><h2>5. ProcessBench: above Mind the Gap, far below the PRM</h2>
+
+<img src="blobs/41a112d108ed66020b8910e40e4c1434.png" alt="ProcessBench, top-ranked step equals the first error, by stratum and subset: ours N16 about 0.40, Mind the Gap reproduction 0.33, longest-step baseline 0.32, supervised PRM argmax 0.57">
+<table>
+<tr><th>With the clean-answer decision (official F1)</th><th>F1</th><th>First error found</th><th>Clean left clean</th></tr>
+<tr><td>Ours N16, count rule (clean decision from the channels, same for all 4)</td><td>0.389–0.412</td><td>0.30–0.33</td><td>0.57</td></tr>
+<tr><td>Ours N16, top-20% rule (q80)</td><td>0.097–0.103</td><td>0.36–0.40</td><td>0.06</td></tr>
+<tr><td>Supervised PRM-7B (0.5) · 72B critic</td><td>0.729 · 0.594</td><td>0.619 · 0.447</td><td>0.890 · 0.906</td></tr>
+</table>
+
+
+<p class="src">Source: Cell-equal mean of 8 cells (4 subsets × 2 scoring models, 4,442 error traces) · PANEL_B_PROCESSBENCH*.csv, PANEL_B_CONTRASTS.csv, LONGEST_STEP_SHARE.json</p><details><summary>Speaker notes (Hebrew)</summary><div>ב-ProcessBench אנחנו מעל ה-reproduction שלנו של Mind the Gap, והרבה מתחת ל-supervised PRM. Gate-free, לפי הפרוטוקול של Mind the Gap, כלומר top step בלבד ותשובות שגויות בלבד: שלנו 0.396 עד 0.408 מול 0.332, רווח של +0.064 עד +0.076, וכל ה-intervals מעל אפס. בבדיקה דיאגנוסטית שמוציאה שגיאות בצעד 0 ובצעד הארוך ביותר, הרווח יורד ל-+0.01 עד +0.06, ובשתיים מ-4 השיטות ה-interval כולל אפס. במספר של המאמר ל-ProcessBench אנחנו לא משתמשים; ה-reproduction שלנו הוא ה-comparator. ה-plain average של N16 מגיע ל-0.414 ו-continuous L-SML ל-0.416, מעל כל 4 השיטות (IU-PCR 0.407). ה-top step שלנו הוא הצעד הארוך ביותר ב-45% עד 51% מהתשובות השגויות, ו"תמיד לבחור את הצעד הארוך ביותר" לבד מגיע ל-0.318, אז חלק מהאות הוא length prior. עם ההחלטה על תשובה נקייה, כלומר ה-F1 הרשמי, ה-PRM רחוק קדימה: 0.729 מול 0.389 עד 0.412 שלנו בכלל הספירה. כלל הספירה משאיר בלי flag רק 57% מהתשובות הנקיות, וכלל ה-top-20% מסמן 94% מהן.</div></details></section></div></body></html>

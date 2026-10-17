@@ -18636,3 +18636,156 @@ the current PRMBench / L-SML / PRM-boosting line.
 - `docs/research_notes/literature_survey_localization_prm_2026-10-16.md` — localization and PRM survey; Part C written against the current line
 
 ---
+
+### Step 290 [CIW-DEEM] — revised input statistics yield a B3-specific challenger, not a generic PCR contract
+
+**What**: Audited the historical six-family feature partition, replaced the
+near-duplicate H15/H-saved entropy pair with common/support-difference
+coordinates, and tested structured source-by-operator input models. The final
+registered method, **CIW-DEEM (Cross-fitted Innovation-Weighted DEEM)**,
+ridge-predicts each universal 3-by-3 core coordinate from the four coordinates
+sharing its source or operator, estimates out-of-fold R-squared without
+targets, and uses `alpha_j=0.5*clip(R2_oof_j,0,1)` to blend the original
+coordinate with its standardized innovation before unchanged continuous B3.
+
+**Registered result**: Across five B3 seeds and 24 cells, CIW-DEEM reaches
+`0.7820255514493354` cell-macro AUROC and `0.7492330051057238`
+equal-dataset-family AUROC. Equal-family delta versus frozen B3 is
+`+0.0007316506044068`; exact eight-family sign-flip `p=0.13671875`. The
+registered `+0.0025` promotion threshold is not met. CIW-DEEM is an official
+challenger and the best point estimate among directly comparable five-seed B3
+input variants, not a promoted champion. The two macro values are permanent
+named summaries of the same results and must not be reported interchangeably.
+
+**Supervised diagnostic**: Five-fold `StratifiedGroupKFold` L2 logistic
+regression on exact CIW input reaches `0.742708` equal-family and `0.782776`
+cell-macro AUROC. The same LR before CIW reaches `0.743357/0.783409`; balanced
+class weights do not change the conclusion. This is a stricter supervised OOF
+generalization diagnostic, not the transductive CIW fit. It shows that CIW does
+not generally improve linear separability.
+
+**IU/DUFS transfer diagnostic**: With inherited DUFS-LIU settings (seeds
+11/23/37, 80 epochs, `k=7`, `lambda=0.1`) and a pre-label score freeze, IU-PCR
+on CIW input scores `0.773952/0.741106` cell-macro/equal-family AUROC and
+DUFS-LIU scores `0.774388/0.741901`. DUFS adds a small
+`+0.000436/+0.000795`, but CIW input reduces DUFS-LIU by
+`-0.001053/-0.000911` versus pre-CIW D1; 15/24 cells lose beyond tolerance.
+Thus the input transformation's small gain is B3-specific and does not justify
+replacing the IU-PCR/DUFS-LIU feature contract.
+
+**Decision**: Keep frozen B3 as the benchmark baseline and CIW-DEEM as a named
+research challenger. Do not claim localization or early-detection results;
+those require causal window/prefix adapters. Do not reuse CIW input as the
+default IU/DUFS contract. Canonical documentation and compact evidence are in
+`docs/experiments/CIW_DEEM_V1.md` and `results/ciw_deem_v1/`.
+
+---
+
+### Step 291 [advisor CPU completion] — corrected PRMBench evidence, feature diagnostics and advisor v11 (2026-10-11/12)
+
+**What**: Executed all CPU analyses in the accepted sixteen-row Claude/Codex
+completion plan against pinned v10 `53ef62e36e80b90de30b83d3fee33e1fb85b82c3`
+and research `080877eb9a8369341d647f4115a3b475c040b46e`. Acquired and hashed
+the three feature variants, ten scorer exports and corrected 1.118GB telemetry;
+verified 6,969 answers / 94,203 steps / 707 canonical groups. Saved exact
+decisions, scores, models, group splits, intervals, real examples, scientific
+SVG/PNG plots and an integrated self-contained HTML with an original
+PRMBench-style nine-category radar. The assignment inventory includes prior
+state, action, finding and evidence for every row.
+
+**Why**: Resolve the masking/prefix and Simplicity questions, understand the
+widening supervised LR gap without feature-selection leakage, and test rather
+than assume the proposed count-estimation bottleneck. Preserve Claude's v10
+matrices/leaderboard while focusing on Continuous L-SML and IU-PCR.
+
+**Result**: Prefix correction lowers L-SML/IU AUC by 0.015857/0.011772;
+mask-only changes −0.000749/−0.000135 have zero-crossing paired intervals.
+The prefix loss survives position matching and removal of step 0. NR retains
+its advantage over PRM after position/length/repetition matching; controlled
+NCL and overall advantages are unresolved. Nested group OOF N16 LR AUC is
+0.801739 versus L-SML/IU 0.778901/0.780467, while label-free top1 is higher;
+N56 LR leads both. The fixed selection/weighting crossover shows interaction,
+not a universally transferable label-free mask. N11 L-SML on the LR half-mask
+fails outer fold 4 at K=2 and remains undefined. Group MoM prevalence is 0.229
+versus truth 0.140; posterior-count PRMScore 0.642320/0.643165 loses to Q80
+0.653809/0.653590. Entropy gating reduces clean-control false flags but lowers
+pooled score. Internal donor selection chooses N16 IU-PCR with held-half AUC
+0.786037; all type-out/source-fold designs have no source overlap.
+
+**Validation and limits**: Reference scorer replay is within 1e-9; native
+affine replay is ≤6.34e-14. An independent agent reconstructed all 1,069 saved
+fitted-model held-out scores exactly and audited arithmetic, telemetry,
+inner/outer selection, posterior counts, matched populations and final HTML.
+The reproduction wrapper rejects changed saved outputs/checkpoints as well as
+inputs and code before replay. All splits remain internal validation on
+previously inspected data; pointwise bootstrap intervals do not correct
+historical selection or multiplicity. The universal literature claim was
+withdrawn, and MS/Sensitivity definitions were unified.
+
+**State and handoff**: `results/advisor_completion_2026-10-11/README.md`,
+`FINDINGS_HE.md`, `TASK_STATUS.csv`, `advisor_review_v11.html` and `review/`
+are the canonical local completion record. No commit/push, Claude replacement,
+GPU/cluster inference or install occurred in this run. Claude access remains
+unverified; GPU feature extraction from a PRM backbone and untouched external
+confirmation remain outside this completion. Existing dirty work was preserved.
+
+---
+
+**Git publication follow-up (2026-10-12):** The reading delivery and next-agent prompt are published on `codex/advisor-v11-completion`. The full binary bundle remains outside Git; see its RAW_DATA_CATALOG. This is not a Claude Artifact update or a new numerical experiment.
+
+---
+
+### Step 292 [label-free error count] — quota sensitivity confirmed, tested A–D family closes without a supported improvement (2026-10-12)
+
+**What**: Implemented the accepted seven-candidate per-answer quantity family:
+local-score global threshold, absolute-evidence A with mean/median, stable-triple
+B with mean/median, and fixed-emission answer-zero mixture D with mean/median.
+Historical Q80/MoM/R2/entropy controls replay exactly; matched controls learn
+all statistics, survivor selection and cutoffs within the donor source folds.
+Canonical IU-PCR fits once per N16/N56 fold and every count arm uses exactly
+the same saved top-k order. The primary population is 6,211 noncontrols;
+758 synthetic controls and 934 valid-step-zero answers are separate.
+
+**Result**: No N16 arm passes the full-five-fold, MAE-versus-Q80-and-MoM,
+PRMScore-versus-Q80 and one-percentage-point recall-margin gates at one-sided
+alpha .05/7. Q80 MAE/PRMScore/recall are 1.425696/.653859/.487566;
+B mean is 1.938174/.644502/.469085 and D mean is
+2.095476/.637595/.453495. A is explicitly undefined in four N16 folds, covering
+only 1,269/6,211 noncontrols. N56 remains a sensitivity analysis, not a replacement
+winner. PB median gives no benefit in the tested family.
+
+**Mechanism**: The user's 22.9%-versus-23% observation motivated a sealed,
+training-only diagnostic amendment. Quotas 10/20/30% yield vote rates
+13.085/23.016/33.447% and MoM 13.553/22.905/32.600% in historical N16.
+Quota-preserving shuffles produce a wide prevalence range, and an exact
+independent-voter teacher recovers a fixed prevalence under changing marginals:
+MoM is quota-sensitive here but is not mathematically equal to the vote fraction.
+Frozen global thresholds and a mean-zero absolute-score diagnostic do not
+solve calibration. B estimated emissions differ from empirical target emissions
+despite consistent positive orientation; stable covariance is not proof of
+conditional independence or target calibration. D's clean abstention gains
+come with more missed erroneous answers. Label-oracle component diagnostics
+retain headroom in both quantities and ordering; those gains are not additive.
+
+**Validation and limits**: Fifty-five tests cover train/holdout separation,
+label perturbations, compensated scale/mask transfer, exact PMF enumeration,
+zero/full counts, ties, failures and changed-identity resume refusal. Seven
+additional delivery tests reject changed scientific sources/runtime identities
+and preserve existing destinations before any replay writes. All ten
+corrected bridge audits pass 1e-9; an 80-digit Decimal audit checks the numerical
+repair. Independent agents reconstruct sealed rankings, posterior/PMF counts,
+440 triple bootstraps, metrics, quota/calibration/oracle diagnostics and primary
+20,000-source-bootstrap gates. Initial failed attempts and operational repairs
+remain visible. Uncertainty conditions on saved fits; every result is internal
+development validation with no untouched external test.
+
+**State**: The canonical local package is
+`results/label_free_error_count_v1_2026-10-12/` with report, models,
+checkpoints, posteriors, PMFs, ranks, flags, logs, hashes, CSV/JSON, plots,
+reproduction guide and independent review. The advisor package and its manifest
+helpers remain unchanged. No install/GPU/cluster/commit/push/publication;
+pre-existing dirty work was preserved. This family is closed. A continuous
+emission model with explicit dependence/heterogeneity remains an unexecuted
+next hypothesis.
+
+**Git publication follow-up (2026-10-12):** The completed error-count reading delivery is on `codex/label-free-error-count-v1`, based on the advisor v11 publication. The full numerical bundles remain local; reading-delivery manifests and payload catalogs distinguish them. This does not update a Claude Artifact or claim external validation.

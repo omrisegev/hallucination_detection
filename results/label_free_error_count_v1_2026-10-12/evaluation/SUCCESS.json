@@ -1,0 +1,130 @@
+{
+  "bank": "N16",
+  "method": "IU_PCR",
+  "M": 7,
+  "one_sided_alpha": 0.0071428571428571435,
+  "minimum_recall_delta": -0.01,
+  "any_success": false,
+  "arms": [
+    {
+      "arm": "LOCAL_MOM_MEAN",
+      "full_coverage": true,
+      "identifiable_and_promotable": true,
+      "gates": {
+        "count_mae_vs_Q80": false,
+        "count_mae_vs_LEGACY_MOM": true,
+        "prm_score_vs_Q80": false,
+        "error_recall_vs_Q80": false
+      },
+      "baseline_eligibility": {
+        "Q80": true,
+        "LEGACY_MOM": true
+      },
+      "success": false,
+      "status": "NOT_ESTABLISHED"
+    },
+    {
+      "arm": "A_MOM_MEAN",
+      "full_coverage": false,
+      "identifiable_and_promotable": false,
+      "gates": {
+        "count_mae_vs_Q80": false,
+        "count_mae_vs_LEGACY_MOM": false,
+        "prm_score_vs_Q80": false,
+        "error_recall_vs_Q80": false
+      },
+      "baseline_eligibility": {
+        "Q80": true,
+        "LEGACY_MOM": true
+      },
+      "success": false,
+      "status": "FAILED_INCOMPLETE_COVERAGE"
+    },
+    {
+      "arm": "A_MOM_MEDIAN",
+      "full_coverage": false,
+      "identifiable_and_promotable": false,
+      "gates": {
+        "count_mae_vs_Q80": false,
+        "count_mae_vs_LEGACY_MOM": false,
+        "prm_score_vs_Q80": false,
+        "error_recall_vs_Q80": false
+      },
+      "baseline_eligibility": {
+        "Q80": true,
+        "LEGACY_MOM": true
+      },
+      "success": false,
+      "status": "FAILED_INCOMPLETE_COVERAGE"
+    },
+    {
+      "arm": "B_TRIPLE_MEAN",
+      "full_coverage": true,
+      "identifiable_and_promotable": true,
+      "gates": {
+        "count_mae_vs_Q80": false,
+        "count_mae_vs_LEGACY_MOM": false,
+        "prm_score_vs_Q80": false,
+        "error_recall_vs_Q80": false
+      },
+      "baseline_eligibility": {
+        "Q80": true,
+        "LEGACY_MOM": true
+      },
+      "success": false,
+      "status": "NOT_ESTABLISHED"
+    },
+    {
+      "arm": "B_TRIPLE_MEDIAN",
+      "full_coverage": true,
+      "identifiable_and_promotable": true,
+      "gates": {
+        "count_mae_vs_Q80": false,
+        "count_mae_vs_LEGACY_MOM": false,
+        "prm_score_vs_Q80": false,
+        "error_recall_vs_Q80": false
+      },
+      "baseline_eligibility": {
+        "Q80": true,
+        "LEGACY_MOM": true
+      },
+      "success": false,
+      "status": "NOT_ESTABLISHED"
+    },
+    {
+      "arm": "D_ZERO_MEAN",
+      "full_coverage": true,
+      "identifiable_and_promotable": true,
+      "gates": {
+        "count_mae_vs_Q80": false,
+        "count_mae_vs_LEGACY_MOM": false,
+        "prm_score_vs_Q80": false,
+        "error_recall_vs_Q80": false
+      },
+      "baseline_eligibility": {
+        "Q80": true,
+        "LEGACY_MOM": true
+      },
+      "success": false,
+      "status": "NOT_ESTABLISHED"
+    },
+    {
+      "arm": "D_ZERO_MEDIAN",
+      "full_coverage": true,
+      "identifiable_and_promotable": true,
+      "gates": {
+        "count_mae_vs_Q80": false,
+        "count_mae_vs_LEGACY_MOM": false,
+        "prm_score_vs_Q80": false,
+        "error_recall_vs_Q80": false
+      },
+      "baseline_eligibility": {
+        "Q80": true,
+        "LEGACY_MOM": true
+      },
+      "success": false,
+      "status": "NOT_ESTABLISHED"
+    }
+  ],
+  "interpretation": "Internal validation on previously inspected development data; conditional prediction uncertainty; no untouched external test."
+}

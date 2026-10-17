@@ -1,0 +1,21 @@
+{
+ "name": "monday_cont_baselines_v1",
+ "status": "FROZEN",
+ "frozen_at": "2026-10-07",
+ "question": "How well do the two historical label-free reference methods, continuous L-SML and IU-PCR, do on the same nested step-channel banks, with no tail binarization, no filter and no merge/custom clustering? This justifies (or not) the Monday fusion algorithms against them.",
+ "requested_by": "Omri, 2026-10-07 (L-SML version confirmed: lsml_continuous on raw continuous channels; IU-PCR: the version the DUFS-LIU-PCR line was built on)",
+ "inputs": "Exactly the monday_nested_banks_v2 development inputs: the 13,769 source answers, the 10 nested banks (BANKS.json), per cell bank['V'] from the validated adapter monday_external_panel_v1/score.py = per-answer z-scored channels as they are (the matrix the plain average ALL_EQ averages). Same per-cell fitting scope as the four Monday methods.",
+ "methods": {
+  "LSML_CONT": "spectral_utils.fusion_utils.lsml_continuous(*columns of V) with defaults (K_range = range(2, min(m, 9)), method='residual', loading_scale='unit'). Its own group detection only; no merge, no filter, no tails. Native sign: sml_fuse_signed majority rule inside and across groups.",
+  "IU_PCR": "spectral_utils.upcr.upcr_fit(F, **spectral_utils.laplacian_upcr.IU_FIT_DEFAULTS): two-component L2 IU-PCR, no exclusion, no difficulty gate, no simple-average fallback, scale_ratio 0.25 (the lambda=0 baseline of laplacian_iu_path / DUFS-LIU). F = V columns z-scored over the cell's step rows (features x steps). Score = w @ F. Native sign from the additive moment system (rho_hat = g2 + a_i)."
+ },
+ "orientation": {
+  "primary": "native label-free sign of each method (decided by Omri's acceptance of option (a), 2026-10-07)",
+  "check": "same score, global sign set by its correlation with the 5-channel LEVEL mean over the cell's step rows (the anchor of the oriented plain average); reported as *_LEVELSIGN"
+ },
+ "failure_rule": "Amendment A1 analogue: a cell where L-SML selects fewer than 3 groups, or where either method raises, is recorded with its reason; no fallback. A bank x scorer with any failed cell is INCOMPLETE on that benchmark (per-benchmark completeness as A2). The selected K of every fit is recorded.",
+ "metrics": "Same definitions and the same bootstrap (seed 20261006, 5000 source-group draws) as monday_nested_banks_v2/dev_run.py: PRMBench within-answer AUC, top-ranked step is an error, PRMScore one flag per answer; ProcessBench argmax first-error hit, cell-equal mean over the 8 cells.",
+ "contrasts": "Each baseline minus ALL_EQ, minus ALL_EQ_ORIENTED, and each of the 4 Monday methods (HEM_MOM_cc, MEAN_MOM_cc, MEAN_MOM_ga, TCI_ONLY_ga) minus each baseline, per bank and metric (within AUC, PB hit). Descriptive paired 95% intervals, no multiplicity correction.",
+ "scope": "Development data only (PRMBench + ProcessBench). External cells are not scored in this run. CPU only, no inference, no labels used in fitting.",
+ "claims_rule": "No winner and no superiority claim; report all 10 banks; failures visible."
+}

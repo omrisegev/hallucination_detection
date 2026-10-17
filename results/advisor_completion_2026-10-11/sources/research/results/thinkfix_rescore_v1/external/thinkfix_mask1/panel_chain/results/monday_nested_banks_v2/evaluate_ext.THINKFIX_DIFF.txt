@@ -1,0 +1,12 @@
+# thinkfix_rescore_v1 step 3 part 2: socratic_qwq32b removed (not re-collected: QwQ template has no non-thinking mode)
+--- results/monday_nested_banks_v2/evaluate_ext.py (frozen)
++++ results/monday_nested_banks_v2/evaluate_ext.py (thinkfix)
+@@ -21,7 +21,7 @@
+ from spectral_utils.family_external_metrics import summary, bootstrap  # noqa: E402
+ 
+ INPUTS = MAIN / 'scratch/external_generalization_private/inputs'
+-CELLS = {'hard2verify_qwen3_8b': 'hard2verify', 'socratic_qwen3_8b': 'socratic', 'socratic_qwq32b': 'socratic'}
++CELLS = {'hard2verify_qwen3_8b': 'hard2verify', 'socratic_qwen3_8b': 'socratic'}  # thinkfix: QwQ not re-collected
+ BANKS = ['N11', 'N14', 'N13', 'N16', 'N22', 'N25', 'N53', 'N56', 'N40', 'N43']; HL = json.loads((OUT / 'HIGHLIGHT.json').read_text(encoding='utf8'))['highlight']
+ METHODS = ['HEM_MOM_cc', 'MEAN_MOM_cc', 'MEAN_MOM_ga', 'TCI_ONLY_ga']
+ SCORERS = ['HEM_MOM_cc', 'MEAN_MOM_cc', 'MEAN_MOM_ga', 'HEM_MOM_ga', 'TCI_ONLY_ga', 'ALL_EQ', 'DS_FILTER_EQ', 'MEAN_EQ', 'HEM_EQ']

@@ -1,0 +1,881 @@
+{
+  "status": "COMPLETE",
+  "diagnostic_only": true,
+  "candidate_count_unchanged": 7,
+  "labels_loaded": false,
+  "n_rows": 590,
+  "scope_failures": [],
+  "runtime_s": 54.97338914871216,
+  "caveats": "Changing quota changes vote marginals AND dependence/emissions; no algebraic identity or utility claim is inferred.",
+  "permutation_null": {
+    "pair_covariance": "4*Var_stepweighted(ceil(q*n)/n)",
+    "distinct_third": "8*E_stepweighted[(ceil(q*n)/n-pbar)^3]",
+    "caveat": "Shuffles retain length/quota mixture structure; surviving pi is not evidence of errors."
+  },
+  "absolute_zero_caveat": "A frozen donor mean is not a guaranteed error boundary; no utility-based threshold choice.",
+  "synthetic": "See EXACT_TEACHER.json for unchanged latent prevalence under changing vote marginals.",
+  "quota_sweep": [
+    {
+      "scope": "FULL_REFERENCE_TRANSDUCTIVE",
+      "bank": "N16",
+      "fold": "FULL",
+      "estimator": "ARCHIVED_CLIPPED",
+      "n_valid": 3,
+      "slope_pi_vs_actual_vote_rate": 0.935359093151163,
+      "points": [
+        {
+          "quota": 0.1,
+          "actual_mean_vote_rate": 0.130845089859134,
+          "prevalence_hat": 0.1355319737046241,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.2,
+          "actual_mean_vote_rate": 0.23016252136343857,
+          "prevalence_hat": 0.22904653873799213,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.3,
+          "actual_mean_vote_rate": 0.33446917826396183,
+          "prevalence_hat": 0.326003614934704,
+          "fit_status": "PASS"
+        }
+      ]
+    },
+    {
+      "scope": "FULL_REFERENCE_TRANSDUCTIVE",
+      "bank": "N16",
+      "fold": "FULL",
+      "estimator": "STRICT",
+      "n_valid": 3,
+      "slope_pi_vs_actual_vote_rate": 0.935359093151163,
+      "points": [
+        {
+          "quota": 0.1,
+          "actual_mean_vote_rate": 0.130845089859134,
+          "prevalence_hat": 0.1355319737046241,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.2,
+          "actual_mean_vote_rate": 0.23016252136343857,
+          "prevalence_hat": 0.22904653873799213,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.3,
+          "actual_mean_vote_rate": 0.33446917826396183,
+          "prevalence_hat": 0.326003614934704,
+          "fit_status": "PASS"
+        }
+      ]
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N16",
+      "fold": "0",
+      "estimator": "ARCHIVED_CLIPPED",
+      "n_valid": 3,
+      "slope_pi_vs_actual_vote_rate": 0.9305464052408366,
+      "points": [
+        {
+          "quota": 0.1,
+          "actual_mean_vote_rate": 0.13103706476974916,
+          "prevalence_hat": 0.13676884972933473,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.2,
+          "actual_mean_vote_rate": 0.23018398673583998,
+          "prevalence_hat": 0.22910044472606356,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.3,
+          "actual_mean_vote_rate": 0.3347061025833021,
+          "prevalence_hat": 0.3262935752622157,
+          "fit_status": "PASS"
+        }
+      ]
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N16",
+      "fold": "0",
+      "estimator": "STRICT",
+      "n_valid": 3,
+      "slope_pi_vs_actual_vote_rate": 0.9305464052408366,
+      "points": [
+        {
+          "quota": 0.1,
+          "actual_mean_vote_rate": 0.13103706476974916,
+          "prevalence_hat": 0.13676884972933473,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.2,
+          "actual_mean_vote_rate": 0.23018398673583998,
+          "prevalence_hat": 0.22910044472606356,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.3,
+          "actual_mean_vote_rate": 0.3347061025833021,
+          "prevalence_hat": 0.3262935752622157,
+          "fit_status": "PASS"
+        }
+      ]
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N16",
+      "fold": "1",
+      "estimator": "ARCHIVED_CLIPPED",
+      "n_valid": 3,
+      "slope_pi_vs_actual_vote_rate": 0.9265042603634239,
+      "points": [
+        {
+          "quota": 0.1,
+          "actual_mean_vote_rate": 0.1312801513899624,
+          "prevalence_hat": 0.13661473874611496,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.2,
+          "actual_mean_vote_rate": 0.2303499560222821,
+          "prevalence_hat": 0.23058383508944535,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.3,
+          "actual_mean_vote_rate": 0.3347104133905488,
+          "prevalence_hat": 0.3251312240654221,
+          "fit_status": "PASS"
+        }
+      ]
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N16",
+      "fold": "1",
+      "estimator": "STRICT",
+      "n_valid": 3,
+      "slope_pi_vs_actual_vote_rate": 0.9265042603634239,
+      "points": [
+        {
+          "quota": 0.1,
+          "actual_mean_vote_rate": 0.1312801513899624,
+          "prevalence_hat": 0.13661473874611496,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.2,
+          "actual_mean_vote_rate": 0.2303499560222821,
+          "prevalence_hat": 0.23058383508944535,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.3,
+          "actual_mean_vote_rate": 0.3347104133905488,
+          "prevalence_hat": 0.3251312240654221,
+          "fit_status": "PASS"
+        }
+      ]
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N16",
+      "fold": "2",
+      "estimator": "ARCHIVED_CLIPPED",
+      "n_valid": 3,
+      "slope_pi_vs_actual_vote_rate": 0.9387009227866927,
+      "points": [
+        {
+          "quota": 0.1,
+          "actual_mean_vote_rate": 0.13069228744406422,
+          "prevalence_hat": 0.1331010033094434,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.2,
+          "actual_mean_vote_rate": 0.23016583311397734,
+          "prevalence_hat": 0.22997003330869692,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.3,
+          "actual_mean_vote_rate": 0.3346801789944722,
+          "prevalence_hat": 0.32464170150977123,
+          "fit_status": "PASS"
+        }
+      ]
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N16",
+      "fold": "2",
+      "estimator": "STRICT",
+      "n_valid": 3,
+      "slope_pi_vs_actual_vote_rate": 0.9387009227866927,
+      "points": [
+        {
+          "quota": 0.1,
+          "actual_mean_vote_rate": 0.13069228744406422,
+          "prevalence_hat": 0.1331010033094434,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.2,
+          "actual_mean_vote_rate": 0.23016583311397734,
+          "prevalence_hat": 0.22997003330869692,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.3,
+          "actual_mean_vote_rate": 0.3346801789944722,
+          "prevalence_hat": 0.32464170150977123,
+          "fit_status": "PASS"
+        }
+      ]
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N16",
+      "fold": "3",
+      "estimator": "ARCHIVED_CLIPPED",
+      "n_valid": 3,
+      "slope_pi_vs_actual_vote_rate": 0.9390663670169006,
+      "points": [
+        {
+          "quota": 0.1,
+          "actual_mean_vote_rate": 0.13064261258888596,
+          "prevalence_hat": 0.13600542946876104,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.2,
+          "actual_mean_vote_rate": 0.22999736634184884,
+          "prevalence_hat": 0.23016189187614589,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.3,
+          "actual_mean_vote_rate": 0.3338425072425599,
+          "prevalence_hat": 0.32683613132439404,
+          "fit_status": "PASS"
+        }
+      ]
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N16",
+      "fold": "3",
+      "estimator": "STRICT",
+      "n_valid": 3,
+      "slope_pi_vs_actual_vote_rate": 0.9390663670169006,
+      "points": [
+        {
+          "quota": 0.1,
+          "actual_mean_vote_rate": 0.13064261258888596,
+          "prevalence_hat": 0.13600542946876104,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.2,
+          "actual_mean_vote_rate": 0.22999736634184884,
+          "prevalence_hat": 0.23016189187614589,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.3,
+          "actual_mean_vote_rate": 0.3338425072425599,
+          "prevalence_hat": 0.32683613132439404,
+          "fit_status": "PASS"
+        }
+      ]
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N16",
+      "fold": "4",
+      "estimator": "ARCHIVED_CLIPPED",
+      "n_valid": 3,
+      "slope_pi_vs_actual_vote_rate": 0.9327677540696844,
+      "points": [
+        {
+          "quota": 0.1,
+          "actual_mean_vote_rate": 0.1305784243199318,
+          "prevalence_hat": 0.13507055614411256,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.2,
+          "actual_mean_vote_rate": 0.23011749660298933,
+          "prevalence_hat": 0.2280053721793856,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.3,
+          "actual_mean_vote_rate": 0.33441238376894994,
+          "prevalence_hat": 0.32520165861659195,
+          "fit_status": "PASS"
+        }
+      ]
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N16",
+      "fold": "4",
+      "estimator": "STRICT",
+      "n_valid": 3,
+      "slope_pi_vs_actual_vote_rate": 0.9327677540696844,
+      "points": [
+        {
+          "quota": 0.1,
+          "actual_mean_vote_rate": 0.1305784243199318,
+          "prevalence_hat": 0.13507055614411256,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.2,
+          "actual_mean_vote_rate": 0.23011749660298933,
+          "prevalence_hat": 0.2280053721793856,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.3,
+          "actual_mean_vote_rate": 0.33441238376894994,
+          "prevalence_hat": 0.32520165861659195,
+          "fit_status": "PASS"
+        }
+      ]
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N56",
+      "fold": "0",
+      "estimator": "ARCHIVED_CLIPPED",
+      "n_valid": 3,
+      "slope_pi_vs_actual_vote_rate": 0.9024360921495104,
+      "points": [
+        {
+          "quota": 0.1,
+          "actual_mean_vote_rate": 0.13103706476974916,
+          "prevalence_hat": 0.1400695592940921,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.2,
+          "actual_mean_vote_rate": 0.23018398673583998,
+          "prevalence_hat": 0.22605993976577532,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.3,
+          "actual_mean_vote_rate": 0.33470610258330213,
+          "prevalence_hat": 0.32380709587261447,
+          "fit_status": "PASS"
+        }
+      ]
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N56",
+      "fold": "0",
+      "estimator": "STRICT",
+      "n_valid": 3,
+      "slope_pi_vs_actual_vote_rate": 0.9024360921495104,
+      "points": [
+        {
+          "quota": 0.1,
+          "actual_mean_vote_rate": 0.13103706476974916,
+          "prevalence_hat": 0.1400695592940921,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.2,
+          "actual_mean_vote_rate": 0.23018398673583998,
+          "prevalence_hat": 0.22605993976577532,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.3,
+          "actual_mean_vote_rate": 0.33470610258330213,
+          "prevalence_hat": 0.32380709587261447,
+          "fit_status": "PASS"
+        }
+      ]
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N56",
+      "fold": "1",
+      "estimator": "ARCHIVED_CLIPPED",
+      "n_valid": 3,
+      "slope_pi_vs_actual_vote_rate": 0.9320020173708885,
+      "points": [
+        {
+          "quota": 0.1,
+          "actual_mean_vote_rate": 0.1312801513899624,
+          "prevalence_hat": 0.14026233650016,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.2,
+          "actual_mean_vote_rate": 0.23034995602228203,
+          "prevalence_hat": 0.23192793389668914,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.3,
+          "actual_mean_vote_rate": 0.3347104133905488,
+          "prevalence_hat": 0.3298482745821388,
+          "fit_status": "PASS"
+        }
+      ]
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N56",
+      "fold": "1",
+      "estimator": "STRICT",
+      "n_valid": 3,
+      "slope_pi_vs_actual_vote_rate": 0.9320020173708885,
+      "points": [
+        {
+          "quota": 0.1,
+          "actual_mean_vote_rate": 0.1312801513899624,
+          "prevalence_hat": 0.14026233650016,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.2,
+          "actual_mean_vote_rate": 0.23034995602228203,
+          "prevalence_hat": 0.23192793389668914,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.3,
+          "actual_mean_vote_rate": 0.3347104133905488,
+          "prevalence_hat": 0.3298482745821388,
+          "fit_status": "PASS"
+        }
+      ]
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N56",
+      "fold": "2",
+      "estimator": "ARCHIVED_CLIPPED",
+      "n_valid": 3,
+      "slope_pi_vs_actual_vote_rate": 0.8946254028435686,
+      "points": [
+        {
+          "quota": 0.1,
+          "actual_mean_vote_rate": 0.13069228744406422,
+          "prevalence_hat": 0.13910094617686342,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.2,
+          "actual_mean_vote_rate": 0.23016583311397737,
+          "prevalence_hat": 0.23172985505077864,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.3,
+          "actual_mean_vote_rate": 0.3346801789944722,
+          "prevalence_hat": 0.3216531286070877,
+          "fit_status": "PASS"
+        }
+      ]
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N56",
+      "fold": "2",
+      "estimator": "STRICT",
+      "n_valid": 3,
+      "slope_pi_vs_actual_vote_rate": 0.8946254028435686,
+      "points": [
+        {
+          "quota": 0.1,
+          "actual_mean_vote_rate": 0.13069228744406422,
+          "prevalence_hat": 0.13910094617686342,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.2,
+          "actual_mean_vote_rate": 0.23016583311397737,
+          "prevalence_hat": 0.23172985505077864,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.3,
+          "actual_mean_vote_rate": 0.3346801789944722,
+          "prevalence_hat": 0.3216531286070877,
+          "fit_status": "PASS"
+        }
+      ]
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N56",
+      "fold": "3",
+      "estimator": "ARCHIVED_CLIPPED",
+      "n_valid": 3,
+      "slope_pi_vs_actual_vote_rate": 0.955626120307511,
+      "points": [
+        {
+          "quota": 0.1,
+          "actual_mean_vote_rate": 0.13064261258888596,
+          "prevalence_hat": 0.1419311562750522,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.2,
+          "actual_mean_vote_rate": 0.22999736634184884,
+          "prevalence_hat": 0.23720376347427097,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.3,
+          "actual_mean_vote_rate": 0.3338425072425599,
+          "prevalence_hat": 0.33611905975554723,
+          "fit_status": "PASS"
+        }
+      ]
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N56",
+      "fold": "3",
+      "estimator": "STRICT",
+      "n_valid": 3,
+      "slope_pi_vs_actual_vote_rate": 0.955626120307511,
+      "points": [
+        {
+          "quota": 0.1,
+          "actual_mean_vote_rate": 0.13064261258888596,
+          "prevalence_hat": 0.1419311562750522,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.2,
+          "actual_mean_vote_rate": 0.22999736634184884,
+          "prevalence_hat": 0.23720376347427097,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.3,
+          "actual_mean_vote_rate": 0.3338425072425599,
+          "prevalence_hat": 0.33611905975554723,
+          "fit_status": "PASS"
+        }
+      ]
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N56",
+      "fold": "4",
+      "estimator": "ARCHIVED_CLIPPED",
+      "n_valid": 3,
+      "slope_pi_vs_actual_vote_rate": 0.9133625062565026,
+      "points": [
+        {
+          "quota": 0.1,
+          "actual_mean_vote_rate": 0.1305784243199318,
+          "prevalence_hat": 0.1387693611559661,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.2,
+          "actual_mean_vote_rate": 0.23011749660298936,
+          "prevalence_hat": 0.22782072162747818,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.3,
+          "actual_mean_vote_rate": 0.33441238376895,
+          "prevalence_hat": 0.3249148889135703,
+          "fit_status": "PASS"
+        }
+      ]
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N56",
+      "fold": "4",
+      "estimator": "STRICT",
+      "n_valid": 3,
+      "slope_pi_vs_actual_vote_rate": 0.9133625062565026,
+      "points": [
+        {
+          "quota": 0.1,
+          "actual_mean_vote_rate": 0.1305784243199318,
+          "prevalence_hat": 0.1387693611559661,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.2,
+          "actual_mean_vote_rate": 0.23011749660298936,
+          "prevalence_hat": 0.22782072162747818,
+          "fit_status": "PASS"
+        },
+        {
+          "quota": 0.3,
+          "actual_mean_vote_rate": 0.33441238376895,
+          "prevalence_hat": 0.3249148889135703,
+          "fit_status": "PASS"
+        }
+      ]
+    }
+  ],
+  "permutation_summaries": [
+    {
+      "scope": "FULL_REFERENCE_TRANSDUCTIVE",
+      "bank": "N16",
+      "fold": "FULL",
+      "estimator": "ARCHIVED_CLIPPED",
+      "n_valid": 10,
+      "n_attempted": 10,
+      "prevalence_mean": 0.34481347678810187,
+      "prevalence_min": 0.08673580533839259,
+      "prevalence_max": 0.8633797138035251
+    },
+    {
+      "scope": "FULL_REFERENCE_TRANSDUCTIVE",
+      "bank": "N16",
+      "fold": "FULL",
+      "estimator": "STRICT",
+      "n_valid": 10,
+      "n_attempted": 10,
+      "prevalence_mean": 0.34481347678810187,
+      "prevalence_min": 0.08673580533839259,
+      "prevalence_max": 0.8633797138035251
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N16",
+      "fold": "0",
+      "estimator": "ARCHIVED_CLIPPED",
+      "n_valid": 10,
+      "n_attempted": 10,
+      "prevalence_mean": 0.38378914694722244,
+      "prevalence_min": 0.09639624335231084,
+      "prevalence_max": 0.7072714364751462
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N16",
+      "fold": "0",
+      "estimator": "STRICT",
+      "n_valid": 10,
+      "n_attempted": 10,
+      "prevalence_mean": 0.38378914694722244,
+      "prevalence_min": 0.09639624335231084,
+      "prevalence_max": 0.7072714364751462
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N16",
+      "fold": "1",
+      "estimator": "ARCHIVED_CLIPPED",
+      "n_valid": 10,
+      "n_attempted": 10,
+      "prevalence_mean": 0.2901054788433148,
+      "prevalence_min": 0.14971753574807922,
+      "prevalence_max": 0.601907228757466
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N16",
+      "fold": "1",
+      "estimator": "STRICT",
+      "n_valid": 10,
+      "n_attempted": 10,
+      "prevalence_mean": 0.2901054788433148,
+      "prevalence_min": 0.14971753574807922,
+      "prevalence_max": 0.601907228757466
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N16",
+      "fold": "2",
+      "estimator": "ARCHIVED_CLIPPED",
+      "n_valid": 10,
+      "n_attempted": 10,
+      "prevalence_mean": 0.3507996770264444,
+      "prevalence_min": 0.0717192385626873,
+      "prevalence_max": 0.9048285680136035
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N16",
+      "fold": "2",
+      "estimator": "STRICT",
+      "n_valid": 10,
+      "n_attempted": 10,
+      "prevalence_mean": 0.3507996770264444,
+      "prevalence_min": 0.0717192385626873,
+      "prevalence_max": 0.9048285680136035
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N16",
+      "fold": "3",
+      "estimator": "ARCHIVED_CLIPPED",
+      "n_valid": 10,
+      "n_attempted": 10,
+      "prevalence_mean": 0.2772571530375245,
+      "prevalence_min": 0.03024802890882128,
+      "prevalence_max": 0.8465275814135381
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N16",
+      "fold": "3",
+      "estimator": "STRICT",
+      "n_valid": 10,
+      "n_attempted": 10,
+      "prevalence_mean": 0.2772571530375245,
+      "prevalence_min": 0.03024802890882128,
+      "prevalence_max": 0.8465275814135381
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N16",
+      "fold": "4",
+      "estimator": "ARCHIVED_CLIPPED",
+      "n_valid": 10,
+      "n_attempted": 10,
+      "prevalence_mean": 0.23999533907715911,
+      "prevalence_min": 0.06524831299092809,
+      "prevalence_max": 0.6611715349815718
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N16",
+      "fold": "4",
+      "estimator": "STRICT",
+      "n_valid": 10,
+      "n_attempted": 10,
+      "prevalence_mean": 0.23999533907715911,
+      "prevalence_min": 0.06524831299092809,
+      "prevalence_max": 0.6611715349815718
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N56",
+      "fold": "0",
+      "estimator": "ARCHIVED_CLIPPED",
+      "n_valid": 10,
+      "n_attempted": 10,
+      "prevalence_mean": 0.3501774275392678,
+      "prevalence_min": 0.06198566339744149,
+      "prevalence_max": 0.7665673059830069
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N56",
+      "fold": "0",
+      "estimator": "STRICT",
+      "n_valid": 10,
+      "n_attempted": 10,
+      "prevalence_mean": 0.3501774275392678,
+      "prevalence_min": 0.06198566339744149,
+      "prevalence_max": 0.7665673059830069
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N56",
+      "fold": "1",
+      "estimator": "ARCHIVED_CLIPPED",
+      "n_valid": 10,
+      "n_attempted": 10,
+      "prevalence_mean": 0.34803642251575395,
+      "prevalence_min": 0.045471231024217074,
+      "prevalence_max": 0.8579778427377474
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N56",
+      "fold": "1",
+      "estimator": "STRICT",
+      "n_valid": 10,
+      "n_attempted": 10,
+      "prevalence_mean": 0.34803642251575395,
+      "prevalence_min": 0.045471231024217074,
+      "prevalence_max": 0.8579778427377474
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N56",
+      "fold": "2",
+      "estimator": "ARCHIVED_CLIPPED",
+      "n_valid": 10,
+      "n_attempted": 10,
+      "prevalence_mean": 0.3106237510371824,
+      "prevalence_min": 0.08276085408556672,
+      "prevalence_max": 0.7585646337305635
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N56",
+      "fold": "2",
+      "estimator": "STRICT",
+      "n_valid": 10,
+      "n_attempted": 10,
+      "prevalence_mean": 0.3106237510371824,
+      "prevalence_min": 0.08276085408556672,
+      "prevalence_max": 0.7585646337305635
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N56",
+      "fold": "3",
+      "estimator": "ARCHIVED_CLIPPED",
+      "n_valid": 10,
+      "n_attempted": 10,
+      "prevalence_mean": 0.21158237325181317,
+      "prevalence_min": 0.07107920846532362,
+      "prevalence_max": 0.6059803810548549
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N56",
+      "fold": "3",
+      "estimator": "STRICT",
+      "n_valid": 10,
+      "n_attempted": 10,
+      "prevalence_mean": 0.21158237325181317,
+      "prevalence_min": 0.07107920846532362,
+      "prevalence_max": 0.6059803810548549
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N56",
+      "fold": "4",
+      "estimator": "ARCHIVED_CLIPPED",
+      "n_valid": 10,
+      "n_attempted": 10,
+      "prevalence_mean": 0.24209500796184255,
+      "prevalence_min": 0.06812639606130105,
+      "prevalence_max": 0.45163306238176776
+    },
+    {
+      "scope": "OOF_DONOR",
+      "bank": "N56",
+      "fold": "4",
+      "estimator": "STRICT",
+      "n_valid": 10,
+      "n_attempted": 10,
+      "prevalence_mean": 0.24209500796184255,
+      "prevalence_min": 0.06812639606130105,
+      "prevalence_max": 0.45163306238176776
+    }
+  ],
+  "model_fit_script_sha256": "1a9841323b923a105f4959fbf60ad3963f766a18ab22e67bb38718466a0d43ca",
+  "operational_seal_repair": "OPERATIONAL_SEAL_REPAIR.json; model parameters and predictions unchanged"
+}

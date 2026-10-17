@@ -1,0 +1,12 @@
+# thinkfix_rescore_v1 step 3 part 2: socratic_qwq32b removed (not re-collected: QwQ template has no non-thinking mode)
+--- results/monday_external_panel_v1/score.py (frozen)
++++ results/monday_external_panel_v1/score.py (thinkfix)
+@@ -29,7 +29,7 @@
+ import er_stage_a as SA, er_stage_b as SB, ds_group_weights as GW  # noqa: E402
+ from calfix_common import tail_marks  # noqa: E402
+ 
+-CELLS = {'hard2verify_qwen3_8b': 'hard2verify', 'socratic_qwen3_8b': 'socratic', 'socratic_qwq32b': 'socratic'}
++CELLS = {'hard2verify_qwen3_8b': 'hard2verify', 'socratic_qwen3_8b': 'socratic'}  # thinkfix: QwQ not re-collected
+ BANKS = ['B13', 'B16', 'B20', 'B23', 'B32', 'B35', 'B51', 'B54']
+ DIG = ['digit_alternative', 'digit_spread', 'digit_alternative_innovation']
+ SCORERS = ['HEM_MOM_cc', 'MEAN_MOM_cc', 'MEAN_MOM_ga', 'HEM_MOM_ga', 'TCI_ONLY_ga', 'ALL_EQ', 'DS_FILTER_EQ', 'MEAN_EQ', 'HEM_EQ']

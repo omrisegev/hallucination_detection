@@ -1,0 +1,48 @@
+{
+  "status": "FROZEN_BEFORE_NEW_RUNS",
+  "created": "2026-10-11",
+  "research_commit": "080877eb9a8369341d647f4115a3b475c040b46e",
+  "v10_commit": "53ef62e36e80b90de30b83d3fee33e1fb85b82c3",
+  "seed": 20261011,
+  "bootstrap_draws": 5000,
+  "development_only": true,
+  "methods": [
+    "LSML_CONT",
+    "IU_PCR"
+  ],
+  "headline_bank": "N16",
+  "selection_experiment": {
+    "retained_fraction": 0.5,
+    "LR_selector_C": 1,
+    "mask_fit": "each inner and outer training split only",
+    "ranking": "absolute weight on training-standardized common V",
+    "fuser_C_grid": [
+      0.001,
+      0.01,
+      0.1,
+      1,
+      10,
+      100,
+      1000
+    ],
+    "failure": "explicit nofallback"
+  },
+  "controls": {
+    "position_bins": 5,
+    "length_bins": "tertiles label-free",
+    "repetition": "maximum previous word3gramJaccard; shortunigramfallback;first0"
+  },
+  "quota": "MoM-group posterior sum rounded floor(x+.5), ranking from frozen LSML/IU; diagnostic only",
+  "no_gpu": true,
+  "publication": "local uncommitted only",
+  "acceptance": {
+    "score_parity_abs": 1e-09,
+    "source_disjoint": true,
+    "MS": "validF1",
+    "sensitivity": [
+      "PS",
+      "DR",
+      "MS"
+    ]
+  }
+}

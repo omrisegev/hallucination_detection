@@ -1,0 +1,61 @@
+{
+  "status": "CHRONOLOGY_VERIFIED_WITH_LIMITS",
+  "protocol_run_directory_date": "2026-10-03",
+  "earliest_versioned_protocol_commit": {
+    "sha": "52bf3f2eee68b87e322f8368a49aa88ecdc0d244",
+    "committer_date": "2026-10-08T08:58:32Z"
+  },
+  "earliest_versioned_corrected_results_commit": {
+    "sha": "8cc64983541b7cf203db5d4fd3201b69e3afdf72",
+    "committer_date": "2026-10-11T04:29:29Z"
+  },
+  "protocol_precedes_corrected_result_export": true,
+  "first_private_registration_datetime_verified": false,
+  "original_public_push_datetime_verified": false,
+  "q80_never_selected_on_historical_results_verified": false,
+  "rules": {
+    "main_recipes": [
+      "ALL_EQ",
+      "DS_FILTER_EQ",
+      "MEAN_EQ",
+      "MEAN_DS",
+      "MEAN_SML",
+      "MEAN_MOM",
+      "HEM_EQ",
+      "HEM_DS",
+      "HEM_SML",
+      "HEM_MOM"
+    ],
+    "rules": [
+      "ANSWER_Z_Q80",
+      "R2_COUNT",
+      "ENTROPY_GATE_Q80"
+    ],
+    "q80": "Threshold at numpy quantile .8 of same-cell answer-z scores; >= flags; earliest flagged step for PB.",
+    "r2": "Count flags from q80 on mean of surviving raw channels standardized over same cell; assign that count to highest recipe step scores; earliest ties.",
+    "gate": "Compute entropy OFFSET = answer_z(score)+cell_z(mean token entropy); q80 gives target fraction with no flags. Close least-entropy answers to this fraction (ceil, stable UID ties); use frozen q80 inside open answers. New per-cell adaptation, not historical pure-gate replay.",
+    "top_k": [
+      1,
+      2,
+      3
+    ],
+    "top_2": "Historical post hoc choice; report all three.",
+    "final_choice": "Omri chooses after comparison. No automatic decision freeze or external run."
+  },
+  "interpretation": "The currently public Git history dates the earliest protocol commit to 8 October and corrected-result export commit to 11 October, using committer timestamps. Its run directory names 3 October. This verifies versioned commit chronology, not the original public push time, private registration time or absence of prior historical selection. TOP_2 is expressly post hoc. The protocol leaves final choice to Omri after comparison.",
+  "repository_access": {
+    "html_url": "https://github.com/omrisegev/hallucination_detection",
+    "name": "omrisegev/hallucination_detection",
+    "private": false,
+    "visibility": "public"
+  },
+  "advisor_membership_required": false,
+  "claude_artifact_access": "not independently verified during this run; web reader cannot access the URL",
+  "publication_state": "New v11 local only; no commit, push, or Claude publication performed",
+  "source_hashes": {
+    "REGISTERED_PROTOCOL.json": "38ac51b17529be669ac770841a0103648442e076afbcee02eae3eba1f32820ed",
+    "PROTOCOL_COMMITS.json": "0380216dcde9c110957d70c87d7f42046aa423a3e3cce4bb174cf5aa5ba25163",
+    "THINKFIX_RESULT_COMMITS.json": "67570fa19050f0b1d4410a6886289b2a84a78bbbfa52dab45ff9a2d78318dce4",
+    "REPOSITORY_ACCESS.json": "1e108ce7c31d5f920803762842134cfdd5f6214ee915a376f084273f50f65bcf"
+  }
+}

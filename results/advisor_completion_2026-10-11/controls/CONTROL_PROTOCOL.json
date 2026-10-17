@@ -1,0 +1,24 @@
+{
+  "position_bins": 5,
+  "length_cuts": [
+    19.0,
+    30.0
+  ],
+  "repetition_cuts": [
+    0.0,
+    0.07692307692307693
+  ],
+  "length_bins": "global label-free tertiles; tied boundaries retained",
+  "repetition_bins": "global label-free tertiles; tied boundaries retained, can be empty",
+  "repetition_definition": "casefold unicode word 3-gram max Jaccard to earlier steps; short-pair unigram fallback; first zero",
+  "primary": "position_length",
+  "supplementary": "position_length_repetition",
+  "nuisance_fit": "label-free global development population",
+  "metric": "pool matched error-valid pairs within answer then equal-answer mean; same-eligible unrestricted reported",
+  "bootstrap": "5000 canonical-source-group resamples seed20261011 pointwise95percentile; no selection/multiplicity adjustment",
+  "limits": [
+    "coarse bins leave residual nuisance variation",
+    "matched eligibility and pair weights differ from unrestricted AUC",
+    "repetition risk can itself encode the error construct"
+  ]
+}

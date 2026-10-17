@@ -99,6 +99,72 @@ reward clarification. ReasonEval remains optional/blocked. Real GPU T1 and all
 new-model G1/G2 checks remain for Claude; no GPU/cluster jobs or weight downloads.
 Frozen scoring/bank scripts, sbatch and existing result artifacts remain unchanged.
 
+## 2026-10-12: label-free error count closed + advisor v11 CPU completion (Codex, older line merged 2026-10-17)
+
+**Label-free error-count completion (2026-10-12 — Codex; Step 292 [label-free error count]):**
+Closed the preregistered A/B/C/D family on the unchanged local
+`codex/claude-feature-bank-token-lsml-v1` checkout, HEAD `8904598661be`.
+Start with `results/label_free_error_count_v1_2026-10-12/report/index.html`,
+`README.md`, `FINDINGS_HE.md`, `evaluation/SUCCESS.json` and `review/`.
+Canonical IU-PCR is fitted once per bank/source fold and its saved ordering is
+shared by every quantity arm; L-SML is secondary. N16 remains the historical
+primary bank and N56 the predefined sensitivity bank. Fits receive no labels,
+types or PRM scores; evaluation follows sealed predictions. All seven N16
+candidates fail the combined success rule with fixed multiplicity seven.
+
+The user's quota hypothesis is supported as a sensitivity mechanism:
+historical N16 relative quotas 10/20/30% yield actual vote rates
+13.085/23.016/33.447% and MoM estimates 13.553/22.905/32.600%.
+Quota-preserving shuffles also change MoM greatly, so this is not an algebraic
+identity with the marginal vote fraction. Global thresholds and an additional
+predefined mean-zero threshold diagnostic do not establish better semantic
+error counts. N16 A has four infeasible-emission folds and only 1,269/6,211
+noncontrols covered; N56 LOCAL has the same partial coverage. No failed arm is
+filled with zeros. The stable triple B estimates 18.50% prevalence versus
+13.96% valid-step truth on all answers, with substantial conditional voter
+dependence. D reduces clean false flags but worsens MAE and misses more
+erroneous answers. Median readout does not improve the result.
+
+The package preserves the initial float64 bridge failure, its compensated
+arithmetic repair with unchanged 1e-9 tolerance, all model/posterior/PMF/rank/
+flag outputs, 20,000 shared source-group bootstrap draws, chronological
+amendments and independent audits. Fifty-five scientific tests and seven
+fresh-replay identity/destination guard tests passed. The frozen
+`advisor_completion_2026-10-11` package and manifest runtime helpers were
+verified unchanged. Component contrasts, calibration and matched oracle
+headroom are evaluation diagnostics, not additional promoted arms. All evidence
+is internal validation on previously inspected development data. A continuous
+emission model addressing dependence and answer heterogeneity is a justified
+next hypothesis, not an executed or authorized follow-up sweep. CPU only;
+local/uncommitted/unpushed/unpublished. Earlier dirty work and handoffs below
+remain preserved.
+
+
+**Advisor CPU completion addendum (2026-10-11/12 — Codex; Step 291 [advisor CPU completion]):**
+Completed the sixteen Claude assignment rows against frozen v10 `53ef62e3` and
+research `080877eb`, preserving the older experiment handoff and existing dirty
+checkout. The dedicated package is `results/advisor_completion_2026-10-11/`;
+start with `advisor_review_v11.html`, `TASK_STATUS.csv`, `FINDINGS_HE.md` and
+`README.md`. It contains source/input hashes, canonical population/group joins,
+all-bank AUC/top1/PRMScore, exact corrected decision rules, matched nuisance
+controls, 56-channel/conditional-correlation analyses, DS/MoM estimates,
+posterior-count diagnostic, nested LR feature-selection/weighting and omission
+experiments, and source-disjoint half/type-out validation.
+
+Main conclusions: the prefix correction drives most of the decline; mask-only
+changes are small with zero-crossing intervals. NR survives position/length/
+repetition controls; controlled NCL advantage is unresolved. LR's advantage
+depends on selection and weighting, with a stable near-collinear digit contrast
+in N16; large coefficients are not causal importance. The corrected entropy
+gate improves clean-answer abstention at an overall score cost, and group-MoM
+posterior counts do not improve Q80. Both ranking and per-answer allocation
+limit performance. All new splits are internal development validation.
+N11 L-SML on the LR half-mask fails one fold at K=2 and remains undefined.
+Independent arithmetic, telemetry, nested-selection and presentation audits
+are in `review/`. This v11 package is local/uncommitted/unpublished; it does not
+replace the earlier publication record below. No GPU, cluster run or install
+was performed. Future work and the unverified Claude access item remain visible.
+
 ## 2026-10-10: handoff for the Thursday meeting and the unfinished consolidation (Claude)
 
 **START HERE:** [docs/HANDOFF_prmbench_meeting_and_consolidation_2026-10-10.md](docs/HANDOFF_prmbench_meeting_and_consolidation_2026-10-10.md).
@@ -825,6 +891,81 @@ Do not infer scientific progress from the old waiting PID or touch Claude runs.
 
 # Spectral Hallucination Detection — Session Progress Handoff
 
+
+
+**Branch addendum (2026-08-26 — Step 290, CIW-DEEM):** The revised B3 input
+line is complete and documented. **CIW-DEEM (Cross-fitted
+Innovation-Weighted DEEM)** keeps continuous B3 but transforms the duplicated
+entropy pair and blends each universal source-by-operator core coordinate with
+its standardized innovation using the frozen label-free gate
+`alpha_j=0.5*clip(R2_oof_j,0,1)`. Its stable 24-cell scores are **0.782026
+cell-macro AUROC** and **0.749233 equal-dataset-family AUROC**; these are two
+weightings of the same cell results, not changing estimates. CIW-DEEM improves
+the registered equal-family B3 score by `+0.000732`, but misses the `+0.0025`
+promotion threshold and remains an official challenger rather than champion.
+
+The closing diagnostics show that this is not a generic improved feature
+contract. Five-fold group-OOF supervised LR scores `0.742708` equal-family
+AUROC on exact CIW input versus `0.743357` before CIW. Label-free IU-PCR scores
+`0.773952/0.741106` cell-macro/equal-family AUROC on CIW; DUFS-LIU scores
+`0.774388/0.741901`. DUFS adds a small `+0.000436/+0.000795`, but CIW input
+reduces DUFS-LIU by `-0.001053/-0.000911` versus the pre-CIW D1 input. **Decision:
+keep CIW-DEEM as a B3-specific research challenger; do not replace the
+IU-PCR/DUFS-LIU feature contract with CIW.** Canonical record:
+`docs/experiments/CIW_DEEM_V1.md` and `results/ciw_deem_v1/`.
+
+## 2026-09-09 [Codex] - storage recovery of frozen full sampling
+
+Omri explicitly asked Codex to resume the consolidation work after the disk
+incident; Claude owns the separate shrinkage-IU experiment. The unchanged
+sampling driver was manually relaunched as PID147012, and the existing
+completion supervisor as PID18784, which adopted that driver. The driver's
+own startup checks passed and it is now SCORING: last observed3038/13769,
+with2 new records after recovery. Both processes are alive;
+supervisor stderr is empty. Current handles supersede the older
+PID142012/PID137104 entries below.
+Logs: results/research_consolidation_v1/full_sampling_storage_resume_20260909.log,
+supervisor_v3.stdout.log and supervisor_v3.stderr.log.
+
+Recovery review PASS: all357 frozen input/code hashes matched; all3036 committed
+records had matching identities, manifest digests, all56 method keys and matching
+NPZ hashes. The prior3033 progress count lagged completed writes. One orphan NPZ
+without committed metadata is not counted and will be recomputed by the original
+driver. One accepted record lacks optional execution_acceleration telemetry
+because the disk filled during that extra metadata write; its scientific arrays
+and method metadata are complete. No diagnostic values were invented.
+
+Failure states, original log/manifest and all three unfinished files were copied
+and SHA256-verified under results/research_consolidation_v1/storage_recovery_20260909/.
+The recovery changed no scientific source, scores, gates, arms or input files;
+Codex deleted nothing. About33.7GB were free at checkpoint review. Existing NTFS
+compression remains; space is recorded by the supervisor on every polling cycle.
+
+Historical Joint and the independent gate audit remain COMPLETE REVIEWED.
+Finish the remaining10733 sampling records, then its existing evaluation and
+Hebrew consolidation HTML/ledger. Sampling still uses its frozen original GMM;
+do not present it as the shared entropy-q0.3 follow-up. Stop after the reflection
+before opening the next improvement experiment. No performance ranking from
+these incomplete sampling records. Recovery REVIEW.json and LAUNCH.json hold
+machine-readable evidence; inspect live states for current progress.
+
+## 2026-09-09 [Claude] - disk-full incident; Codex sampling stopped at 3,033/13,769
+
+At about 01:05 the C: drive reached 32 MB free. `localization_full_sampling_v3`
+died with OSError 28 (RUN_STATE FAILED_CHECKPOINTS_PRESERVED, 3,033 records,
+6,075 score files intact) and the consolidation supervisor stopped itself with
+STOPPED_REQUIRES_REVIEW. This is a storage failure, not a scoring bug; no
+scientific input, driver or frozen file was modified. With Omri's approval the
+28 GB duplicate LFS checkout `.worktrees/a6-s0b/dataset_cache` (closed A6/PTNI
+worktree, zero uncommitted dataset changes) was deleted; 28.6 GB are now free.
+It is restorable with `git lfs checkout` inside that worktree. Not done:
+`git lfs prune` (would free 5 GB; three objects are missing on the remote).
+Sampling scores cost ~1.35 MB/record, so the remaining 10,736 records need
+~14.5 GB; resume the SAME driver/output from its checkpoints when convenient.
+Claude's next experiment (shrinkage-covariance IU, answer-only, all 13,769
+rows, frozen routes/peaks pipeline, saved entropy-q0.3 fold gates) writes only
+to `results/fusion_shrinkage_iu_v1/`.
+
 ## Claude Stage 3b - 2026-09-13 (alpha sweep + escort varentropy: complete and reviewed)
 
 Renyi order has no interior optimum: within-AUC rises as alpha -> 0; the limit view (mean log q over the top-15)
@@ -832,7 +973,6 @@ Renyi order has no interior optimum: within-AUC rises as alpha -> 0; the limit v
 PRMB (within 0.7534 / pooled 0.7231 / PRMScore 0.6355); VE_0.75 has the highest PB (36.76, intervals include 0).
 Nothing promoted; label-guided development sweep. Joint L-SML arm of Stage 3 still running. HISTORY Step 359;
 `.worktrees/varentropy-expansion-fusion-v1/docs/research_notes/RENYI_ALPHA_SWEEP_STAGE3B_2026-09-13.md`.
-
 
 ## Claude Stage 3 - 2026-09-13 (Renyi-order combination v2: fast pass complete, Joint pass running)
 
@@ -842,7 +982,6 @@ within, CI excludes 0; PB n.s.). Products (Stage 2) closed by Omri; H1 focus ove
 (`results/renyi_view_fusion_v2/joint_pass`, ~8 h). See HISTORY Step 358 and
 `.worktrees/varentropy-expansion-fusion-v1/docs/research_notes/RENYI_VIEW_FUSION_STAGE3_2026-09-13.md`.
 
-
 ## Step332 completion — consolidation reviewed
 
 Both previously paused frozen runs are now complete and reviewed: historical Joint245/245 and full sampling13769/13769. The separate entropy-gate review also passed. These statements supersede earlier live/paused checkpoints.
@@ -850,7 +989,6 @@ Both previously paused frozen runs are now complete and reviewed: historical Joi
 Hebrew reflection: docs/reviews/research_consolidation_2026-09-08.html. Machine-readable evidence and review: results/research_consolidation_v1/. Original reports and protocol distinctions are preserved. Full cached results remain development evidence. Completion of these obligations does not mean all historical leaders or untouched confirmation are finished.
 
 **Stage boundary reached: return to Omri before a new improvement experiment.** Shared-q0.3 gate and max/top10 trials are specified, not started. No expanded search.
-
 
 ## Claude corrections - 2026-09-13 (Codex review findings verified; all five confirmed and corrected)
 
@@ -866,7 +1004,6 @@ Still running: joint pass (B2_sel/B2d_sel Joint L-SML), full window-sampling run
   bank (B2d_sel +0.40 pp [-0.00,+0.81], within +0.0036; B2_sel +0.42 pp [+0.05,+0.79], within +0.0023); products still hurt
   under Joint (-0.78 pp); no expansion arm with the selected block reaches entropy/varentropy15 on PB. Two Joint arms on the
   non-selected banks deferred. Stage 2 evidence complete pending PNG review; Stage 3 design awaits Omri's review.
-
 
 ## Claude Stage-1 interim handoff - 2026-09-12 evening (Stage 1 OPEN)
 
@@ -886,7 +1023,6 @@ Omri's staged mandate is being executed in parallel tracks; account and tables:
   Joint pass (B2_sel/B2d_sel) running ~14-20 h; supervised diagnostic running; Renyi prototype smoke complete.
 Do not restart the sampling supervisor while its driver (pid in RUN_STATE) is alive; checkpoints resume.
 
-
 ## Omri preference recorded by Codex - 2026-09-11
 
 Retain first_near_max as a preferred next readout direction. Claude's
@@ -894,7 +1030,6 @@ Varentropy50 PB36.4366% result is encouraging but development-selected
 (0.25 SD), not untouched confirmation. Apply the same frozen rule to fusion
 comparators in a separate follow-up; preserve the active DUFS run.
 Current Codex handoff: .worktrees/dufs-moment-selection-v1/PROGRESS.md.
-
 
 ## Step335 [Claude] - BOCPD on token entropy: no gain; white-box localization capture ready, VPN down (2026-09-10)
 
@@ -978,7 +1113,6 @@ The central consolidation builder now includes the ten audited common-gate rows
 and these conclusions in a separate common-gate panel. Nine completion/report tests pass. Full sampling continues
 under its original frozen driver/protocol; final reflection still awaits completion.
 
-
 ## Step332 [Claude] - Joint assumption as closed-form shrinkage in IU: small two-task gain (2026-09-09)
 
 `results/fusion_shrinkage_iu_v1/REPORT.md`. All 13,769 rows, frozen dual__iu pipeline
@@ -994,59 +1128,6 @@ the shrunk covariance. Entropy-only control still not beaten on PB F1 (32.10).
 27 arms scored, primary rows pre-declared; development evidence, not a promotion.
 Codex sampling run resumed by its supervisor after the disk fix (3,128/13,769 at
 last check).
-
-## 2026-09-09 [Codex] - storage recovery of frozen full sampling
-
-Omri explicitly asked Codex to resume the consolidation work after the disk
-incident; Claude owns the separate shrinkage-IU experiment. The unchanged
-sampling driver was manually relaunched as PID147012, and the existing
-completion supervisor as PID18784, which adopted that driver. The driver's
-own startup checks passed and it is now SCORING: last observed3038/13769,
-with2 new records after recovery. Both processes are alive;
-supervisor stderr is empty. Current handles supersede the older
-PID142012/PID137104 entries below.
-Logs: results/research_consolidation_v1/full_sampling_storage_resume_20260909.log,
-supervisor_v3.stdout.log and supervisor_v3.stderr.log.
-
-Recovery review PASS: all357 frozen input/code hashes matched; all3036 committed
-records had matching identities, manifest digests, all56 method keys and matching
-NPZ hashes. The prior3033 progress count lagged completed writes. One orphan NPZ
-without committed metadata is not counted and will be recomputed by the original
-driver. One accepted record lacks optional execution_acceleration telemetry
-because the disk filled during that extra metadata write; its scientific arrays
-and method metadata are complete. No diagnostic values were invented.
-
-Failure states, original log/manifest and all three unfinished files were copied
-and SHA256-verified under results/research_consolidation_v1/storage_recovery_20260909/.
-The recovery changed no scientific source, scores, gates, arms or input files;
-Codex deleted nothing. About33.7GB were free at checkpoint review. Existing NTFS
-compression remains; space is recorded by the supervisor on every polling cycle.
-
-Historical Joint and the independent gate audit remain COMPLETE REVIEWED.
-Finish the remaining10733 sampling records, then its existing evaluation and
-Hebrew consolidation HTML/ledger. Sampling still uses its frozen original GMM;
-do not present it as the shared entropy-q0.3 follow-up. Stop after the reflection
-before opening the next improvement experiment. No performance ranking from
-these incomplete sampling records. Recovery REVIEW.json and LAUNCH.json hold
-machine-readable evidence; inspect live states for current progress.
-
-
-## 2026-09-09 [Claude] - disk-full incident; Codex sampling stopped at 3,033/13,769
-
-At about 01:05 the C: drive reached 32 MB free. `localization_full_sampling_v3`
-died with OSError 28 (RUN_STATE FAILED_CHECKPOINTS_PRESERVED, 3,033 records,
-6,075 score files intact) and the consolidation supervisor stopped itself with
-STOPPED_REQUIRES_REVIEW. This is a storage failure, not a scoring bug; no
-scientific input, driver or frozen file was modified. With Omri's approval the
-28 GB duplicate LFS checkout `.worktrees/a6-s0b/dataset_cache` (closed A6/PTNI
-worktree, zero uncommitted dataset changes) was deleted; 28.6 GB are now free.
-It is restorable with `git lfs checkout` inside that worktree. Not done:
-`git lfs prune` (would free 5 GB; three objects are missing on the remote).
-Sampling scores cost ~1.35 MB/record, so the remaining 10,736 records need
-~14.5 GB; resume the SAME driver/output from its checkpoints when convenient.
-Claude's next experiment (shrinkage-covariance IU, answer-only, all 13,769
-rows, frozen routes/peaks pipeline, saved entropy-q0.3 fold gates) writes only
-to `results/fusion_shrinkage_iu_v1/`.
 
 ## Step332 [Codex] - authorized consolidation IN PROGRESS (2026-09-08)
 
@@ -1088,7 +1169,6 @@ metrics, peaks and validity replay. q0.3 minus GMM +11.1540pp,
 no calibration-refit or detector/q-selection uncertainty. Same-destination
 transfer:28.9864 vs nested29.0339 (hard),32.8907 vs33.5920 (easy).
 Claude's source outputs and code unchanged. No new improvement trial started.
-
 
 ## Step331 [Claude] - fixed-constant gate closes most of the answer-only PB gap (2026-09-08)
 
@@ -6624,70 +6704,9 @@ token/window sampling shortlist remain pending after this run.
 - Verbalized confidence on 7B+ — parser is ready; needs one inference run with Qwen2.5-Math-7B on GSM8K
 - Phase 10 RAG re-run with variant=4 prompt — low priority
 - LapEigvals integration into spectral_utils — potential Group D feature for M=12, low priority
-## 2026-09-24: Family15 tail20 transfer complete; independent review deferred
+**Git publication follow-up (2026-10-12):** The reading delivery and next-agent prompt are published on `codex/advisor-v11-completion`. The full binary bundle remains outside Git; see its RAW_DATA_CATALOG. This is not a Claude Artifact update or a new numerical experiment.
 
-All ten registered arms were scored on 6,190/6,190 answer/backbone records and
-53,970 official steps, with zero new GPU inference. Family15 tail20 L-SML scored
-41.020 Hard2 Balanced F1 and 59.921/62.690 Socratic PRMScore (Qwen3/QwQ), below
-frozen Bank11 L-SML at 43.670 and 63.221/64.238. The Socratic paired losses
-exclude zero after Bonferroni adjustment across 18 contrasts; Hard2 is
-inconclusive. All15 plot pairs, official components, overlap sensitivity, cost,
-literature context and a SHA-verified 190,131,044-byte reproduction archive are
-recorded in docs/experiments/FAMILY_TAIL_EXTERNAL_RESULTS_20260924.md and
-results/family_tail_external_v1/. The user requested that a separate agent perform
-the final independent synthesis; three component audits already report full-population
-PASS, including a documented post-seal integrity-guard correction in the independent
-metric-audit script. Do not treat this as a combined sign-off. The archived
-source files and existing telemetry are reusable; no further external tuning is
-licensed by this result.
-
-
-## 2026-10-04 - Omri requests HEM+MoM slide finding and authorizes continuation
-
-Preserve [the graph takeaways and decision-rule explanation](docs/meetings/advisor_prep_2026-10-05/FUSION_GRAPH_TAKEAWAYS_20261004_HE.html). New direct input contrast: HEM+MoM channels/cell vs groups/answer, original banks, +1.062 pp PB argmax first-error accuracy; q80 official F1 -0.529 pp. Sources, exploratory uncertainty and review status are linked there. Omri explicitly reports disk cleanup and asks Codex to continue the approved plan. Resume from sealed chunks after correcting random-control eligibility and the mixed-reference selection baseline in a versioned analysis; preserve frozen protocols/results. Decision rule still belongs to Omri.
-
-
-## 2026-10-04 evening ? round-two execution requests from Omri via Claude
-
-Omri forwarded MESSAGE_TO_CODEX_1_LR_HELPER.md and MESSAGE_TO_CODEX_2_CANDIDATE_PANEL.md under results/monday_fusion_review_claude_20261004_round2/. Implement the parallel, identical LR helper and replace automatic combined adoption with the four-candidate panel; Omri chooses both recipe and rule. Execution amendment: docs/experiments/MONDAY_ROUND2_EXECUTION_20261004.json. Main runner PID 455132 continues position/decision. Identity-checked guardian PID 7500 watches the completed input_report / combined boundary and will terminate only that legacy workflow there; its status is results/monday_fusion_analysis_v1/candidate_panel_guard/STATUS.json. The legacy ledger may remain RUNNING after guardian termination: check actual liveness. No rule freeze or external evaluation authorized by this change. Helper and panel implementation/testing in progress; do not infer that either has started from this note.
-
-
-## 2026-10-04 evening - parallel LR and manual candidate choice
-
-Omri forwarded the two MESSAGE_TO_CODEX notes in results/monday_fusion_review_claude_20261004_round2/. The identical LR helper is now active as PID455924, with two-process exact determinism PASS before any LR publication, five helper tests PASS, read-only input/code hashes, reconstructed argmax checks and guarded immutable output publication. Source commit f0669d88003134ce9a45444573063f31d4853f27. Provenance: results/monday_fusion_analysis_v1/lr_helper_20261004T160144Z_455924/PROVENANCE.json; logs LR_HELPER_20261004.log/.err; STOP_LR_HELPER stops between stems. Main PID455132 continues the earlier workflow. Guardian PID7500 terminates only that identified main process at completed input_report / combined boundary; candidate_panel_guard/STATUS.json is authoritative if the old workflow ledger then remains RUNNING. The candidate panel supersedes automatic recipe adoption, with both candidate and rule chosen by Omri. Read docs/experiments/MONDAY_ROUND2_EXECUTION_20261004.json. A read-only final-refresh watcher is implemented, pending launch after panel validation. No freeze or external evaluation.
-
-
-## 2026-10-04 19:21 - round-two helpers running
-
-LEVEL position/decision is complete (360 checkpoints); estimator-input layers now run. LR helper PID455924 is active with zero failures at this check; exact counts and sealed-hash verification: results/monday_fusion_analysis_v1/ROUND2_RUNTIME_CHECK.json. Optimized candidate panel PID448696 builds the full comparison after 24 direct rule-metric checks, 144 Claude-table rows and 108 core checks passed; report is not yet complete. Entry: scripts/build_monday_candidate_panel.py; code commit d165f860f3b56a1e40a7610f212742986ab6b5ef. Combined guardian PID7500 remains active. Refresh watcher was replaced: current PID457248 (old98364 intentionally stopped), refreshing after all32 original PRMB LR stems, all288 original LR stems, and final report boundary. Check candidate_panel_refresh/STATUS.json and candidate_panel_guard/STATUS.json before trusting legacy workflow liveness. No candidate or rule chosen.
-
-
-## 2026-10-05 - Contrast-span oracle diagnostic complete (Codex)
-
-Omri requested the proposed oracle experiment and emphasized the whole contrast ensemble. Full reviewed artifacts: results/contrast_span_oracle_20261005/run_v3/REPORT_HE.html (SUMMARY.csv, PAIRED_CONTRASTS.csv, REVIEW.json, COMPLETE.json). Two banks x nine cells, 13,769 answers per bank; endpoints use 6,030 mixed-label PRMB answers and 4,442 erroneous PB answers. Supervised C=1 balanced LR readouts use source-question-disjoint OOF training; historical unlabeled per-cell DS survivors/groups remain transductive. No label-free method gain or untouched confirmation claimed.
-
-PRMB: plain B13/B32 .780179/.746716; PC1 plus all within-group linear contrasts .810653/.800011; full LR .812462/.806071. The named single contrast in B13 gives .804586. Group contrasts recover 94%/90% of the plain-to-LR point gap versus 76% for the single contrast in B13. B32 has no realized_drv, so that named arm is explicitly unavailable. Complete pairwise contrasts plus mean and PC1 plus all residuals reproduce full LR by construction; group-restricted spans are 9/11 and 22/27 dimensions. PB group contrasts .381185/.408615 versus plain .369790/.323610; B13 interval includes zero, B32 gain interval [.063341,.107052].
-
-Validation: seven tests, all 18 cells, 90 fold fits, eight historical aggregate replays, 81 independently recomputed metric rows, 5,000 paired source-group bootstrap draws per comparison, unchanged input/code hashes. First attempt stopped on B32 missing feature; second stopped at the unchanged numerical rotation gate. Both preserved. Final solver Newton-refines the same C=1 objective; legacy replay keeps its original solver. No historical score file changed. Next research question: learn a joint direction over the contrast space without correctness labels; no follow-on run authorized by this note.
-
-
-## 2026-10-05 - Group-level contrast oracle complete (Codex)
-
-Omri authorized testing whether contrasts can act between existing groups instead of between features. Report: results/group_contrast_oracle_20261005/run_v1/REPORT_HE.html. All 18 B13/B32 cells completed, 13,769 answers per bank; 6,030 PRMB mixed-label and 4,442 erroneous PB answers define the endpoints. Same frozen group matrices, DS survivors and source folds; only diagnostic supervised OOF readouts changed. No GPU/inference or label-free candidate result.
-
-PRMB B13/B32: existing MEAN_MOM .781659/.753675; LR on native group scores .783899/.761303; adding all within-group contrasts .812610/.804840; full-feature LR .812462/.806071. Within-group additions gain .028710 [.024840,.032613] and .043538 [.038964,.048105]. Native group signed LR does not beat its nonnegative counterpart: B13 equal; B32 nonnegative .761881. Using raw group means before answer standardization only reaches .784248/.762822. The scalar group compression, not merely between-group weighting or normalization, loses much of the linearly recoverable signal.
-
-PB group LR -> groups plus within contrasts: .361992 -> .387736 (B13), .358033 -> .412449 (B32); paired intervals positive for both additions. Near full-LR point estimates are not equivalence evidence. Four new unit tests, 90 fold fits, 234 independent metric rows, 48 paired comparisons (5000 source-question draws each), exact historical controls, full-span equivalence checks and unchanged input/code hashes PASS. Follow-up question: preserve internal group structure while learning the final fusion without correctness labels; one internal direction per group has not been established sufficient.
-
-
-## 2026-10-05 - Fixed orthogonal-family label-free weighting complete (Codex)
-
-Omri requested SML/MoM/HEM/DS on a common-plus-orthogonal-contrast representation inside frozen families. Completed all 18 B13/B32 cells (13769 answers per bank), with 6030 PRMB eligible and 4442 erroneous PB answers. Report: results/orthogonal_family_fusion_20261005/run_v1/REPORT_HE.html. Candidate fitting is label-free, transductive per cell. Fixed alphabetical Helmert coordinates replace original columns, followed by within-answer standardization and native weighting; no new filtering, grouping or sign search. RAW matched controls and common-only replay retained. EQ between groups is primary, MoM secondary.
-
-PRMB primary RAW -> ORTH: SML: B13 0.778598 -> 0.599104; B32 0.731631 -> 0.737647 | MOM: B13 0.779632 -> 0.491271; B32 0.742690 -> 0.559498 | HEM: B13 0.778355 -> 0.753295; B32 0.746882 -> 0.602148 | DS: B13 0.779285 -> 0.522549; B32 0.741728 -> 0.622258. 7/8 primary PRMB comparisons have negative paired 95% intervals; 1/8 positive. SML B32 gains .006016 [.002004,.009977] over RAW SML but remains below COMMON_EQ. With MoM between groups, its differences against RAW SML+MoM and COMMON_MOM both include zero. No general recovery of the supervised gap.
-
-Four tests, all common-only/raw EQ/raw HEM replay controls, 432 independent metric rows and unchanged input/code hashes PASS. All candidate scores sealed before full-run quality evaluation. Native small-group equal guards and clipping documented; expected failures: 0. Orthogonality does not imply independent error votes. This result tests one fixed representation/normalization/weighting recipe, not the whole contrast direction. No supervised-label use to orient or weight contrasts, no GPU/inference, no historical score overwrite. Initial manifest-type smoke error preserved and corrected without changing a numerical gate.
-
+**Git publication follow-up (2026-10-12):** The completed error-count reading delivery is on `codex/label-free-error-count-v1`, based on the advisor v11 publication. The full numerical bundles remain local; reading-delivery manifests and payload catalogs distinguish them. This does not update a Claude Artifact or claim external validation.
 
 ## 2026-10-13 - Agent telemetry CPU rerun v2 passes (Codex)
 
@@ -6704,3 +6723,60 @@ unchanged; no truncation; older data/reports preserved.
 CPU only: no benchmark inference/scoring, AIRCC access, Drive transfer or
 GPU permission. Claude reviews the full evidence next; G7/smoke/budget
 remain pending. Thursday 2026-10-15 remains PRMBench focused.
+
+## 2026-10-05 - Contrast-span oracle diagnostic complete (Codex)
+
+Omri requested the proposed oracle experiment and emphasized the whole contrast ensemble. Full reviewed artifacts: results/contrast_span_oracle_20261005/run_v3/REPORT_HE.html (SUMMARY.csv, PAIRED_CONTRASTS.csv, REVIEW.json, COMPLETE.json). Two banks x nine cells, 13,769 answers per bank; endpoints use 6,030 mixed-label PRMB answers and 4,442 erroneous PB answers. Supervised C=1 balanced LR readouts use source-question-disjoint OOF training; historical unlabeled per-cell DS survivors/groups remain transductive. No label-free method gain or untouched confirmation claimed.
+
+PRMB: plain B13/B32 .780179/.746716; PC1 plus all within-group linear contrasts .810653/.800011; full LR .812462/.806071. The named single contrast in B13 gives .804586. Group contrasts recover 94%/90% of the plain-to-LR point gap versus 76% for the single contrast in B13. B32 has no realized_drv, so that named arm is explicitly unavailable. Complete pairwise contrasts plus mean and PC1 plus all residuals reproduce full LR by construction; group-restricted spans are 9/11 and 22/27 dimensions. PB group contrasts .381185/.408615 versus plain .369790/.323610; B13 interval includes zero, B32 gain interval [.063341,.107052].
+
+Validation: seven tests, all 18 cells, 90 fold fits, eight historical aggregate replays, 81 independently recomputed metric rows, 5,000 paired source-group bootstrap draws per comparison, unchanged input/code hashes. First attempt stopped on B32 missing feature; second stopped at the unchanged numerical rotation gate. Both preserved. Final solver Newton-refines the same C=1 objective; legacy replay keeps its original solver. No historical score file changed. Next research question: learn a joint direction over the contrast space without correctness labels; no follow-on run authorized by this note.
+
+## 2026-10-05 - Group-level contrast oracle complete (Codex)
+
+Omri authorized testing whether contrasts can act between existing groups instead of between features. Report: results/group_contrast_oracle_20261005/run_v1/REPORT_HE.html. All 18 B13/B32 cells completed, 13,769 answers per bank; 6,030 PRMB mixed-label and 4,442 erroneous PB answers define the endpoints. Same frozen group matrices, DS survivors and source folds; only diagnostic supervised OOF readouts changed. No GPU/inference or label-free candidate result.
+
+PRMB B13/B32: existing MEAN_MOM .781659/.753675; LR on native group scores .783899/.761303; adding all within-group contrasts .812610/.804840; full-feature LR .812462/.806071. Within-group additions gain .028710 [.024840,.032613] and .043538 [.038964,.048105]. Native group signed LR does not beat its nonnegative counterpart: B13 equal; B32 nonnegative .761881. Using raw group means before answer standardization only reaches .784248/.762822. The scalar group compression, not merely between-group weighting or normalization, loses much of the linearly recoverable signal.
+
+PB group LR -> groups plus within contrasts: .361992 -> .387736 (B13), .358033 -> .412449 (B32); paired intervals positive for both additions. Near full-LR point estimates are not equivalence evidence. Four new unit tests, 90 fold fits, 234 independent metric rows, 48 paired comparisons (5000 source-question draws each), exact historical controls, full-span equivalence checks and unchanged input/code hashes PASS. Follow-up question: preserve internal group structure while learning the final fusion without correctness labels; one internal direction per group has not been established sufficient.
+
+## 2026-10-05 - Fixed orthogonal-family label-free weighting complete (Codex)
+
+Omri requested SML/MoM/HEM/DS on a common-plus-orthogonal-contrast representation inside frozen families. Completed all 18 B13/B32 cells (13769 answers per bank), with 6030 PRMB eligible and 4442 erroneous PB answers. Report: results/orthogonal_family_fusion_20261005/run_v1/REPORT_HE.html. Candidate fitting is label-free, transductive per cell. Fixed alphabetical Helmert coordinates replace original columns, followed by within-answer standardization and native weighting; no new filtering, grouping or sign search. RAW matched controls and common-only replay retained. EQ between groups is primary, MoM secondary.
+
+PRMB primary RAW -> ORTH: SML: B13 0.778598 -> 0.599104; B32 0.731631 -> 0.737647 | MOM: B13 0.779632 -> 0.491271; B32 0.742690 -> 0.559498 | HEM: B13 0.778355 -> 0.753295; B32 0.746882 -> 0.602148 | DS: B13 0.779285 -> 0.522549; B32 0.741728 -> 0.622258. 7/8 primary PRMB comparisons have negative paired 95% intervals; 1/8 positive. SML B32 gains .006016 [.002004,.009977] over RAW SML but remains below COMMON_EQ. With MoM between groups, its differences against RAW SML+MoM and COMMON_MOM both include zero. No general recovery of the supervised gap.
+
+Four tests, all common-only/raw EQ/raw HEM replay controls, 432 independent metric rows and unchanged input/code hashes PASS. All candidate scores sealed before full-run quality evaluation. Native small-group equal guards and clipping documented; expected failures: 0. Orthogonality does not imply independent error votes. This result tests one fixed representation/normalization/weighting recipe, not the whole contrast direction. No supervised-label use to orient or weight contrasts, no GPU/inference, no historical score overwrite. Initial manifest-type smoke error preserved and corrected without changing a numerical gate.
+
+## 2026-10-04 - Omri requests HEM+MoM slide finding and authorizes continuation
+
+Preserve [the graph takeaways and decision-rule explanation](docs/meetings/advisor_prep_2026-10-05/FUSION_GRAPH_TAKEAWAYS_20261004_HE.html). New direct input contrast: HEM+MoM channels/cell vs groups/answer, original banks, +1.062 pp PB argmax first-error accuracy; q80 official F1 -0.529 pp. Sources, exploratory uncertainty and review status are linked there. Omri explicitly reports disk cleanup and asks Codex to continue the approved plan. Resume from sealed chunks after correcting random-control eligibility and the mixed-reference selection baseline in a versioned analysis; preserve frozen protocols/results. Decision rule still belongs to Omri.
+
+## 2026-10-04 evening ? round-two execution requests from Omri via Claude
+
+Omri forwarded MESSAGE_TO_CODEX_1_LR_HELPER.md and MESSAGE_TO_CODEX_2_CANDIDATE_PANEL.md under results/monday_fusion_review_claude_20261004_round2/. Implement the parallel, identical LR helper and replace automatic combined adoption with the four-candidate panel; Omri chooses both recipe and rule. Execution amendment: docs/experiments/MONDAY_ROUND2_EXECUTION_20261004.json. Main runner PID 455132 continues position/decision. Identity-checked guardian PID 7500 watches the completed input_report / combined boundary and will terminate only that legacy workflow there; its status is results/monday_fusion_analysis_v1/candidate_panel_guard/STATUS.json. The legacy ledger may remain RUNNING after guardian termination: check actual liveness. No rule freeze or external evaluation authorized by this change. Helper and panel implementation/testing in progress; do not infer that either has started from this note.
+
+## 2026-10-04 evening - parallel LR and manual candidate choice
+
+Omri forwarded the two MESSAGE_TO_CODEX notes in results/monday_fusion_review_claude_20261004_round2/. The identical LR helper is now active as PID455924, with two-process exact determinism PASS before any LR publication, five helper tests PASS, read-only input/code hashes, reconstructed argmax checks and guarded immutable output publication. Source commit f0669d88003134ce9a45444573063f31d4853f27. Provenance: results/monday_fusion_analysis_v1/lr_helper_20261004T160144Z_455924/PROVENANCE.json; logs LR_HELPER_20261004.log/.err; STOP_LR_HELPER stops between stems. Main PID455132 continues the earlier workflow. Guardian PID7500 terminates only that identified main process at completed input_report / combined boundary; candidate_panel_guard/STATUS.json is authoritative if the old workflow ledger then remains RUNNING. The candidate panel supersedes automatic recipe adoption, with both candidate and rule chosen by Omri. Read docs/experiments/MONDAY_ROUND2_EXECUTION_20261004.json. A read-only final-refresh watcher is implemented, pending launch after panel validation. No freeze or external evaluation.
+
+## 2026-10-04 19:21 - round-two helpers running
+
+LEVEL position/decision is complete (360 checkpoints); estimator-input layers now run. LR helper PID455924 is active with zero failures at this check; exact counts and sealed-hash verification: results/monday_fusion_analysis_v1/ROUND2_RUNTIME_CHECK.json. Optimized candidate panel PID448696 builds the full comparison after 24 direct rule-metric checks, 144 Claude-table rows and 108 core checks passed; report is not yet complete. Entry: scripts/build_monday_candidate_panel.py; code commit d165f860f3b56a1e40a7610f212742986ab6b5ef. Combined guardian PID7500 remains active. Refresh watcher was replaced: current PID457248 (old98364 intentionally stopped), refreshing after all32 original PRMB LR stems, all288 original LR stems, and final report boundary. Check candidate_panel_refresh/STATUS.json and candidate_panel_guard/STATUS.json before trusting legacy workflow liveness. No candidate or rule chosen.
+
+## 2026-09-24: Family15 tail20 transfer complete; independent review deferred
+
+All ten registered arms were scored on 6,190/6,190 answer/backbone records and
+53,970 official steps, with zero new GPU inference. Family15 tail20 L-SML scored
+41.020 Hard2 Balanced F1 and 59.921/62.690 Socratic PRMScore (Qwen3/QwQ), below
+frozen Bank11 L-SML at 43.670 and 63.221/64.238. The Socratic paired losses
+exclude zero after Bonferroni adjustment across 18 contrasts; Hard2 is
+inconclusive. All15 plot pairs, official components, overlap sensitivity, cost,
+literature context and a SHA-verified 190,131,044-byte reproduction archive are
+recorded in docs/experiments/FAMILY_TAIL_EXTERNAL_RESULTS_20260924.md and
+results/family_tail_external_v1/. The user requested that a separate agent perform
+the final independent synthesis; three component audits already report full-population
+PASS, including a documented post-seal integrity-guard correction in the independent
+metric-audit script. Do not treat this as a combined sign-off. The archived
+source files and existing telemetry are reusable; no further external tuning is
+licensed by this result.

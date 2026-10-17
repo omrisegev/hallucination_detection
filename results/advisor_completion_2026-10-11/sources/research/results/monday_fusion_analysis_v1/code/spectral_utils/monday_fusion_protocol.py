@@ -1,0 +1,104 @@
+"""Pre-score registration and hash/population audit for the Monday experiments."""
+from pathlib import Path
+import hashlib
+import json
+import subprocess
+import sys
+
+ROOT = Path(r'C:\Users\omris\TAU\hallucination_detection')
+WORK = ROOT / 'results/monday_fusion_analysis_v1'
+CODE = WORK / 'code'
+BASE = '54a2c2a8f463c1c48e8f943405cb1bb7f657c85b'
+BRANCH = 'codex/monday-fusion-analysis-20261003'
+SSL = ROOT / '.worktrees/ssl-pseudolabel-residual-v1'
+RUNS = {e: ROOT / 'results' / e / 'run_20261004_resume' for e in ('level_reduction_v1', 'estimator_input_v1')}
+
+def sha(p):
+    h = hashlib.sha256()
+    with Path(p).open('rb') as f:
+        for b in iter(lambda: f.read(8 << 20), b''):
+            h.update(b)
+    return h.hexdigest()
+
+def dump(p, obj):
+    p = Path(p); p.parent.mkdir(parents=True, exist_ok=True)
+    t = p.with_suffix(p.suffix + '.tmp')
+    t.write_text(json.dumps(obj, ensure_ascii=False, indent=2) + '\n', encoding='utf8')
+    t.replace(p)
+
+def register():
+    """No fitting or scores. This file and protocols must be committed before replay."""
+    protocol = {
+        'schema': 'monday-fusion-v1', 'status': 'FROZEN', 'base': BASE,
+        'branch': BRANCH, 'development_only': True,
+        'assumption': 'Existing hash-verified inputs reproduce historical fits under the pinned implementations.',
+        'success': 'Replay <= 1e-9; complete registered population; every arm produces scores or an explicit failure.',
+        'falsification': 'Hash/population/fold/replay mismatch stops every dependent stage without changing tolerance.',
+        'fit_scope': 'One transductive, label-free fit per model/dataset cell; no external evaluation.',
+        'banks': ['B13','B16','B20','B23','B32','B35','B51','B54'],
+        'level': ['q15_H1','q15_VE1','logprob_margin','true_tail50','energy_level'],
+        'variants': ['original','remove_2','remove_3','random_2','random_3'],
+        'removal': {'targeted': 'Greedy highest mean absolute Spearman with other remaining LEVEL channels within cell; lexical tie.',
+                    'random': 'One permutation of lexically sorted five LEVEL channels, numpy default_rng(20261003); first k, shared across banks/cells.',
+                    'lf_orientation': 'Recompute raw pool LEVEL mean from remaining LEVEL channels; Pearson sign per cell; record signs relative to original.'},
+        'anchor': 'q15_H1 if surviving; else surviving LEVEL with highest DS pi; else any survivor highest DS pi; lexical ties.',
+        'recipes': ['ALL_EQ','DS_FILTER_EQ'] + [w+'_'+b for w in ['MEAN','HEM'] for b in ['EQ','DS','SML','MOM']],
+        'matched_control': 'Same bank/removal/partition/within/position/quota with EQ between; ungrouped DS_FILTER_EQ is also reported.',
+        'estimators': {'DS': 'er_stage_a.em_estimate(votes, ds) -> er_stage_b.mle_weights(psi,eta)',
+                       'MOM': 'tensor_mom_estimate(votes,anchor) -> mle_weights; log b, prevalence, out_of_range',
+                       'SML': 'sml_estimate for reliability ranking only; fusion_utils.sml_fuse_signed on continuous group scores for weights',
+                       'HEM': 'ds_group_weights.hem_fit; group_matrix; weighted_group_score'},
+        'experiment2': {'a': 'Original banks: channel votes versus group votes. Partition fixed. Channel log-odds mapped to groups by mean within each group; matched group score matrices and EQ controls.',
+                        'b': 'Original banks: per-answer versus per-cell quota, crossed with channel/group estimator input. Freeze partition and continuous group scores from original per-answer fit.',
+                        'quota': 'Rank same answer-standardized column values with same random tie key. Preserve sum ceil(.2*n_answer) marks per column per cell exactly.',
+                        'truth': 'PRMBench only. Sensitivity/specificity MAE, prevalence absolute error, reliability Spearman. SML has no sensitivity/specificity.'},
+        'position': {'variants': ['CONTENT','POS','PRIOR','PRIOR_CF'], 'diagnostics': ['POSZ','EQUAL_CONTENT_POSITION','CF_CONTENT_ONLY'],
+                     'pos': 'Ungrouped append position then DS filter as historical; grouped append position to fixed group score matrix and apply same between estimator.',
+                     'prior': 'Historical 10-bin position DS prior and latent slope; record convergence, clipping and minimum 50 rows per bin.',
+                     'crossfit': 'Whole groups greedily assigned descending size then group ID to smaller channel-count side, A on ties. No alternate splitting. At least 3 channels per side. Opposite-half channel-vote latent posterior calibrates each side score; normalize recipe group weights locally by sum abs. Add prior. Log content change.',
+                     'nulls': '200 fixed permutations; PRMB er_stage_b2 shuffle_within/swap_same_length; PB shuffle valid first-error position and swap full target within cell/length including -1; log singletons.',
+                     'equal_share': '0.5 * answer_z(content) + 0.5 * POSZ; diagnostic, not causal attribution.'},
+        'decisions': {'main_recipes': ['ALL_EQ','DS_FILTER_EQ','MEAN_EQ','MEAN_DS','MEAN_SML','MEAN_MOM','HEM_EQ','HEM_DS','HEM_SML','HEM_MOM'],
+                      'rules': ['ANSWER_Z_Q80','R2_COUNT','ENTROPY_GATE_Q80'],
+                      'q80': 'Threshold at numpy quantile .8 of same-cell answer-z scores; >= flags; earliest flagged step for PB.',
+                      'r2': 'Count flags from q80 on mean of surviving raw channels standardized over same cell; assign that count to highest recipe step scores; earliest ties.',
+                      'gate': 'Compute entropy OFFSET = answer_z(score)+cell_z(mean token entropy); q80 gives target fraction with no flags. Close least-entropy answers to this fraction (ceil, stable UID ties); use frozen q80 inside open answers. New per-cell adaptation, not historical pure-gate replay.',
+                      'top_k': [1,2,3], 'top_2': 'Historical post hoc choice; report all three.',
+                      'final_choice': 'Omri chooses after comparison. No automatic decision freeze or external run.'},
+        'lr': {'rosters': ['full_variant','DS_survivors'], 'position': [False,True], 'class_weight': 'balanced',
+               'folds': 'results/localization_source_group_audit_v1/FOLDS_V2.json',
+               'C_grid': [.001,.01,.1,1,10,100,1000], 'inner': 'Leave one remaining source fold out; balanced log loss; smallest C wins ties.',
+               'standardization': 'Training folds only.', 'report': 'Foldwise OOF metrics; in-sample diagnostics separate; no cross-fold pooled AUROC or test-label sign flips.',
+               'pb_labels': 'Train on clean steps and erroneous prefix through first error; exclude post-error training labels. Score all steps.'},
+        'failure': 'No silent mean fallback; fewer than 3 groups/votes fail dependent arms; failed cells remain in denominators. Record SML 3-group guard and HEM small-group guard.',
+        'replay': {'tolerance': 1e-9, 'Step457': 'Fold 0 evaluation; PRMB folds 2,3,4 DS fit; all-cell folds 2,3,4 partition fit; original pooled lf signs.',
+                   'Step462': 'All 9 per-cell fits for B16/B23/B35/B54: BASE and GRP against frozen per_dataset_fit_v1 scores.',
+                   'zero_removal': 'Exact original-bank equality for all 8 banks and all 9 cells.'},
+        'statistics': {'draws': 50000, 'seed': 20261003, 'unit': 'source question',
+                       'pairing': 'Shared resampling draws across all banks, recipes and backbones within benchmark.',
+                       'primary': 'Content-only within-answer AUC paired advantage against matched EQ. PRMBench only; PB first-error/official F1 separate.',
+                       'multiplicity': 'Bonferroni simultaneous intervals across all registered primary bank/variant/weighted-recipe contrasts within each experiment. Include unadjusted 95% intervals. Secondary contrasts descriptive with 95% intervals.',
+                       'selection': 'Largest equal-weight mean matched advantage across 8 banks; no missing cells. Report all absolute scores and losses.',
+                       'legacy': 'Also report Step457: no bank with significant loss at paired 95%; report historical full rule separately from new selection.'},
+        'outputs': ['PROTOCOL.json','INPUT_MANIFEST.json','CODE_MANIFEST.json','RUN_STATUS.json','METRICS.csv','CONTRASTS.csv','DIAGNOSTICS.json','ESTIMATOR_ACCURACY.csv','STEP_SCORES.npz','REPORT.md'],
+        'figures': {f'F{i}': title for i,title in enumerate(['Pipeline','Eight-bank performance','Paired contrasts forest','Groups by variant','Weight concentration','Estimator truth','Marks per answer','Position decomposition','Decision rules','Linear reference gap','PRM categories and overlap','Mind the Gap position/length/errors'],1)},
+        'figure_formats': ['png','svg'],
+        'sequence': ['hash_population_gate','replay_gate','level','estimator_a','estimator_b','position_decision_lr','combined_full_population','competitors'],
+        'combined': 'Combine selected removal and input change, test full population plus each component alone, original control, matched EQ and LR. Refit all changed stages. No stitched historical scores.',
+        'disk': 'No full checkout, no moved worktrees. Inform Omri before >200MB expected writes. Compact per-source sufficient statistics; step scores only main/final recipes.',
+        'review': 'Claude independently recomputes headlines, coverage, shuffled-label null before deck. Pending review is never a conclusion.'}
+    mapping = {'scripts/monday_fusion_workspace.py': str(ROOT / 'scripts/monday_fusion_workspace.py')}
+    for exp, out in RUNS.items():
+        p = out / 'PROTOCOL.json'
+        if p.exists():
+            raise RuntimeError('Do not overwrite a frozen protocol: ' + str(p))
+        dump(p, dict(protocol, experiment=exp))
+        mapping[str(p.relative_to(ROOT)).replace('\\','/')] = str(p)
+    src = Path(__file__)
+    mapping['spectral_utils/monday_fusion_protocol.py'] = str(src)
+    dump(WORK / 'PROTOCOL_COMMIT_PATHS.json', mapping)
+    dump(WORK / 'WORKSPACE.json', {'base': BASE,'branch': BRANCH,'code_export':str(CODE),'checkout_unchanged':True})
+    print('Protocols written; commit before any score.')
+
+if __name__ == '__main__':
+    register()

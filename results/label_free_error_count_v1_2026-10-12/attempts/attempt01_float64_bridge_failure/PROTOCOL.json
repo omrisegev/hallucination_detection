@@ -1,0 +1,171 @@
+{
+  "version": 1,
+  "status": "FROZEN_BEFORE_NEW_NUMERICAL_RUNS",
+  "created_utc": "2026-10-11T23:24:00Z",
+  "development_only": true,
+  "no_external_untouched_test": true,
+  "hypothesis": "Answer normalization and relative quotas can discard between-answer count evidence; this is not assumed to be the only limitation.",
+  "banks": [
+    "N16",
+    "N56"
+  ],
+  "primary_bank": "N16",
+  "N16_status": "historical reference, not automatic selection",
+  "folds": "FOLDS_V2.json prmbench.outer; entire canonical source groups",
+  "training_population": "all training answers, without consulting classifications or labels",
+  "ranking": "one canonical donor IU-PCR fit per bank/fold; LSML secondary; immutable stable descending ranks",
+  "arms": [
+    "LOCAL_MOM_MEAN",
+    "A_MOM_MEAN",
+    "A_MOM_MEDIAN",
+    "B_TRIPLE_MEAN",
+    "B_TRIPLE_MEDIAN",
+    "D_ZERO_MEAN",
+    "D_ZERO_MEDIAN"
+  ],
+  "candidate_count_for_multiplicity": 7,
+  "A": {
+    "mu": "active donor raw mean",
+    "r": "pooled within-answer population SD on active observations",
+    "coordinates": "active*(raw-mu)/r",
+    "weights": "unchanged canonical LSML within-group coefficients on bridge coordinates",
+    "digit_intercept": "mask-dependent",
+    "group_scaling": "absolute donor mean/SD; local canonical answer-z",
+    "quantile": 0.8,
+    "quantile_method": "linear",
+    "vote_ties": "strict greater than threshold",
+    "reconstruction_abs_tolerance": 1e-09,
+    "scale_zero_tolerance": 1e-12
+  },
+  "MoM": {
+    "new_clipping": false,
+    "legacy_clipping": "faithful historical control only, reported",
+    "rank_one_maxiter": 2000,
+    "rank_one_tol": 1e-13,
+    "orientation": "positive loading sum; majority-better-than-chance assumption"
+  },
+  "B": {
+    "input": "absolute representation fixed in advance",
+    "triples": "all learned-group triples",
+    "source_bootstrap_draws": 200,
+    "min_valid": 180,
+    "covariance_lower_quantile": 0.025,
+    "eligibility": "full fit strict probability interior, >=180 valid bootstrap fits, every pair covariance .025 quantile > 0",
+    "selection": "min IQR(prevalence)/sqrt(pi*(1-pi)); exact ties by sorted feature member indices",
+    "orientation": "all three positively covarying voters better than chance; not independence proof",
+    "posterior": "selected triple only",
+    "bootstrap_conditions_on_group_representation": true,
+    "sensitivity": [
+      "same triple equal-answer moments",
+      "same triple equal-source/equal-answer moments"
+    ]
+  },
+  "C": {
+    "mean": "floor(sum(p)+.5)",
+    "median": "smallest k with exact PB CDF >= .5",
+    "PB_assumption": "conditional independent step labels and fixed parameters; mean sum needs no step independence"
+  },
+  "D": {
+    "fixed_emissions": "valid B selected triple",
+    "parameters": [
+      "rho structural-clean mixture probability",
+      "theta active prevalence"
+    ],
+    "starts": [
+      [
+        0.1,
+        0.25
+      ],
+      [
+        0.1,
+        0.75
+      ],
+      [
+        0.5,
+        0.25
+      ],
+      [
+        0.5,
+        0.75
+      ],
+      [
+        0.9,
+        0.25
+      ],
+      [
+        0.9,
+        0.75
+      ]
+    ],
+    "method": "L-BFGS-B",
+    "bounds": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "maxiter": 500,
+    "maxfun": 2000,
+    "ftol": 1e-12,
+    "gtol": 1e-07,
+    "near_best_average_ll": 1e-08,
+    "nonident_parameter_difference": 0.05,
+    "hessian_condition_limit": 100000000.0,
+    "boundary_diagnostic": "rho=0, refit theta; no new candidate",
+    "count_pmf": "q_clean*delta0+(1-q_clean)*PB(active posterior)",
+    "activation": "preregistered because frozen incumbent already fails k=0",
+    "dependency_failure": "no valid B => FAILED_DEPENDENCY",
+    "near_clean_boundary_epsilon": 1e-06
+  },
+  "controls": [
+    "Q80",
+    "R2_COUNT",
+    "ENTROPY_GATE_Q80",
+    "LEGACY_MOM"
+  ],
+  "control_training": "all fitted stats, DS survivor selection, thresholds and entropy cutoff training-only; historical transductive replay separate",
+  "relative_vote_seed": 20260929,
+  "channel_vote_seed": 20260928,
+  "DS_seed": 20260927,
+  "seed": 20261012,
+  "bootstrap_draws": 20000,
+  "bootstrap_unit": "canonical whole source group",
+  "success": {
+    "coverage": "all five folds, N16",
+    "MAE": "upper one-sided paired difference <0 vs Q80 and LEGACY_MOM",
+    "PRMScore": "lower one-sided paired difference >0 vs Q80",
+    "recall": "lower one-sided paired difference >-.01 vs Q80",
+    "alpha": 0.0071428571428571435,
+    "failed_arms_keep_multiplicity": true
+  },
+  "metrics": {
+    "Overall": "pooled macro F1 on noncontrols",
+    "MAE": "equal-answer noncontrol mean",
+    "MS": "valid-step F1",
+    "Sensitivity": [
+      "missing_condition",
+      "deception",
+      "multi_solutions"
+    ],
+    "partial_Spearman": "residual average-tie ranks on intercept and rank(n_steps)",
+    "length_bins": [
+      5,
+      10,
+      20
+    ],
+    "controls_separate": true,
+    "true_count": "sum valid-step annotation membership; no out-of-range repairs",
+    "interval_limit": "conditional on saved OOF fits, not whole-learning-procedure uncertainty"
+  },
+  "retrospective_context": "family motivated by already inspected development evidence; new protocol is prospective only for these new runs",
+  "no_truth_prior": true,
+  "no_supervised_selection": true,
+  "no_bank_winner_selection": true,
+  "no_s_hat_PR_correlation_optimization": true,
+  "CPU_only": true,
+  "publication": "local only"
+}

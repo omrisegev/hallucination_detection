@@ -1,0 +1,263 @@
+[
+  {
+    "idx": "circular_circular_prm_test_p1_0",
+    "classification": "circular",
+    "question": "Three pencils and a jumbo eraser cost $1.24. Five pencils and a jumbo eraser cost $1.82. No prices include tax. In cents, what is the cost of a pencil?",
+    "steps": [
+      "1. Let's call the price of a pencil p and the price of a jumbo eraser e. Then we can write two equations.",
+      "2. We have $3p+e=1.24$ and $5p+e=1.82$.",
+      "3. Assume a pencil costs 29 cents. Then verify this against the original equations.",
+      "4. If $p=0.29$, substitute into one of the equations, for example, $3p+e=1.24$. It gives $3(0.29)+e=1.24$.",
+      "5. Solving $0.87+e=1.24$ gives $e=0.37$. Now check $5p+e=1.82$ to confirm.",
+      "6. Plug $p=0.29$ and $e=0.37$ into $5p+e=1.82$. We get $5(0.29)+0.37=1.82$.",
+      "7. The check confirms that the assumed price of 29 cents per pencil is correct."
+    ],
+    "error_steps": [
+      3,
+      4,
+      5
+    ],
+    "repetition": [
+      0.0,
+      0.0,
+      0.0,
+      0.06666666666666667,
+      0.125,
+      0.08571428571428572,
+      0.0
+    ],
+    "token_length": [
+      28,
+      28,
+      19,
+      50,
+      42,
+      53,
+      19
+    ],
+    "example_selection": "first three by immutable bank order; not selected by model success"
+  },
+  {
+    "idx": "circular_circular_prm_test_p1_10",
+    "classification": "circular",
+    "question": "In 1992, a scoop of gelato could be purchased in Italy for 1200 lire. The same gelato would have cost $1.50 in the U.S. At the equivalent exchange rate between the lire and the dollar, how many dollars would be equivalent to 1,000,000 lire?",
+    "steps": [
+      "Let's call the number of dollars x. So, the problem is asking us to solve the equation x=1000000*\\frac{1.50}{1200}.",
+      "There are two ways to solve this equation, but let's recheck the situation.",
+      "Assume the final solution provides $x = 1250$ and verify this with the original scenario.",
+      "If 1000000 lire = 1250 dollars, then dividing dollars by lire gives $1250 / 1000000 = 0.00125$ which should be equivalent to $1.50 / 1200$.",
+      "Calculate $1.50 / 1200 = 0.00125$ to check.",
+      "Indeed, $1250 / 1000000 = 1.50 / 1200$, confirming $x = 1250$.",
+      "Thus, 1,000,000 lire is equivalent to $1250."
+    ],
+    "error_steps": [
+      3,
+      4,
+      5
+    ],
+    "repetition": [
+      0.0,
+      0.0,
+      0.0,
+      0.023809523809523808,
+      0.038461538461538464,
+      0.08333333333333333,
+      0.0
+    ],
+    "token_length": [
+      42,
+      17,
+      23,
+      66,
+      25,
+      40,
+      22
+    ],
+    "example_selection": "first three by immutable bank order; not selected by model success"
+  },
+  {
+    "idx": "circular_circular_prm_test_p1_103",
+    "classification": "circular",
+    "question": "A number is selected at random from 1 through 100, inclusive. What is the probability that the number is a multiple of 3?",
+    "steps": [
+      "So the probability of an event occurring is the number of favorable outcomes divided by the total number of possible outcomes.",
+      "Right, in this case the total number of possible outcomes is 100 since any number from 1 to 100 could be selected.",
+      "Now we need to determine the number of favorable outcomes.",
+      "That would be the number of numbers from 1 to 100 that are multiples of 3.",
+      "To verify, assume the probability is $\\dfrac{33}{100}$ and check its consistency.",
+      "If $\\dfrac{33}{100}$ represents the correct probability, then 33 numbers must be multiples of 3.",
+      "The number of multiples of 3 from 1 to 100 should confirm 33 possibilities given our total outcomes.",
+      "Using the arithmetic sequence formula verifies this assumption, ensuring $n = \\dfrac{99 - 3}{3} + 1 = 33$.",
+      "Thus the probability is $\\dfrac{33}{100}$.",
+      "Right, so the probability is $\\dfrac{33}{100}$."
+    ],
+    "error_steps": [
+      5,
+      6,
+      10
+    ],
+    "repetition": [
+      0.0,
+      0.11428571428571428,
+      0.125,
+      0.0625,
+      0.0,
+      0.041666666666666664,
+      0.15384615384615385,
+      0.0,
+      0.3333333333333333,
+      0.5714285714285714
+    ],
+    "token_length": [
+      21,
+      31,
+      11,
+      22,
+      23,
+      29,
+      26,
+      34,
+      16,
+      18
+    ],
+    "example_selection": "first three by immutable bank order; not selected by model success"
+  },
+  {
+    "idx": "redundency_redundency_prm_test_p1_0",
+    "classification": "redundency",
+    "question": "Three pencils and a jumbo eraser cost $\\$1.24$. Five pencils and a jumbo eraser cost $\\$1.82$. No prices include tax. In cents, what is the cost of a pencil?",
+    "steps": [
+      "Let's call the price of a pencil p and the price of a jumbo eraser e. Then we can write two equations.",
+      "We have $3p+e=1.24$ and $5p+e=1.82$.",
+      "To solve this system, let's subtract the first equation from the second equation. This will eliminate e.",
+      "$5p+e-3p-e=1.82-1.24$.",
+      "Breaking it down: $5p + e$ minus $3p + e$ gives $2p$, and $1.82 - 1.24$ gives $0.58$.",
+      "So $2p=0.58$. Therefore, $p=0.29$.",
+      "This implies that a pencil costs 29 cents.",
+      "Let's verify: substituting back, $3p+e=1.24$ should check out."
+    ],
+    "error_steps": [
+      5,
+      8
+    ],
+    "repetition": [
+      0.0,
+      0.0,
+      0.0,
+      0.15384615384615385,
+      0.1,
+      0.0,
+      0.0,
+      0.11764705882352941
+    ],
+    "token_length": [
+      26,
+      26,
+      21,
+      21,
+      43,
+      21,
+      11,
+      23
+    ],
+    "example_selection": "first three by immutable bank order; not selected by model success"
+  },
+  {
+    "idx": "redundency_redundency_prm_test_p1_10",
+    "classification": "redundency",
+    "question": "In 1992, a scoop of gelato could be purchased in Italy for 1200 lire. The same gelato would have cost $\\$1.50$ in the U.S. At the equivalent exchange rate between the lire and the dollar, how many dollars would be equivalent to 1,000,000 lire?",
+    "steps": [
+      "Let's call the number of dollars x. So, the problem is asking us to solve the equation x=1000000*$\\frac{1.50}{1200}$.",
+      "There are two ways to solve this equation. We could either divide 1000000 by 1200 and then multiply the result by 1.50 or we could divide 1.50 by 1200 and then multiply the result by 1000000.",
+      "I think the second way will be easier. $\\frac{1.50}{1200}=0.00125$.",
+      "Let's make sure by re-evaluating $\\frac{1.50}{1200}=0.00125$ one more time to confirm.",
+      "That's true. Now we just have to solve the equation x=1000000*0.00125.",
+      "Re-evaluate: 1000000*0.00125=$1250$, just checking if the multiplication was correct.",
+      "So x=$1250$.",
+      "Right. So 1,000,000 lire is equivalent to $\\$1250$."
+    ],
+    "error_steps": [
+      4,
+      6
+    ],
+    "repetition": [
+      0.0,
+      0.0,
+      0.0625,
+      0.16666666666666666,
+      0.12903225806451613,
+      0.043478260869565216,
+      0.0,
+      0.0
+    ],
+    "token_length": [
+      43,
+      68,
+      31,
+      36,
+      30,
+      34,
+      9,
+      24
+    ],
+    "example_selection": "first three by immutable bank order; not selected by model success"
+  },
+  {
+    "idx": "redundency_redundency_prm_test_p1_103",
+    "classification": "redundency",
+    "question": "A number is selected at random from 1 through 100, inclusive. What is the probability that the number is a multiple of 3?",
+    "steps": [
+      "So the probability of an event occurring is the number of favorable outcomes divided by the total number of possible outcomes.",
+      "Right, in this case the total number of possible outcomes is 100 since any number from 1 to 100 could be selected.",
+      "Now we need to determine the number of favorable outcomes.",
+      "That would be the number of numbers from 1 to 100 that are multiples of 3.",
+      "So it's the number of multiples of 3 from 1 to 100.",
+      "The multiples of 3 from 1 to 100 are 3, 6, 9, ..., 99.",
+      "That's correct. Now we need to determine how many numbers are in that list.",
+      "Let's verify the arithmetic sequence counts manually to be sure.",
+      "We could count them but let's check counting from another approach also.",
+      "Since the first term is 3 and the last term is 99 and the common difference is 3, we can use the formula for the number of terms in an arithmetic sequence: $ n = \\dfrac{last\\:term - \\:first\\:term}{common\\:difference} + 1$.",
+      "So there are $\\dfrac{99 - 3}{3} + 1 = 33$ multiples of 3 from 1 to 100.",
+      "Now that we have the total number of possible outcomes and the number of favorable outcomes, we can compute the probability.",
+      "That is $33 \\div 100 = \\dfrac{33}{100}$.",
+      "Right, so the probability is $\\dfrac{33}{100}$."
+    ],
+    "error_steps": [
+      8,
+      9
+    ],
+    "repetition": [
+      0.0,
+      0.11428571428571428,
+      0.125,
+      0.0625,
+      0.19047619047619047,
+      0.29411764705882354,
+      0.16666666666666666,
+      0.0,
+      0.0,
+      0.021739130434782608,
+      0.25,
+      0.22580645161290322,
+      0.0,
+      0.09090909090909091
+    ],
+    "token_length": [
+      21,
+      31,
+      11,
+      22,
+      19,
+      28,
+      17,
+      12,
+      14,
+      64,
+      36,
+      23,
+      24,
+      18
+    ],
+    "example_selection": "first three by immutable bank order; not selected by model success"
+  }
+]

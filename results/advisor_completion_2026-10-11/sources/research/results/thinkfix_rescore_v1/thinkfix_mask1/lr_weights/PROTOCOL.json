@@ -1,0 +1,47 @@
+{
+ "name": "monday_lr_weights_v1",
+ "status": "FROZEN_BEFORE_RUN",
+ "date": "2026-10-07",
+ "role": "Analysis of the SUPERVISED logistic-regression reference (monday_lr_reference_v1). Uses PRMBench step labels. Not a method. Development data, CPU, no new inference. Existing result files are read only.",
+ "question": "Which channels get ~zero LR weight per nested bank, is that zero set unique given redundant channels, and which channels carry the weight?",
+ "inputs": {
+  "reference": "results/monday_lr_reference_v1 (run.py imported via importlib for load_population, nested_lr, model_fit, per_answer, C_GRID; cache/<bank>.pkl for per-fold standardized coefficients and chosen C)",
+  "banks": "results/monday_nested_banks_v2/BANKS.json: N11, N13, N22, N40, N53 and digit twins N14, N16, N25, N43, N56",
+  "V": "ext.build_bank(BANKS[bank], X, names, digit_active, offsets) rows of the PRMBench cell. These banks have no lf__ channels, so this equals Population.cell_bank(...)['V'] used by the reference. Verified per bank by replaying the cached fold models (per-answer AUC identical to cache) and by refitting nested_lr on N16."
+ },
+ "gate": "Refit nested_lr on N16 and reproduce OOF within-answer AUC 0.822366 (|diff| < 1e-6) and the cached per-fold coefficients before any other analysis. Stop if it fails.",
+ "metric": "Out-of-fold PRMBench within-answer AUC = mean over answers with both classes of the per-answer rank AUC (reference per_answer / prm_stats point estimate). Same 5 source-group folds (OOF_ANSWERS.csv 'fold').",
+ "weights": {
+  "w": "standardized LR coefficient (coef on StandardScaler-transformed channels, fit on training folds), per outer fold from cache; reported mean, SD, min, max over the 5 folds; sign stability = folds with the same sign as the mean (k of 5); 'range crosses 0' flag.",
+  "note": "Folds may pick different C (e.g. N53 C = 100,100,1,1000,1); fold ranges then mix regularization levels. Recorded."
+ },
+ "near_zero_rules": {
+  "R1_requested": "|mean w| < 5% of max_j |mean w_j| in the bank",
+  "R2_contrast_robust": "|mean w| < 5% of the largest |mean w| among channels NOT in a flagged collinear contrast pair. Reason: in digit banks the max is the digit_alternative / digit_alternative_innovation contrast (~9), which would put almost every other channel under R1. Contrast pair = |corr| >= 0.8 on PRMBench steps, sign(w_a)*sign(w_b)*sign(corr) < 0, and both |w| above the bank median |w|.",
+  "R3_bottom_quartile": "channels in the lowest 25% of |mean w| (ceil(P/4) channels)",
+  "family": "7 meaning-based families from the deck notes FEATURES_TF_OWN.md: F1 uncertainty level, F2 written-token surprise, F3 change over time, F4 shape within step, F5 rhythm (rolling spectral), F6 variability/drift, F7 digits"
+ },
+ "uniqueness_tests": {
+  "a_L1_path": "L1 logistic regression (penalty l1, solver saga, class_weight balanced, StandardScaler on training rows, max_iter 5000, tol 1e-4, random_state 20261003) over C = logspace(-4, 0, 13) and the same 5 outer folds (no inner selection; a path, not a tuned model). Per C: OOF within-AUC, number of nonzero coefficients per fold (|coef| > 1e-8). Per channel: entry C per fold = smallest C on the path from which the coefficient stays nonzero; drop-out order = channels with the largest entry C drop out first as C decreases. Report the median rank across folds and the fold range of the rank.",
+  "b_pairs": "Near-duplicate pairs |corr| > 0.9 on PRMBench steps (pooled answer-z), plus flagged contrast pairs (R2 definition) with 0.8 <= |corr| <= 0.9. For each pair: per-fold L2 weights of both partners, SD of each vs SD of their corr-signed sum; L2 all-fold fits at every C in C_GRID (weights of both partners and their sum); which partner enters first on the L1 path; drop-one refits (drop A, drop B; per-fold C fixed to the reference's chosen C) giving the surviving partner's weight vs the original sum, and the OOF AUC.",
+  "c_restricted": "nested_lr (identical spec: inner C selection over C_GRID, balanced, lbfgs) refit on (i) channels kept by R1, (ii) kept by R2, (iii) all minus R3 bottom quartile. Compare OOF within-AUC with the full LR; also a paired source-group bootstrap of the difference (1,000 draws, seed 20261007, reference weighting).",
+  "drop_one": "For every channel: refit without it, per-fold C fixed to the reference's chosen C, OOF within-AUC loss vs the full refit at the same fixed C. A channel whose removal costs ~0 is dispensable given the others regardless of its weight. Used to check whether weight size and dispensability agree."
+ },
+ "figure": "W1_weights_N16_N56.png/.svg: per bank, standardized LR weight per channel (mean over folds) sorted, channel names on X, weight on Y, bars colored by family, R2 near-zero band shaded, error bars = fold min..max. Light theme, background #fcfcfb.",
+ "outputs": [
+  "PROTOCOL.json",
+  "run.py",
+  "ZERO_WEIGHTS.csv",
+  "L1_PATH.csv",
+  "PAIRS.csv",
+  "RESTRICTED.csv",
+  "SUMMARY.md",
+  "figures/W1_weights_N16_N56.png",
+  "figures/W1_weights_N16_N56.svg"
+ ],
+ "threads": "OMP/OPENBLAS/MKL = 2 per process",
+ "no_new_inference": true,
+ "amendments_before_main_run": [
+  "2026-10-07, after a timing test only (no AUC or weight result seen): L1 solver changed from saga to liblinear (l1_ratio=1, intercept_scaling=1, tol 1e-4, max_iter 5000). Both take 80-250 s per fit on N56 at C >= 0.1 because of exactly duplicated columns. Path changed to C = logspace(-5, -1, 13); on N56 fold 0, 52 of 56 channels are already nonzero at C = 0.1, so the drop-out order is resolved inside this range. The intercept is penalized by liblinear; with balanced class weights and centred features the unpenalized intercept is near 0, and within-answer AUC does not depend on it."
+ ]
+}

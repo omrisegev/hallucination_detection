@@ -1,0 +1,404 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Tail Pipeline Deep Dive</title><style>
+/* Layout: one reading column with a sticky section index; figures sit on white plates so light-theme PNGs read in both themes */
+:root{--bg:#f6f7f9;--fg:#1b2430;--muted:#5b6676;--line:#d8dde5;--plate:#ffffff;--accent:#2a78d6;--warn:#c4561f;--good:#e3eefb;--bad:#fbe9e1;
+--display:'Source Serif 4',Georgia,serif;--body:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12161d;--fg:#e6eaf0;--muted:#9aa5b5;--line:#2c3440;--plate:#f4f5f7;--accent:#6aa8f0;--warn:#f08a5a;--good:#1d3350;--bad:#43281c;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#12161d;--fg:#e6eaf0;--muted:#9aa5b5;--line:#2c3440;--plate:#f4f5f7;--accent:#6aa8f0;--warn:#f08a5a;--good:#1d3350;--bad:#43281c;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:24px 80px}
+nav{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);border-bottom:1px solid var(--line);padding-block:10px;z-index:2;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px}
+nav a{color:var(--accent);text-decoration:none}nav a:hover{text-decoration:underline}
+h1{font-family:var(--display);font-size:clamp(28px,4vw,40px);line-height:1.15;text-wrap:balance;margin:18px 0 6px}
+h2{font-family:var(--display);font-size:28px;margin:48px 0 8px;padding-top:12px;border-top:2px solid var(--fg);text-wrap:balance}
+h3{font-size:18px;margin:28px 0 6px}
+p,li{max-width:75ch}.lede{color:var(--muted);font-size:17px}
+.note{color:var(--muted);font-size:14px}
+.key{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:18px 0}
+.key div{border:1px solid var(--line);border-radius:8px;padding:14px 16px;min-width:0}
+.key b{display:block;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.tw{overflow-x:auto;margin:14px 0}
+table{border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums;min-width:100%}
+caption{text-align:left;font-weight:600;padding-bottom:6px}
+th,td{border-bottom:1px solid var(--line);padding:6px 9px;text-align:right;white-space:nowrap}
+tr th:first-child{text-align:left}
+table.wide td,table.wide th{text-align:left;white-space:normal;vertical-align:top}table.wide tr th:first-child{white-space:nowrap}
+ol li{margin-block:2px}
+td.best{font-weight:700;color:var(--accent)} td.lr{color:var(--muted);font-style:italic}
+tr.good td,tr.good th{background:var(--good)} tr.bad td,tr.bad th{background:var(--bad)} tr.refrow th,tr.refrow td{color:var(--muted)}
+figure{margin:18px 0}figure img{background:var(--plate);border-radius:6px;padding:8px;max-width:100%;display:block}
+figcaption{color:var(--muted);font-size:14px;margin-top:6px;max-width:90ch}
+.warn{border-left:4px solid var(--warn);padding:8px 14px;margin:14px 0}
+code{font-family:var(--mono);font-size:13px}
+</style><style>
+.slide{border-top:2px solid var(--fg);margin-top:40px;padding-top:6px}
+.slide div{display:block;min-width:0}.slide p,.slide li{margin:6px 0}
+.slide img{background:var(--plate);border-radius:6px;padding:8px;max-width:100%;height:auto!important;width:auto!important}
+.slide table{margin:10px 0}.slide td,.slide th{white-space:normal;text-align:left;vertical-align:top}
+.slide svg{max-width:100%;height:auto;background:var(--plate);border-radius:6px}
+.src{color:var(--muted);font-size:13px}
+details{margin-top:10px;border:1px solid var(--line);border-radius:6px;padding:8px 12px}
+details div{white-space:pre-line;direction:rtl;text-align:right;font-size:15px}
+x-shape,x-icon,x-connector{display:none}
+</style></head>
+<body><div class="wrap"><nav><a href="https://claude.ai/artifact/NQNTYpFqVyx6xRnRS4NENV">← Findings page</a><a href="deep_mtg.html">Mind the Gap</a><a href="deep_tf.html">Teacher forcing</a><a href="deep_pipeline.html">Tail pipeline</a><span>Slides: <a href="#candidates">1</a><a href="#learned3w">2</a><a href="#pipeline">3</a><a href="#tails">4</a><a href="#terms">5</a><a href="#tailsq">6</a><a href="#filter">7</a><a href="#merge">8</a><a href="#between">9</a><a href="#mom">10</a><a href="#estacc">11</a><a href="#hem">12</a><a href="#tci">13</a><a href="#withinloss">14</a><a href="#gainA">15</a><a href="#saturation">16</a></span></nav>
+<h1>Tail Pipeline Deep Dive</h1><p class="lede">The binary tail-vote pipeline of the last three weeks, component by component, and why fusion saturates. Collected from the full slide deck; figures are light-theme images.</p>
+<section class="slide" id="candidates"><h2>1. Candidates: five label-free ways to fuse one bank</h2>
+
+<p>All five use the same step channels. All fit on one cell at a time, without labels. Only the channel signs and weights differ.</p>
+<table>
+<tr><th>Name</th><th>What it does</th><th>Role</th></tr>
+<tr><td><b>Plain average</b></td><td>Average all channels as they are</td><td>Simplest reference</td></tr>
+<tr><td><b>DS-signed average</b></td><td>Flip a channel when Dawid–Skene estimates that it points the wrong way. Then average.</td><td>Sign control, with our own estimator</td></tr>
+<tr><td><b>IU-PCR</b></td><td>Weight each channel by its estimated link to the hidden error</td><td>Earlier project method</td></tr>
+<tr><td><b>Continuous L-SML</b></td><td>Group dependent channels. Fuse inside and across groups.</td><td>Earlier project method</td></tr>
+<tr><td><b>Our pipeline</b> (4 variants)</td><td>Votes, drop wrong-way channels (Dawid–Skene), group, weight groups (MoM)</td><td>New this round</td></tr>
+</table>
+
+
+<p class="src">Source: Definitions used in every later result · sign rule: monday_ds_signed_v1/PROTOCOL.json, FLIPS.csv; DS vs MoM: monday_est_orient_v1</p><details><summary>Speaker notes (Hebrew)</summary><div>• המסר: חמישה מועמדים label-free, כולם על אותם step channels, כולם עושים fit לכל cell בנפרד בלי labels. ההבדל היחיד הוא סימנים ומשקלים.
+• Plain average: ממוצע כל ה-channels כמו שהם, z-scored בתוך התשובה. ה-reference הכי פשוט.
+• DS-signed average: מריצים Dawid-Skene על ה-tail votes (20% העליונים של כל channel). אם ה-balanced accuracy המוערך של channel קטן מ-0.5, הופכים את הסימן שלו. אחר כך ממוצע פשוט. זה ה-sign control.
+• למה DS ולא ה-anchor הקודם: קודם הפכנו channel לפי correlation שלילית עם ממוצע 5 ה-level channels. ביקשת שהסימן ייקבע על ידי ה-estimators שלנו, אז ה-control עכשיו משתמש ב-DS, אותו estimator שה-pipeline משתמש בו ל-filter.
+• למה DS ולא MoM: עד N25 שניהם נותנים אותו PRMBench AUC בדיוק; מעל זה ההפרש עד 0.0004. ב-ProcessBench על N40 DS יורד פחות (0.008 מול 0.016 SLA ביחס ל-anchor). SML נותן בדיוק אותן תוצאות כמו MoM.
+• מה משתנה: עד 16 channels ב-PRMBench, DS הופך בדיוק אותם channels כמו ה-anchor; על N16 התוצאה זהה לכל תשובה. ב-banks הגדולים DS מפספס חלק מה-channels ההפוכים, ולכן ה-control שם חלש יותר מה-anchor הקודם (עד 0.015 AUC ב-N40).
+• IU-PCR: משקל לכל channel לפי ה-covariance המוערך שלו עם השגיאה הנסתרת, שני principal components. Dror et al. 2017, Tenzer et al. 2022.
+• Continuous L-SML: מוצא קבוצות של channels תלויים, fusion בתוך קבוצה ובין קבוצות לפי leading eigenvector. Jaffe et al. 2016.
+• ה-pipeline: votes, DS filter (מוריד במקום להפוך), קבוצות, משקלי MoM בין קבוצות. ארבעה וריאנטים: MEAN, HEM, TCI בתוך קבוצה, ויחידת הצבעה _cc או _ga. סה"כ 8 scorers.</div></details></section><section class="slide" id="learned3w"><h2>2. Tail-vote pipeline: no gain; the loss is inside groups</h2>
+
+<p>Three weeks: tail votes, a Dawid–Skene filter, L-SML groups and merge, mean / HEM / TCI inside groups, MoM between groups.</p>
+<div>
+<div>
+<p>Do binary votes beat continuous fusion?</p>
+<p><b>No.</b> Same banks, PRMBench: vs IU-PCR, clearly better in 9, clearly worse in 21 (of 40). Vs continuous L-SML: 11 / 26.</p>
+<p>tails · terms · tailsq · baselines</p>
+</div>
+<div>
+<p>Do the L-SML groups help?</p>
+<p><b>Not yet shown.</b> As input to group weights, random groups of the same sizes do as well (0.787 vs 0.784 AUC). The merge matters only on N13 and N16.</p>
+<p>merge · withinloss</p>
+</div>
+<div>
+<p>Where is the loss?</p>
+<p><b>Inside groups.</b> MoM group weights are near the supervised optimum (0.782 vs 0.784). Equal averaging inside groups loses: positive supervised weights recover 86–97% of the gap.</p>
+<p>between · mom · estacc · withinloss</p>
+</div>
+<div>
+<p>What failed?</p>
+<p>Every label-free rule inside groups: HEM weights, DS top-3 pruning, TCI triplets. None gives a stable PRMBench gain across banks; on ProcessBench all score lower.</p>
+<p>filter · hem · tci · pipeline</p>
+</div>
+</div>
+<p><b>Net:</b> vs the DS-signed average, the pipeline ties on PRMBench (15 better, 15 worse of 36) and loses on ProcessBench (3 better, 9 worse).</p>
+
+
+<p class="src">Source: Three weeks · development data · source: monday_cont_baselines_v1, monday_ds_signed_v1 CONTRASTS.csv; mom_filter_within_diagnostic_20261004 (WITHIN_GROUP_CEILINGS, DS_TOPK_8BANKS, TCI_8BANKS); group_contrast_oracle_20261005</p><details><summary>Speaker notes (Hebrew)</summary><div>• המסר: שלושה שבועות על ה-pipeline החדש (tail votes בינאריים) לא נתנו רווח על פני fusion רציף. למדנו איפה ההפסד: בתוך הקבוצות, לא בין הקבוצות.
+• מה ה-pipeline: כל channel מצביע על ה-20% העליונים של הצעדים, Dawid-Skene מסנן channels הפוכים, L-SML מקבץ channels תלויים ו-merge מאחד קבוצות כמעט כפולות, בתוך קבוצה MEAN או HEM או TCI, ובין קבוצות משקלי MoM. ה-votes משמשים רק את ה-estimators; הציון הסופי עדיין ממצע ערכים רציפים.
+• שאלה 1, binary מול continuous: IU-PCR ו-continuous L-SML עובדים ישירות על הערכים הרציפים, על אותם banks ואותו fit לכל cell. מול IU-PCR, 4 הווריאנטים שלנו טובים בבירור ב-9 ורעים בבירור ב-21 מתוך 40 השוואות ב-PRMBench AUC; ב-ProcessBench SLA 3 ו-6 מתוך 36. מול continuous L-SML: 11 ו-26; ב-ProcessBench 9 ו-11. כלומר binary לא עוזר. (deep dive: tails, terms, tailsq, baselines)
+• שאלה 2, האם ה-clustering עובד: הקבוצות אמיתיות במובן של תלות (TCI מראה הפרה של conditional independence פי 2,080 מעל null), אבל כ-input לשלב המשקלים בין קבוצות הן לא טובות מקבוצות אקראיות. supervised LR על ציוני הקבוצות של L-SML נותן 0.7839, ועל 30 partitions אקראיים באותם גדלים ממוצע 0.7874; 20 מתוך 30 באותה רמה או מעל (bank מקורי של 13 channels). ב-bank של 32: 0.7613 מול 0.7621. ה-merge משנה רק ב-N13 וב-N16, בלי merge מפסידים 0.008. (merge, withinloss)
+• שאלה 3, איפה ההפסד: בין קבוצות, משקלי MoM label-free נותנים 0.7817, ו-LR supervised על אותם ציוני קבוצות 0.7839. כמעט אופטימלי. משקלים מדיוקים אמיתיים במקום מוערכים: 0.7667 מול 0.7670, אז הערכה טובה יותר לא תעזור. בתוך קבוצות: non-negative supervised LR על channels בודדים מחזיר 97% (13 channels) ו-86% (32 channels) מהפער בין plain average ל-LR. כלומר ההפסד הוא המיצוע השווה בתוך הקבוצה; ה-LR מרכז משקל על energy_level ו-realized_drv. (between, mom, estacc, withinloss)
+• שאלה 4, מה נכשל: HEM בתוך קבוצות, אין רווח ב-PRMBench (0.7683 מול 0.7674) ומפסיד בערך נקודה ב-ProcessBench (0.355 מול 0.366). DS top-3 pruning על 8 banks מקוריים: PRMBench 0.0001- [0.0008-, 0.0007+], ProcessBench 0.004- [0.010-, 0.002+]. כלל ה-TCI triplet (הרעיון שלי) על 6 banks שלא ראה: PRMBench 0.002- ו-ProcessBench 0.016-, שני ה-intervals מתחת ל-0. אף כלל label-free בתוך קבוצות לא מכליל. (filter, hem, tci)
+• שורה תחתונה: מול ה-DS-signed average (ממוצע פשוט עם סימנים מ-Dawid-Skene) ה-pipeline בתיקו ב-PRMBench, 15 טובים ו-15 רעים מתוך 36, כל הפערים עד 0.012, ומפסיד ב-ProcessBench, 3 מול 9.
+• הסתייגויות: המספרים על B13/B32 וה-8 banks המקוריים באים מה-banks של ספטמבר, לא מה-nested banks. השורות ה-supervised משתמשות ב-labels: reference בלבד. דאטה פיתוח.</div></details></section><section class="slide" id="pipeline"><h2>3. Pipeline: votes, filter, groups, group weights</h2>
+
+<div>
+<div><p>1 · Read</p><p>Teacher-forced token probabilities of the given answer</p></div>
+<div><p>2 · Channels</p><p>11 to 56 step features (one nested bank)</p></div>
+<div><p>3 · Rescale</p><p>z-score each channel inside its own answer</p></div>
+<div><p>4 · Vote</p><p>Each channel marks its top 20% steps as "error"</p></div>
+<div><p>5 · Filter</p><p>Drop channels estimated worse than chance</p></div>
+<div><p>6 · Group</p><p>Cluster channels that move together; merge near-duplicate groups</p></div>
+<div><p>7 · Inside groups</p><p>Plain mean, learned weights (HEM) or a triplet (TCI)</p></div>
+<div><p>8 · Between groups</p><p>Weight each group by its estimated accuracy (MoM)</p></div>
+<div><p>9 · Score</p><p>Weighted sum of the group scores</p></div>
+<div><p>10 · Decide</p><p>Which steps to flag, and whether the answer is clean</p></div>
+</div>
+<div>
+<p><b>Four methods we compare</b> differ in steps 4 and 7: votes per channel or per group, and a plain mean, HEM or TCI inside groups. All use MoM between groups (step 8).</p>
+<p><b>Controls:</b> the plain average stops after step 3. The DS-signed average flips wrong-way channels (Dawid–Skene, as in step 5) instead of dropping them. The filtered average stops after step 5.</p>
+</div>
+
+
+<p class="src">Source: Pipeline · DS-signed control: monday_ds_signed_v1/PROTOCOL.json</p><details><summary>Speaker notes (Hebrew)</summary><div>• המסר: ה-pipeline שלנו מוסיף ל-plain average הצבעות, filter, קבוצות ומשקלי קבוצות. מכאן חלק פירוט השיטה, לשאלות.
+• שלבים כחולים, משותפים לכולם: הסתברויות teacher-forced, 11 עד 56 step channels מ-bank מקונן אחד, z-score בתוך כל תשובה, הצבעה על 20% העליונים, filter של channels שמוערכים גרועים מ-chance (Dawid-Skene).
+• שלבים כתומים, שם השיטות נבדלות. HEM_MOM_cc ו-MEAN_MOM_cc: הצבעה לכל channel עם quota על כל התא. MEAN_MOM_ga: הצבעה לכל קבוצה עם quota לכל תשובה. TCI_ONLY_ga: triplet בתוך קבוצות. כולן MoM בין קבוצות.
+• ההצבעות מזינות רק את ה-estimators בשלבים 5, 6 ו-8. מה שמשולב בפועל הוא ה-z-scores הרציפים.
+• שלב 10, החלטה: flag ל-20% העליונים בתא (q80), כלל ספירת צעדים R2, ו-entropy gate.
+• Controls: plain average עוצר אחרי שלב 3. DS-signed average מריץ Dawid-Skene על ה-tail votes, כמו שלב 5, אבל הופך channel הפוך במקום להוריד אותו, ואז ממוצע. filtered average עוצר אחרי שלב 5. דאטה פיתוח.</div></details></section><section class="slide" id="tails"><h2>4. Tail votes: each channel flags its top 20% of steps</h2>
+
+<img src="blobs/dc6a4f199a69640b75d3836f495edfd7.png" alt="One real PRMBench answer with 10 steps and the error at step 5. Token entropy votes error on steps 7 and 8 and misses step 5; surprise of the written token votes on steps 1 and 5; rise in written-token surprise votes on steps 4 and 5">
+<div>
+<div>
+<p>The rule</p>
+<p>In each answer, channel i votes f_i = +1 ("error") on its top k = max(1, ⌈0.2·n⌉) steps, and −1 on the rest. n = steps in the answer.</p>
+<p>Because of rounding up (k = ⌈0.2·n⌉), 23% of steps are marked, not 20%.</p>
+</div>
+<div>
+<p>Why votes</p>
+<p>Dawid–Skene (DS), method of moments (MoM) and the spectral meta-learner (SML) are defined for ±1 votes. Each channel acts as a yes/no classifier. We still average the continuous values.</p>
+</div>
+</div>
+
+
+<p class="src">Source: Binary tails · source: monday_ablation_v1 figures/T0_tail_votes_example; ALGORITHM_CARDS.md §1</p><details><summary>Speaker notes (Hebrew)</summary><div>פירוט לשאלות. המסר: כל channel הופך למצביע כן/לא על 20% הצעדים העליונים שלו. הכלל: בכל תשובה channel i מצביע f_i = +1, "שגיאה", על k = max(1, ⌈0.2·n⌉) הצעדים העליונים ו-−1 על השאר, כש-n מספר הצעדים. בגלל העיגול למעלה מסומנים 23% מהצעדים ולא 20% - 0.230 הוא הממוצע על ה-nested banks (ALGORITHM_CARDS.md, ESTIMATOR_VS_TRUTH.csv). למה הצבעות: Dawid–Skene, MoM ו-SML מוגדרים להצבעות ±1, וכל channel מתפקד כ-classifier כן/לא. באיור: תשובה אמיתית מ-PRMBench, 10 צעדים, אז כל channel מסמן 2; השגיאה בצעד 5, המוצלל. entropy מפספס אותה, וה-surprisal של ה-written token והעלייה בו מצביעים עליה. ההצבעות מזינות רק את ה-estimators - filter, partition, דיוקי קבוצות; ציון הצעד הוא סכום משוקלל של ה-z-scores הרציפים בתוך התשובה. שוויונות נשברים במפתח אקראי קבוע. גם תשובות נקיות מצביעות, אז הצבעות שגויות קיימות מעצם ההגדרה. ראיות קודמות: תלות נמוכה יותר בין קבוצות על הצבעות - class-conditional |r| 0.08–0.21 מול 0.14–0.31 ברציף; ומשקלים שנלמדו על הצבעות מפסידים למשקלים שווים, −0.0022 AUC, ולכן ההצבעות נשארות קלט ל-estimators בלבד. דאטה פיתוח.</div></details></section><section class="slide" id="terms"><h2>5. Voter terms: four numbers rate a channel as a voter</h2>
+
+<div>
+<div>
+<p>One channel, all steps</p>
+<table>
+<tr><th></th><th>Votes "error"</th><th>Votes "correct"</th></tr>
+<tr><td>True error</td><td>caught → ψ</td><td>missed</td></tr>
+<tr><td>True correct</td><td>false alarm</td><td>passed → η</td></tr>
+</table>
+<p>ψ = caught ÷ error steps; η = passed ÷ correct steps.</p>
+<p>A vote = the channel's yes/no mark on a step (previous slide).</p>
+</div>
+<ul>
+<li><b>Error rate</b> (prevalence): share of steps that are wrong. PRMBench: 0.140.</li>
+<li><b>Sensitivity ψ</b>: share of wrong steps the channel votes "error".</li>
+<li><b>Specificity η</b>: share of correct steps it votes "correct".</li>
+<li><b>Balanced accuracy π = (ψ + η)/2</b>. 0.5 = chance. Below 0.5 = the channel points the wrong way.</li>
+<li><b>Reliability ranking</b>: the channels ordered by π. Used by SML, which gives an order only.</li>
+</ul>
+</div>
+<div>
+<p><b>Filter:</b> keep a channel if its estimated π is above 0.5. <b>Between groups:</b> weights come from the estimated ψ and η.</p>
+<p><b>Check:</b> true values need step labels. PRMBench has them, so we compare estimates with the truth there.</p>
+</div>
+
+
+<p class="src">Source: Terms · source: monday_nested_banks_v1 ALGORITHM_CARDS.md (PRMBench, 94,203 steps, true error rate 0.140)</p><details><summary>Speaker notes (Hebrew)</summary><div>פירוט לשאלות. המסר: ארבעה מספרים מתארים כמה channel טוב כמצביע; המטרה היא לתת אוצר מילים לפני כל estimator. הצבעה f_i היא סימון הזנב מהשקף הקודם: +1 אומר "הצעד נראה כמו שגיאה", −1 אחרת. Error rate, או prevalence, הוא חלק הצעדים השגויים - ב-PRMBench 0.140. Sensitivity ψ היא חלק הצעדים השגויים שה-channel מסמן "שגיאה"; specificity η היא חלק הצעדים הנכונים שהוא מסמן "נכון"; π = (ψ + η)/2 היא balanced accuracy, ו-0.5 זה chance. ה-reliability ranking הוא סדר ה-channels לפי π, וזה מה ש-SML נותן. ψ, η ו-π מתארים channel אחד או קבוצה של channels. ה-estimators ה-label-free, Dawid–Skene, method of moments ו-SML, מעריכים אותם בלי labels; SML מחזיר רק סדר. π מתחת ל-0.5 אומר שה-channel מצביע "שגיאה" יותר על צעדים נכונים - הוא anti-oriented. ה-filter שומר channel אם π המוערך מעל 0.5, והמשקלים בין קבוצות באים מ-ψ ו-η המוערכים. רק ל-PRMBench יש labels מלאים ברמת הצעד, 94,203 צעדים, prevalence אמיתי 0.1396, ולכן כל בדיקת הערכה מול אמת היא על PRMBench; ProcessBench מתייג רק את השגיאה הראשונה. דאטה פיתוח.</div></details></section><section class="slide" id="tailsq"><h2>6. Tail quota: 20% was fixed in advance; MoM echoes it</h2>
+
+<p>We fixed 20% before this ablation. An earlier sweep of 14 quotas moved PRMScore by less than 0.5 points. Below, 10% looks slightly better, but only post hoc: it is not a new recipe.</p>
+<img src="blobs/f3b688d7c813470221f86681b9a8a641.png" alt="Three panels over tail quotas 10 to 40 percent on PRMBench, 5 nested banks: the MoM error-rate estimate follows the share of marked steps while the true rate stays at 0.14; MoM channel ranking versus truth falls from 0.833 at 10 percent to 0.775 at 40 percent; final AUC by bank">
+<div>
+<div>
+<p><b>Error rate:</b> MoM reads back the quota: 0.146 at 10%, 0.240 at 20%. The true rate is 0.140.</p></div>
+<div>
+<p><b>Ranking vs truth</b> (5 nested banks N13–N56): best at 10–20% (Spearman 0.833 / 0.826).</p></div>
+<div>
+<p><b>Final AUC:</b> 10% higher on 4 of 5 banks (N13 lower). ProcessBench at 10%: up on 4 banks, down 0.020 on N56.</p></div>
+</div>
+
+
+<p class="src">Source: Tail quota · source: monday_ablation_v1 ESTIMATOR_VS_TRUTH.csv, CONTRASTS.csv, figures/X3_tails · PRMBench, mean of 5 nested banks</p><details><summary>Speaker notes (Hebrew)</summary><div>פירוט לשאלות. המסר: ה-20% נקבע מראש, וה-error rate המוערך פשוט עוקב אחריו. שינינו גורם אחד, ה-quota, והשאר ברירת מחדל. חלק מסומן 0.131/0.230/0.334/0.429; הערכת MoM 0.146/0.240/0.336/0.423; DS 0.211/0.313/0.372/0.443; אמיתי 0.140 - כלומר MoM לא יכול למדוד את ה-error rate. Spearman מול π אמיתי: MoM/SML 0.833/0.826/0.779/0.775; DS 0.789/0.761/0.740/0.753. שינוי AUC של מתכון ה-method of moments מול 20%: ב-10% N13 −0.0094, N16 +0.0024, N25 +0.0106, N43 +0.0215, N56 +0.0060; ב-30% −0.001 עד −0.002; ב-40% −0.0006 עד −0.0041. ProcessBench ב-10%: N13 +0.009, N16 +0.006, N25 +0.012, N43 +0.016, N56 −0.020. Continuous partition input: N13 −0.0019, N16 0.0000, N25 +0.0046, N43 +0.0001, N56 −0.0081 - אין רווח עקבי. Sweep קודם של 14 quotas: PRMScore 63.77–64.25, פחות מחצי נקודה (ALGORITHM_CARDS.md). Paired intervals תיאוריים. 10% נראה טוב יותר רק post hoc, וזה לא מתכון חדש; 20% נשאר המתכון, ומעבר עכשיו היה בחירה על דאטה פיתוח.</div></details></section><section class="slide" id="filter"><h2>7. Filter: finds wrong-way channels; on big banks, flip them</h2>
+
+<div>
+<div>
+<p>Dawid–Skene model</p>
+<p>P(f) = Σ_y P(y) · Π_i P(f_i | y)</p>
+<p>f_i = vote of channel i at a step. y = the true class of the step, unknown. The model assumes channels are independent once y is known.</p>
+<p>Expectation–maximisation (EM), an iterative fit with 5 starts, estimates ψ_i and η_i. We keep channel i if π̂_i = (ψ̂_i + η̂_i)/2 &gt; 0.5.</p>
+<p><b>Origin:</b> Dawid &amp; Skene, J. R. Stat. Soc. C, 1979. The keep rule is ours.</p>
+<p><b>Vs truth</b> (8 older September banks): error rate 0.313 vs 0.140; channel order Spearman 0.741.</p>
+<p>HEM and TCI work inside groups. They are not channel filters, so we did not test them here.</p>
+</div>
+<div>
+<img src="blobs/db9eff5f0aa2e597f6e799315d664992.png" alt="Change versus the DS filter for MoM filter, SML filter, no filter, and keep-all-flip-sign, per nested bank N13 to N56, with paired 95 percent intervals: PRMBench within-answer AUC on the left, ProcessBench top-step hit on the right">
+<ul>
+<li>5 nested banks N13–N56. MoM and SML filters drop the same channels as DS on N13–N25; within ±0.002 AUC on N43–N56.</li>
+<li>No filter: −0.008 (N43), −0.004 (N56); at most +0.002 on smaller banks.</li>
+<li><b>Keep all, flip sign</b> (post hoc, not adopted): +0.014 to +0.026 on the 3 large banks, −0.006 on N13 and N16.</li>
+<li>ProcessBench hit: every change within ±0.008.</li>
+</ul>
+</div>
+</div>
+
+
+<p class="src">Source: Channel filter · source: monday_ablation_v1 CONTRASTS.csv, figures/X1_filter; ALGORITHM_CARDS.md §2 (estimator_input_v1 ESTIMATOR_ACCURACY.csv)</p><details><summary>Speaker notes (Hebrew)</summary><div>פירוט לשאלות. המסר: ה-filter מוצא את ה-channels שמצביעים הפוך, אבל ב-banks גדולים עדיף להפוך להם סימן מאשר לזרוק אותם. מודל Dawid–Skene מניח שה-channels בלתי תלויים בהינתן המחלקה האמיתית; EM עם 5 התחלות מעריך ψ ו-η, ושומרים channel אם π המוערך מעל 0.5. המודל מ-1979, כלל השמירה שלנו. HEM ו-TCI פועלים בתוך קבוצות ואינם filters, אז לא נבדקו כאן. באבלציה רק ה-filter משתנה; המתכון הוא ממוצע בתוך קבוצות ו-MoM ביניהן, על 5 nested banks. MoM ו-SML filters זורקים את אותם channels כמו DS ב-N13 עד N25, ונמצאים בתוך ±0.002 AUC ב-N43 וב-N56. בלי filter: −0.008 ב-N43 ו-−0.004 ב-N56, ולכל היותר +0.002 ב-banks הקטנים. "Keep all, flip sign", כלומר לשמור הכל ולכוון לפי המתאם עם ממוצע 5 ה-level channels, נותן +0.014 עד +0.026 על 3 ה-banks הגדולים ו-−0.006 על N13 ו-N16. כלומר ה-channels שנזרקים נושאים signal בסימן הפוך. זה post hoc ולא אומץ. ב-ProcessBench כל שינוי בתוך ±0.008. DS מול האמת, על 8 ה-banks של ספטמבר: error rate 0.313 מול 0.140, אבל סדר ה-channels סביר, Spearman 0.741. ה-intervals תיאוריים.</div></details></section><section class="slide" id="merge"><h2>8. Merge step: it matters only on N13 and N16</h2>
+
+<img src="blobs/d627f7ac737a9145057f0400811f8f20.png" alt="Left: N16 PRMBench vote correlation heatmap; dashed boxes are groups before the merge, solid boxes after; the merge joins true_tail50 and energy_level with q15_H1, q15_VE1 and logprob_margin. Middle: mean absolute correlation between group scores on error steps before and after the merge, per nested bank; 1 merge on N13 and N16, 0 elsewhere. Right: AUC change without the merge, about minus 0.008 on N13 and N16, zero elsewhere">
+<div>
+<div>
+<p>How groups form</p>
+<p>L-SML clusters channels whose votes depend on each other beyond the truth. Then we merge. Never fewer than 3 groups.</p>
+<p>Jaffe et al. 2016; merge rule ours.</p>
+</div>
+<div>
+<p>Merge rule ρ</p>
+<p>ρ = λ₂(R[A∪B]) ÷ min(λ₁(R[A]), λ₁(R[B])). R = vote correlations; λ₁, λ₂ = first and second eigenvalue.</p>
+<p>Small ρ: A and B act as one factor. Merge while ρ &lt; 0.5.</p>
+</div>
+<div>
+<p>How badly do we need it?</p>
+<p>Only on small nested banks, where it joins two halves of the level family. PRMBench: N13 4→3 groups, N16 5→4; N25, N43, N56 keep 6, 7, 8 groups with no merge.</p>
+<p>Without it, the main recipe (mean inside groups, MoM weights between) loses 0.008 AUC on N13 and N16.</p>
+</div>
+</div>
+
+
+<p class="src">Source: Partition and merge · source: monday_ablation_v1 GROUPS.csv, CONTRASTS.csv, figures/X2_merge; ALGORITHM_CARDS.md §3, §8</p><details><summary>Speaker notes (Hebrew)</summary><div>פירוט לשאלות. המסר: שלב ה-merge משנה את התוצאה רק ב-N13 וב-N16. ה-grouping הוא L-SML Algorithm 1 של Jaffe et al. 2016, על ההצבעות של ה-channels המסוננים. אחר כך ממזגים את הזוג עם ה-ρ הקטן ביותר כל עוד ρ קטן מ-0.5, ולא יורדים מתחת ל-3 קבוצות; כלל ה-merge הוא שלנו. אנחנו משתמשים ב-L-SML רק ליצירת קבוצות: בריצת ההחלטה בספטמבר, L-SML fusion בתוך ה-vote pipeline היה מתחת ל-filtered plain average בכל 8 ה-banks הישנים. ב-PRMBench, N13 יורד מ-4 ל-3 קבוצות ו-N16 מ-5 ל-4, ושם ה-merge מחבר שני חצאים של משפחת ה-uncertainty level; N25, N43 ו-N56 שומרים 6, 7 ו-8 קבוצות. ה-merge מונע ממשפחה אחת להיספר פעמיים בהצבעה בין הקבוצות. בלי merge, המתכון הראשי, ממוצע בתוך קבוצות ומשקלי MoM ביניהן, מפסיד 0.008 AUC ב-N13 וב-N16 ולא משתנה בשאר. מתכון ה-equal-weight לא צריך אותו: בלי merge הוא אפילו עולה מעט, +0.0014 ו-+0.0015. ב-ProcessBench מתכון ה-MoM זז בתוך ±0.003, ומתכון ה-equal-weight זז עד −0.0042, ב-N25.</div></details></section><section class="slide" id="between"><h2>9. Group weights: at most +0.008 AUC; lose on ProcessBench</h2>
+
+<img src="blobs/c41e23d1fe1fabca67dfaa3402e86360.png" alt="Only the between-group estimator changes. Left: PRMBench within-answer AUC per nested bank for filter only, equal weights, SML, DS and MoM. Middle: ProcessBench top-step hit for the same five. Right: effective number of groups under MoM weights against the number of groups; points lie just below the equal-weights line">
+<div>
+<div>
+<p>Weight rule</p>
+<p>w_g = max(0, log(ψ_g η_g / ((1−ψ_g)(1−η_g)))). Large when group g catches errors and raises few false alarms; 0 at chance. Weights sum to 1.</p>
+<p>Origin: the maximum-likelihood vote weight of Dawid–Skene / Parisi et al. 2014.</p>
+<p>3 groups in 7 of 45 cells (all N13); 4–8 elsewhere. With 3 groups SML falls back to equal weights.</p>
+</div>
+<div>
+<p>5 nested banks: MoM vs equal</p>
+<p>PRMBench AUC: MoM higher on 4 of 5 banks, by at most 0.008 (N25 −0.003).</p>
+<p>ProcessBench hit: equal higher on all 5 (by 0.003–0.020).</p>
+<p>The plain average of the kept channels, with no groups, is best on ProcessBench in 3 of 5 banks.</p>
+<p>MoM weights are close to equal: 4.08 effective groups of 4.67 on N16.</p>
+</div>
+</div>
+
+
+<p class="src">Source: Between-group weights · source: monday_ablation_v1 METRICS.csv, GROUPS.csv, figures/X4_between · differences computed from per-bank values</p><details><summary>Speaker notes (Hebrew)</summary><div>פירוט לשאלות. המסר: משקלי קבוצות מוסיפים לכל היותר 0.008 AUC ב-PRMBench ומפסידים ב-ProcessBench. רק ה-estimator משתנה; filter, merge והצבעות 20% ברירת מחדל, plain mean בתוך קבוצות. PRMBench AUC (filter only / equal / SML / DS / MoM): N13 .7802/.7783/.7783/.7817/.7817; N16 .7918/.7898/.7907/.7907/.7909; N25 .7812/.7769/.7739/.7714/.7735; N43 .7676/.7549/.7564/.7653/.7632; N56 .7721/.7688/.7692/.7751/.7740. ProcessBench hit: N13 .3698/.3610/.3590/.3511/.3519; N16 .4131/.4059/.3993/.3964/.3972; N25 .4091/.4075/.3891/.3877/.3875; N43 .3828/.3886/.3765/.3848/.3823; N56 .3753/.3831/.3726/.3789/.3799. MoM פחות equal ב-PRMBench: +.0034, +.0011, −.0034, +.0083, +.0052. Equal פחות MoM ב-ProcessBench: +.0092, +.0087, +.0200, +.0063, +.0033. DS עוקף equal ב-N43 ב-.0104. ה-plain average של ה-channels שנשמרו, בלי קבוצות, הכי טוב ב-ProcessBench ב-3 מתוך 5 bank-ים. כלל המשקל הוא משקל ה-maximum-likelihood של Dawid–Skene / Parisi et al. 2014. 3 קבוצות ב-7 מתוך 45 תאים, כולם N13, ו-4 עד 8 בשאר; עם בדיוק 3 קבוצות SML ו-equal זהים. Effective groups 1/Σp², כש-equal = K: N13 2.68 מתוך 3.44, N16 4.08 מתוך 4.67, N25 5.22 מתוך 6.67, N43 6.24 מתוך 7.00, N56 6.44 מתוך 7.56 - משקלי MoM קרובים לשווים. תיאורי.</div></details></section><section class="slide" id="mom"><h2>10. MoM: good channel order; its error rate echoes the quota</h2>
+
+<div>
+<div>
+<p>Model, symbol by symbol</p>
+<ul>
+<li><b>f_i ∈ {−1, +1}</b>: vote of channel i at a step (+1 = "error").</li>
+<li><b>t_i</b>: how strongly channel i tracks the truth. 0 = random.</li>
+<li><b>b</b> = share of error steps minus share of correct steps (0 = balanced).</li>
+<li><b>Pairs: E[f_i f_j] = t_i t_j</b> (i ≠ j). Two channels agree only through the truth.</li>
+<li><b>Triples: E[f_i f_j f_k] = α t_i t_j t_k</b>, α = −2b / √(1 − b²). Triples add b.</li>
+<li>From t and b: ψ_i and η_i in closed form. No EM, no local optima.</li>
+</ul>
+<p><b>Origin:</b> Jaffe, Nadler, Kluger, AISTATS 2015 (Algorithm 1). <b>Use:</b> group weights in every recipe that weights groups by MoM.</p>
+</div>
+<div>
+<p>Estimate vs truth (PRMBench, 8 original banks)</p>
+<table><tr><th>Quantity</th><th>Channels</th><th>Groups</th></tr>
+<tr><td>Error rate (true 0.140)</td><td>0.244</td><td>0.211</td></tr>
+<tr><td>ψ mean abs. error</td><td>0.165</td><td>0.159</td></tr>
+<tr><td>η mean abs. error</td><td>0.076</td><td>0.062</td></tr>
+<tr><td>Order vs truth (Spearman)</td><td>0.799</td><td>0.738</td></tr></table>
+<p><b>Caveat:</b> the error rate reads back the quota: 0.146 at a 10% quota, 0.240 at 20% (5 nested banks N13–N56). It is not a measurement.</p>
+</div>
+</div>
+
+
+<p class="src">Source: Method of moments · source: ALGORITHM_CARDS.md §4 (estimator_input_v1 ESTIMATOR_ACCURACY.csv); monday_ablation_v1 ESTIMATOR_VS_TRUTH.csv</p><details><summary>Speaker notes (Hebrew)</summary><div>פירוט לשאלות. המסר: method of moments מסדר channels טוב, אבל ה-error rate שלו רק מחזיר את ה-quota. אינטואיציה: אם ה-channels בלתי תלויים בהינתן האמת, כל הסכמה זוגית מתפרקת ל-t_i t_j, והשלשות נושאות את חוסר האיזון בין המחלקות דרך α. Least squares על שלשות שונות נותן α, אז b, אז ψ ו-η בצורה סגורה, בלי EM ובלי local optima (er_stage_a.py). המקור Jaffe, Nadler, Kluger, AISTATS 2015. SML משתמש באותו וקטור t, אז הסדר שלו זהה לזה של MoM. הטבלה: 8 ה-banks המקוריים, answer quota, channel votes מול group votes של L-SML: error rate 0.244/0.211 מול 0.140 אמיתי, ψ-MAE 0.165/0.159, η-MAE 0.076/0.062, Spearman 0.799/0.738, וטווח ה-Spearman לקבוצות 0.429–0.964. שגיאות ψ מוחלטות גדולות מאלה של DS, 0.165 מול 0.101: הפרת conditional independence מטה גם את המומנטים השלישיים. אבלציית quota על 5 nested banks: חלק מסומן 0.131/0.230/0.334/0.429 מול MoM 0.146/0.240/0.336/0.423, אמיתי 0.140 - זו לא מדידה. כ-filter במקום DS (ריצה ישנה, 8 banks מקוריים): −0.0014 PRMBench AUC, והוא שמר channel anti-oriented אחד ב-bank של 35 channels; באבלציה המקוננת החדשה MoM filter שומר אותם channels כמו DS ב-N13–N25. דאטה פיתוח.</div></details></section><section class="slide" id="estacc"><h2>11. Estimates: right channel order, wrong error rate</h2>
+
+<img src="blobs/9c2efcebe3250e25b642d5e6b51fefd3.png" alt="Four panels comparing Dawid-Skene EM, tensor method of moments and SML estimates with the truth on PRMBench: estimated error rate 0.21 to 0.31 against a true 0.14; sensitivity errors 0.10 to 0.17; specificity errors 0.06 to 0.08; Spearman with true reliability 0.73 to 0.80">
+<div>
+<div>
+<p><b>We use the order.</b> Channels with high true accuracy get high estimates (Spearman 0.73–0.80). The order drops worse-than-chance channels and weights groups.</p>
+</div>
+<div>
+<p><b>We do not use the error rate.</b> It is 1.5–2.2 times too high (0.21–0.31 vs 0.14). Channels share information beyond the truth; the model assumes they do not.</p>
+</div>
+</div>
+
+
+<p class="src">Source: Estimator accuracy · PRMBench only (ProcessBench has no full step labels) · source: estimator_input_v1 ESTIMATOR_ACCURACY.csv, answer quota; ALGORITHM_CARDS.md</p><details><summary>Speaker notes (Hebrew)</summary><div>פירוט לשאלות. המסר: ההערכות מקבלות נכון את הסדר של ה-channels, אבל לא את ה-error rate. נקודה היא ממוצע על 8 ה-banks המקוריים, פס הוא הטווח; channel votes הם channels בודדים, group votes הם קבוצות ה-L-SML. SML נותן רק סדר, בלי ψ, η או error rate. ה-error rate גבוה פי 1.5 עד 2.2: 0.211/0.140 = 1.5 ב-MoM על group votes, עד 0.313/0.140 = 2.2 ב-DS על channel votes. טעויות sensitivity 0.10 עד 0.17, specificity 0.06 עד 0.08. Spearman מול האמת: DS 0.741, MoM channel votes 0.799, MoM group votes 0.738, SML 0.799/0.730. איך משתמשים בסדר: ה-filter שומר channels עם π מוערך מעל 0.5, וזה דורש רק שהסימן של π − 0.5 יהיה נכון; משקלי הקבוצות תלויים ב-ψ ו-η היחסיים, ודיוקי קבוצה אמיתיים נותנים אותו AUC כמו המוערכים, 0.7667 מול 0.7670 (בשקף withinloss). סיבת ה-bias: factor משותף של רמת אי-ודאות גורם ל-channels להסכים מעבר לאמת, והמודל מניח שאין דבר כזה; לדוגמה q15_H1: ψ אמיתי 0.456, הערכת DS 0.757. ה-error rate של MoM גם עוקב אחרי ה-quota של ההצבעות. PRMBench בלבד, כי ל-ProcessBench אין labels מלאים ברמת הצעד; דאטה פיתוח.</div></details></section><section class="slide" id="hem"><h2>12. HEM: no gain on PRMBench, one point lost on ProcessBench</h2>
+
+<div>
+<div>
+<p>Model in words</p>
+<ul>
+<li>Each group g has a hidden yes/no state a_g: "this group sees an error".</li>
+<li>The state depends on the true class y. Members vote from the state, not from y.</li>
+<li><b>e₁</b>: chance that a member votes "error" when its group state is "error". <b>e₀</b>: the same when the state is "ok".</li>
+<li>Member weight w_i = max(0, log(e₁(1 − e₀) / (e₀(1 − e₁)))). Groups under 3 members get equal weights.</li>
+</ul>
+<p><b>Origin:</b> the dependent-classifier model of Jaffe et al. 2016. The full-EM estimator is ours; no paper uses it.</p>
+<p><b>Use:</b> HEM sets the weights inside groups. MoM still weights the groups.</p>
+</div>
+<div>
+<p>Estimate vs truth and outcome</p>
+<p>Over channels (earlier run, 5 folds): error-rate error 0.144, ψ-MAE 0.110, η-MAE 0.072, order Spearman 0.779.</p>
+<p>PRMBench: 0.7683 vs plain mean 0.7674 (8 original banks): no gain.</p>
+<p><b>ProcessBench hit:</b> HEM inside groups 0.355 vs plain mean inside groups 0.366 (8 original banks).</p>
+<p>7 complete nested banks: 0.363 vs 0.374 (group votes), 0.382 vs 0.385 (channel votes).</p>
+</div>
+</div>
+
+
+<p class="src">Source: HEM · source: ALGORITHM_CARDS.md §5; ds_group_weights.py; RESEARCH_NOTE_HE.md §2ב; monday_nested_banks_v1 PANEL_A_ABSOLUTE.csv</p><details><summary>Speaker notes (Hebrew)</summary><div>פירוט לשאלות. המסר: HEM לומד משקלים בתוך כל קבוצה ומפסיד נקודה ב-ProcessBench. HEM הוא hierarchical EM על latent-group model: P(a_g | y) מקשר את מצב הקבוצה לאמת, P(f_i | a_g) מקשר כל הצבעת חבר למצב הקבוצה. המשקל הוא log odds ratio של הצבעת החבר בהינתן מצב הקבוצה, חתוך ב-0; קבוצות עם פחות מ-3 חברים מקבלות משקל שווה. המודל מ-Jaffe et al. 2016, ה-estimator עם full EM שלנו ואין מאמר שמשתמש בו. MoM עדיין שוקל את הקבוצות. הערכה מול אמת: Step 450, HEM על channels, 5 folds - prevalence error 0.1435, ψ-MAE 0.1101, η-MAE 0.0717, Spearman 0.7791. 8 banks מקוריים (RESEARCH_NOTE_HE.md §2ב): PRMBench AUC HEM_MOM 0.7683, MEAN_MOM 0.7674, MoM-within 0.7682 - אין רווח; ProcessBench 0.3552 מול 0.3656. Nested banks (PANEL_A_ABSOLUTE.csv, ממוצע N13, N14, N16, N22, N25, N53, N56; N11 לא שלם): ProcessBench HEM_MOM_ga 0.3625 מול MEAN_MOM_ga 0.3736, HEM נמוך ב-7 מתוך 7; HEM_MOM_cc 0.3821 מול MEAN_MOM_cc 0.3851, נמוך ב-6 מתוך 7. PRMBench nested: 0.7711 מול 0.7746 (ga), 0.7729 מול 0.7759 (cc). דאטה פיתוח, תיאורי.</div></details></section><section class="slide" id="tci"><h2>13. TCI triplets: they detect dependence; no gain transfers</h2>
+
+<div>
+<div>
+<p>Prop. 2.4 in words</p>
+<p>C_pq = how votes of channels p and q move together (pair moment). T_pqs = the same for three channels (triple moment). If channels are independent given the truth, T_pqs ÷ C_pq is the same number for every pair (p, q).</p>
+<p>My triplet rule</p>
+<ul>
+<li>In each group with 4 or more members, try every triplet plus an anchor (the mean of the other groups).</li>
+<li>V = mean over s of 1 − cos²(T, C). V = 0 when the two are proportional.</li>
+<li>Keep the triplet with the smallest V. MoM weights the groups.</li>
+</ul>
+<p><b>Origin:</b> Prop. 2.4 of Lee et al., FUSE, arXiv:2604.18547, 2026 (a diagnostic there). Selection rule: mine, 5 Oct.</p>
+</div>
+<div>
+<p>What it detects, what it buys</p>
+<p><b>Detects:</b> votes break conditional independence 2,080× (13-channel) and 3,228× (32-channel original bank) beyond a null.</p>
+<p><b>PRMBench vs the plain-mean recipe</b> (mean inside groups, MoM between): +0.0026 AUC on the 8 original banks used to design it; +0.0001 on 6 unseen banks.</p>
+<p><b>ProcessBench:</b> −0.010 [−0.014, −0.005] (8 original banks).</p>
+<p><b>7 complete nested banks:</b> below the plain-mean recipe on PRMBench in 5 of 7 (0.771 vs 0.775) and on ProcessBench in 6 of 7 (0.369 vs 0.374).</p>
+<p>Externally (N16): below the DS-filter average on both Socratic cells.</p>
+</div>
+</div>
+
+
+<p class="src">Source: TCI triplets · source: ALGORITHM_CARDS.md §6; tci_wide_stage1.py; TCI_CALIBRATION.json; RESEARCH_NOTE_HE.md §2ז–2יט; PANEL_A_ABSOLUTE.csv; monday_external_panel_v1</p><details><summary>Speaker notes (Hebrew)</summary><div>פירוט לשאלות. המסר: שלשות TCI מזהות תלות, אבל הרווח שלהן לא עובר. TCI הוא test of conditional independence, מ-Prop. 2.4 של Lee et al., FUSE, 2026, שם זה כלי אבחון. כלל הבחירה שלי, מ-5 באוקטובר: בכל קבוצה עם 4 חברים ומעלה אני בודק כל triplet ועוד anchor, ומודד את V, אחת פחות ה-cosine בריבוע בין מטריצת השלשות T למטריצת הזוגות C. תחת conditional independence הן פרופורציונליות ו-V קרוב ל-0. אני שומר את ה-triplet עם ה-V הקטן ביותר, ו-MoM שוקל את הקבוצות. כגלאי זה עובד: ההצבעות מפרות conditional independence פי 2,080 ב-bank של 13 channels ופי 3,228 ב-bank של 32, ביחס ל-null. כ-selector זה חלש: +0.0026 AUC על 8 ה-banks שעליהם תכננתי את הכלל, +0.0001 על 6 banks שלא נראו, ו-−0.010 ב-ProcessBench. על 7 ה-nested banks השלמים הוא מתחת למתכון הממוצע ב-PRMBench ב-5 מתוך 7 וב-ProcessBench ב-6 מתוך 7, ובחוץ הוא מתחת ל-DS-filter average בשני תאי Socratic. TCI נוטה להשאיר ביחד כפילויות כמעט זהות. דאטה פיתוח, תיאורי.</div></details></section><section class="slide" id="withinloss"><h2>14. Where fusion loses: equal averaging inside groups</h2>
+
+<div>
+<div>
+<p>Between groups</p>
+<p>0.7817</p>
+<p>MoM group weights on the 13-channel original bank. Supervised logistic regression on the same group scores: 0.7839. Near-optimal.</p>
+</div>
+<div>
+<p>Inside groups</p>
+<p>86–97%</p>
+<p>of the plain → supervised gap comes back with non-negative weights on single channels (32- and 13-channel banks). Equal averaging inside groups is the loss.</p>
+</div>
+<div>
+<p>True accuracies</p>
+<p>0.7667</p>
+<p>Group weights from the true group accuracies (8 original banks). Estimated ones give 0.7670. Better estimates would not help.</p>
+</div>
+</div>
+<p>Supervised regression on random partitions does as well, so the grouping itself is not validated. Supervised rows use labels: a reference, not a competitor.</p>
+
+
+<p class="src">Source: Where fusion loses · source: WITHIN_GROUP_CEILINGS.csv, group_contrast_oracle_20261005, algorithm_decisions_v1; ALGORITHM_CARDS.md §7 · supervised rows use labels (reference only)</p><details><summary>Speaker notes (Hebrew)</summary><div>פירוט לשאלות. המסר: מול רגרסיה supervised, הפער נמצא בתוך הקבוצות, והקבוצות עצמן לא מתוקפות. בין קבוצות, משקלי MoM ה-label-free כמעט שווים ל-logistic regression supervised על אותם ציוני קבוצות: 0.7817 מול 0.7839 ב-bank המקורי של 13 channels, 0.7537 מול 0.7613 ב-bank של 32 channels. בתוך קבוצות: non-negative logistic regression על כל ה-channels הבודדים מחזירה 97% (13 channels) ו-86% (32 channels) מהפער בין ה-plain average ל-reference ה-supervised, כלומר המיצוע השווה בתוך הקבוצות הוא ההפסד. דיוקי קבוצה אמיתיים במקום מוערכים נותנים 0.7667 מול 0.7670, ממוצע 8 ה-banks המקוריים: שגיאת ההערכה בין קבוצות לא מגבילה אותנו. Logistic regression supervised על 30 partitions אקראיים בגודל שווה נותנת 0.7874 / 0.7621 (13 / 32 channels), טוב כמו על הקבוצות שלנו - ולכן ה-grouping עצמו לא מתוקף. אף כלל label-free בתוך קבוצות שניסינו, HEM, MoM-within, TCI, לא מחזיר את הפער. השורות ה-supervised משתמשות ב-labels: reference, לא מתחרה. דאטה פיתוח.</div></details></section><section class="slide" id="gainA"><h2>15. Fusion gain: our pipeline ties the DS-signed average</h2>
+
+<img src="fig/G1_gain_prmbench_dssigned_light.png" alt="Two heatmaps of PRMBench AUC gain per nested bank. Left: each scorer minus the plain average; mostly blue; the DS-signed average gains up to +0.013, the pipeline variants up to +0.018. Right: each method minus the DS-signed average; 15 of 36 cells clearly better, 15 clearly worse, from -0.012 to +0.009.">
+<div>
+<p><b>Left, vs plain average:</b> our pipeline is clearly better in 25 of 36 cells. DS signs alone give up to +0.013.</p>
+<p><b>Right, vs DS-signed average:</b> clearly better in 15 of 36 cells and clearly worse in 15. All gaps are 0.012 or less.</p>
+</div>
+
+
+<p class="src">Source: PRMBench AUC · "clearly" = paired 95% interval excludes 0 · ProcessBench SLA (not shown): vs plain 5 better / 11 worse; vs DS-signed 3 / 9 · PANEL_A_CONTRASTS.csv, monday_ds_signed_v1 CONTRASTS.csv</p><details><summary>Speaker notes (Hebrew)</summary><div>• המסר: מול ה-plain average ה-pipeline מנצח, אבל מול ממוצע פשוט עם סימנים מ-Dawid-Skene הוא בתיקו.
+• הגדרה: DS-signed average = מריצים DS על ה-tail votes של ה-cell, הופכים כל channel עם balanced accuracy מוערך מתחת ל-0.5, ואז ממוצע. בלי labels. זה מחליף את ה-oriented average הקודם, שהפך לפי correlation עם ממוצע ה-level channels.
+• שמאל, מול plain average: 4 הווריאנטים טובים בבירור ב-25 מתוך 36 תאים ורעים ב-4. ה-DS-signed average לבד מוסיף עד +0.013 (N40); ה-pipeline עד +0.018.
+• ימין, מול DS-signed average: 15 טובים בבירור, 15 רעים בבירור, הפרשים מ-0.012- עד 0.009+. הרווחים בעיקר ב-N13 וב-N22; ההפסדים בעיקר ב-N14, N25 ו-N53.
+• ProcessBench SLA: מול plain 5 טובים ו-11 רעים; מול DS-signed 3 טובים ו-9 רעים. ה-fusion לא עוזר שם.
+• הערה כנה: ה-anchor הקודם (level mean) הפך יותר channels הפוכים ב-banks הגדולים, ולכן היה control חזק יותר שם (עד 0.015 AUC מעל DS ב-N40). עד 16 channels שני הכללים זהים ב-PRMBench.
+• "בבירור" = paired source-group 95% interval לא כולל 0, תיאורי, בלי תיקון multiplicity. N11 לא נספר: שיטות הקבוצות נכשלות בתא אחד של ProcessBench. דאטה פיתוח.</div></details></section><section class="slide" id="saturation"><h2>16. Saturation: 8 label-free rules within 0.01 AUC on N16</h2>
+
+<div>
+<div>
+<p>August · answer level</p>
+<p>13 methods within 1.4 points</p>
+<p>24 cells, 48,607 answers. A plain six-family average came second. Graphs, dependence models and energy models gave no reliable gain.</p>
+</div>
+<div>
+<p>Now · step level (N16 bank)</p>
+<p>8 rules within 0.01 AUC</p>
+<p>PRMBench AUC 0.787 to 0.796 for the plain average, DS-signed average, IU-PCR, continuous L-SML and our 4 variants. ProcessBench SLA 0.396 to 0.416. On larger banks the spread grows to 0.04, mostly from one L-SML failure (N40).</p>
+</div>
+<div>
+<p>With labels · same channels</p>
+<p>+0.026 AUC on N16</p>
+<p>A supervised logistic regression gains 0.03 to 0.07 AUC on PRMBench, but almost nothing on ProcessBench.</p>
+</div>
+</div>
+<p><b>Why:</b> a label-free rule can find which channels move together, but not which direction of that shared movement is the error. The extra information that labels use lies in contrasts between channels that agreement cannot see.</p>
+
+
+<p class="src">Source: docs/meetings/Advisor_Update_Aug27_2026.md · monday_nested_banks_v2, monday_cont_baselines_v1, monday_ds_signed_v1, monday_lr_reference_v1</p><details><summary>Speaker notes (Hebrew)</summary><div>• המסר: ברמת הצעד ה-fusion מגיע לרוויה, כמו שקרה ברמת התשובה באוגוסט.
+• אוגוסט: 13 שיטות בטווח 1.4 נקודות, 24 cells, 48,607 תשובות. ממוצע פשוט של שש משפחות היה במקום השני.
+• עכשיו, N16: 8 כללים label-free בטווח 0.01 AUC (PRMBench 0.787 עד 0.796; ProcessBench SLA 0.396 עד 0.416). ה-sign control הוא עכשיו ה-DS-signed average; ב-N16 הוא זהה לכל תשובה ל-oriented average הקודם, אז המספרים לא השתנו.
+• הסתייגות: N16 נבחר אחרי שראיתי תוצאות.
+• banks גדולים: הטווח עד 0.04, ב-N40, בעיקר כי continuous L-SML קורס ל-0.724 (IU-PCR 0.764). בלי L-SML הטווח לכל היותר 0.019.
+• עם labels: logistic regression על אותם channels מוסיף 0.026 AUC על N16 ו-0.03 עד 0.07 בסך הכול ב-PRMBench, וכמעט כלום ב-ProcessBench.
+• למה: כלל label-free מוצא אילו channels זזים יחד, אבל לא איזה כיוון של התנועה המשותפת הוא השגיאה. המידע הנוסף שה-labels מנצלים נמצא ב-contrasts בין channels.
+• המסקנה לתזה: המאמץ צריך ללכת לייצוג ולהחלטה על תשובה נקייה, לא לכללי fusion חדשים.</div></details></section></div></body></html>

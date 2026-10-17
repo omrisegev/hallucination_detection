@@ -1,3 +1,31 @@
+## PRMBench count estimation — tested family closed (Step 292 [label-free error count], 2026-10-12)
+
+The canonical evidence is
+`results/label_free_error_count_v1_2026-10-12/report/index.html`. The fixed
+IU-PCR ranking plus seven label-free quantity arms A/B/C/D did not pass the
+registered combined MAE, PRMScore and recall gate on N16. N56 was a predefined
+sensitivity bank. A's N16 infeasible-emission folds remain failures rather
+than zero counts; partial-fold point estimates do not support promotion.
+
+The relative-vote construction matters: changing quotas 10/20/30% moved MoM
+prevalence to 13.55/22.90/32.60%. Quota-preserving shuffles also moved the
+estimate, so marginal vote fraction alone is not its mathematical definition.
+Removing fixed quotas through donor-global thresholds or a donor mean-zero
+boundary did not yield calibrated semantic counts. Stable triple selection
+does not repair conditional dependence or guarantee that its latent class
+matches valid-step reasoning errors. Adding a structural clean-answer state
+improved abstention but worsened count MAE and missed more erroneous answers.
+Changing mean to lower PB median did not help.
+
+One evidence-based next hypothesis is a continuous emission model before
+hard votes, with explicit dependence and heterogeneity across answers and a
+label-free target-orientation/identifiability check. It remains unexecuted;
+the current completion does not authorize more threshold sweeps. Both count
+and within-answer ordering retain label-oracle headroom, without additive
+bounds. Any future confirmation needs a newly frozen specification and an
+untouched population; current results are development-only. S-hat, partition
+ARI and participation ratios remain diagnostics or constraints, not objectives.
+
 ## 2026-10-08: advisor meeting held; PRMBench is the focus for the next meeting
 
 The advisors asked for a narrower story. The next meeting (Thursday 2026-10-15) focuses on PRMBench: within-AUC and official PRMScore with the Overall/Simplicity/Soundness/Sensitivity and error-type breakdown, generalization tests, conditional feature dependence on error vs correct steps, teacher forcing (including the open empty-think-block issue), and an analysis against supervised LR (where each is right, and weights vs LR weights). ProcessBench becomes a low-priority secondary panel: no meaningful gain over the plain average there and a small gap to supervised LR. Plan: [meeting record](docs/meetings/advisor_meeting_2026-10-08/README_HE.md); handoff: [docs/HANDOFF_prmbench_meeting_and_consolidation_2026-10-10.md](docs/HANDOFF_prmbench_meeting_and_consolidation_2026-10-10.md). Older dated sections below keep their historical scope.

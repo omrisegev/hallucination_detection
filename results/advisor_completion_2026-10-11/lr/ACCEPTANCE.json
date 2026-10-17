@@ -1,0 +1,26 @@
+{
+  "status": "PASS",
+  "n_outer_partitions": 50,
+  "max_saved_affine_test_score_replay_difference": 0.0,
+  "checks": [
+    "population and bank input SHA256 match every checkpoint",
+    "source-group outer and inner membership",
+    "disjoint outer train/test groups",
+    "all saved fitted-model affine test scores",
+    "training-selector LR half mask",
+    "no concatenated-global OOF ranking used"
+  ],
+  "explicit_method_failures": [
+    {
+      "bank": "N11",
+      "outer": 4,
+      "arm": "LSML__LR_HALF",
+      "reason": "RuntimeError: L-SML selected K=2: fewer than 3 groups"
+    }
+  ],
+  "not_certified": [
+    "historical LR split identity",
+    "causal feature importance",
+    "fresh external generalization"
+  ]
+}

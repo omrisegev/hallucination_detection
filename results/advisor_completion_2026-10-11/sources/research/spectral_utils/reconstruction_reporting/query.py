@@ -1,0 +1,778 @@
+"""DuckDB build and safe query helpers for reconstruction benchmark releases."""
+
+from __future__ import annotations
+
+import csv
+import hashlib
+import json
+import os
+import re
+from pathlib import Path
+from typing import Any, Iterable, Mapping, Optional, Sequence
+
+from .io import ReleaseLayout, read_tidy_csv, sha256_file
+from .registry import validate_registry
+from .schemas import (
+    BOOLEAN_FIELDS,
+    FLOAT_FIELDS,
+    INTEGER_FIELDS,
+    JSON_FIELDS,
+    MissingOptionalDependency,
+    SchemaError,
+    TABLE_FIELDS,
+    canonical_json_bytes,
+    canonical_sha256,
+)
+
+
+VIEW_NAMES = (
+    "v_atomic_leaderboard",
+    "v_dataset_leaderboard",
+    "v_task_leaderboard",
+    "v_slice_leaderboard",
+    "v_release_leaderboard",
+    "v_processbench_localization",
+    "v_prmbench_error_class",
+    "v_prefix_by_budget",
+    "v_graph_assumption_checks",
+    "v_graph_examples",
+)
+
+LEADERBOARD_EXPORT_SPECS = (
+    ("release", "v_release_leaderboard", "release_leaderboard.csv"),
+    ("task", "v_task_leaderboard", "task_leaderboard.csv"),
+    ("slice", "v_slice_leaderboard", "slice_leaderboard.csv"),
+    ("dataset", "v_dataset_leaderboard", "dataset_leaderboard.csv"),
+    ("cell", "v_atomic_leaderboard", "cell_leaderboard.csv"),
+)
+
+QUERY_FILTER_COLUMNS = frozenset(
+    (
+        "lane_id",
+        "task_id",
+        "dataset_id",
+        "population_id",
+        "cell_id",
+        "slice_id",
+        "cohort_id",
+        "method_id",
+        "method_version_id",
+        "adapter_id",
+        "system_id",
+        "comparison_group_id",
+        "aggregation_id",
+        "aggregation_level",
+        "metric_id",
+        "status",
+        "evidence_grade",
+        "fidelity",
+        "access_contract_id",
+        "feature_contract_id",
+        "evaluator_id",
+    )
+)
+
+_LEADERBOARD_QUERY_ORDER = (
+    "task_id",
+    "dataset_id",
+    "cell_id",
+    "slice_id",
+    "comparison_group_id",
+    "metric_id",
+    "point_rank",
+    "system_id",
+)
+
+_GRAPH_QUERY_ORDERS = {
+    "v_graph_assumption_checks": (
+        "task_id",
+        "dataset_id",
+        "cell_id",
+        "slice_id",
+        "comparison_group_id",
+        "diagnostic_id",
+        "graph_id",
+        "graph_variant",
+        "label_stage",
+        "graph_hash",
+        "matrix_hash",
+        "system_id",
+    ),
+    "v_graph_examples": (
+        "task_id",
+        "dataset_id",
+        "cell_id",
+        "slice_id",
+        "comparison_group_id",
+        "example_id",
+        "row_kind",
+        "source_row_id",
+        "node_index",
+        "edge_source_index",
+        "edge_target_index",
+        "graph_hash",
+        "matrix_hash",
+        "operator_hash",
+        "system_id",
+    ),
+}
+
+
+def _duckdb_module() -> Any:
+    try:
+        import duckdb  # type: ignore
+    except ImportError as exc:
+        raise MissingOptionalDependency(
+            "The query database requires DuckDB. Install the reporting dependencies "
+            "from scripts/reconstruction_benchmark/requirements-reporting.txt."
+        ) from exc
+    return duckdb
+
+
+def _quote_identifier(value: str) -> str:
+    return '"' + value.replace('"', '""') + '"'
+
+
+def _sql_type(field: str) -> str:
+    if field in BOOLEAN_FIELDS:
+        return "BOOLEAN"
+    if field in INTEGER_FIELDS:
+        return "BIGINT"
+    if field in FLOAT_FIELDS:
+        return "DOUBLE"
+    return "VARCHAR"
+
+
+def _sql_value(field: str, value: Any) -> Any:
+    if value is None:
+        return None
+    if field in JSON_FIELDS:
+        return canonical_json_bytes(value).decode("utf-8")
+    return value
+
+
+def _create_tidy_table(connection: Any, table: str, rows: Sequence[Mapping[str, Any]]) -> None:
+    fields = TABLE_FIELDS[table]
+    columns = ",".join(f"{_quote_identifier(field)} {_sql_type(field)}" for field in fields)
+    connection.execute(f"CREATE TABLE {_quote_identifier(table)} ({columns})")
+    if not rows:
+        return
+    placeholders = ",".join("?" for _ in fields)
+    query = f"INSERT INTO {_quote_identifier(table)} VALUES ({placeholders})"
+    values = [tuple(_sql_value(field, row.get(field)) for field in fields) for row in rows]
+    connection.executemany(query, values)
+
+
+def _create_dimension_table(
+    connection: Any,
+    table: str,
+    fields: Sequence[str],
+    rows: Iterable[Mapping[str, Any]],
+) -> None:
+    columns = ",".join(f"{_quote_identifier(field)} VARCHAR" for field in fields)
+    connection.execute(f"CREATE TABLE {_quote_identifier(table)} ({columns})")
+    values = []
+    for row in rows:
+        values.append(
+            tuple(
+                canonical_json_bytes(row.get(field)).decode("utf-8")
+                if isinstance(row.get(field), (Mapping, list, tuple))
+                else (None if row.get(field) is None else str(row.get(field)))
+                for field in fields
+            )
+        )
+    if values:
+        placeholders = ",".join("?" for _ in fields)
+        connection.executemany(
+            f"INSERT INTO {_quote_identifier(table)} VALUES ({placeholders})",
+            values,
+        )
+
+
+def _leader_view_sql(
+    view_name: str,
+    level: str,
+    *,
+    slice_dimension: Optional[str | Sequence[str]] = None,
+    slice_value: Optional[str] = None,
+) -> str:
+    """SQL for a point leaderboard with a clearly labelled CI-overlap set."""
+
+    if slice_dimension is None and slice_value is not None:
+        raise SchemaError(
+            "leaderboard slice_value requires a slice_dimension"
+        )
+    if slice_dimension is None:
+        base_select = "metrics.*"
+        base_from = "metrics"
+        slice_filter = ""
+    else:
+        dimensions = (
+            (slice_dimension,)
+            if isinstance(slice_dimension, str)
+            else tuple(slice_dimension)
+        )
+        if not dimensions or any(
+            not isinstance(value, str)
+            or re.fullmatch(r"[A-Za-z0-9_]+", value) is None
+            for value in dimensions
+        ):
+            raise SchemaError("leaderboard slice dimensions are invalid")
+        base_select = "metrics.*, slices.slice_dimension, slices.slice_value"
+        base_from = "metrics JOIN slices USING (slice_id)"
+        dimension_values = ", ".join(f"'{value}'" for value in dimensions)
+        slice_filter = (
+            f"\n      AND slices.slice_dimension IN ({dimension_values})"
+        )
+        if slice_value is not None:
+            if re.fullmatch(r"[A-Za-z0-9_]+", slice_value) is None:
+                raise SchemaError("leaderboard slice value is invalid")
+            slice_filter += f"\n      AND slices.slice_value = '{slice_value}'"
+
+    return f"""
+CREATE VIEW {view_name} AS
+WITH base AS (
+    SELECT {base_select}
+    FROM {base_from}
+    WHERE metrics.aggregation_level = '{level}'{slice_filter}
+      AND metrics.status IN ('OK', 'OK_FALLBACK')
+      AND metrics.value IS NOT NULL
+), ranked AS (
+    SELECT
+        base.*,
+        DENSE_RANK() OVER (
+            PARTITION BY comparison_group_id
+            ORDER BY
+                CASE WHEN better_direction = 'higher' THEN value END DESC NULLS LAST,
+                CASE WHEN better_direction = 'lower' THEN value END ASC NULLS LAST
+        ) AS point_rank
+    FROM base
+)
+SELECT
+    ranked.*,
+    ranked.point_rank = 1 AS point_leader,
+    CASE
+        WHEN ranked.point_rank = 1 THEN TRUE
+        WHEN ranked.ci_low IS NULL OR ranked.ci_high IS NULL THEN FALSE
+        ELSE EXISTS (
+            SELECT 1
+            FROM ranked AS leader
+            WHERE leader.comparison_group_id = ranked.comparison_group_id
+              AND leader.point_rank = 1
+              AND leader.ci_low IS NOT NULL
+              AND leader.ci_high IS NOT NULL
+              AND NOT (
+                  ranked.ci_high < leader.ci_low
+                  OR ranked.ci_low > leader.ci_high
+              )
+        )
+    END AS uncertainty_tie,
+    '95% marginal CI overlaps point leader; paired contrasts remain inferential' AS uncertainty_tie_rule
+FROM ranked
+""".strip()
+
+
+def query_view_sql() -> list[str]:
+    """Return the deterministic SQL view definitions for audit and tests."""
+
+    return [
+        _leader_view_sql("v_atomic_leaderboard", "cell"),
+        _leader_view_sql("v_dataset_leaderboard", "dataset"),
+        _leader_view_sql(
+            "v_task_leaderboard",
+            "task",
+            slice_dimension="macro24",
+            slice_value="all_24_cells",
+        ),
+        _leader_view_sql(
+            "v_slice_leaderboard",
+            "task",
+            slice_dimension=("domain", "model_family"),
+        ),
+        _leader_view_sql("v_release_leaderboard", "release"),
+        """
+CREATE VIEW v_processbench_localization AS
+SELECT leaderboard.*, cells.generation_model_id, cells.scorer_model_id,
+       cells.dataset_family, slices.slice_dimension, slices.slice_value
+FROM v_atomic_leaderboard AS leaderboard
+JOIN cells USING (cell_id)
+JOIN slices USING (slice_id)
+WHERE leaderboard.task_id = 'localization'
+  AND leaderboard.dataset_id = 'processbench'
+""".strip(),
+        """
+CREATE VIEW v_prmbench_error_class AS
+SELECT leaderboard.*, slices.slice_dimension, slices.slice_value
+FROM v_atomic_leaderboard AS leaderboard
+JOIN slices USING (slice_id)
+WHERE leaderboard.dataset_id = 'prmbench'
+  AND slices.slice_dimension = 'error_class'
+""".strip(),
+        """
+CREATE VIEW v_prefix_by_budget AS
+SELECT leaderboard.*, cells.generation_model_id, cells.scorer_model_id,
+       slices.slice_dimension, slices.slice_value
+FROM v_atomic_leaderboard AS leaderboard
+JOIN cells USING (cell_id)
+JOIN slices USING (slice_id)
+WHERE leaderboard.task_id = 'early_detection'
+  AND slices.slice_dimension = 'budget_tokens'
+""".strip(),
+        """
+CREATE VIEW v_graph_assumption_checks AS
+SELECT diagnostics.*, methods.display_name AS method_display_name,
+       methods.plain_summary AS method_plain_summary,
+       cells.dataset_family, cells.generation_model_id, cells.scorer_model_id
+FROM graph_diagnostics AS diagnostics
+JOIN methods USING (method_id)
+JOIN cells USING (cell_id)
+""".strip(),
+        """
+CREATE VIEW v_graph_examples AS
+SELECT examples.*, methods.display_name AS method_display_name,
+       cells.dataset_family, cells.generation_model_id, cells.scorer_model_id
+FROM graph_examples AS examples
+JOIN methods USING (method_id)
+JOIN cells USING (cell_id)
+""".strip(),
+    ]
+
+
+def build_duckdb(
+    release_root: os.PathLike[str] | str,
+    *,
+    database_path: Optional[os.PathLike[str] | str] = None,
+    overwrite: bool = False,
+    atomic: bool = True,
+    source_sha256: Optional[Mapping[str, str]] = None,
+) -> dict[str, Any]:
+    """Build a portable analytical database from validated release artifacts.
+
+    ``atomic=False`` is reserved for a unique unpublished staging tree whose
+    directory rename is the publication boundary.
+    """
+
+    duckdb = _duckdb_module()
+    layout = ReleaseLayout.from_root(release_root)
+    target = Path(database_path).resolve() if database_path is not None else layout.database
+    if target.exists() and not overwrite:
+        raise FileExistsError(f"refusing to overwrite existing DuckDB file: {target}")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    destination = (
+        target.with_name(f".{target.name}.tmp-{os.getpid()}")
+        if atomic
+        else target
+    )
+    if destination.exists():
+        destination.unlink()
+
+    registry = validate_registry(json.loads(layout.registry_json.read_text(encoding="utf-8")))
+    table_rows = {
+        "metrics": read_tidy_csv(layout.metrics_csv, "metrics"),
+        "contrasts": read_tidy_csv(layout.contrasts_csv, "contrasts"),
+        "coverage": read_tidy_csv(layout.coverage_csv, "coverage"),
+        "graph_diagnostics": read_tidy_csv(layout.graph_diagnostics_csv, "graph_diagnostics"),
+        "graph_examples": read_tidy_csv(layout.graph_examples_csv, "graph_examples"),
+    }
+    source_paths = {
+        "registry": layout.registry_json,
+        "predictions": layout.predictions_parquet,
+        "metrics": layout.metrics_csv,
+        "contrasts": layout.contrasts_csv,
+        "coverage": layout.coverage_csv,
+        "graph_diagnostics": layout.graph_diagnostics_csv,
+        "graph_examples": layout.graph_examples_csv,
+    }
+    expected_source_names = {
+        name for name, path in source_paths.items() if path.exists()
+    }
+    if source_sha256 is None:
+        source_hashes = {
+            name: sha256_file(path)
+            for name, path in sorted(source_paths.items())
+            if path.exists()
+        }
+    else:
+        source_hashes = dict(source_sha256)
+        if set(source_hashes) != expected_source_names:
+            raise SchemaError(
+                "precomputed DuckDB source hashes must exactly cover existing sources: "
+                f"expected={sorted(expected_source_names)}, observed={sorted(source_hashes)}"
+            )
+        invalid_hashes = {
+            name: value
+            for name, value in source_hashes.items()
+            if not isinstance(value, str) or re.fullmatch(r"[0-9a-f]{64}", value) is None
+        }
+        if invalid_hashes:
+            raise SchemaError(
+                f"precomputed DuckDB source hashes are not lowercase SHA-256: {invalid_hashes}"
+            )
+    logical_sha256 = canonical_sha256(
+        {
+            "schema": "reconstruction_duckdb_logical_v1",
+            "release_id": registry["release_id"],
+            "registry_sha256": registry["registry_sha256"],
+            "source_sha256": source_hashes,
+            "view_sql": query_view_sql(),
+        }
+    )
+    connection = duckdb.connect(str(destination))
+    try:
+        connection.execute("BEGIN TRANSACTION")
+        if layout.predictions_parquet.exists():
+            connection.execute(
+                "CREATE TABLE predictions AS SELECT * FROM read_parquet(?)",
+                [str(layout.predictions_parquet)],
+            )
+        else:
+            _create_tidy_table(connection, "predictions", [])
+        for table, rows in table_rows.items():
+            _create_tidy_table(connection, table, rows)
+
+        _create_dimension_table(
+            connection,
+            "methods",
+            (
+                "method_id",
+                "display_name",
+                "family_id",
+                "plain_summary",
+                "input_operation_output",
+                "formula",
+                "access_tier",
+                "supervision",
+                "donor_regime",
+                "role",
+                "research_stage",
+                "style",
+            ),
+            registry["methods"],
+        )
+        _create_dimension_table(
+            connection,
+            "datasets",
+            (
+                "dataset_id",
+                "task_id",
+                "display_name",
+                "description",
+                "prediction_unit",
+                "label_definition",
+                "positive_class",
+                "dataset_family",
+                "revision",
+            ),
+            registry["datasets"],
+        )
+        _create_dimension_table(
+            connection,
+            "cells",
+            (
+                "cell_id",
+                "population_id",
+                "task_id",
+                "dataset_id",
+                "generation_model_id",
+                "scorer_model_id",
+                "split_id",
+                "decoding_id",
+                "dataset_family",
+                "expected_n",
+                "status",
+            ),
+            registry["cells"],
+        )
+        _create_dimension_table(
+            connection,
+            "slices",
+            (
+                "slice_id",
+                "population_id",
+                "cell_id",
+                "slice_dimension",
+                "slice_value",
+                "display_name",
+                "expected_n",
+            ),
+            registry["slices"],
+        )
+        _create_dimension_table(
+            connection,
+            "systems",
+            (
+                "system_id",
+                "method_version_id",
+                "adapter_id",
+                "access_contract_id",
+                "display_name",
+                "enabled",
+            ),
+            registry["systems"],
+        )
+        for statement in query_view_sql():
+            connection.execute(statement)
+        connection.execute("CREATE TABLE reporting_metadata (key VARCHAR PRIMARY KEY, value VARCHAR)")
+        metadata = {
+            "schema": "reconstruction_duckdb_v1",
+            "release_id": registry["release_id"],
+            "registry_sha256": registry["registry_sha256"],
+            "logical_sha256": logical_sha256,
+            "source_sha256": json.dumps(source_hashes, sort_keys=True, separators=(",", ":")),
+            "view_names": json.dumps(VIEW_NAMES, separators=(",", ":")),
+        }
+        connection.executemany(
+            "INSERT INTO reporting_metadata VALUES (?, ?)",
+            sorted(metadata.items()),
+        )
+        connection.execute("COMMIT")
+        connection.execute("CHECKPOINT")
+    except Exception:
+        try:
+            connection.execute("ROLLBACK")
+        except Exception:
+            pass
+        raise
+    finally:
+        connection.close()
+    if atomic:
+        os.replace(destination, target)
+    return {
+        "schema": "reconstruction_duckdb_v1",
+        "path": target.as_posix(),
+        "release_id": registry["release_id"],
+        "logical_sha256": logical_sha256,
+        "source_sha256": source_hashes,
+        "physical_bytes_canonical": False,
+        "views": list(VIEW_NAMES),
+    }
+
+
+def _validate_filters(filters: Mapping[str, Any]) -> None:
+    unknown = sorted(set(filters) - QUERY_FILTER_COLUMNS)
+    if unknown:
+        raise SchemaError(f"unsupported query filters: {unknown}")
+    for field, value in filters.items():
+        if not isinstance(value, str) or not value:
+            raise SchemaError(f"query filter {field!r} must be a non-empty string")
+
+
+def query_results(
+    database_path: os.PathLike[str] | str,
+    *,
+    view: str = "v_atomic_leaderboard",
+    filters: Optional[Mapping[str, str]] = None,
+    limit: Optional[int] = None,
+) -> tuple[list[str], list[tuple[Any, ...]]]:
+    """Run a parameter-bound drill-down query; identifiers come from allowlists."""
+
+    duckdb = _duckdb_module()
+    if view not in VIEW_NAMES:
+        raise SchemaError(f"view must be one of {VIEW_NAMES!r}")
+    filters = dict(filters or {})
+    _validate_filters(filters)
+    clauses = []
+    parameters = []
+    for field in sorted(filters):
+        clauses.append(f"{_quote_identifier(field)} = ?")
+        parameters.append(filters[field])
+    order = _GRAPH_QUERY_ORDERS.get(view, _LEADERBOARD_QUERY_ORDER)
+    if limit is not None:
+        if type(limit) is bool or not isinstance(limit, int) or limit <= 0:
+            raise SchemaError("query limit must be a positive integer")
+    connection = duckdb.connect(str(Path(database_path).resolve()), read_only=True)
+    try:
+        schema_cursor = connection.execute(
+            f"SELECT * FROM {_quote_identifier(view)} LIMIT 0"
+        )
+        available_columns = {item[0] for item in schema_cursor.description}
+        missing_order_columns = [field for field in order if field not in available_columns]
+        if missing_order_columns:
+            raise SchemaError(
+                f"query view {view!r} is missing required order fields: "
+                f"{missing_order_columns}"
+            )
+        missing_filter_columns = sorted(set(filters) - available_columns)
+        if missing_filter_columns:
+            raise SchemaError(
+                f"query view {view!r} does not expose filter fields: "
+                f"{missing_filter_columns}"
+            )
+
+        query = f"SELECT * FROM {_quote_identifier(view)}"
+        if clauses:
+            query += " WHERE " + " AND ".join(clauses)
+        query += " ORDER BY " + ", ".join(
+            _quote_identifier(field) for field in order
+        )
+        if limit is not None:
+            query += " LIMIT ?"
+            parameters.append(limit)
+        cursor = connection.execute(query, parameters)
+        columns = [item[0] for item in cursor.description]
+        rows = cursor.fetchall()
+    finally:
+        connection.close()
+    return columns, rows
+
+
+def write_query_csv(
+    path: os.PathLike[str] | str,
+    columns: Sequence[str],
+    rows: Iterable[Sequence[Any]],
+    *,
+    atomic: bool = True,
+) -> dict[str, Any]:
+    """Write query results as a deterministic, standalone CSV artifact."""
+
+    if not columns or any(not isinstance(column, str) or not column for column in columns):
+        raise SchemaError("query CSV columns must be non-empty strings")
+    if len(set(columns)) != len(columns):
+        raise SchemaError("query CSV columns must be unique")
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if not atomic and target.exists():
+        raise FileExistsError(f"staged query CSV target already exists: {target}")
+    destination = (
+        target.with_name(f".{target.name}.tmp-{os.getpid()}")
+        if atomic
+        else target
+    )
+    row_count = 0
+    file_digest = hashlib.sha256()
+    try:
+        with destination.open("w+", encoding="utf-8", newline="") as handle:
+            writer = csv.writer(handle, lineterminator="\n")
+            writer.writerow(columns)
+            for row in rows:
+                values = tuple(row)
+                if len(values) != len(columns):
+                    raise SchemaError(
+                        "query CSV row width does not match its declared columns"
+                    )
+                writer.writerow(
+                    "" if value is None
+                    else "true" if value is True
+                    else "false" if value is False
+                    else format(value, ".17g") if isinstance(value, float)
+                    else str(value)
+                    for value in values
+                )
+                row_count += 1
+            handle.flush()
+            handle.seek(0)
+            for block in iter(lambda: handle.read(1 << 20), ""):
+                file_digest.update(block.encode("utf-8"))
+        if atomic:
+            os.replace(destination, target)
+    finally:
+        if atomic and destination.exists():
+            destination.unlink()
+    return {
+        "path": target.name,
+        "row_count": row_count,
+        "column_count": len(columns),
+        "file_sha256": file_digest.hexdigest(),
+        "size_bytes": target.stat().st_size,
+    }
+
+
+def export_leaderboard_csvs(
+    release_root: os.PathLike[str] | str,
+    *,
+    atomic: bool = True,
+) -> list[dict[str, Any]]:
+    """Export validated leaderboard and named-slice views deterministically."""
+
+    layout = ReleaseLayout.from_root(release_root)
+    if not layout.database.is_file():
+        raise FileNotFoundError(
+            f"leaderboard export requires an existing query database: {layout.database}"
+        )
+    outputs: list[dict[str, Any]] = []
+    for level, view, filename in LEADERBOARD_EXPORT_SPECS:
+        columns, rows = query_results(layout.database, view=view)
+        source_level = "task" if level == "slice" else level
+        try:
+            status_index = columns.index("status")
+            value_index = columns.index("value")
+            aggregation_index = columns.index("aggregation_level")
+            aggregation_id_index = columns.index("aggregation_id")
+        except ValueError as exc:
+            raise SchemaError(f"leaderboard view {view!r} is missing required fields") from exc
+        if any(
+            row[status_index] not in {"OK", "OK_FALLBACK"}
+            or row[value_index] is None
+            or row[aggregation_index] != source_level
+            or not row[aggregation_id_index]
+            for row in rows
+        ):
+            raise SchemaError(
+                f"leaderboard view {view!r} exposed a non-rankable or wrong-level row"
+            )
+        if level == "task":
+            try:
+                slice_dimension_index = columns.index("slice_dimension")
+                slice_value_index = columns.index("slice_value")
+                task_id_index = columns.index("task_id")
+            except ValueError as exc:
+                raise SchemaError(
+                    "task leaderboard must expose its registered slice semantics"
+                ) from exc
+            if any(
+                row[slice_dimension_index] != "macro24"
+                or row[slice_value_index] != "all_24_cells"
+                for row in rows
+            ):
+                raise SchemaError(
+                    "task leaderboard may contain only the registered Macro-24 slice"
+                )
+            aggregation_ids_by_task: dict[str, set[str]] = {}
+            for row in rows:
+                aggregation_ids_by_task.setdefault(row[task_id_index], set()).add(
+                    row[aggregation_id_index]
+                )
+            ambiguous_tasks = {
+                task_id: sorted(aggregation_ids)
+                for task_id, aggregation_ids in aggregation_ids_by_task.items()
+                if len(aggregation_ids) != 1
+            }
+            if ambiguous_tasks:
+                raise SchemaError(
+                    "task leaderboard resolved more than one Macro-24 aggregation_id "
+                    f"for a task: {ambiguous_tasks}"
+                )
+        if level == "slice":
+            try:
+                slice_dimension_index = columns.index("slice_dimension")
+                slice_value_index = columns.index("slice_value")
+            except ValueError as exc:
+                raise SchemaError(
+                    "slice leaderboard must expose its registered slice semantics"
+                ) from exc
+            if any(
+                row[slice_dimension_index] not in {"domain", "model_family"}
+                or not row[slice_value_index]
+                for row in rows
+            ):
+                raise SchemaError(
+                    "slice leaderboard may contain only registered domain/model-family task slices"
+                )
+        target = layout.leaderboards / filename
+        record = write_query_csv(target, columns, rows, atomic=atomic)
+        record.update(
+            kind="leaderboard_csv",
+            leaderboard_level=level,
+            selection_semantics=(
+                "aggregation_level=task; slice_dimension=macro24; "
+                "slice_value=all_24_cells"
+                if level == "task"
+                else "aggregation_level=task; slice_dimension in (domain, model_family)"
+                if level == "slice"
+                else f"aggregation_level={source_level}"
+            ),
+            source_view=view,
+            relative_path=target.relative_to(layout.root).as_posix(),
+        )
+        outputs.append(record)
+    return outputs

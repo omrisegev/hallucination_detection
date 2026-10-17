@@ -1,0 +1,61 @@
+{
+ "name": "monday_lr_reference_v1",
+ "status": "FROZEN_BEFORE_RUN",
+ "date": "2026-10-07",
+ "role": "SUPERVISED REFERENCE (uses PRMBench step labels). Not a method; not a ceiling. Compares a supervised linear model on the same answer-z channels with the label-free Monday fusion methods.",
+ "population": {
+  "answers": ".worktrees/readout-quickest-detection-v1/results/step_evidence_v1/OOF_ANSWERS.csv (cell, fold, source_group, target, id)",
+  "steps": ".worktrees/readout-quickest-detection-v1/results/step_evidence_v1/OOF_STEP_SCORES.npz (offsets, labels; True = error step on PRMBench rows)",
+  "features": ".worktrees/ssl-pseudolabel-residual-v1/results/external_banks_v4/source/FEATURES.npz",
+  "training_cell": "prmbench_qwen3_8b (6,969 answers; within-AUC defined on answers with both classes)",
+  "transfer_cells": "8 ProcessBench cells pb_{gsm8k,math,olympiadbench,omnimath}_{q4,q8}"
+ },
+ "banks": {
+  "source": "results/monday_nested_banks_v2/BANKS.json (N11,N14,N13,N16,N22,N25,N53,N56,N40,N43)",
+  "construction": "results/monday_external_panel_v1/score.py Population(F,[bank]).cell_bank(bank, answers)['V'] (answer-z channels, lf channels oriented per cell by sign of correlation with the 5-channel LEVEL mean)",
+  "order_for_seeds": "v2 BANKS order; TCI seed = 1000*bank_index + sorted-cell index (same as v2 dev_run)"
+ },
+ "lr_spec": {
+  "mirrors": "results/monday_fusion_analysis_v1/code/spectral_utils/monday_fusion_lr.py nested_lr (estimator_input_v1 LR_full, CONTENT variant)",
+  "model": "LogisticRegression(C, class_weight='balanced', solver='lbfgs', max_iter=3000, random_state=20261003) on StandardScaler fitted on the training rows only",
+  "features": "all channels of the bank (LR_full roster); no position channel",
+  "labels": "y = PRMBench step error label (all steps of every PRMBench answer are labelled)",
+  "outer_cv": "5 source-group folds from OOF_ANSWERS.csv column 'fold'; fit on 4, score the 5th; no answer and no source group in both",
+  "inner_cv": "C chosen per outer fold from C_GRID by mean class-balanced log-loss over the 4 inner folds (train on 3, validate on 1); tie -> smaller C",
+  "C_grid": [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0],
+  "convergence": "ConvergenceWarning is an error, as in the existing spec. Deviation: an inner-CV (C, fold) fit that does not converge marks that C as unavailable for that outer fold (recorded), instead of failing the whole bank. An outer or all-fold fit that does not converge fails the bank (recorded).",
+  "metric_rule": "Within-answer AUC is computed inside each answer, whose steps are all scored by one fold model, so no cross-fold concatenation ranking (SUPERVISED_ORACLE_CORRECTION Bug A does not arise). Balanced class weights (Bug B rule) are used.",
+  "all_fold_model": "for ProcessBench transfer: fit on all 5 PRMBench folds with C = median of the 5 selected C values (same rule as the existing in-sample reference)"
+ },
+ "metrics_prmbench": {
+  "definitions": "copied from results/monday_nested_banks_v1/dev_run.py prm_stats: within_auc = mean over answers with both classes of the within-answer AUC (rank formula); top1_on_error = share of answers with >=1 error step whose top-scored step (first maximum within 8 eps) is an error step; prmscore_top1 = 0.5*(F1 correct + F1 error) over pooled step confusion of non-control answers (classification != 'correct') with exactly one flag per answer (top-1 step, ties broken by first position)",
+  "lr_score": "OOF decision_function"
+ },
+ "metrics_processbench": {
+  "definition": "copied from dev_run.py pb_stats: top-step first-error hit = argmax step equals target on erroneous answers; mean over the 8 cells (cell-equal)",
+  "primary": "LR trained on all PRMBench folds, applied to ProcessBench (label: 'trained on PRMBench, applied to ProcessBench')",
+  "secondary_check": "fold-matched transfer: a ProcessBench answer in source fold k is scored by the outer model trained on PRMBench folds != k (removes shared source groups between PRMBench training and the ProcessBench answer)",
+  "orientation_alignment": "cell_bank orients lf channels per cell. The LR is a fixed linear model, so ProcessBench columns are multiplied by sign_PRMBench*sign_cell to keep the PRMBench orientation of each channel. Count of aligned columns recorded."
+ },
+ "label_free_comparators": {
+  "methods": "HEM_MOM_cc, MEAN_MOM_cc, MEAN_MOM_ga, TCI_ONLY_ga (the 4 registered methods); 'best' = highest PRMBench within-AUC of the 4 per bank",
+  "controls": "ALL_EQ (all +1), ALL_EQ_ORIENTED (sign of corr with LEVEL mean, supplement_a2.py), DS_FILTER_EQ",
+  "prmbench_values": "recomputed here with ext.fit_cell on the PRMBench cell for all 10 banks; parity against monday_nested_banks_v1 PER_ANSWER.npz for the 8 v1 banks",
+  "processbench_values": "read from monday_nested_banks_v2 PANEL_A_ABSOLUTE.csv / ORIENTED_CONTROL.csv when present, else v1; N40/N43 missing until v2 completes"
+ },
+ "coefficients": {
+  "lr_weights": "effective weights on the answer-z channels V: coef / scaler.scale_ for each outer fold (the scaler mean shifts every step of an answer equally and does not change within-answer ranking); report mean and SD over the 5 folds, also the standardized coef; fold stability = mean pairwise cosine of fold weight vectors",
+  "label_free_vectors": {
+   "ALL_EQ": "all +1",
+   "ORIENTED": "sign(corr(V_j, LEVEL mean)) on the PRMBench cell",
+   "DS_KEEP": "1 for DS-filter survivors on the PRMBench cell (fit_cell), 0 for dropped",
+   "MEAN_MOM_IMPLIED": "OLS (with intercept) of the MEAN_MOM_ga step score on the bank channels V over PRMBench steps; R^2 reported"
+  },
+  "agreement_metrics": "cosine, Spearman (undefined for constant vectors), sign agreement (share of channels with the same sign; for DS_KEEP: share of channels where kept <=> LR weight > 0), share of LR |weight| mass on DS-dropped channels, top-5 channels by |LR weight| with block family",
+  "family": "nesting block that introduced the channel: core11, realized2, ct7_ext9, hist18, other13 (N53 minus N40), digit3"
+ },
+ "gap": "per bank point gaps LR - best method, LR - MEAN_MOM_ga, LR - ALL_EQ, LR - ALL_EQ_ORIENTED on PRMBench within-AUC; paired source-group bootstrap, 1,000 draws, seed 20261007, for LR - MEAN_MOM_ga and LR - best (best fixed at point estimate)",
+ "parity_checks": ["N13 LR OOF within-AUC vs estimator_input_v1 LR_METRICS B13 LR_full 0.814239 (same channels)", "N16 vs B16 0.822366", "recomputed method within-AUC per answer vs v1 PER_ANSWER.npz"],
+ "threads": "OMP/OPENBLAS/MKL = 2",
+ "no_new_inference": true
+}
