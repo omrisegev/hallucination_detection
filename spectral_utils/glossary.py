@@ -950,4 +950,111 @@ STEP_FUSION_TERM_NOTES = {
         "Mind the Gap's ProcessBench metric: share of wrong answers whose chosen step is "
         "exactly the first error; clean answers are not scored.",
         "Step 449 [Mind the Gap reproduction]"),
+    # ---- terms added 2026-10-18 (post-advisor review of the September-October lines) ----
+    "PRMScore (official)": (
+        "PRMBench's official metric (spectral_utils/prmbench.py port of the paper evaluator): "
+        "mean of F1 on correct steps and F1 on erroneous steps, macro over the eight error "
+        "types, with Multi-Solution (MS) scored on valid steps; reported on the 6,211 "
+        "noncontrol answers. Depends on the flag rule (how many steps are flagged), not only "
+        "on the ranking.",
+        "Steps 242, 451"),
+    "within-AUC": (
+        "AUROC of the step score against step error labels computed inside each answer and "
+        "averaged over answers with both classes. Measures ranking only; no threshold.",
+        "Step 451"),
+    "top1-on-error": (
+        "Share of erroneous answers whose single highest-risk step is labelled erroneous.",
+        "advisor v11 completion"),
+    "Q80 / ANSWER_Z_Q80 (flag rule)": (
+        "Label-free flag rule: z-score the step score within each answer, then flag every "
+        "step above the global 80th percentile of the z-scores. Used for all label-free "
+        "PRMScore rows; a PRM's native rule is its own reward < 0.5.",
+        "advisor v11 completion"),
+    "TOP_2 / TOP_k": (
+        "Flag exactly k steps per answer. TOP_2 gives 67.9 PRMScore on N16, but k=2 was "
+        "chosen post hoc and matches how PRMBench inserts errors (mean 2.12 per answer); a "
+        "benchmark-structure diagnostic, not a label-free method.",
+        "results/count_structure_check_v1"),
+    "decision ceiling": (
+        "Label-using diagnostic: PRMScore after replacing one part of the decision with the "
+        "truth. N16: Q80 65.4 -> best global cut 65.7 -> true per-answer count 71.7 -> "
+        "perfect ranking at own counts 81.8.",
+        "controls/DIAGNOSTIC_CEILINGS.json (advisor v11 completion)"),
+    "error-type codes (NR, NCL, CI, DR, CS, DC, PS, DI, MS)": (
+        "PRMBench categories: NR non-redundancy, NCL non-circular logic (Simplicity); ES/SC/"
+        "DC/CI empirical, step consistency, domain consistency, confidence invariance "
+        "(Soundness); PS/DR/MS prerequisite sensitivity, deception resistance, "
+        "multi-solution (Sensitivity). Telemetry is strong on NR/NCL and weak on CI/DR/MS.",
+        "advisor page v16-v19"),
+    "thinkfix / mask1": (
+        "Correction of Qwen3 teacher forcing: the empty <think></think> block the model "
+        "always writes was missing from the forced prefix, giving the first answer token "
+        "34-36 nats. thinkfix = telemetry re-collected with the block; mask1 = additionally "
+        "drop forced token 0 (primary since 2026-10-10). All current Qwen3 numbers use "
+        "thinkfix_mask1.",
+        "results/thinkfix_rescore_v1"),
+    "IU-PCR": (
+        "Two-component L2 label-free principal-component fusion (spectral_utils.upcr.upcr_fit "
+        "with laplacian_upcr.IU_FIT_DEFAULTS); native sign from the additive moment system. "
+        "One of the two historical label-free baselines on the step banks.",
+        "monday_cont_baselines_v1"),
+    "LSML_CONT (continuous L-SML)": (
+        "spectral_utils.fusion_utils.lsml_continuous on raw continuous channels with its own "
+        "dependent-group detection; the label-free fusion used for PRM boosting.",
+        "monday_cont_baselines_v1"),
+    "ALL_EQ / MEAN_MOM_ga / TCI_ONLY_ga": (
+        "Step-bank scorers of the 2026-10 panels: ALL_EQ = plain average of the bank; "
+        "MEAN_MOM = mean within groups + MoM weights between groups; TCI_ONLY = TCI "
+        "within-group weights only; `_ga`/`_cc` as above.",
+        "Steps 451-457"),
+    "LR-gap / NNLR": (
+        "Supervised logistic regression rises with bank size (N11 0.785 -> N56 0.836 within-"
+        "AUC) while label-free fusion does not. NNLR = non-negative LR after training-label "
+        "sign orientation; it closes 86-94% of the gap (not a matched ablation). Direction "
+        "closed by Omri 2026-10-17.",
+        "Step 464 [LR-gap closed]"),
+    "PRM boosting": (
+        "Label-free L-SML of a trained PRM's step reward with three telemetry channels "
+        "(energy_level, hist_entropy_cusum_abs_series, realized_drv) read from that PRM's own "
+        "backbone in the same forward pass. Raises PRMScore on all five PRMs tested "
+        "(Qwen-7B 65.49 -> 69.48). The three channels were chosen with PRM-7B labels.",
+        "results/prm_boosting_v1, results/prm_boosting_generalization_v1"),
+    "S3 / EQ4 / SML4 (boosting arms)": (
+        "S3 = fixed 1/2 PRM + 1/2 mean of the three channels; EQ4 = plain mean of the 4 views; "
+        "SML4 = SML with every view its own group; LSML_CONT = continuous L-SML (headline).",
+        "results/prm_boosting_generalization_v1/run_v1/eval_lsml4"),
+    "PRM voters": (
+        "Several step scorers (PRMs, uPRM judges, a critic) treated as label-free voters: MoM "
+        "for the per-answer error count and L-SML for fusion. ProcessBench pilot negative "
+        "(PRM-7B alone 0.944 answer AUC vs L-SML 0.913); PRMBench run 2026-10-17.",
+        "results/prm_voters_processbench_pilot_2026-10-16"),
+    "uPRM judge / critic": (
+        "uPRM judge: an instruct LLM (Qwen3-8B, Qwen2.5-14B) scoring first-error position "
+        "from P(+/-), the uPRM baseline protocol. Critic: Qwen2.5-72B-Instruct generating a "
+        "ProcessBench-style critique that names the first erroneous step.",
+        "cluster/run_prmbench_step_voters.py"),
+    "thinking (generative) PRM": (
+        "A verifier that writes a chain-of-thought critique before emitting step verdicts "
+        "(TIPS, ThinkPRM, GenPRM), as opposed to a discriminative PRM with a score head. Not "
+        "yet used in this project.",
+        "docs/research_notes/literature_survey_localization_prm_2026-10-16.md"),
+    "APB / TPRM / AFT": (
+        "Agent benchmarks of the agent-step-telemetry line: AgentProcessBench, ToolPRMBench "
+        "(pairwise), AFTraj-2K. Telemetry alone is explained by length/position; Qwen3-8B "
+        "judge + telemetry on APB +0.089 first-error vs prior clean.",
+        "Steps 452-454 [agent telemetry]"),
+    "REWIND": (
+        "Entropy cut-point method tested as a ProcessBench first-error locator: F1 0.317, "
+        "gain comes from its mean-entropy detector, not the cut point.",
+        "Step 463"),
+    "Jev": (
+        "TypeSafe AI's closed typed-decision model (probabilities over caller-defined "
+        "options, no logprobs). Literature scan only; possible extra voter.",
+        "docs/research_notes/jev_2026-10-12"),
+    "CT7 / bank11 / family15 / B16": (
+        "Older step representations: CT7 = 7-view chosen-token readout (ProcessBench lead, "
+        "Steps 414-417); bank11 = 11-channel L-SML bank (external transfer lead, Step 446); "
+        "family15 = 15-family tail bank (closed); B13/B16/B23/B35/B54 = earlier names of the "
+        "nested banks (map to N-names before comparing).",
+        "Steps 414-457"),
 }

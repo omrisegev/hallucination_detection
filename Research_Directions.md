@@ -2,6 +2,79 @@
 *Omri Segev | Supervised by Bracha Laufer-Goldshtein & Ofir Lindenbaum*
 
 ---
+## CURRENT STATE — 2026-10-18 (authoritative; supersedes every older priority list in this file)
+
+Written after the post-advisor review of all September-October work. The full row-level inventory
+(172 directions, 11 themes, every number with its source) is
+[`docs/research_notes/DIRECTIONS_INVENTORY_2026-09_10.md`](docs/research_notes/DIRECTIONS_INVENTORY_2026-09_10.md);
+the synthesis against the 2026-10-15 advisor deck is
+[`docs/post_advisor_2026-10-17/04_TEN_DAY_SYNTHESIS_HE.md`](docs/post_advisor_2026-10-17/04_TEN_DAY_SYNTHESIS_HE.md).
+This file was union-merged on 2026-10-17 from two lines; older sections below are historical and may
+contradict each other. Where they do, this section wins. Status counts in the inventory: 75 closed-negative,
+57 closed-positive, 22 proposed-never-run, 7 active, 5 paused, 3 deferred, 3 blocked.
+
+### Thesis line as of now
+Label-free fusion of a verifier (trained PRM, LLM judge) with gray-box telemetry from that verifier's
+own backbone. Telemetry alone is roughly tied with a supervised 7B PRM on PRMBench (N16 within-AUC
+about 0.78, PRMScore about 65.4, thinkfix_mask1), but it complements the PRM: PRMScore +1.4 to +16.7
+on 5 PRMs (`results/prm_boosting_generalization_v1/run_v1/eval_lsml4/README.md`). The same pattern
+appears for agents (judge + telemetry on APB +0.089, Step 454 [Claude agent telemetry]).
+
+### Active (in priority order)
+1. **PRM boosting — evidence collection.** Plan: `docs/post_advisor_2026-10-17/05_PRM_BOOSTING_EVIDENCE_PLAN_HE.md`.
+   Gaps: PRMBench only; three channels chosen with PRM-7B labels; no leaderboard comparability check;
+   Skywork/ReasonEval blocked; no generative (thinking) PRM. CPU controls first, then external GPU runs.
+2. **PRM voters on PRMBench** (2 judges done 6,969/6,969; Qwen2.5-72B critic running, AIRCC 287344-61).
+   Go/no-go fixed in advance: all-voter and PRM-only L-SML must beat the best single PRM and the
+   boosted PRM. Also the MoM per-answer error count across independent verifiers.
+3. **Per-answer flag count.** Headroom is the largest measured: N16 Q80 65.4 -> true counts 71.7
+   (label oracle). Telemetry-only count models (A-D family, Step 292) are closed. Open: count from the
+   PRM's native rule + fused ranking; MoM count from voters; a continuous emission model with dependence.
+4. **Repo refactor** (stage 0 done: `scripts/verify_current_line.py`; stage 1: canonical package with
+   raw re-fit replay). Plan: `docs/post_advisor_2026-10-17/03_REPO_REFACTOR_PLAN_HE.md`.
+
+### Paused (one CPU control decides)
+- **Agent process rewards** (APB/TPRM/AFT, Steps 452-454): run the judge+length and judge+position
+  controls on APB before any GPU work.
+
+### Proposed or approved, never run (keep visible)
+- Outside math: **BonaFide / Thinking-to-Recall** (approved 2026-10-04, handoff
+  `docs/HANDOFF_BONAFIDE_AND_THINKING_TO_RECALL_2026-10-04.md`), **MedPRMBench** (deferred 2026-09-24),
+  LSR-Ben, PRMs Meet Planning.
+- Boosting follow-ups: label-free channel choice; fluency-bias mechanism test; generative PRMs
+  (ThinkPRM, GenPRM, TIPS); Force/Remove sanity check (2605.08346).
+- External/confirmation: MR-GSM8K, ReTraceQA, GR-Ben; a sealed untouched confirmation set;
+  historical-24 transfer (deferred).
+- Fusion ideas: KalmanNet, LOCA, Shlezinger task-based sampling, white-box geometry in the gate,
+  E[R S^2] estimator, the 8-bank rerun of Omri's level-channel removal (only B13 was run, Step 452).
+- Own-answer T=1 sampling / author-scorer 2x2 test (self-generated equivalence is disputed:
+  Step 463 vs the 2026-10-11 Codex review).
+
+### Blocked on a decision by Omri
+Skywork PRM n+1 reward protocol; ReasonEval head validation; own-backbone agent-reward GPU test.
+
+### Closed (do not reopen without new evidence)
+LR-gap (Step 464, Omri 2026-10-17); telemetry-only method search on PRMBench (readout, tail, family,
+gate, bank-extension, within-group contrast families); Joint L-SML as a new arm (Omri 2026-10-01);
+Jev as a direction (literature only; at most an optional voter); ProcessBench as a primary target
+(secondary panel since 2026-10-08); REWIND as a locator (Step 463).
+
+### Standing decisions that still apply
+- Plain averaging is not acceptable as the final fusion step (Omri 2026-10-01); DS filter + plain average
+  is reported as the current telemetry-only result.
+- Digit features stay in the label-free fusion line (Omri 2026-09-30); this supersedes the 2026-09-17
+  exclusion for that line only.
+- All current Qwen3 numbers use thinkfix_mask1 telemetry.
+
+### Statements below that are superseded
+- "Recommended Priority Order (updated 2026-08-16, Step 270)" — historical.
+- "2026-09-24: frozen bank11 L-SML is the leading learned method" — still true for the 09-24 external
+  transfer comparison only; on PRMBench L-SML loses to plain averaging on 8/8 banks (Step 457).
+- "telemetry collection active" (agents) — collection is complete (Step 453).
+- Step 464 is used twice (LR-gap closed; tensor MoM). Cite it with its bracket tag.
+
+---
+
 ## 2026-10-17: LR-gap direction CLOSED (Step 464 [LR-gap closed])
 
 **Status: Closed (exhausted for now) — Omri, 2026-10-17.** Question (advisor deck slide 16): on PRMBench, supervised LR keeps improving as channels are added (N14→N56 within-answer AUC .797→.821) while label-free L-SML (.776→.770) and IU-PCR do not. Finding: supervised selection, sign orientation and weighting recover much of the gap. NNLR closes 86–94% after training-label sign flips; it still has negative coefficients in the original coordinates. Its regularization differs from LR, so the remaining 0.2–0.7 pt cannot be attributed solely to allowing negative weights. For a voting rule, redundant copies of the strong uncertainty signal act as its weight. Label-free μ is uninformative in the weak half of Σ (cosine ≈ 0), so removing redundant strong members shifts the vote to channels that label-free estimation cannot weight. L-SML on the NNLR-kept set (N56 .712) and effective-dimension pruning inside L-SML clusters (N43 .635, N56 .727) are both worse than the full banks. Keep the full matched banks for label-free fusion. Not pursued: keep-the-strongest-member pruning (expected to return to baseline). Evidence: `results/lr_gap_explanation_draft_2026-10-15/` and HISTORY Step 464 [LR-gap closed].
@@ -3479,7 +3552,7 @@ ridge, DEEM architecture, or seeds after reading AUROC.
 
 ## Recommended Priority Order
 
-*(Authoritative current order — updated 2026-08-16, Step 270)*
+*(Historical order from 2026-08-16, Step 270 — superseded by the "CURRENT STATE — 2026-10-18" section at the top of this file)*
 
 0. **Boundary, not an application task: preserve frozen A6.** Do not execute A6
    as part of this joint program. If the separate core-method program is later
@@ -3986,7 +4059,7 @@ Run: scripts/complete_answer_position_fusion.py --source-root C:/Users/omris/TAU
 Live files: results/answer_position_fusion_v1/PROGRAM_STATE.json and smoke/RUN_STATE.json.
 One process/BLAS1, minimum 4GiB available RAM, resumable eight-hour invocations.
 Stop and present the complete matched findings before another model family.
-# Research Directions — Thesis Roadmap
+<!-- duplicate title block from the 2026-10-17 union merge (was: # Research Directions — Thesis Roadmap) -->
 
 ## Steps 430-432 (Claude) — drift is a start-of-answer excess; readout families are not error-complementary; per-channel evidence closed, 2026-09-23
 
@@ -4094,7 +4167,7 @@ Decision: retain original RBM12 Logit + Top10 as this temporal experiment's refe
 Artifacts: results/rbm_hierarchical_time_v1/{REPORT.md,COMPARISON.csv,PER_CELL.csv,METRICS.json,CONTRASTS.json,CONTROL_CONTRASTS.json,PRMSCORE_CONTRASTS.json,WEIGHTS.csv,WEIGHT_SUMMARY.json,ANSWER_DIAGNOSTICS.csv,RESULT_REVIEW.json,POSTFIT_REVIEW.json}. Protocol: docs/experiments/RBM_HIERARCHICAL_TIME_V1.md. Preflight archives preserve the JSON-reader/audit repairs; PROFILE_REUSE_REVIEW.json verifies the unchanged extraction and inputs. No original source, Claude run, or historical result was modified. No HTML was produced.
 
 ## Comparison presentation repair - 2026-09-12
-# Research Directions — Thesis Roadmap
+<!-- duplicate title block from the 2026-10-17 union merge (was: # Research Directions — Thesis Roadmap) -->
 ## Step332 completion — consolidation reviewed
 
 ## Mechanism interpretation after the variance result - 2026-09-12
