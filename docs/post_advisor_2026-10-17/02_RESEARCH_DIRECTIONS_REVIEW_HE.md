@@ -84,3 +84,14 @@
 2. בזמן שהוא רץ, על CPU: comparability מול ה-leaderboard (1.1) ו-control ל-APB (5).
 3. אחרי שה-voters מסתיים: החלטת go/no-go לסעיף 2.
 4. מבחן חוץ-בנצ'מרק ל-PRM boosting (1.2), עם אישור GPU.
+
+## תיקון (2026-10-17, ערב)
+
+- **ספירת שגיאות:** "לעזוב" מתייחס רק למשפחת A–D, שמשערכת ספירה מ-telemetry לבד. נשארים פתוחים:
+  - MoM על כמה מאמתים בלתי תלויים. זו מטרה 1 של ניתוח ה-voters ב-PRMBench.
+  - ספירה מה-PRM עם סדר מה-fusion.
+  - מודל emission רציף עם תלות, שעדיין לא בוצע.
+
+  זה ה-headroom הגדול ביותר: מ-65.4 ל-71.7 עם ספירה מושלמת (oracle).
+- **מחוץ למתמטיקה:** רק agents רץ (Steps 452–454). BonaFide קיבל אישור ונכתב לו handoff ב-4/10 (`docs/HANDOFF_BONAFIDE_AND_THINKING_TO_RECALL_2026-10-04.md`), אבל לא רץ. MedPRMBench נדחה ב-24/9. LSR-Ben ו-PRMs Meet Planning מופיעים רק בסקר. זה גם המועמד הטבעי למבחן boosting חיצוני.
+- **Thinking PRMs:** המתכון זהה (מאמת ועוד ה-telemetry שלו). החידוש הוא telemetry על ה-reasoning של המאמת עצמו, והשאלה אם יש רווח מעל מאמת חזק מאוד. זה יקר (generation), ולכן אחרי מבחן boosting חיצוני.
