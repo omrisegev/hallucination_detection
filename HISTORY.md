@@ -18448,3 +18448,52 @@ Negative result recorded: results/orthogonal_family_fusion_20261005/run_v1/NEGAT
 **Result**: Next meeting next week, focused on PRMBench only; ProcessBench de-prioritized (no meaningful gain over the plain average and a small gap to supervised LR). Preparation plan, including Omri's request for an analysis against supervised LR, is in `docs/meetings/advisor_meeting_2026-10-08/README_HE.md`. No experiment launched.
 
 ---
+
+### Step 463 [Claude, REWIND] - The REWIND entropy cut point as a ProcessBench first-error locator confirms Step 331: the gain is the mean-entropy detector, not the cut point (2026-10-17)
+
+**What**: A literature survey on localization methods and PRM trends
+(`docs/research_notes/literature_survey_localization_prm_2026-10-16.md`) turned up REWIND
+(Ding et al., arXiv 2610.19561, 2026-10-14). REWIND picks a regeneration cut point by entropy:
+the entropy peak, then the largest one-step entropy jump within 5 tokens before it, then the last
+delimiter within the 10 tokens before that. The paper never tests whether this point is the
+error. Here the cut point became a first-error locator (the step containing the cut token),
+paired with REWIND's best response-level detector, mean token entropy. It was scored on the
+frozen Step-279 fair Localization lane: 3,400 official Llama-3.1-8B rows, the five folds,
+threshold-only cross-fit, and 2,000 paired grouped bootstrap draws (seed 20260818). Added stage
+ablations, a post-hoc 2×2 detector × locator decomposition against the max-entropy step-top5
+row, and a locator-distance diagnostic. CPU only; no labels in any score or locator.
+Deviations: cached top-K entropies; delimiters matched as substrings of BPE tokens.
+**Why**: To test whether a new published training-free entropy method adds a locator on top of
+what is known. **Lineage note**: this work was first done from a stale checkout
+(`codex/claude-feature-bank-token-lsml-v1`, HISTORY at Step 290) and committed locally as
+"Step 296 [REWIND]". That commit was never pushed. It is replaced by this entry on the current
+line; Steps 452–462 exist on other branches, so it is numbered 463.
+**Result**: The script first reproduces Step 279 exactly (Unified-28 0.284832, incumbent
+0.326141). REWIND macro-F1 is 0.317 [0.298,0.337]: above Unified-28 by +0.032 [+0.009,+0.055]
+and above the Mind the Gap reconstruction by +0.114, and tied with the incumbent (−0.009) and
+GL-LIU (−0.003). **This repeats Step 331.**
+- The detector carries the gain: mean vs max entropy with the same locator gives +0.048
+  [+0.026,+0.070].
+- The cut point does not beat the raw peak (+0.004 [−0.002,+0.010]).
+- Delimiter alignment never changes the step (0%); backtracking changes it in only 4.1% of
+  traces.
+- The step-top5 locator beats the REWIND cut point by +0.022 [+0.002,+0.038].
+- The transparent mean-entropy + step-top5 row reaches 0.338, the highest point in the lane.
+  This is the same phenomenon Step 331 documented (mean-entropy gate 20.00 → 31.31; every arm
+  within 1.5 pp of the single-stream entropy control).
+- Distance on 2,221 erroneous traces: REWIND is exact on 0.267 and within ±1 on 0.543, vs
+  0.301/0.575 for the incumbent and 0.155 for a uniform random step.
+- Entropy-peak locators err late (about 46% late vs 27% early): the peak trails the error by
+  steps, not by REWIND's 5–15 tokens.
+
+ProcessBench is de-prioritized (Step 451), so no follow-up is proposed. The Mind the Gap row is
+our reconstruction (Step 333 caveat). The survey's implications section was rewritten against
+the current PRMBench / L-SML / PRM-boosting line.
+
+**Files changed**:
+- `spectral_utils/rewind_cutpoint.py` — REWIND cut-point rule and token→step mapping
+- `scripts/run_rewind_cutpoint_processbench_v1.py` — lane replay, REWIND rows, 2×2, bootstrap, distance (tokenizer path → tracked identical file)
+- `results/rewind_cutpoint_processbench_v1/` — SUMMARY.json, DISTANCE.csv, REWIND_ROWS.jsonl, REPORT.md, run.log
+- `docs/research_notes/literature_survey_localization_prm_2026-10-16.md` — localization and PRM survey; Part C written against the current line
+
+---

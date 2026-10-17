@@ -1,3 +1,23 @@
+## 2026-10-17: literature survey + REWIND check, Step 463 (Claude)
+
+**START HERE:** [survey](docs/research_notes/literature_survey_localization_prm_2026-10-16.md), Part C (implications for this line).
+
+- **Survey (localization + PRM trends, 2026).** Label-free verifier ensembling is published
+  only at the response level (FUSE, Weaver) or by majority vote over step verdicts (ScalePRM).
+  Our step-level PRM boosting (label-free L-SML of a PRM + telemetry) is therefore an open
+  niche. Generative "thinking" PRMs trained with outcome-only RL lead ProcessBench (TIPS 85.2).
+  PRMBench is barely reported in 2026, and the boosted 69.48 sits next to its original
+  leaderboard (Gemini-2-Thinking 68.8); check comparability before any claim.
+- **New external candidates:** AgentProcessBench (2603.14465, agent first-error labels, LLM
+  judges only) for the agent-telemetry line; CORTEX and Temporal Multi-Signal Fusion for RAG.
+- **REWIND (Step 463), closing record.** On the frozen Step-279 ProcessBench lane the REWIND cut
+  point reaches F1 0.317. The gain comes entirely from its mean-entropy detector, which confirms
+  Step 331; the cut point is no better than the raw peak. No ProcessBench follow-up (Step 451).
+  Report: `results/rewind_cutpoint_processbench_v1/REPORT.md`.
+- **Process lesson:** this work first started from a checkout ~170 steps stale. Before numbering
+  a step, find the live line across remote branches; local `git fetch` is narrow and fails on
+  a missing object.
+
 ## 2026-10-15: Advisor meeting findings documented — Section 5 external transfer & PRM boosting (Codex)
 
 **START HERE:** [docs/reports/ADVISOR_MEETING_EXTERNAL_AND_PRM_BOOSTING_FINDINGS_20261015.md](docs/reports/ADVISOR_MEETING_EXTERNAL_AND_PRM_BOOSTING_FINDINGS_20261015.md).
