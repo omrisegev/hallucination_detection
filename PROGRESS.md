@@ -65,6 +65,22 @@
   - Confirmed across 5 diverse PRMs: Qwen-7B (+3.99), Qwen-72B (+1.66), PURE-7B (+1.38), RLHFlow Llama-3.1-8B (+9.10), MathShepherd Mistral-7B (+16.67). All 95% CIs exclude 0.
 - **Presentation constraint adhered to:** Presentation HTML slides were left strictly untouched; findings, diagnostic tables, and advisor notes documented exclusively in Markdown and committed to remote.
 
+## 2026-10-13: Codex PRM boosting transfer code delivery
+
+Start with `results/prm_boosting_generalization_v1/README.md`,
+`HEAD_INVENTORY.json`, `VALIDATION.json` and `REPLAY_V1.json` on
+`codex/prm-boosting-generalization-v1`, branched from Claude's `dada9487`.
+Added same-backbone adapters, driver dispatch/head provenance/context failures,
+frozen seven-arm evaluator and paired source-group bootstrap. Historical 6,969
+answer replay matches S3 .85082697 / 69.38457405 and EQ2 .84047345 / 68.53382312.
+The official wrappers/tokenizer IDs were verified; the Qwen upstream prompt's
+backspace escape is preserved on 72B, with historical 7B left unchanged for T1.
+PURE's old PRM800K ID redirects to PURE-PRM-7B; it needs a locally cached base head.
+Both Skywork sizes are blocked by the user's decision pending the upstream n+1
+reward clarification. ReasonEval remains optional/blocked. Real GPU T1 and all
+new-model G1/G2 checks remain for Claude; no GPU/cluster jobs or weight downloads.
+Frozen scoring/bank scripts, sbatch and existing result artifacts remain unchanged.
+
 ## 2026-10-10: handoff for the Thursday meeting and the unfinished consolidation (Claude)
 
 **START HERE:** [docs/HANDOFF_prmbench_meeting_and_consolidation_2026-10-10.md](docs/HANDOFF_prmbench_meeting_and_consolidation_2026-10-10.md).

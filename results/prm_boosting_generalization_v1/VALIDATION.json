@@ -1,0 +1,51 @@
+{
+  "status": "PASS",
+  "date": "2026-10-13",
+  "tests": 18,
+  "skipped": 0,
+  "tokenizer_template_cases": 21,
+  "interpreter": "/Users/osegev/Desktop/hallucination_detection/.venv/bin/python",
+  "python": "3.11.9",
+  "versions": {
+    "numpy": "2.4.6",
+    "scipy": "1.17.1",
+    "torch": "2.13.0",
+    "transformers": "4.57.6",
+    "pandas": "3.0.6",
+    "sentencepiece": "0.2.2",
+    "protobuf": "7.36.2"
+  },
+  "command": "PRM_TOKENIZER_DIR=/private/tmp/prm-tokenizers PRM_V1_METADATA=/Users/osegev/Desktop/hallucination_detection/dataset_cache/four_localization/prmbench_qwen25math7b_full/prmbench_prm.pkl /Users/osegev/Desktop/hallucination_detection/.venv/bin/python -m unittest discover -s tests -p 'test_prm*.py' -v",
+  "duration_seconds": 6.606,
+  "cpu_only": true,
+  "model_weights_downloaded": false,
+  "gpu_or_cluster_jobs": false,
+  "T1": "GPU pending; CPU comparator/lifecycle tests passed",
+  "T2": "21 tokenizer cases passed",
+  "T3": "tiny random final-norm/head/reward tests passed",
+  "T4": "6969-answer S3/EQ2 reconstruction passed; see REPLAY_V1.json",
+  "checks": [
+    "py_compile passed",
+    "driver/fuse/evaluate --help passed",
+    "authored-file git diff --cached --check passed with cr-at-eol; untouched vendor whitespace preserved",
+    "frozen artifacts byte-identical to dada9487"
+  ],
+  "frozen_sha256": {
+    "results/monday_external_panel_v1/score.py": "35a71cc8f46e71588a642ddb35a32c448d3b7fc8fad2e42f86fd95ef6c099d42",
+    "results/prm_boosting_v1/build_bank.py": "0cc418ac5898504b480c8ab16ca4f645d8c6474f9bb33ff3075820bbac1aeda0",
+    "cluster/submit_prmbench_prm_telemetry.sbatch": "b8fd85b4a8fc8f1b073afc9cfd001fa8415a7e2e73846e41ed3ffe1c7d4d0d1d"
+  },
+  "vendor_sha256": {
+    "third_party/skywork_prm/model_utils/modeling_base.py": "b36901cfd546318bc3d7797348e2e8ea0fb99bc0f78596ee3e2820706b054001",
+    "third_party/skywork_prm/model_utils/io_utils.py": "5332b7a9b0feeb0d707c249c38e7f551e9157175c3401feedd402512828a50cf",
+    "third_party/skywork_prm/model_utils/prm_model.py": "308901e62bc6ef7fb23148b82933ce9c723da0cba2c9a88300a02f543839821f"
+  },
+  "limitations": [
+    "No real new-model G1/G2 measurements",
+    "No real head/base weight comparisons performed",
+    "Skywork blocked by user pending terminal reward clarification",
+    "ReasonEval optional and blocked",
+    "PURE requires locally cached borrowed head"
+  ],
+  "checkout_note": "Two unrelated _bank11 files already report EOL-only differences on fresh checkout; excluded from this delivery."
+}

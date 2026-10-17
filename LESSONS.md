@@ -479,3 +479,13 @@ Rule: verify the fetched named commit or FETCH_HEAD before selecting the checkou
 Enforced by: command (verified afae64a and fast-forwarded only that commit); CODE_PIN.json checks every relevant runtime file against the exact Git blob.
 
 Documentation check: appending CRLF to the mixed-line-ending HISTORY.md was flagged as trailing whitespace. Only the new block was changed to LF; the existing Git-blob prefix was verified byte-identical. Keep old history bytes and use LF for new blocks.
+
+## 2026-10-13 - Execute literal wrapper templates before trusting protocol summaries
+What happened: CPU snapshot generation exposed an extra terminal Skywork reward,
+a backspace escape in Qwen's official prompt, and PURE's renamed HF ID.
+Why: prose model tables do not specify all evaluated Python/tokenizer behavior.
+Rule: pin source revisions, execute official template bodies on tokenizer-only
+fixtures, preserve the historical regression path separately and block unresolved
+reward-count mismatches rather than silently dropping scores.
+Enforced by: code (tests/test_prm_adapters.py and pinned template snapshots;
+Skywork inference/evaluation blocked in prm_adapters.py and evaluate.py).

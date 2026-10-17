@@ -18463,7 +18463,23 @@ annotation/raw-ID leak, invariant inputs under metadata flips, unchanged
 source observations and consistent groups. All 14 checked runtime/test
 files match afae64a exactly; no gate or threshold change. Same ten length
 exclusions, zero truncation. No AIRCC/GPU/Drive action or benchmark
-scoring. Review delivery: [results/agent_step_telemetry_v1/cpu_rerun_v2_20261013/README.md](results/agent_step_telemetry_v1/cpu_rerun_v2_20261013/README.md).
+scoring. Review delivery: [results/agent_step_telemetry_v1/cpu_rerun_v2_20261013/README.md](results/agent_step_telemetry_v1/cpu_rerun_v2_20261013/README.md).
+
+---
+
+### Step 452 [Codex PRM boosting transfer] - Frozen cross-PRM implementation, 2026-10-13
+
+**What**: Added PRM adapters, same-forward backbone telemetry/head inventory,
+context-failure and resume guards, frozen seven-arm evaluation, source-group
+bootstrap, pinned Skywork vendor source and CPU regression tests. Delivery:
+`results/prm_boosting_generalization_v1/README.md`.
+**Why**: Implement the frozen-transfer spec for Claude to run and analyze on
+AIRCC, preserving the historical Qwen-7B path and existing result artifacts.
+**Result**: Historical S3/EQ2 metrics reproduce on all 6,969 rows. CPU template,
+head, metric and lifecycle tests pass (final command/count in VALIDATION.json).
+Skywork is explicitly blocked per user pending its n+1 reward protocol; optional
+ReasonEval is blocked. GPU T1 and real new-model gates remain pending. No merge,
+GPU/cluster job, model-weight download or channel/threshold re-selection.
 
 ---
 
@@ -18518,7 +18534,7 @@ Deliveries:
 [N16](results/agent_step_telemetry_v1_n16_2026-10-16/README.md),
 [fair protocols](results/agent_step_telemetry_v1_n16_2026-10-16/fair_protocols/README.md).
 Derived `FEATURES_*/SCORES_*.npz` (~19 MB) are kept out of Git.
-Caveat: only the first token of each concatenated trace was masked.
+Caveat: only the first token of each concatenated trace was masked.
 
 ---
 
@@ -18552,7 +18568,7 @@ Caveat: only the first token of each concatenated trace was masked.
   - Judge+length / judge+position controls were not run.
   - The own-backbone TPRM test needs GPU telemetry from each competitor's backbone.
 
-Delivery: [results/agent_step_telemetry_v1_competitor_fusion_pilot_2026-10-17/README.md](results/agent_step_telemetry_v1_competitor_fusion_pilot_2026-10-17/README.md).
+Delivery: [results/agent_step_telemetry_v1_competitor_fusion_pilot_2026-10-17/README.md](results/agent_step_telemetry_v1_competitor_fusion_pilot_2026-10-17/README.md).
 
 ---
 

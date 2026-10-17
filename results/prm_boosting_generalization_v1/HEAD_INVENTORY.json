@@ -1,0 +1,169 @@
+{
+  "official_wrapper_commit": "a1ae4eab803e14c4c6316bf89d1679b0486faa8c",
+  "skywork_vendor_commit": "719b56b17447405e0f10e6c0360a581cf4ffa9c1",
+  "models": [
+    {
+      "requested_id": "Qwen/Qwen2.5-Math-PRM-72B",
+      "canonical_id": "Qwen/Qwen2.5-Math-PRM-72B",
+      "hf_revision": "9df429b02adb5f764cd6e30e76a0cca16d501ae1",
+      "adapter": "qwen_prm_72b",
+      "architectures": [
+        "Qwen2ForProcessRewardModel"
+      ],
+      "max_position_embeddings": 4096,
+      "expected_lm_head_source": "own_unused",
+      "base_model": "Qwen/Qwen2.5-Math-72B-Instruct",
+      "status": "implemented; GPU parity pending",
+      "checkpoint_head_keys": [
+        "lm_head.weight",
+        "score.0.bias",
+        "score.0.weight",
+        "score.2.bias",
+        "score.2.weight"
+      ],
+      "config_sha256": "42206e17c8251d731997df0ba71b3911bf622fda2390565821733f5787630581",
+      "index_sha256": "6c391d7bf6bee51435cad2125042366807da96e45eeba51c67f947dcf40943e1",
+      "verification": "HF API, config, card and tensor index only; no weight download or measurement",
+      "lm_head_vs_base_max_abs_diff": "measured at runtime if cached base head is present; otherwise null with compare_error"
+    },
+    {
+      "requested_id": "Qwen/Qwen2.5-Math-PRM-7B",
+      "canonical_id": "Qwen/Qwen2.5-Math-PRM-7B",
+      "hf_revision": "0610740060112df12585d00a1c5f4624d2f59051",
+      "adapter": "qwen_prm",
+      "architectures": [
+        "Qwen2ForProcessRewardModel"
+      ],
+      "max_position_embeddings": 4096,
+      "expected_lm_head_source": "own_unused",
+      "base_model": "Qwen/Qwen2.5-Math-7B-Instruct",
+      "status": "historical path; GPU T1 pending",
+      "checkpoint_head_keys": [
+        "lm_head.weight",
+        "score.0.bias",
+        "score.0.weight",
+        "score.2.bias",
+        "score.2.weight"
+      ],
+      "config_sha256": "70d5ef2f21af53e6c95252d8838f4898fbac6c83708a67c9c7c3f83f75318bbe",
+      "index_sha256": "5b61f9273d8fe706ec119b3f960bfb07b07e28097646baeee4da64b64ba6fdc7",
+      "verification": "HF API, config, card and tensor index only; no weight download or measurement",
+      "lm_head_vs_base_max_abs_diff": "measured at runtime if cached base head is present; otherwise null with compare_error"
+    },
+    {
+      "requested_id": "Skywork/Skywork-o1-Open-PRM-Qwen-2.5-7B",
+      "canonical_id": "Skywork/Skywork-o1-Open-PRM-Qwen-2.5-7B",
+      "hf_revision": "b89a8956c8a39c75f8cc25064455c33f8f8831f2",
+      "adapter": "skywork_prm",
+      "architectures": [
+        "Qwen2ForPrmModel"
+      ],
+      "max_position_embeddings": 4096,
+      "expected_lm_head_source": "own_unused",
+      "base_model": "Qwen/Qwen2.5-Math-7B-Instruct",
+      "status": "blocked by user: n+1 upstream rewards",
+      "checkpoint_head_keys": null,
+      "config_sha256": "7db436cb90a876d54101c14914f81b0646f4ddd7c767c4b7b53db8fb86f5f5ce",
+      "index_sha256": null,
+      "verification": "HF API, config, card and tensor index only; no weight download or measurement",
+      "lm_head_vs_base_max_abs_diff": "measured at runtime if cached base head is present; otherwise null with compare_error"
+    },
+    {
+      "requested_id": "RLHFlow/Llama3.1-8B-PRM-Mistral-Data",
+      "canonical_id": "RLHFlow/Llama3.1-8B-PRM-Mistral-Data",
+      "hf_revision": "0a4c93ad67513db6f2a22005c9271e2b71632c4a",
+      "adapter": "rlhflow_prm",
+      "architectures": [
+        "LlamaForCausalLM"
+      ],
+      "max_position_embeddings": 131072,
+      "expected_lm_head_source": "own_used",
+      "base_model": "meta-llama/Llama-3.1-8B-Instruct",
+      "status": "implemented; GPU reward parity pending",
+      "checkpoint_head_keys": [
+        "lm_head.weight"
+      ],
+      "config_sha256": "e9fc9ddf9a07d22c4a83537b086565babc7946bc7f001a8d1324c770cc0efe5e",
+      "index_sha256": "146776fce3f6db1103aa6f249e65ee5544c5923ce6f971b092eee79aa6e5d37b",
+      "verification": "HF API, config, card and tensor index only; no weight download or measurement",
+      "lm_head_vs_base_max_abs_diff": "measured at runtime if cached base head is present; otherwise null with compare_error"
+    },
+    {
+      "requested_id": "jinachris/Qwen2.5-Math-7B-PRM800K",
+      "canonical_id": "jinachris/PURE-PRM-7B",
+      "hf_revision": "b0cce6763f2317762c9cb46720c8fe7b07f44a88",
+      "adapter": "pure_prm",
+      "architectures": [
+        "Qwen2ForTokenClassification"
+      ],
+      "max_position_embeddings": 4096,
+      "expected_lm_head_source": "borrowed_base:Qwen/Qwen2.5-Math-7B",
+      "base_model": "Qwen/Qwen2.5-Math-7B",
+      "status": "conditional on cached borrowed head; GPU parity pending",
+      "checkpoint_head_keys": [
+        "score.bias",
+        "score.weight"
+      ],
+      "config_sha256": "e0cf3f76180e964b23c3751acca10ff49bfcdca33e075b867ba3d8962cb4978c",
+      "index_sha256": "d77916bb48592c865eda35e8947222006c3a71f2f1a14715419b0655293f7a19",
+      "verification": "HF API, config, card and tensor index only; no weight download or measurement",
+      "lm_head_vs_base_max_abs_diff": "measured at runtime if cached base head is present; otherwise null with compare_error"
+    },
+    {
+      "requested_id": "Skywork/Skywork-o1-Open-PRM-Qwen-2.5-1.5B",
+      "canonical_id": "Skywork/Skywork-o1-Open-PRM-Qwen-2.5-1.5B",
+      "hf_revision": "98d69606595eedbdbbbf0a7d28efdcd462ba6a67",
+      "adapter": "skywork_prm_1_5b",
+      "architectures": [
+        "Qwen2ForPrmModel"
+      ],
+      "max_position_embeddings": 4096,
+      "expected_lm_head_source": "own_unused",
+      "base_model": "Qwen/Qwen2.5-Math-1.5B-Instruct",
+      "status": "blocked by user: n+1 upstream rewards",
+      "checkpoint_head_keys": null,
+      "config_sha256": "28d4648987a81f403ccaea976c543e7f94b87eb18406847d07d69ebd23199361",
+      "index_sha256": null,
+      "verification": "HF API, config, card and tensor index only; no weight download or measurement",
+      "lm_head_vs_base_max_abs_diff": "measured at runtime if cached base head is present; otherwise null with compare_error"
+    },
+    {
+      "requested_id": "peiyi9979/math-shepherd-mistral-7b-prm",
+      "canonical_id": "peiyi9979/math-shepherd-mistral-7b-prm",
+      "hf_revision": "45dc0a3c9ec699b645085c098ed38dc99fba4617",
+      "adapter": "math_shepherd",
+      "architectures": [
+        "LlamaForCausalLM"
+      ],
+      "max_position_embeddings": 4096,
+      "expected_lm_head_source": "own_used",
+      "base_model": "mistralai/Mistral-7B-v0.1",
+      "status": "implemented; GPU reward parity pending",
+      "checkpoint_head_keys": null,
+      "config_sha256": "c8508824e6661402ac28a2d727ef9b254acd287818d93110cc1edb54e75a8194",
+      "index_sha256": null,
+      "verification": "HF API, config, card and tensor index only; no weight download or measurement",
+      "lm_head_vs_base_max_abs_diff": "measured at runtime if cached base head is present; otherwise null with compare_error"
+    },
+    {
+      "requested_id": "GAIR/ReasonEval-7B",
+      "canonical_id": "GAIR/ReasonEval-7B",
+      "hf_revision": "0a6556ef5c937bb17d265ba681b501fd60056cfe",
+      "adapter": "reasoneval",
+      "architectures": [
+        "ReasonEval_7B"
+      ],
+      "max_position_embeddings": 32768,
+      "expected_lm_head_source": null,
+      "base_model": null,
+      "status": "optional model blocked: borrowed base head and redundancy protocol not validated",
+      "checkpoint_head_keys": [
+        "score_head.weight"
+      ],
+      "config_sha256": "8864173d5a227ecfd78c42d9b0287c16fcb212651ac9ce6827535ba519374307",
+      "index_sha256": "fed6999b7109649eeb338912e0ca2b7d50453b4a08fba21ca6150b0072c9acee",
+      "verification": "HF API, config, card and tensor index only; no weight download or measurement",
+      "lm_head_vs_base_max_abs_diff": "measured at runtime if cached base head is present; otherwise null with compare_error"
+    }
+  ]
+}
