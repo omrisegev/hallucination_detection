@@ -1,0 +1,54 @@
+diff --git a/HISTORY.md b/HISTORY.md
+index 2ea5a234..1a06a4c6 100644
+--- a/HISTORY.md
++++ b/HISTORY.md
+@@ -20145,3 +20145,25 @@ NOT integrated into frozen scoring and not evidence of restored coverage/quality
+ Next numerical integration, then provisional-discovery/noise-screen ordering;
+ keep actual final fit guards and new412 quality reference. No next quality fit.
+ Atlas review: docs/reviews/joint_mass_groups_2026-09-17.md. Goal active; all terminal.
++
++## Step413 [localization] - exact Innovation5 Continuous L-SML ablation, 2026-09-17
++
++Ran the missing exact-bank comparison requested during advisor preparation. The
++five streams are q15 H0lim/VE0/VE0.75/VE1 plus H0lim prefix-mean innovation,
++with the original separate per-stream Top10 and frozen non-digit Tail15 q=.33
++gate. The first-token-zero convention was reconstructed from saved token values;
++the natural-unit equal score replays the frozen Innovation5 metrics exactly
++(39.8314% PB/.760293 within; maximum score drift1.19e-6).
++
++Answer-z equal reaches39.3876%/.756769. Five-fold source-excluded Continuous
++L-SML on the identical answer-z bank reaches38.9082%/.753320. Against original
++Innovation5: PB-.9231pp,97.5%CI[-2.0556,+.2016], within-.006973
++[-.009492,-.004462]. Against matched answer-z equal: PB-.4794pp,95%CI
++[-1.0890,+.1085], within-.003449[-.004677,-.002220]. All folds recover the same
++K2 partition and weight vector. Decision DO_NOT_PROMOTE: answer normalization
++removes useful scale and Continuous L-SML further worsens within-answer ranking.
++The advisor HTML remains unchanged under its predeclared update rule.
++
++Protocol: `docs/experiments/INNOVATION5_CONTINUOUS_LSML_V1.md`. Artifacts:
++`results/innovation5_continuous_lsml_v1/REPORT.md`; runner:
++`scripts/run_innovation5_continuous_lsml_v1.py`. No process remains active.
+diff --git a/PROGRESS.md b/PROGRESS.md
+index 1df613e3..01cf3fbf 100644
+--- a/PROGRESS.md
++++ b/PROGRESS.md
+@@ -1,3 +1,19 @@
++## Step413 complete; Continuous L-SML does not improve exact Innovation5 - 2026-09-17
++
++Exact five-stream Innovation5 ablation COMPLETE_REVIEWED on all13,769 answers
++and145,597 steps, with the frozen non-digit Tail15 q=.33 gate. The historical
++natural-unit equal score replays39.8314% PB/.760293 within. Answer-z equal gives
++39.3876%/.756769; source-fold-excluded Continuous L-SML on the same answer-z
++five-stream bank gives38.9082%/.753320. Continuous minus original: PB-.9231pp,
++97.5% CI[-2.0556,+.2016]; within-.006973[-.009492,-.004462]. Continuous minus
++matched answer-z equal: PB-.4794pp,95%CI[-1.0890,+.1085]; within-.003449
++[-.004677,-.002220]. Thus normalization loses part of the result and learned
++spectral weighting loses more; do not promote or update the advisor headline.
++All five folds select the same K2 partition and weights. Innovation5 score replay
++max error1.19e-6; metric replay exact; output audit PASS. Protocol:
++docs/experiments/INNOVATION5_CONTINUOUS_LSML_V1.md. Results:
++results/innovation5_continuous_lsml_v1/REPORT.md. No process running.
++
+ ## Step412 complete; base quality passes, iid/near coverage failures remain - 2026-09-17
+ 
+ Atlas results/joint_mass_membership_v1 COMPLETE_REVIEWED.25 new full-bank fits.

@@ -1,0 +1,288 @@
+diff --git a/scripts/reconstruction_benchmark/run_ciw_cross_scale_localization.py b/scripts/reconstruction_benchmark/run_ciw_cross_scale_localization.py
+index dd045ae1..251eb859 100644
+--- a/scripts/reconstruction_benchmark/run_ciw_cross_scale_localization.py
++++ b/scripts/reconstruction_benchmark/run_ciw_cross_scale_localization.py
+@@ -16,7 +16,10 @@ ROOT = Path(__file__).resolve().parents[2]
+ if str(ROOT) not in sys.path:
+     sys.path.insert(0, str(ROOT))
+ 
+-from spectral_utils.ciw_cross_scale_localization import fit_cross_scale_token_head
++from spectral_utils.ciw_cross_scale_localization import (
++    consensus_response_gate,
++    fit_cross_scale_token_head,
++)
+ from spectral_utils.reconstruction_benchmark.io import (
+     atomic_write_json,
+     atomic_write_npz,
+@@ -39,6 +42,8 @@ METHODS = {
+     "iu": "ciw_cross_scale_token_response_v1",
+     "su": "ciw_cross_scale_su_token_response_v1",
+ }
++CONSENSUS_METHOD = "ciw_cross_scale_consensus_localizer_v1"
++CONSENSUS_HEADS = ("ciw_deem", "deem_b3", "iu_pcr", "dufs_liu")
+ CELLS = (
+     "processbench_gsm8k_qwen3_4b", "processbench_math_qwen3_4b",
+     "processbench_olympiadbench_qwen3_4b", "processbench_omnimath_qwen3_4b",
+@@ -77,8 +82,17 @@ def _load_ciw(ciw_root: Path, cell_id: str) -> tuple[dict[str, Any], dict[str, n
+     return record, load_npz_no_pickle(score_path)
+ 
+ 
+-def fit(ciw_root: Path, localization_release: Path, out: Path, *, fusion: str) -> None:
+-    method = METHODS[fusion]
++def fit(
++    ciw_root: Path,
++    localization_release: Path,
++    out: Path,
++    *,
++    fusion: str,
++    readout: str,
++) -> None:
++    if readout == "consensus" and fusion != "iu":
++        raise ValueError("the consensus candidate is registered only with token IU-PCR")
++    method = CONSENSUS_METHOD if readout == "consensus" else METHODS[fusion]
+     if out.exists() and any(out.iterdir()):
+         raise FileExistsError(f"output directory is not empty: {out}")
+     out.mkdir(parents=True, exist_ok=True)
+@@ -104,6 +118,7 @@ def fit(ciw_root: Path, localization_release: Path, out: Path, *, fusion: str) -
+         if not np.array_equal(np.asarray(old["row_ids"]).astype(str), ciw_rows):
+             raise RuntimeError(f"{cell_id}: frozen token-IU rows differ")
+         response_risk = np.asarray(ciw["score"], dtype=np.float64)
++        ciw_response_risk = response_risk.copy()
+         result = fit_cross_scale_token_head(
+             cell.token_confidence,
+             cell.token_offsets,
+@@ -113,8 +128,36 @@ def fit(ciw_root: Path, localization_release: Path, out: Path, *, fusion: str) -
+             response_risk,
+             fusion=fusion,
+         )
++        routed_step_risk = result.step_risk
++        response_gate = None
++        response_votes = None
++        gate_diagnostics = None
++        if readout == "consensus":
++            method_ids = tuple(map(str, cell.method_ids))
++            reference_heads = np.vstack([
++                response_risk,
++                *[
++                    cell.response_scores[method_ids.index(name)]
++                    for name in CONSENSUS_HEADS[1:]
++                ],
++            ])
++            gated = consensus_response_gate(
++                result.step_risk,
++                np.asarray(old["token_step_score"], dtype=np.float64),
++                cell.segment_offsets,
++                reference_heads,
++                quorum=2,
++            )
++            routed_step_risk = gated.token_step_risk
++            response_gate = gated.response_gate
++            response_votes = gated.votes
++            gate_diagnostics = dict(gated.diagnostics)
++            final_response = "dufs_liu" if cell_id == CELLS[-1] else "deem_b3"
++            response_risk = cell.response_scores[method_ids.index(final_response)]
++        else:
++            final_response = "ciw_deem"
+         response_rank = empirical_midrank(response_risk)
+-        step_rank = empirical_midrank(result.step_risk)
++        step_rank = empirical_midrank(routed_step_risk)
+         expanded_response = np.repeat(response_rank, np.diff(cell.segment_offsets))
+         combined = np.sqrt(expanded_response * step_rank)
+         if combined.shape != result.step_risk.shape or not np.isfinite(combined).all():
+@@ -123,16 +166,21 @@ def fit(ciw_root: Path, localization_release: Path, out: Path, *, fusion: str) -
+         target = out / "cells" / cell_id
+         target.mkdir(parents=True, exist_ok=False)
+         score_path = target / "scores.npz"
+-        score_sha = atomic_write_npz(score_path, {
++        arrays = {
+             "row_ids": np.asarray(cell.row_ids, dtype="<U80"),
+             "segment_offsets": np.asarray(cell.segment_offsets, dtype="<i8"),
+             "step_scores": combined.astype("<f8"),
+-            "ciw_response_score": response_risk.astype("<f8"),
++            "ciw_response_score": ciw_response_risk.astype("<f8"),
++            "final_response_score": response_risk.astype("<f8"),
+             "token_step_score": result.step_risk.astype("<f8"),
+             "baseline_token_step_score": np.asarray(old["token_step_score"], dtype="<f8"),
+             "reliability": result.reliability.astype("<f8"),
+             "gate": result.gate.astype("<f8"),
+-        })
++        }
++        if response_gate is not None and response_votes is not None:
++            arrays["response_gate"] = response_gate.astype("<i1")
++            arrays["response_votes"] = response_votes.astype("<i8")
++        score_sha = atomic_write_npz(score_path, arrays)
+         record = {
+             "schema_version": "ciw-cross-scale-localization-cell-v1",
+             "method_id": method,
+@@ -144,6 +192,9 @@ def fit(ciw_root: Path, localization_release: Path, out: Path, *, fusion: str) -
+             "n_steps": len(combined),
+             "formula": "geomean(CIW-response-rank, cross-scale-innovation-token-IU29-rank)",
+             "input_layer": dict(result.diagnostics),
++            "readout": readout,
++            "final_response_head": final_response,
++            "response_gate": gate_diagnostics,
+             "labels_opened_during_fit": False,
+             "targets_accessed_during_fit": False,
+             "prepared_input_sha256": sha256_file(input_path),
+@@ -196,7 +247,7 @@ def _load_legacy_evaluator():
+ def evaluate(fit_root: Path, localization_release: Path, out: Path) -> None:
+     freeze = json.loads((fit_root / "SCORE_FREEZE_MANIFEST.json").read_text(encoding="utf-8"))
+     method = str(freeze.get("method_id", ""))
+-    if method not in set(METHODS.values()):
++    if method not in {*METHODS.values(), CONSENSUS_METHOD}:
+         raise RuntimeError("unknown cross-scale localization method")
+     module = _load_legacy_evaluator()
+     module.METHOD = method
+@@ -235,6 +286,7 @@ def main() -> None:
+     fit_parser.add_argument("--localization-release", required=True)
+     fit_parser.add_argument("--out-dir", required=True)
+     fit_parser.add_argument("--fusion", choices=tuple(METHODS), default="iu")
++    fit_parser.add_argument("--readout", choices=("ciw", "consensus"), default="ciw")
+     eval_parser = sub.add_parser("evaluate")
+     eval_parser.add_argument("--fit-dir", required=True)
+     eval_parser.add_argument("--localization-release", required=True)
+@@ -246,6 +298,7 @@ def main() -> None:
+             Path(args.localization_release).resolve(),
+             Path(args.out_dir).resolve(),
+             fusion=args.fusion,
++            readout=args.readout,
+         )
+     else:
+         evaluate(Path(args.fit_dir).resolve(), Path(args.localization_release).resolve(), Path(args.out_dir).resolve())
+diff --git a/scripts/test_ciw_cross_scale_localization.py b/scripts/test_ciw_cross_scale_localization.py
+index 519bb79d..ae3b0a27 100644
+--- a/scripts/test_ciw_cross_scale_localization.py
++++ b/scripts/test_ciw_cross_scale_localization.py
+@@ -13,7 +13,10 @@ ROOT = Path(__file__).resolve().parents[1]
+ if str(ROOT) not in sys.path:
+     sys.path.insert(0, str(ROOT))
+ 
+-from spectral_utils.ciw_cross_scale_localization import fit_cross_scale_token_head
++from spectral_utils.ciw_cross_scale_localization import (
++    consensus_response_gate,
++    fit_cross_scale_token_head,
++)
+ from spectral_utils.reconstruction_benchmark.localization_fit import _fit_token_iu
+ 
+ 
+@@ -69,6 +72,21 @@ def main() -> None:
+         raise AssertionError("SU-PCR arm did not use the registered sparse solver")
+     if sparse.step_risk.shape != starts.shape or not np.isfinite(sparse.step_risk).all():
+         raise AssertionError("cross-scale SU output is malformed")
++
++    segment_offsets = np.arange(0, len(starts) + 1, 3, dtype=np.int64)
++    heads = np.vstack([
++        response,
++        response + 0.05,
++        -response,
++        response + 0.1,
++    ])
++    routed = consensus_response_gate(
++        first.step_risk, baseline_step, segment_offsets, heads, quorum=2
++    )
++    if routed.response_gate.shape != response.shape or routed.votes.shape != response.shape:
++        raise AssertionError("response consensus gate is not response-aligned")
++    if not np.isfinite(routed.token_step_risk).all():
++        raise AssertionError("response consensus output is non-finite")
+     print("PASS: CIW cross-scale localization mechanics")
+ 
+ 
+diff --git a/spectral_utils/ciw_cross_scale_localization.py b/spectral_utils/ciw_cross_scale_localization.py
+index 12b88ad7..b57a383f 100644
+--- a/spectral_utils/ciw_cross_scale_localization.py
++++ b/spectral_utils/ciw_cross_scale_localization.py
+@@ -37,6 +37,14 @@ class CrossScaleTokenResult:
+     diagnostics: dict[str, object]
+ 
+ 
++@dataclass(frozen=True)
++class ConsensusReadoutResult:
++    token_step_risk: np.ndarray
++    response_gate: np.ndarray
++    votes: np.ndarray
++    diagnostics: dict[str, object]
++
++
+ def _folds(row_ids: Sequence[str]) -> np.ndarray:
+     return np.asarray([
+         int(hashlib.sha256(str(value).encode("utf-8")).hexdigest()[:8], 16) % N_FOLDS
+@@ -251,7 +259,77 @@ def fit_cross_scale_token_head(
+     )
+ 
+ 
++def consensus_response_gate(
++    corrected_step_risk: np.ndarray,
++    baseline_step_risk: np.ndarray,
++    segment_offsets: np.ndarray,
++    response_risks: np.ndarray,
++    *,
++    quorum: int = 2,
++) -> ConsensusReadoutResult:
++    """Route a frozen token correction using response-head agreement.
++
++    Each response head votes for the correction when the corrected token
++    summary is closer than the baseline token summary to that head's
++    standardized response risk.  The correction opens for the complete
++    response when at least ``quorum`` heads agree.  No target is accepted.
++    """
++
++    corrected = np.asarray(corrected_step_risk, dtype=np.float64)
++    baseline = np.asarray(baseline_step_risk, dtype=np.float64)
++    offsets = np.asarray(segment_offsets, dtype=np.int64)
++    heads = np.asarray(response_risks, dtype=np.float64)
++    if corrected.shape != baseline.shape or corrected.ndim != 1:
++        raise ValueError("corrected and baseline step risks must align")
++    if offsets.ndim != 1 or offsets[0] != 0 or offsets[-1] != len(corrected):
++        raise ValueError("segment offsets do not cover the step scores")
++    n_responses = len(offsets) - 1
++    if heads.ndim != 2 or heads.shape[1] != n_responses or not np.isfinite(heads).all():
++        raise ValueError("response-head matrix is not heads by responses")
++    if not 1 <= int(quorum) <= heads.shape[0]:
++        raise ValueError("response quorum is outside the head roster")
++
++    def standardize(values: np.ndarray) -> np.ndarray:
++        scale = max(float(np.std(values)), EPS)
++        return (values - float(np.mean(values))) / scale
++
++    baseline_z = standardize(baseline)
++    corrected_z = standardize(corrected)
++    baseline_summary = np.asarray([
++        float(np.mean(baseline_z[offsets[i]:offsets[i + 1]]))
++        for i in range(n_responses)
++    ])
++    corrected_summary = np.asarray([
++        float(np.mean(corrected_z[offsets[i]:offsets[i + 1]]))
++        for i in range(n_responses)
++    ])
++    vote_matrix = np.vstack([
++        np.abs(corrected_summary - standardize(head))
++        < np.abs(baseline_summary - standardize(head))
++        for head in heads
++    ])
++    votes = vote_matrix.sum(axis=0).astype(np.int64)
++    gate = votes >= int(quorum)
++    expanded = np.repeat(gate, np.diff(offsets))
++    routed = baseline_z + expanded * (corrected_z - baseline_z)
++    if not np.isfinite(routed).all():
++        raise RuntimeError("consensus response gate produced non-finite scores")
++    return ConsensusReadoutResult(
++        token_step_risk=routed,
++        response_gate=gate,
++        votes=votes,
++        diagnostics={
++            "schema_version": "ciw-cross-scale-response-consensus-v1",
++            "n_response_heads": int(heads.shape[0]),
++            "quorum": int(quorum),
++            "open_fraction": float(np.mean(gate)),
++            "mean_votes": float(np.mean(votes)),
++            "labels_seen_during_gate": False,
++        },
++    )
++
++
+ __all__ = [
+-    "CrossScaleTokenResult", "MAX_GATE", "N_FOLDS", "RIDGE",
+-    "fit_cross_scale_token_head",
++    "ConsensusReadoutResult", "CrossScaleTokenResult", "MAX_GATE", "N_FOLDS",
++    "RIDGE", "consensus_response_gate", "fit_cross_scale_token_head",
+ ]

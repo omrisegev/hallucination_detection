@@ -45,3 +45,7 @@ exact archive members, hashes, original worktree bases and restore instructions.
 Historical worktree files are preserved as snapshots, not activated methods.
 The existing HTML presentations and frozen scientific CSV/JSON files were not
 edited.
+
+## Completed preservation
+
+All 8,253 inventoried source files are preserved in 21 verified Drive archives. The remote check matched all 26 payload objects plus the manifest with zero differences. Source hashes were rechecked after upload and still match. See the archive index for ordered split-part restoration and exact snapshot scope.

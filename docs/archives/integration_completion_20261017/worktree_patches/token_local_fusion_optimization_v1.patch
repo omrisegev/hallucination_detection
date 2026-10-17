@@ -1,0 +1,406 @@
+diff --git a/HISTORY.md b/HISTORY.md
+index 4c98ca2a..59a05b12 100644
+--- a/HISTORY.md
++++ b/HISTORY.md
+@@ -14680,3 +14680,163 @@ Canonical artifacts: `docs/experiments/CIW_CROSS_SCALE_LOCALIZATION_V1.md`,
+ under `local_cache/ciw_cross_scale*_localization_v1/`.
+ 
+ ---
++
++### Step 294 [token localization] — isolate and preregister local fusion optimization
++
++**What**: Created the isolated branch
++`codex/token-local-fusion-optimization-v1` and worktree
++`local_cache/worktrees/token_local_fusion_optimization_v1`. Added a design-only
++protocol for a common 29-stream token-fusion ladder: equal mean, equal-family
++mean, exact IU-PCR, fixed SU-PCR, STG-SU-PCR, DUFS-LIU, token-native continuous
++B3, and token-native CIW-B3. The global response head is fixed to equal-30 for
++the primary ablation so the experiment measures local fusion rather than two
++changes at once.
++
++**Why**: A read-only modern reconstruction on the eight Qwen ProcessBench
++cells found that equal-30 global + IU-local nearly reproduces IU/IU
++(`30.7052%` versus `30.8570%` macro F1), while equal-30 global + equal-29 local
++falls to `26.2942%`. The local-fusion loss is `-4.4110` F1 points with paired
++95% CI `[-5.8843,-2.9406]`; the global-head change is only `-0.1519` points,
++CI `[-0.6132,+0.3005]`. Token fusion, not response fusion, is therefore the
++specific optimization target.
++
++**Result**: The next-session research contract is documented at the design
++level and still requires an executable hash freeze before fitting. ProcessBench
++first-error localization is primary, PRMBench every-step ranking
++is a separate transfer panel, and detector/clean-abstention metrics remain
++separate from locator metrics. Targets may not select gates, supports,
++regularization, reducers, or blend strengths. This step ran no fit, opened no
++new label, created no score artifact, and makes no performance claim. Current
++populations remain retrospective; promotion requires a frozen score boundary
++and later confirmation on a new population.
++
++Canonical protocol:
++`docs/experiments/TOKEN_LOCAL_FUSION_OPTIMIZATION_V1.md`.
++
++### Step 295 [token localization] — execute the audited Phase-1 fusion ladder and retain IU29
++
++**What**: Implemented one immutable 29-stream token preparation and the six
++registered Phase-1 local heads: equal feature, equal provenance family, exact
++IU, SU, five-fold STG-selected SU, and DUFS-LIU. Added support-permutation and
++graph-permutation controls, prescribed-support SU fitting, exact score
++reconstruction, deterministic A/B fit runners, a hash-gated post-audit
++evaluator, and focused mechanical/regression tests. An initial dense-support
++STG smoke and a later freeze missing the required environment binding were
++both rejected before target import and retained under explicit superseded
++paths.
++
++**Audit boundary**: The final nine-cell A/B score trees are byte-identical.
++Manifest SHA-256 is
++`901b5e257679313b553a5153b6a503daeaf66c3e5c04f81eaf9eb7c8964c1d27`;
++environment SHA-256 is
++`231f4d78880265d59a7a4fee16beb51d6d488c6e6af2571bd0ba00ae52cb332a`.
++An independent pre-label agent recomputed all manifest, environment, record,
++score, preparation, method-fit, and support hashes; reconstructed all combined
++scores; verified every real STG support as uncapped and theorem-valid; and
++issued PASS before labels were opened. Missing-certificate execution failed
++closed as required.
++
++**Result**: With equal-30 fixed globally, `LOCAL_IU29` reaches ProcessBench
++macro F1 `0.307052`. `LOCAL_STG_SU29` reaches `0.307343`, a delta of only
++`+0.000292` with 20,000-draw paired 95% CI
++`[-0.004194,+0.004824]`, five of eight wins/ties, and worst-cell delta
++`-0.009267`. It fails the registered `+0.005` effect, positive-lower-bound,
++and six-of-eight gates. `LOCAL_SU29` changes F1 by `-0.003118`; DUFS-LIU29 by
++`-0.005313`. Equal-family reaches `0.258841`, below equal-feature `0.262942`.
++PRMBench AUROC changes for SU/STG/DUFS versus IU are respectively
++`+0.000147/-0.000317/+0.000388`, too small to change the primary decision.
++
++**Decision / boundary**: No challenger is promoted; retain `LOCAL_IU29`.
++The result is retrospective development evidence and not fresh confirmation.
++Phase 2 token-native B3 and CIW-B3 were not implemented or run and remain
++paused at the requested boundary.
++
++Canonical artifacts: `results/token_local_fusion_optimization_v1/`, including
++`PRELABEL_AUDIT_REPORT.md`, `phase1_fit_A/SCORE_FREEZE_MANIFEST.json`, and
++`phase1_evaluation/REPORT.md`.
++
++---
++
++### Step 296 [token localization] — test Unified-28 transform clustering and reject hierarchical compression
++
++**What**: Independently adapted the external Claude Token-Head Feature Atlas
++claim to the signed target-free localization release.  Reconstructed the seven
++linear Unified-28 base risks from prepared coordinates, replayed `level`,
++`ewma16`, `positive_area`, and `persistence`, and compared flat IU against a
++four-block transform hierarchy, a seven-block source hierarchy, and 20 fixed
++capacity-matched random partitions on 12 ProcessBench model-family cells.  The
++protocol, A/B freezes, source/environment closure, serialized models, and
++post-audit evaluator are hash-bound.
++
++**Audit boundary**: An initial freeze was rejected because its status/source
++closure/tests were incomplete.  A second attempted refit was interrupted when
++the independent auditor found that the shared manifest validator materialized
++forbidden `response_scores`.  The final runner uses metadata-only manifest
++validation and a guarded seven-member NPZ loader.  Eight focused tests pass;
++the final A/B trees are byte-identical at manifest SHA-256
++`8402c816fb6c1b7fe0146fa0db7ddf970b0347419ed78dd51ccfdaf150583a30`.
++The independent auditor and the bound verifier both reconstructed all 288
++method-cell step-score vectors byte-exactly with maximum error `0.0`, then the
++auditor issued PASS before any target table was opened.
++
++**Result**: The correlation premise passes in 12/12 cells: same-transform mean
++absolute Spearman `0.901102`, same-source `0.565975`, neither `0.524352`.
++However `TRANSFORM_HIER_IU28` scores `0.223201` macro F1 versus `0.243743` for
++`FLAT_IU28`, delta `-0.020542` with paired 95% CI
++`[-0.030048,-0.010891]`; it wins/ties in only three of 12 cells and has a
++worst-cell delta of `-0.071801`.  Source hierarchy is `0.213973` and the
++20-partition random-mean control `0.219656`.  Equal-28 reaches `0.249465`, but
++its `+0.005722` delta interval versus flat IU touches zero.
++
++**Decision**: The descriptive transform-block geometry is real, but scalar
++hierarchical IU compression is harmful and is not promoted.  This
++retrospective pure-token diagnostic is not directly comparable to the Phase-1
++equal-global absolute F1 and does not reopen clustering without a new
++mechanism, frozen protocol, and fresh population.
++
++Canonical artifacts: `docs/experiments/UNIFIED28_TRANSFORM_CLUSTERING_V1.md`
++and `results/unified28_transform_clustering_v1/`.
++
++---
++
++### Step 297 [token localization] — implement target-free temporal-innovation B3 and stochastic support lane
++
++**What**: Implemented the registered `TOKEN_LOCAL_TEMPORAL_INNOVATION_B3_V1`
++lane in the isolated optimization worktree.  The scorer keeps all 29 original
++token channels, adds causal residuals for the nine source/operator streams, and
++fits five fixed arms: B3, self-only innovation, all-rook innovation,
++Projected-STG rook innovation, and a cardinality-matched non-rook control.
++Projected-STG uses 36 static clipped-Gaussian gates, held-question one-SE
++selection, whole-question bootstrap stability, and an exact 16-subset audit.
++
++**Safety boundary**: Added a token-only prepared-cell loader that validates the
++shared NPZ roster while never indexing `response_scores`; the score runner does
++not import target/evaluator modules.  Added a separate post-audit evaluator
++whose first target-bearing import occurs only after Phase-1 and Phase-2 freeze
++certificates pass.  Added hash-bound target-free and post-audit plotting tools
++for variant correlations, A/B score differences, support stability, and F1/CI
++comparisons.
++
++**Tests**: Nine Phase-2 synthetic/mechanical tests and all six Phase-1
++regression tests pass.  They cover sparse-rook recovery, the self-only null,
++time-shift and future perturbations, row boundaries, exact B3 zero-extension,
++additive-logit reconstruction, five-fold/five-seed fitting, and the forbidden
++response-score loader boundary.
++
++The real prepared-release metadata gate passes all 13 available cells under a
++guarded archive-member check, and real PSTG support selection passes all five
++folds on the smallest Qwen cell with 12/36 edges per fold.  A default B3 seed
++was stopped after more than two minutes of compute; the full 100-epoch/5-MALA
++freeze is therefore a batch/cluster execution item, not a completed result.
++
++**Boundary**: No real Phase-2 score freeze, labels, evaluation, or fresh
++confirmation has run because the prepared localization release is not present
++in this worktree.  No commit, merge, push, or Drive mutation was performed.
++
++Canonical implementation: `spectral_utils/token_temporal_innovation_b3.py`,
++`scripts/reconstruction_benchmark/run_token_local_temporal_innovation_b3.py`,
++`scripts/reconstruction_benchmark/evaluate_token_local_temporal_innovation_b3.py`,
++`scripts/reconstruction_benchmark/plot_token_local_temporal_innovation_b3.py`,
++and `docs/experiments/TOKEN_LOCAL_TEMPORAL_INNOVATION_B3_V1.md`.
++
++---
+diff --git a/PROGRESS.md b/PROGRESS.md
+index a67be327..1dca8f5a 100644
+--- a/PROGRESS.md
++++ b/PROGRESS.md
+@@ -1,5 +1,117 @@
+ # Spectral Hallucination Detection — Session Progress Handoff
+ 
++**Phase 2 implementation (2026-08-28 — Step 297):** The next registered lane,
++`TOKEN_LOCAL_TEMPORAL_INNOVATION_B3_V1`, is implemented in the isolated
++`codex/token-local-fusion-optimization-v1` worktree.  It adds the five frozen
++arms (`LOCAL_TOKEN_B3`, self-only, rook-all, Projected-STG rook, and non-rook
++control), causal lagged innovations on the nine atomic source/operator streams,
++static 36-edge Gaussian gates, five-fold held-question fitting, whole-question
++bootstrap stability, exact 16-subset checks, and a gain-zero delegation to the
++existing B3 implementation.  The target-free runner uses a token-only NPZ
++loader that validates the complete archive roster but never materializes
++`response_scores`.
++
++Nine mechanical/synthetic Phase-2 tests pass, including sparse-rook recovery,
++self-only null, time-shift control, future-perturbation/prefix invariance,
++row-boundary protection, additive-logit reconstruction, exact B3 zero-extension,
++the five-fold/five-seed ladder, and the token-only loader firewall.  A separate
++post-audit evaluator and hash-bound plotting script are implemented but have
++not run: the prepared localization release needed for a real Phase-2 freeze is
++not present in this worktree.  No new labels, evaluation tables, fresh models,
++or confirmation results exist yet; do not claim a Phase-2 winner.
++
++The real prepared-release token-only manifest gate also passes for all 13
++available cells under a guarded `NpzFile.__getitem__` check: no
++`response_scores` member is indexed.  On the smallest Qwen cell, real PSTG
++support selection passes all five outer folds with 12/36 selected edges per
++fold.  A full B3 default fit is deliberately not reported as complete: one
++real seed remained compute-bound for more than two minutes and was stopped;
++the registered 100-epoch/5-MALA score freeze should run as a batch/cluster
++job, then be audited and reproduced A/B.
++
++**Unified-28 transform-clustering diagnostic (2026-08-28 — Step 296):** The
++external Claude artifact's narrow structural claim was tested on all 12 frozen
++ProcessBench model-family cells.  The target-free premise reproduces strongly:
++mean absolute Spearman correlation is `0.901102` for same-transform/different-
++source pairs, versus `0.565975` for same-source/different-transform pairs and
++`0.524352` for neither.  The ordering holds in 12/12 cells and in each scorer
++model; the two leading correlation components remove `0.983761` of mean
++off-diagonal energy under the registered reconstruction.
++
++The implied hierarchical method nevertheless fails.  Pure token-local
++`TRANSFORM_HIER_IU28` reaches ProcessBench macro F1 `0.223201`, versus
++`0.243743` for `FLAT_IU28`: delta `-0.020542`, paired 95% CI
++`[-0.030048,-0.010891]`, only three of 12 cell wins/ties, and worst-cell delta
++`-0.071801`.  Transform grouping is less bad than source grouping (`0.213973`)
++and the fixed 20-partition random-mean control (`0.219656`), but that does not
++offset the loss versus no grouping.  Equal-28 is `0.249465`, a tentative
++`+0.005722` versus flat IU whose interval touches zero
++`[-0.000012,+0.011555]`; it is not a registered promotion result.
++
++The final 12x24 A/B score trees are byte-identical (manifest SHA-256
++`8402c816fb6c1b7fe0146fa0db7ddf970b0347419ed78dd51ccfdaf150583a30`).
++An independent agent reconstructed every step score on both trees with zero
++error and certified the response-score/target firewall before labels opened.
++This is a retrospective adaptation, uses pure token scores rather than the
++Phase-1 equal-global combination, and is not numerically comparable to the
++Phase-1 absolute F1.  Do not promote or tune transform clustering from this
++result.  Canonical artifacts are under
++`results/unified28_transform_clustering_v1/`.
++
++**Token-local fusion Phase-1 result (2026-08-28 — Step 295):** The registered
++linear/spectral ladder is implemented and evaluated; no method is promoted.
++Both target-free nine-cell score trees are byte-identical. The corrected
++freeze binds manifest SHA-256 `901b5e257679313b553a5153b6a503daeaf66c3e5c04f81eaf9eb7c8964c1d27`
++and environment SHA-256
++`231f4d78880265d59a7a4fee16beb51d6d488c6e6af2571bd0ba00ae52cb332a`.
++An independent agent recomputed all nested hashes and score reconstructions,
++verified the label firewall, and issued PASS before the evaluator opened any
++ProcessBench or PRMBench target.
++
++With the equal-30 global head fixed, incumbent `LOCAL_IU29` reaches
++ProcessBench macro F1 `0.307052`. The closest challenger, `LOCAL_STG_SU29`,
++reaches `0.307343`: delta `+0.000292`, paired 95% CI
++`[-0.004194,+0.004824]`, and five of eight cell wins/ties. It misses the
++registered `+0.005` effect threshold, positive-lower-bound gate, and six-cell
++consistency gate; even its upper interval endpoint remains below `+0.005`.
++`LOCAL_SU29` is `-0.003118` and `LOCAL_DUFS_LIU29` is `-0.005313` versus IU.
++Equal-family (`0.258841`) is worse than equal-feature (`0.262942`). PRMBench
++differences among IU/SU/STG/DUFS are below `0.0004` AUROC in magnitude and do
++not rescue the ProcessBench failures.
++
++Decision: retain `LOCAL_IU29` for Phase-1. This is retrospective development
++evidence, not fresh confirmation. Phase 2 is now a separate target-free
++implementation lane; its real-cell freeze, audit, evaluation, and fresh
++confirmation remain pending. Canonical Phase-1 artifacts are under
++`results/token_local_fusion_optimization_v1/`, especially
++`phase1_evaluation/REPORT.md`, `PROMOTION_DECISION.csv`, and
++`PRELABEL_AUDIT_REPORT.md`.
++
++**Token-local fusion optimization addendum (2026-08-28 — Step 294):** A new
++isolated research line is prepared on branch
++`codex/token-local-fusion-optimization-v1` in worktree
++`local_cache/worktrees/token_local_fusion_optimization_v1`. This step is a
++design handoff only; the next session must still hash-freeze the executable
++roster before fitting. It has not run a fit or opened a target.
++
++A read-only eight-Qwen ProcessBench reconstruction changed the localization
++priority. Modern aligned IU-global + IU-local scores `30.8570%` macro F1;
++equal-30 global + IU-local scores `30.7052%`; and equal-30 global + equal-29
++local scores `26.2942%`. The equal/equal loss relative to IU/IU is `-4.5628`
++F1 points with paired 95% CI `[-6.0678,-3.0624]`, while replacing only the
++global head changes F1 by `-0.1519` points, CI `[-0.6132,+0.3005]`. Therefore
++the next study holds the global head at equal-30 and isolates token fusion.
++
++The registered ladder is equal-token, equal-family-token, exact IU29, fixed
++SU29, STG-SU29, DUFS-LIU29, token-native continuous B3, and token-native
++CIW-B3. The CIW arm must transform token trajectories themselves and may not
++reuse response-level CIW risk as its local gate. ProcessBench first-error is
++primary; PRMBench every-step ranking is a separate secondary transfer panel.
++All selection is label-free, scores are frozen before evaluation, and current
++populations are retrospective development only. The exact protocol and
++acceptance gates are in
++`docs/experiments/TOKEN_LOCAL_FUSION_OPTIMIZATION_V1.md`.
++
+ **CIW cross-scale localization addendum (2026-08-27 — Step 293):** A new
+ target-free token/response input layer was implemented and evaluated on all 12
+ ProcessBench cells plus PRMBench.  For each of the 29 token streams it predicts
+diff --git a/Research_Directions.md b/Research_Directions.md
+index 08def197..ec75b2aa 100644
+--- a/Research_Directions.md
++++ b/Research_Directions.md
+@@ -3,6 +3,28 @@
+ 
+ ---
+ 
++## Transform clustering — structural premise confirmed, hierarchy rejected (Step 296)
++
++The external Token-Head Feature Atlas identified a real descriptive property
++of Unified-28: causal coordinates cluster more strongly by transform than by
++source stream.  A separate target-free 12-cell diagnostic reproduces the
++ordering in every cell (`0.901102` mean absolute Spearman for same transform,
++`0.565975` for same source, `0.524352` for neither).  This refines the old
++response-level clustered U-PCR failure: the transform blocks exist, so the old
++conclusion should not be stated as "there is no cluster structure."
++
++The stronger algorithmic inference is rejected.  Compressing each transform
++block with IU and then fusing the four block scores loses `0.020542`
++ProcessBench macro F1 versus flat IU, with paired 95% CI
++`[-0.030048,-0.010891]` and only three of 12 cell wins/ties.  Transform
++hierarchy does beat source hierarchy and the fixed random-partition mean at the
++point estimate, so the partition is not arbitrary; the harmful step is the
++hierarchical scalar compression itself.  Equal-28 is slightly above flat IU
++but inconclusive because its paired interval reaches zero.  Therefore this
++finding does not reopen clustering or promote a new localizer.  A future
++mechanism would need to exploit block geometry without collapsing seven
++sources to one scalar, under a new frozen protocol and fresh population.
++
+ ## Active priority — consolidated research program (Step 281)
+ 
+ The canonical cross-front assessment is
+@@ -878,6 +900,82 @@ audit; they are not a reason to create more feature-contract versions.
+ 
+ ### Application priority 1: hallucination localization
+ 
++**Step-295 result:** Phase 1 closes without a promoted token-fusion
++challenger. On the fixed equal-30 global head, `LOCAL_IU29` remains the method
++of record at ProcessBench macro F1 `0.307052`. `LOCAL_STG_SU29` is the closest
++candidate at `0.307343`, but its delta is only `+0.000292`, paired 95% CI
++`[-0.004194,+0.004824]`, with five of eight cell wins/ties. It therefore
++misses the preregistered effect, uncertainty, and consistency gates. SU29
++scores `0.303934`; DUFS-LIU29 scores `0.301739`; equal-family weighting is
++worse than equal-feature weighting. All structured candidates remain within
++`0.0004` PRMBench AUROC of IU, so the secondary panel supplies no rescue.
++
++This is a useful saturation bound: IU recovers `+0.044110` F1 over equal
++token fusion with positive grouped uncertainty, but the tested label-free
++sparse-support and graph refinements do not improve that weighting. The
++near-IU graph-permutation control further limits any claim that DUFS graph
++alignment adds target-relevant signal in this setting. Retain `LOCAL_IU29`,
++do not reinterpret the tiny STG point gain as selection, and pause before
++Phase 2 B3/CIW-B3. Reopening requires either a newly justified mechanism with
++a separate frozen protocol or a genuinely fresh population; the opened Qwen
++cells cannot provide confirmation.
++
++Canonical artifacts:
++`results/token_local_fusion_optimization_v1/phase1_evaluation/REPORT.md` and
++`results/token_local_fusion_optimization_v1/PRELABEL_AUDIT_REPORT.md`.
++
++**Step-297 update:** Phase 2 is now implemented as a separate target-free
++mechanism lane, not yet as evidence of a winner.  `TOKEN_LOCAL_TEMPORAL_INNOVATION_B3_V1`
++keeps all 29 token streams and tests whether causal lagged residuals on nine
++atomic source/operator transforms add signal to B3.  The main support candidate
++is a static 36-edge Projected-STG rook skeleton, selected by held-question MSE,
++one-SE sparsity, whole-question bootstrap stability, and exact four-peer subset
++enumeration.  Self-only and non-rook controls isolate whether any gain is truly
++cross-channel predictive rather than generic residualization.
++
++The literature review supports this narrow design: Gaussian STG and
++Projected-STG provide the static stochastic-support mechanism; GRACE motivates
++skeleton-then-pruning only as an architecture; temporal-bootstrap work supports
++resampling whole questions rather than tokens.  Dynamic NRI/dNRI, contextual
++gates, and history-dependent variance remain out of scope because they can
++become event-dependent detector paths.  The predictive graph is therefore
++named a nuisance-support graph, not a causal/Granger graph.  Nine synthetic and
++mechanical gates pass; real-cell fitting, audit, label evaluation, and fresh
++confirmation remain pending until the prepared localization release is
++available.
++
++The prepared release is now locatable in the adjacent reconstruction-science
++worktree: its 13-cell token-only manifest passes a guarded no-
++`response_scores`-access check.  Real PSTG support selection completes all five
++folds on the smallest Qwen cell with 12/36 edges per fold.  Full default B3
++training is compute-bound on this host (one seed exceeded two minutes), so the
++registered 100-epoch/5-MALA freeze is explicitly a batch/cluster step rather
++than an unreported partial result.
++
++Canonical protocol and implementation:
++`docs/experiments/TOKEN_LOCAL_TEMPORAL_INNOVATION_B3_V1.md` and the Phase-2
++runner/evaluator/plot scripts under
++`scripts/reconstruction_benchmark/`.
++
++**Step-294 update:** the next localization experiment now isolates the local
++fusion mechanism. A read-only modern reconstruction on eight Qwen cells found
++that equal-30 global + IU-local is within `0.1519` F1 points of IU/IU (95% CI
++`[-0.6132,+0.3005]`), whereas replacing the local IU head by equal-29 costs
++`4.4110` points relative to equal-global/IU-local (95% CI
++`[-5.8843,-2.9406]`). This supersedes the older instruction below not to test a
++new fusion family: that instruction applied to static response features, while
++the new evidence identifies token fusion as the remaining application
++bottleneck.
++
++Hold the global head at equal-30 and compare equal token fusion, IU-PCR,
++SU-PCR, STG-SU-PCR, DUFS-LIU, token-native B3, and token-native CIW-B3 on one
++fixed 29-stream input and one evaluator. ProcessBench first-error localization
++is primary; PRMBench every-step ranking is a separate transfer estimand. The
++current populations are historically opened, so this is a planned
++preregistered retrospective mechanism study and any selected method requires
++new-population confirmation. Canonical protocol:
++`docs/experiments/TOKEN_LOCAL_FUSION_OPTIMIZATION_V1.md`.
++
+ **Step-269 scope update:** localization is now co-primary with early/online
+ final-error detection under the joint program at the top of this file. Frozen
+ GL-LIU remains a comparator; it is no longer an instruction to assume a

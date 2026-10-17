@@ -1,0 +1,38 @@
+diff --git a/spectral_utils/dependency_fusion.py b/spectral_utils/dependency_fusion.py
+index 62c79f5d..9c9827fa 100644
+--- a/spectral_utils/dependency_fusion.py
++++ b/spectral_utils/dependency_fusion.py
+@@ -384,6 +384,7 @@ def sparse_upcr_fit(
+     *,
+     var_y=None,
+     scale_ratio=0.25,
++    offdiag_shrinkage=0.0,
+     rank=2,
+     n_components=2,
+     g2_projection_components=1,
+@@ -407,11 +408,17 @@ def sparse_upcr_fit(
+         raise ValueError("F must have shape (features, samples)")
+     if not np.isfinite(F).all():
+         raise ValueError("F contains non-finite values")
++    if not 0.0 <= float(offdiag_shrinkage) < 1.0:
++        raise ValueError("offdiag_shrinkage must be in [0, 1)")
+     m, n = F.shape
+     if m < 3 or n < 3:
+         raise ValueError("sparse U-PCR needs at least 3 features and 3 samples")
+ 
+     C = _symmetrize((F @ F.T) / n)
++    if float(offdiag_shrinkage):
++        iu = np.triu_indices(m, 1)
++        C[iu] *= 1.0 - float(offdiag_shrinkage)
++        C[(iu[1], iu[0])] = C[iu]
+     diag_mean = float(np.mean(np.diag(C)))
+     if var_y is None:
+         var_y = float(scale_ratio) * diag_mean
+@@ -452,6 +459,7 @@ def sparse_upcr_fit(
+         ridge_diagnostics=ridge_diag,
+         meta={
+             "m": int(m), "n": int(n), "scale_ratio": float(scale_ratio),
++            "offdiag_shrinkage": float(offdiag_shrinkage),
+             "diag_mean": diag_mean, "rank": int(rank),
+             "n_components": int(n_components),
+             "g2_projection_components": int(g2_projection_components),

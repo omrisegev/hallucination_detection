@@ -18946,3 +18946,16 @@ preserved; no fits/inference/install were rerun for publication.
 
 **Files**:
 - `results/lr_gap_explanation_draft_2026-10-15/` — EXPERIMENTS_SUMMARY.md, EXPLANATION_HE.md, slides, `analysis/` scripts and JSON/CSV outputs (`feature_weights_N56.png` force-added; `*.png` is gitignored).
+
+
+---
+
+### Step 465 [Codex integration completion] — close integration review and preserve remaining local work (2026-10-17)
+
+**What**: Corrected LR-gap claim boundaries (NNLR signs are oriented with training labels and its regularization differs), pinned the dependency-complete PRM-voters handoff and valid adapter/output aliases, made the independent PRM replay portable with a mandatory fresh destination, added strict integration reading verification, and preserved all six original audit figures. The exact original replay source, review, numerical parity and frozen-file proofs are retained under `docs/reviews/integration_completion_20261017/`.
+
+**Why**: Omri requested completion of the review findings and missing cloud preservation. The LR-gap direction remains closed; no new algorithm, GPU job or benchmark inference was authorized or launched by this completion.
+
+**Result**: 117 unit tests pass and one historical metadata-dependent test is skipped. All 410 replay CSV rows match exactly; 278 reading checks pass; all 11,945 base result CSV/JSON/HTML and tracked seals remain byte-identical. The formerly missing Git parent object was recovered from its source branch and the remote-ref history traversal succeeds.
+
+Drive preservation is verified: 21 archives, 8,253 source files, 4,521,223,525 original bytes / 2,339,085,998 compressed bytes. The checksum check matched 26 storage payloads plus the manifest with zero differences; the remote manifest was read back identically. Split archive parts reassemble to their original hashes, and a downloaded sample passes all 11 member hashes. Index, full member SHA256, five old-worktree patches and restore instructions: `docs/archives/integration_completion_20261017/`. Source worktrees and payloads are preserved. Historical snapshots are not active method adoption. Original presentation HTML and frozen scientific tables/seals are unchanged.

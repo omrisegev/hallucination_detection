@@ -1,3 +1,14 @@
+## 2026-10-17: integration review corrections and verified cloud preservation (Codex)
+
+**START HERE:** [completion record](docs/reviews/integration_completion_20261017/README.md) and [verified archive/restore index](docs/archives/integration_completion_20261017/README.md).
+
+- Corrected the NNLR sign/regularization interpretation; the LR-gap direction remains closed and all reported scores are preserved.
+- PRM-voters handoff now uses dependency-complete Track A and the frozen adapter names. No cluster execution.
+- Independent PRM replay requires a fresh destination and uses a repository source table. All 410 replay rows match exactly.
+- 117 unit tests pass, one skip; strict reading verification passes 278 checks; 11,945 original result/HTML/seal files are byte-identical.
+- All six original audit figures are included in Git. Drive now preserves the inventoried recent payloads and historical loose/modified worktree work: 8,253 files, 4.52 GB before compression, 21 archives, verified remote checksums and restore sample. Exact scope and restore paths are in the archive index.
+- The missing historical Git parent was recovered; remote-ref object traversal succeeds. Original dirty worktrees are preserved, and no presentation HTML, frozen scientific score or benchmark contract was changed.
+
 ## 2026-10-17: integration branch + LR-gap direction closed, Step 464 [LR-gap closed] (Claude)
 
 **START HERE:** HISTORY Step 464 [LR-gap closed] and `results/lr_gap_explanation_draft_2026-10-15/`.
