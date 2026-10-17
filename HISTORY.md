@@ -14601,3 +14601,18 @@ default IU/DUFS contract. Canonical documentation and compact evidence are in
 `docs/experiments/CIW_DEEM_V1.md` and `results/ciw_deem_v1/`.
 
 ---
+
+### Step 291 [prm-voters] — PRMBench step voters pilot execution and gate verification on AIRCC
+
+**What**: Executed and verified the PRMBench step voter pilots (N=30, 35 meta rows) on the `aircc` compute cluster (`power-gpu`, `owner_940`, NVIDIA B200 GPU).
+- Resolved compute node offline installation issues in `nvcr.io/nvidia/pytorch:25.01-py3` by pointing to staged wheels at `/shared/cycle2_tau_averbuch_prj/omrisegev1/wheelhouse/tf_thinkfix_20261010` and installing with `--no-deps "$WHEELS"/*.whl` (resolves `transformers 4.57.6`, `accelerate 1.15.0`, `datasets 5.0.1`, `pyarrow 25.0.1`, `scikit-learn 1.9.1`).
+- Executed all 3 pilot arms:
+  - Job 286481: `uprm_judge` on `Qwen/Qwen3-8B` (35 rows, 1.8s, 0 failed, 0 unscored).
+  - Job 286483: `uprm_judge` on `Qwen/Qwen2.5-14B-Instruct` (35 rows, 2.0s, 0 failed, 0 unscored).
+  - Job 286484: `critic` on `Qwen/Qwen2.5-72B-Instruct` (35 rows, 12m50s, 0 failed, 0 unscored, 0 truncated).
+- Verified that Track B PRMs (`qwen_prm_72b`, `rlhflow`, `pure`, `mathshepherd`) were already executed on Oct 13-14 in `/shared/cycle2_tau_averbuch_prj/omrisegev1/results/prm_boost_gen_v1/full_*`, avoiding ~100+ redundant GPU hours.
+- Downloaded pilot manifests and cached pkls; prepared comprehensive session handoff guide for Claude in `docs/experiments/PRMBENCH_STEP_VOTERS_CLAUDE_HANDOFF.md`.
+
+**Result**: All pilot gate criteria passed cleanly. Full run chains (`uprm_qwen3_8b_full`, `uprm_qwen25_14b_full`, `critic_qwen72b_full`) ready for execution on `aircc`.
+
+---
