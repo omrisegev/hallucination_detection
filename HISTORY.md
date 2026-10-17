@@ -18733,6 +18733,8 @@ confirmation remain outside this completion. Existing dirty work was preserved.
 
 **Git publication follow-up (2026-10-12):** The reading delivery and next-agent prompt are published on `codex/advisor-v11-completion`. The full binary bundle remains outside Git; see its RAW_DATA_CATALOG. This is not a Claude Artifact update or a new numerical experiment.
 
+**Git publication follow-up (2026-10-12):** The reviewed v11 reading delivery and next-agent count-estimator prompt were committed and pushed on `codex/advisor-v11-completion`, commit `07cb7a45fb01ab62ade51fa5e59717c1f27fd8ff`. Remote branch SHA and GitHub file blobs were verified. Original full bundle hashes remain unchanged; large NPZ/PKL payloads are outside Git and catalogued in the reading delivery. The Claude Artifact was not updated. The publication worktree is clean; this original checkout and its pre-existing dirty changes were preserved.
+
 ---
 
 ### Step 292 [label-free error count] — quota sensitivity confirmed, tested A–D family closes without a supported improvement (2026-10-12)
@@ -18789,3 +18791,139 @@ emission model with explicit dependence/heterogeneity remains an unexecuted
 next hypothesis.
 
 **Git publication follow-up (2026-10-12):** The completed error-count reading delivery is on `codex/label-free-error-count-v1`, based on the advisor v11 publication. The full numerical bundles remain local; reading-delivery manifests and payload catalogs distinguish them. This does not update a Claude Artifact or claim external validation.
+
+**Error-count Git publication follow-up (2026-10-12):** The completed reading delivery is committed and pushed on `codex/label-free-error-count-v1`, commit `6a0b870023acd4c2af9d05040451b33c2e63894d`, based on advisor v11 `07cb7a45`. Remote branch SHA and the Claude review-guide bytes were independently verified. Code, all CSV/JSON evidence, fitted models, figures and review instructions are in Git; full NPZ arrays remain local with a hash catalog. The original sealed study and advisor package remain unchanged. The publication worktree is clean; this original checkout and its prior dirty work remain preserved. This is preparation for Claude review, not a claim that Claude reviewed or received a message.
+
+---
+
+### Step 293 [clustered IU-PCR PRMBench] — the specified two-level filtered hybrid loses on N16 and N56 (2026-10-12)
+
+**What**: Implemented the explicitly requested continuous L-SML clustering phase,
+then donor-fitted IU-PCR relevance selection and survivor refits within clusters,
+followed by the same operations across cluster scores. Reused each source fold's
+exact continuous L-SML partition and fixed corrected answer-z N16/N56 inputs.
+The approved rule is rho_hat >= max(0.05*var_y, rho_hat_max/3), applied once per
+level. Singletons pass through and pairs use signed continuous L-SML, including
+after deletion. No top-three restoration, repeated filtering, label sign repair,
+parameter tuning or added candidate sweep. Both baselines use their canonical
+advisor v11 entry point.
+
+**Why**: Omri proposed dependence-aware grouping before IU-PCR and requested
+comparison with IU-PCR and continuous L-SML on the two PRMBench feature banks.
+
+**Result**: All 10 source-group fits cover 6,969 answers / 94,203 steps. N16
+within-answer AUC: hybrid 0.771874, IU-PCR 0.780467, L-SML 0.778901; deltas are
+-0.8593pp / -0.7027pp. N56: 0.735463 / 0.764067 / 0.770411; deltas are
+-2.8604pp / -3.4949pp. All four Bonferroni simultaneous source-group bootstrap
+intervals are negative; every individual fold trails both baselines. The fixed
+donor-global Q80 threshold on answer-z fused scores yields pooled noncontrol
+macro-F1 (count-study PRMScore convention) of 0.647381 versus 0.653859/0.653866
+on N16 and 0.618612 versus 0.641189/0.640995 on N56. The type panel is separate
+from this pooled score. N16 retains all inputs in four folds; in fold 3 it keeps
+15 within-cluster features and 4/6 clusters, leaving nine active features. N56
+keeps 47 features and all eight clusters in every fold. This bounds the negative
+result to the specified method and current previously inspected development data.
+
+**Verification/state**: Five scientific unit tests pass via unittest (pytest is
+absent; no installation). Both baselines reproduce saved advisor v11 scores to
+1e-9. Ten fresh label-free hybrid replays, independently composed saved-stage
+holdout scores, survivor masks, source disjointness, Q80 flags and prediction
+seal/input/runtime hashes pass. Canonical package:
+`results/clustered_iu_prmbench_v1_2026-10-12/`. Retain the matched baselines.
+Local CPU, uncommitted/unpushed; no GPU/cluster/install/Drive mutation. Earlier
+dirty work and the sealed advisor/count-study packages remain unchanged.
+
+---
+
+### Step 294 [F1/F2/F7 PRMBench] — strongest individual families do not improve the joint fusion (2026-10-12)
+
+**What**: Published the six-option interactive signal gallery as nine bounded
+files on `codex/advisor-v11-completion`, commit
+`f54aa8113719d8ab9f96a9eea5dd7dc2ab5ca3b5`, from the clean isolated publication
+worktree. Remote branch SHA and GitHub HTML blob verified. The original advisor
+page and large frozen results remain unchanged. Subsequently ran the explicitly
+requested F1/F2/F7-only flat channel union with canonical Continuous L-SML and
+IU-PCR on the corrected PRMBench five source-disjoint folds. N56 has 27 selected
+channels (18+6+3); N16 has 11 (5+3+3). Donor-fitted ANSWER_Z_Q80 and inherited
+label-free signs are unchanged. No family averages, imposed clusters, new
+thresholds, sign repair or fallback.
+
+**Why**: Omri selected the three families after inspecting descriptive rank
+paths in gallery E and asked whether their joint fusion can outperform the
+full bank. The size-three check confirmed automatic L-SML defaults to K=2 and
+is rejected by the canonical K>=3 guard; direct three-input IU-PCR is supported
+and need not have equal weights. The actual union has many more than three
+inputs. L-SML selects K=7 on 27 and K=4 on 11 in every fold.
+
+**Result**: N56 subset L-SML/IU within-answer AUC is .760870/.760831 versus
+full-bank .770411/.764067; official Overall Q80 PRMScore is .638063/.641016
+versus .640995/.641189. N16 subset AUC is .777155/.776985 versus
+.778901/.780467; PRMScore is .653391/.652554 versus .653866/.653859. All four
+pointwise paired source-group AUC intervals are negative; only N56 L-SML's
+PRMScore decline separates zero. Individual-family rankings do not measure
+joint complementary information or estimator changes. Family choice was
+post-hoc on previously inspected development data, so this is descriptive
+internal validation and does not promote a new feature contract.
+
+**Verification/state**: All 40 canonical full/subset fits independently replay
+exactly; eight within-answer AUCs over 6,030 eligible answers match sklearn
+exactly. Official PRMScore parity is <=1.11e-16 on 6,211 noncontrols / 83,371
+steps. All donor thresholds/test flags, group-disjoint identities, prediction
+seals, hashes and shared bootstrap intervals pass. Independent review accepted
+the complete comparison. Scores, flags, effective weights, source groups,
+per-answer metrics and bootstrap draws are retained in
+`results/family_127_prmbench_v1_2026-10-12/`; see `REVIEW.md` and
+`FINDINGS_HE.md`. Experiment remains local/uncommitted/unpushed; only gallery
+publication was authorized. No install/GPU/cluster/Drive mutation. Existing
+dirty changes and frozen packages preserved.
+
+---
+
+### Step 295 [gallery conditional-error diagnostic] — add dependence dimension and raw performance curves (2026-10-12)
+
+**What**: Extended the interactive advisor-signal gallery with G (performance
+plus empirical conditional classification-error dependence) and H (raw
+member-channel AUC/PRMScore paths instead of ranks). G uses per-feature Q80
+decisions fitted on donor source folds, with predictions sealed before label
+evaluation. It averages absolute pairwise phi over the same eligible peers
+inside each truth class and displays the larger class mean. Peer selection is
+explicit; self/constant/absent-class pairs remain undefined. Bubble area or a
+direct Y axis exposes the diagnostic; tooltips disclose error rates, counts,
+eligible peers and signed phi for a single reference. H summarizes family
+member scores or features selected in B; it is not a family-fusion experiment.
+MS uses valid-step F1 and is separated from the eight macro-F1 paths.
+
+**Why**: Omri requested an extra dimension showing dependence of feature
+mistakes conditional on truth, and an E-style graph showing actual AUC/PRMScore
+instead of rank. Low pairwise association is not proof of joint conditional
+independence or useful fusion; negative correlation is dependence too.
+
+**Result/verification**: All 56 source-OOF feature decisions and donor
+thresholds replayed independently. Official evaluator parity passed for every
+feature overall and across nine subtypes; 282 independent phi/MI checks and
+40 sklearn F1 checks passed, including binary independent/opposed/constant/
+missing-class fixtures. Noncontrol dependence uses 70,222 valid and 13,149
+erroneous steps; MS has 2,241 valid and no erroneous steps. UI review accepted
+same-peer aggregation, undefined handling, source mapping and metric labels.
+Browser controls and 56/16 G points, N16 45 family PRM points, 27 feature PRM
+points and position-control invariance of PRM values were checked. A–F display
+DATA.json remains byte-identical to f54aa811. Raw evidence and hashes are in
+`results/signal_gallery_extensions_2026-10-12/`; gallery source/template and
+updated review are under `docs/reviews/signal_visualization_options_20261012/`.
+No model inference/new fusion fit/install/GPU/cluster/Git publication. Local
+extensions remain uncommitted/unpushed; prior dirty work preserved.
+
+---
+
+**Step 295 Git publication follow-up (2026-10-13):** User authorized adding
+G/H to the remote gallery. The bounded A–H reading delivery was committed and
+pushed on `codex/advisor-v11-completion` in
+`20e7fe874bb480adc506f80228c358f15306e6a8`. Independent staged audit accepted
+21 changed files / 23 delivery files, exact hashes, unchanged A–F display data,
+self-contained HTML and exclusion of unrelated experiments/raw NPZs. Remote
+branch SHA and GitHub HTML/extension-data blobs match the local commit. The
+publication worktree is clean. Two raw NPZs remain locally hash-catalogued;
+full numerical replay still needs frozen v11 arrays outside Git. This is a
+Git reading delivery, not a hosted deployment or Claude.ai Artifact update.
+The root checkout's existing dirty changes and sealed scientific sources were
+preserved; no fits/inference/install were rerun for publication.

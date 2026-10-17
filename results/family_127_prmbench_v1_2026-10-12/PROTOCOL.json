@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "status": "LOCKED_BEFORE_NEW_FITS",
+  "origin": "user chose F7/F2/F1 after inspecting gallery E; exploratory post-hoc development diagnostic",
+  "primary_bank": "N56 -> 27 raw channels",
+  "sensitivity_bank": "N16 -> 11 raw channels",
+  "methods": [
+    "LSML_CONT",
+    "IU_PCR"
+  ],
+  "arms": [
+    "FULL",
+    "F127"
+  ],
+  "selection": "fixed family taxonomy F1/F2/F7; flat fusion of individual member channels",
+  "not_three_views": "family means are not supplied as three inputs; LSML automatically derives clusters",
+  "failure_policy": "LSML automatic K<3 or any invalid fit: failed fold, no fallback or forced regrouping",
+  "inputs": "corrected thinkfix mask1 signed answer-z V; inherited label-free signs; higher score = error",
+  "split": "unchanged five FOLDS_V2 source-disjoint outer folds",
+  "normalization": "LSML original answer-z channels; IU training-only mean/population SD",
+  "decision": "ANSWER_Z_Q80: donor global 0.8 quantile after per-answer z of fused score; holdout z >= threshold",
+  "primary_endpoints": [
+    "mean within-answer AUC",
+    "official evaluator Overall PRMScore"
+  ],
+  "official_score": "0.5*(total.f1+total.negative_f1); correct controls excluded; NR/NCL validity fallback",
+  "type_display": "MS valid-step F1 only; other error types macro-F1; categories equal subtype means",
+  "uncertainty": "5000 shared bootstrap draws of 707 source groups; paired subset minus full; pointwise 95% descriptive",
+  "multiplicity": "no promotion test; no variant search or external confirmation",
+  "seed": 20261012,
+  "families": {
+    "F1": [
+      "q15_H1",
+      "q15_VE1",
+      "logprob_margin",
+      "true_tail50",
+      "energy_level",
+      "ct7_H0lim",
+      "ct7_ve0",
+      "ct7_ve0.75",
+      "ct7_ve1",
+      "hist_entropy_series",
+      "hist_topk_entropy_series",
+      "hist_topk_varentropy_series",
+      "hist_topk_renyi2_series",
+      "hist_topk_tail_mass_series",
+      "hist_energy_series",
+      "hist_energy_rolling_min",
+      "hist_top1_logprob_series",
+      "hist_logprob_margin_series"
+    ],
+    "F2": [
+      "chosen_surprisal",
+      "realized_z",
+      "realized_drv",
+      "ct7_chosen_std_excess",
+      "hist_spilled_series",
+      "hist_spilled_rolling_min"
+    ],
+    "F7": [
+      "digit_alternative",
+      "digit_spread",
+      "digit_alternative_innovation"
+    ]
+  }
+}

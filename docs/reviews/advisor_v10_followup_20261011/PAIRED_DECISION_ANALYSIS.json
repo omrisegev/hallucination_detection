@@ -1,0 +1,355 @@
+{
+  "n_answers": 6969,
+  "n_steps": 94203,
+  "n_groups": 707,
+  "bootstrap": {
+    "n_resamples": 5000,
+    "seed": 20261011,
+    "unit": "canonical source group; whole-group multiplicity, original answer/step weights",
+    "interval": "pointwise percentile 95%, no multiplicity or selection adjustment"
+  },
+  "inputs_sha256": {
+    "/Users/osegev/Desktop/hallucination_detection/docs/reviews/advisor_v10_followup_20261011/sources/prmbench_prm.pkl": "95be425c66d4dadc6a8e03567ad66ef2933aee27eb7967bf7200139c56518232",
+    "/Users/osegev/Desktop/hallucination_detection/docs/reviews/advisor_v10_followup_20261011/sources/CANONICAL_GROUPS.json": "63c767ffd373b37fdf08ff9ca7711260daa8ed527266ad5e619b7275015a5d94",
+    "/Users/osegev/Desktop/hallucination_detection/docs/reviews/thinkfix_rescore_review_20261011/sources/prmscore_inputs/bank_N16.npz": "0798f94f6b0aacd550f4c7e7b743d24171757bf6ecb89b2dffff32a1553d79c4",
+    "/Users/osegev/Desktop/hallucination_detection/docs/reviews/thinkfix_rescore_review_20261011/sources/prmscore_inputs/prmbench_meta.json": "eb569f07ce0de61c1344411ecd475af6699e493f3b14f3f417cd3d1618802f51"
+  },
+  "script_sha256": "ecd7cd17fa4b2bbdf9841f1c65b526af1a846bc9fe2187a24fd1be95c5701e4e",
+  "arithmetic_module_sha256": "524d3c1c41e651ec3d9501c4b1a1eab5d2bcc90abef4ead8fc04028e98d1e826",
+  "prm_schema": {
+    "exact_half_rewards": 40,
+    "native_error_flag": "validity reward < 0.5; ties at 0.5 are VALID",
+    "alignment": "exact idx, classification, n_steps, error_steps and cached labels"
+  },
+  "rules": {
+    "LSML_CONT": {
+      "tp_error": 6412,
+      "fp_error": 10184,
+      "fn_error": 6737,
+      "tn_valid": 60038,
+      "f1_error": 0.4311312825684989,
+      "f1_valid": 0.8764863464163449,
+      "prm_score": 0.6538088144924219,
+      "flag_rate_all": 0.20000424614927337,
+      "synthetic_control_false_flag_rate": 0.9947229551451188,
+      "all_error_free_false_flag_rate": 0.9957173447537473
+    },
+    "IU_PCR": {
+      "tp_error": 6405,
+      "fp_error": 10185,
+      "fn_error": 6744,
+      "tn_valid": 60037,
+      "f1_error": 0.4307475032785231,
+      "f1_valid": 0.8764333627730779,
+      "prm_score": 0.6535904330258006,
+      "flag_rate_all": 0.20000424614927337,
+      "synthetic_control_false_flag_rate": 0.9934036939313984,
+      "all_error_free_false_flag_rate": 0.9946466809421841
+    },
+    "ALL_EQ": {
+      "tp_error": 6259,
+      "fp_error": 10349,
+      "fn_error": 6890,
+      "tn_valid": 59873,
+      "f1_error": 0.42067412709614543,
+      "f1_valid": 0.8741541044639924,
+      "prm_score": 0.6474141157800689,
+      "flag_rate_all": 0.20000424614927337,
+      "synthetic_control_false_flag_rate": 0.9947229551451188,
+      "all_error_free_false_flag_rate": 0.9957173447537473
+    },
+    "DS_FILTER_EQ": {
+      "tp_error": 6376,
+      "fp_error": 10204,
+      "fn_error": 6773,
+      "tn_valid": 60018,
+      "f1_error": 0.4289414376534697,
+      "f1_valid": 0.8760920496595214,
+      "prm_score": 0.6525167436564956,
+      "flag_rate_all": 0.20000424614927337,
+      "synthetic_control_false_flag_rate": 0.9907651715039578,
+      "all_error_free_false_flag_rate": 0.9925053533190579
+    },
+    "PRM_NATIVE": {
+      "tp_error": 4006,
+      "fp_error": 3206,
+      "fn_error": 9143,
+      "tn_valid": 67016,
+      "f1_error": 0.39349737242768035,
+      "f1_valid": 0.9156379584782178,
+      "prm_score": 0.6545676654529491,
+      "flag_rate_all": 0.07874483827478955,
+      "synthetic_control_false_flag_rate": 0.18997361477572558,
+      "all_error_free_false_flag_rate": 0.17130620985010706
+    }
+  },
+  "oracle_diagnostics": {
+    "LSML_CONT": {
+      "PERFECT_RANKING_AT_FIXED_COUNTS": {
+        "tp_error": 10430,
+        "fp_error": 6166,
+        "fn_error": 2719,
+        "tn_valid": 64056,
+        "f1_error": 0.7012943351823836,
+        "f1_valid": 0.9351445652094571,
+        "prm_score": 0.8182194501959204
+      },
+      "warning": "Uses true step labels for placement; counts are frozen. Diagnostic, not attainable method performance.",
+      "TRUE_COUNT_ORACLE": {
+        "tp_error": 6887,
+        "fp_error": 6262,
+        "fn_error": 6262,
+        "tn_valid": 63960,
+        "f1_error": 0.5237660658605218,
+        "f1_valid": 0.9108256671698328,
+        "prm_score": 0.7172958665151773
+      }
+    },
+    "IU_PCR": {
+      "PERFECT_RANKING_AT_FIXED_COUNTS": {
+        "tp_error": 10441,
+        "fp_error": 6149,
+        "fn_error": 2708,
+        "tn_valid": 64073,
+        "f1_error": 0.7021755943374021,
+        "f1_valid": 0.9353517806179427,
+        "prm_score": 0.8187636874776724
+      },
+      "warning": "Uses true step labels for placement; counts are frozen. Diagnostic, not attainable method performance.",
+      "TRUE_COUNT_ORACLE": {
+        "tp_error": 6875,
+        "fp_error": 6274,
+        "fn_error": 6274,
+        "tn_valid": 63948,
+        "f1_error": 0.5228534489314777,
+        "f1_valid": 0.910654780553103,
+        "prm_score": 0.7167541147422903
+      }
+    },
+    "ALL_EQ": {
+      "PERFECT_RANKING_AT_FIXED_COUNTS": {
+        "tp_error": 10404,
+        "fp_error": 6204,
+        "fn_error": 2745,
+        "tn_valid": 64018,
+        "f1_error": 0.69926403871358,
+        "f1_valid": 0.9346716793809541,
+        "prm_score": 0.8169678590472671
+      },
+      "warning": "Uses true step labels for placement; counts are frozen. Diagnostic, not attainable method performance.",
+      "TRUE_COUNT_ORACLE": {
+        "tp_error": 6709,
+        "fp_error": 6440,
+        "fn_error": 6440,
+        "tn_valid": 63782,
+        "f1_error": 0.5102289147463686,
+        "f1_valid": 0.9082908490216741,
+        "prm_score": 0.7092598818840213
+      }
+    },
+    "DS_FILTER_EQ": {
+      "PERFECT_RANKING_AT_FIXED_COUNTS": {
+        "tp_error": 10421,
+        "fp_error": 6159,
+        "fn_error": 2728,
+        "tn_valid": 64063,
+        "f1_error": 0.7010662989000639,
+        "f1_valid": 0.935137541693124,
+        "prm_score": 0.818101920296594
+      },
+      "warning": "Uses true step labels for placement; counts are frozen. Diagnostic, not attainable method performance.",
+      "TRUE_COUNT_ORACLE": {
+        "tp_error": 6855,
+        "fp_error": 6294,
+        "fn_error": 6294,
+        "tn_valid": 63928,
+        "f1_error": 0.5213324207164043,
+        "f1_valid": 0.91036996952522,
+        "prm_score": 0.7158511951208122
+      }
+    },
+    "PRM_NATIVE": {
+      "PERFECT_RANKING_AT_FIXED_COUNTS": {
+        "tp_error": 5782,
+        "fp_error": 1430,
+        "fn_error": 7367,
+        "tn_valid": 68792,
+        "f1_error": 0.567948529050636,
+        "f1_valid": 0.93990340276402,
+        "prm_score": 0.753925965907328
+      },
+      "warning": "Uses true step labels for placement; counts are frozen. Diagnostic, not attainable method performance.",
+      "TRUE_COUNT_ORACLE": {
+        "tp_error": 7057,
+        "fp_error": 6092,
+        "fn_error": 6092,
+        "tn_valid": 64130,
+        "f1_error": 0.5366948056886455,
+        "f1_valid": 0.9132465609068383,
+        "prm_score": 0.7249706832977418
+      },
+      "GLOBAL_THRESHOLD_ORACLE": {
+        "tp_error": 7005,
+        "fp_error": 9172,
+        "fn_error": 6144,
+        "tn_valid": 61050,
+        "f1_error": 0.4777330696310441,
+        "f1_valid": 0.8885428188857193,
+        "prm_score": 0.6831379442583817,
+        "risk_cut": 0.11328125,
+        "flag_rate_all": 0.18055688247720347,
+        "gain_over_native": 0.028570278805432614
+      }
+    }
+  },
+  "contrasts": [
+    {
+      "subset": "ALL_NONCONTROL",
+      "left": "LSML_CONT",
+      "right": "ALL_EQ",
+      "metric": "PRMScore",
+      "difference": 0.006394698712352986,
+      "ci_low": 0.0039049100244721,
+      "ci_high": 0.008921093481555271
+    },
+    {
+      "subset": "ALL_NONCONTROL",
+      "left": "IU_PCR",
+      "right": "ALL_EQ",
+      "metric": "PRMScore",
+      "difference": 0.006176317245731644,
+      "ci_low": 0.003821075042354638,
+      "ci_high": 0.008486742596713814
+    },
+    {
+      "subset": "ALL_NONCONTROL",
+      "left": "LSML_CONT",
+      "right": "DS_FILTER_EQ",
+      "metric": "PRMScore",
+      "difference": 0.0012920708359263067,
+      "ci_low": -0.0005996118583672134,
+      "ci_high": 0.0032402636728900134
+    },
+    {
+      "subset": "ALL_NONCONTROL",
+      "left": "LSML_CONT",
+      "right": "PRM_NATIVE",
+      "metric": "PRMScore",
+      "difference": -0.0007588509605271909,
+      "ci_low": -0.007668249240251409,
+      "ci_high": 0.006360792429742403
+    },
+    {
+      "subset": "ALL_NONCONTROL",
+      "left": "IU_PCR",
+      "right": "PRM_NATIVE",
+      "metric": "PRMScore",
+      "difference": -0.0009772324271485333,
+      "ci_low": -0.007893639026186266,
+      "ci_high": 0.006105715021809601
+    },
+    {
+      "subset": "redundency",
+      "left": "LSML_CONT",
+      "right": "ALL_EQ",
+      "metric": "PRMScore",
+      "difference": 0.016599217146082812,
+      "ci_low": 0.010529689023426223,
+      "ci_high": 0.02290939258903193
+    },
+    {
+      "subset": "redundency",
+      "left": "IU_PCR",
+      "right": "ALL_EQ",
+      "metric": "PRMScore",
+      "difference": 0.014105825909849434,
+      "ci_low": 0.008355256139986403,
+      "ci_high": 0.019927983363303384
+    },
+    {
+      "subset": "redundency",
+      "left": "LSML_CONT",
+      "right": "DS_FILTER_EQ",
+      "metric": "PRMScore",
+      "difference": 0.00755092322490547,
+      "ci_low": 0.0026137871183284592,
+      "ci_high": 0.012669550919932705
+    },
+    {
+      "subset": "redundency",
+      "left": "LSML_CONT",
+      "right": "PRM_NATIVE",
+      "metric": "PRMScore",
+      "difference": 0.20909460627348153,
+      "ci_low": 0.19341156830451822,
+      "ci_high": 0.22502171057869627
+    },
+    {
+      "subset": "redundency",
+      "left": "IU_PCR",
+      "right": "PRM_NATIVE",
+      "metric": "PRMScore",
+      "difference": 0.20660121503724815,
+      "ci_low": 0.19120230887824963,
+      "ci_high": 0.22263437034858294
+    },
+    {
+      "subset": "circular",
+      "left": "LSML_CONT",
+      "right": "ALL_EQ",
+      "metric": "PRMScore",
+      "difference": 0.005178709336279841,
+      "ci_low": -0.002431646056292175,
+      "ci_high": 0.013411209194606725
+    },
+    {
+      "subset": "circular",
+      "left": "IU_PCR",
+      "right": "ALL_EQ",
+      "metric": "PRMScore",
+      "difference": 0.003937183271474076,
+      "ci_low": -0.0034218270754437286,
+      "ci_high": 0.01136564816297747
+    },
+    {
+      "subset": "circular",
+      "left": "LSML_CONT",
+      "right": "DS_FILTER_EQ",
+      "metric": "PRMScore",
+      "difference": -0.002704533169494261,
+      "ci_low": -0.009136969715450988,
+      "ci_high": 0.003983141765913782
+    },
+    {
+      "subset": "circular",
+      "left": "LSML_CONT",
+      "right": "PRM_NATIVE",
+      "metric": "PRMScore",
+      "difference": 0.1301248819534705,
+      "ci_low": 0.11347372104628044,
+      "ci_high": 0.14640320765275325
+    },
+    {
+      "subset": "circular",
+      "left": "IU_PCR",
+      "right": "PRM_NATIVE",
+      "metric": "PRMScore",
+      "difference": 0.12888335588866473,
+      "ci_low": 0.11202603290210872,
+      "ci_high": 0.14514333364213253
+    }
+  ],
+  "limits": [
+    "All data are previously inspected development data, not untouched confirmation.",
+    "Pointwise paired intervals account for source dependence only; not selection or multiple testing.",
+    "Native PRM and Q80 have different flag budgets and supervised versus label-free training.",
+    "Oracle cuts, perfect placement and true counts use labels; no new rule is promoted.",
+    "Dedicated PRM cache lacks a redundancy head; all methods use the same declared validity fallback.",
+    "No raw token lengths/repetition/features, corrected entropy gate, new model inference, or method refitting."
+  ],
+  "checks": {
+    "first_draw_explicit_step_expansion": "PASS for all 15 method/subset cases",
+    "all_bootstrap_step_denominators_positive": true,
+    "native_prm_saved_overall_parity": true
+  }
+}

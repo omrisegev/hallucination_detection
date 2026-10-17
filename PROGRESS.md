@@ -99,7 +99,78 @@ reward clarification. ReasonEval remains optional/blocked. Real GPU T1 and all
 new-model G1/G2 checks remain for Claude; no GPU/cluster jobs or weight downloads.
 Frozen scoring/bank scripts, sbatch and existing result artifacts remain unchanged.
 
-## 2026-10-12: label-free error count closed + advisor v11 CPU completion (Codex, older line merged 2026-10-17)
+## 2026-10-12/13: label-free error count closed, advisor v11 CPU completion, gallery and PRMBench follow-ups (Codex, older line merged 2026-10-17)
+
+**G/H gallery Git publication follow-up (2026-10-13):** The A–H reading
+delivery is committed and pushed on `codex/advisor-v11-completion`, commit
+`20e7fe874bb480adc506f80228c358f15306e6a8`. Remote branch SHA, GitHub HTML
+blob and extension-data blob were verified. Includes the interactive HTML,
+display JSON, CSV/JSON evidence, builders, hashes and review. Two NPZ raw
+arrays remain local with hashes in `GIT_DELIVERY.json`; full numerical replay
+also requires the frozen v11 sources outside Git. The isolated publication
+worktree is clean, and the original dirty checkout/frozen evidence are
+preserved. No deployment or Claude.ai Artifact update occurred. The earlier
+local/unpublished Step 295 status below describes the pre-publication state.
+
+**Signal-gallery G/H extensions (2026-10-12 — Codex; Step 295):** Added a
+performance/conditional-error-dependence view and raw family-performance paths
+to `docs/reviews/signal_visualization_options_20261012/index.html`. G shows
+max of valid/error class-mean absolute phi, over the same eligible peer set,
+as bubble area or an explicit Y axis. Peers can be all other selected channels,
+outside-family channels or one reference. Constant/missing classes stay
+undefined; rates, counts and signed single-peer correlations are disclosed.
+This is descriptive pairwise association, not proof of joint conditional
+independence or fusion usefulness. H switches AUC/PRMScore, family averages/
+selected features, with MS valid-step F1 separated from macro-F1 curves.
+New sealed donor-Q80 per-feature decisions and raw matrices are in
+`results/signal_gallery_extensions_2026-10-12/`. Independent threshold,
+phi/MI, F1 and UI-mapping review passed; base A–F DATA.json is byte-identical.
+Local/uncommitted/unpushed; GitHub still contains the six-view f54aa811 base.
+No model inference, new fusion fit, installs or frozen-package changes.
+
+**F1/F2/F7-only PRMBench diagnostic (2026-10-12 — Codex; Step 294):**
+Completed the user-selected flat union of uncertainty levels, realized surprise
+and digit-alternative channels with canonical Continuous L-SML and IU-PCR.
+Primary N56 subset contains 27 channels; N16 sensitivity contains 11. These are
+individual inputs, not three family averages. L-SML automatically selects seven
+and four groups, respectively, in every source fold; no forced grouping/fallback.
+Start with `results/family_127_prmbench_v1_2026-10-12/index.html`, `FINDINGS_HE.md`
+and `REVIEW.md`. Subset L-SML/IU within-answer AUC is .760870/.760831 on N56
+(full .770411/.764067) and .777155/.776985 on N16 (full .778901/.780467).
+Official Q80 PRMScore is .638063/.641016 and .653391/.652554, respectively.
+All four pointwise source-paired AUC intervals are negative; only N56 L-SML's
+PRMScore decline separates zero. Post-hoc selection from gallery E remains an
+internal development diagnostic, not independent confirmation or a promoted
+label-free selection rule. Independent review reproduced 40 canonical fits,
+6,030-answer AUCs, official scores, thresholds, flags and bootstrap intervals.
+Raw evidence/checkpoints retained locally with hashes; new experiment is
+uncommitted/unpushed. No GPU/cluster/install; earlier dirty work preserved.
+
+**Interactive-gallery Git publication (2026-10-12):** Nine gallery-only files
+were committed/pushed on `codex/advisor-v11-completion`, commit
+`f54aa8113719d8ab9f96a9eea5dd7dc2ab5ca3b5`. Remote branch SHA and the GitHub HTML
+blob were independently verified; publication worktree is clean. Start with
+`docs/reviews/signal_visualization_options_20261012/GITHUB_READING.md`. No hosted
+website deployment, advisor-page replacement or Claude.ai Artifact update.
+
+**Clustered IU-PCR comparison (2026-10-12 — Codex; Step 293):**
+Completed the user-specified continuous L-SML clustering → filtered IU-PCR within
+clusters → filtered IU-PCR across cluster scores on corrected PRMBench N16/N56.
+Start with `results/clustered_iu_prmbench_v1_2026-10-12/index.html`, `README.md`,
+`RESULTS.json` and `AUDIT.json`. All ten source-disjoint fits completed, with
+label-free donor fitting and predictions sealed before evaluation. Both baselines
+reproduce advisor v11 saved scores within 1e-9; ten fresh hybrid replays and five
+scientific unit tests pass. N16 within-answer AUC is 0.771874 versus IU-PCR
+0.780467 and continuous L-SML 0.778901; N56 is 0.735463 versus 0.764067/0.770411.
+All four primary source-paired simultaneous intervals exclude zero negatively;
+the hybrid also trails both baselines in every individual fold. Q80 noncontrol
+pooled macro-F1 declines on both banks. Use the approved relevance rule once per
+level, survivor refits, singleton passthrough and continuous L-SML for pairs;
+never restore three features after deletion. N16 retains every input in four
+folds; N56 retains 47 features and all eight clusters throughout. Decision:
+retain the matched baselines; this specified hybrid does not improve the current
+development population. No added variant sweep or external confirmation.
+Local CPU, uncommitted/unpushed; earlier dirty work and frozen packages preserved.
 
 **Label-free error-count completion (2026-10-12 — Codex; Step 292 [label-free error count]):**
 Closed the preregistered A/B/C/D family on the unchanged local
@@ -164,6 +235,30 @@ Independent arithmetic, telemetry, nested-selection and presentation audits
 are in `review/`. This v11 package is local/uncommitted/unpublished; it does not
 replace the earlier publication record below. No GPU, cluster run or install
 was performed. Future work and the unverified Claude access item remain visible.
+
+**Review addendum (2026-10-11 — Codex; requested remote branch, not this checkout's experiment line):**
+Reviewed `claude/thinkfix-rescore-v1` pinned at `080877eb9a8369341d647f4115a3b475c040b46e`.
+[Detailed review](docs/reviews/thinkfix_rescore_review_20261011/REVIEW.md) and
+[revised visual advisor page](docs/reviews/thinkfix_rescore_review_20261011/advisor_review.html).
+Independent saved-score checks reproduce N16 eight-scorer mean within-answer AUC 0.777760 and
+MEAN_ga global answer-z Q80 pooled macro-F1 0.652258; masking fixtures and score-level null pass.
+Material corrections: self-generation equivalence is unproved (CI exceeds the ±0.03 margin);
+restricted LR subsets use globally supervised selection; entropy gate retains old inputs;
+the displayed Sensitivity mean omits multi-solutions. Fresh directories mitigate demonstrated
+resume identity defects. External rescoring exists in the branch, but raw-cache/full-pipeline
+replay and source-fold disjointness were not independently certifiable from published artifacts.
+The package maps done/remaining work to the October 8 advisor plan. No research code or frozen
+results changed; no model/fusion rerun, cluster job, install, commit or push. This checkout's
+older experiment handoff below is preserved; consolidation completion is not asserted.
+October 11 presentation follow-up: the main page now centers the full corrected PRMBench
+results, Continuous L-SML and IU-PCR, with type AUCs reconstructed from the exported N16
+scores. Prefix history/review moved to supporting material. Mask-only N16 changes are
+−0.000749 / −0.000135 AUC; corrected unmasked results are available as a separate ablation.
+No preprocessing promotion or new model/fusion experiment was performed.
+Publication follow-up: the user authorized GitHub and the original Claude Artifact updates.
+The review package was published to `claude/thinkfix-rescore-v1` in `f05f10b8`; Claude
+published its import copy as version 9 at the original Artifact URL. Codex independently
+verified the public revised page. Publication details are in the package `PUBLICATION.json`.
 
 ## 2026-10-10: handoff for the Thursday meeting and the unfinished consolidation (Claude)
 
@@ -6706,7 +6801,11 @@ token/window sampling shortlist remain pending after this run.
 - LapEigvals integration into spectral_utils — potential Group D feature for M=12, low priority
 **Git publication follow-up (2026-10-12):** The reading delivery and next-agent prompt are published on `codex/advisor-v11-completion`. The full binary bundle remains outside Git; see its RAW_DATA_CATALOG. This is not a Claude Artifact update or a new numerical experiment.
 
+**Git publication follow-up (2026-10-12):** The reviewed v11 reading delivery and next-agent count-estimator prompt were committed and pushed on `codex/advisor-v11-completion`, commit `07cb7a45fb01ab62ade51fa5e59717c1f27fd8ff`. Remote branch SHA and GitHub file blobs were verified. Original full bundle hashes remain unchanged; large NPZ/PKL payloads are outside Git and catalogued in the reading delivery. The Claude Artifact was not updated. The publication worktree is clean; this original checkout and its pre-existing dirty changes were preserved.
+
 **Git publication follow-up (2026-10-12):** The completed error-count reading delivery is on `codex/label-free-error-count-v1`, based on the advisor v11 publication. The full numerical bundles remain local; reading-delivery manifests and payload catalogs distinguish them. This does not update a Claude Artifact or claim external validation.
+
+**Error-count Git publication follow-up (2026-10-12):** The completed reading delivery is committed and pushed on `codex/label-free-error-count-v1`, commit `6a0b870023acd4c2af9d05040451b33c2e63894d`, based on advisor v11 `07cb7a45`. Remote branch SHA and the Claude review-guide bytes were independently verified. Code, all CSV/JSON evidence, fitted models, figures and review instructions are in Git; full NPZ arrays remain local with a hash catalog. The original sealed study and advisor package remain unchanged. The publication worktree is clean; this original checkout and its prior dirty work remain preserved. This is preparation for Claude review, not a claim that Claude reviewed or received a message.
 
 ## 2026-10-13 - Agent telemetry CPU rerun v2 passes (Codex)
 

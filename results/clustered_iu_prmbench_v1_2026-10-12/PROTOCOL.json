@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "status": "preregistered_before_new_fit",
+  "banks": [
+    "N16",
+    "N56"
+  ],
+  "methods": [
+    "IU_PCR",
+    "LSML_CONT",
+    "CLUSTER_IU"
+  ],
+  "primary_metric": "mean within-answer AUC",
+  "population": "corrected thinkfix mask1 advisor v11; 6969 answers / 94203 steps",
+  "split": "unchanged FOLDS_V2.prmbench.outer; five source-disjoint folds",
+  "clustering": "exact LSML_CONT donor partition; default residual/unit loading; no K retuning",
+  "normalization": "existing answer-z V; train-only population mean/SD at each IU level",
+  "keep": "rho_hat >= max(0.05*var_y, rho_hat_max/3); once per level; refit survivors",
+  "IU": "IU_FIT_DEFAULTS; exclusion False during probe and survivor refit",
+  "small_groups": "one: passthrough; two: signed continuous L-SML; applies after deletion too",
+  "zero_survivors": "explicit failed fold, no restoration or fabricated score",
+  "filtering_small_groups": "unidentified rho: skip selection for initial singleton/pair",
+  "orientation": "inherited bank convention, higher = error; no label-based sign repair",
+  "readout": "Q80: train global .8 quantile of answer-z fused scores; test answer-z >= tau",
+  "secondary": [
+    "fold-mean AUROC",
+    "fold-mean error AUPRC",
+    "top1 error hit",
+    "noncontrol pooled Q80 macro-F1 (PRMScore)",
+    "type breakdown"
+  ],
+  "uncertainty": "5000 shared source-group bootstrap draws; paired differences",
+  "multiplicity": "four primary bank/baseline contrasts; Bonferroni intervals plus pointwise 95%",
+  "claim_boundary": "previously inspected development population; no external confirmation"
+}

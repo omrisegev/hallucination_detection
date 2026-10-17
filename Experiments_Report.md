@@ -7,6 +7,18 @@
 
 ## PRMBench error-count addendum — Step 292 (2026-10-12)
 
+**F1/F2/F7 restriction follow-up (Step 294):** The user-selected uncertainty,
+realized-surprise and digit-alternative families contain 27 channels in N56
+or 11 within N16. Their flat canonical L-SML/IU-PCR fusion reaches within-answer
+AUC .760870/.760831 (N56) and .777155/.776985 (N16), below the matched full
+banks. Q80 official PRMScore is .638063/.641016 and .653391/.652554;
+only N56 L-SML's PRMScore decline has a pointwise paired interval excluding
+zero. L-SML automatically selects seven/four groups, with no mean fallback.
+This post-hoc development diagnostic supports keeping the full matched banks,
+not selecting a subset from standalone family ranks. Independent canonical
+replays and metric/uncertainty checks pass. Full evidence:
+`results/family_127_prmbench_v1_2026-10-12/index.html` and `REVIEW.md`.
+
 The source-disjoint local CPU A/B/C/D study is complete in
 `results/label_free_error_count_v1_2026-10-12/report/index.html`.
 Every quantity arm uses the same saved IU-PCR ordering. None of the seven

@@ -1,0 +1,39 @@
+{
+  "PRM7B": {
+    "metrics_recomputed": true,
+    "source_group_CI_recomputed": true,
+    "all_ten_original_arms_match": true,
+    "input": "Drive float32 channel atlas plus float64 PRM scores; not token feature reconstruction"
+  },
+  "external_PRM_and_LR": {
+    "metrics_recomputed": true,
+    "benchmarks": [
+      "socratic",
+      "hard2verify"
+    ],
+    "LR_sizes": [
+      "8B",
+      "4B"
+    ],
+    "LR_scores_retrained": false
+  },
+  "external_LSML_IU_current_mask1": {
+    "verified": false,
+    "reason": "Located legacy pre-thinkfix raw export only; do not substitute its recomputed results"
+  },
+  "other_four_PRMs": {
+    "verified": false,
+    "reason": "No raw banks found in the inspected Drive paths; requested location from Omri"
+  },
+  "expanded_banks": {
+    "evaluated": [
+      "S5",
+      "S6"
+    ],
+    "all_own_PRM_checkpoint": true,
+    "development_only": true,
+    "sweep_for_winning_subset": false,
+    "preserve_all_outcomes": true
+  },
+  "presentation_modified": false
+}

@@ -3611,6 +3611,26 @@ were superseded by Steps 226--235.
 
 ## Thesis Narrative Thread
 
+**October 12, 2026 — F1/F2/F7-only diagnostic (Step 294):** Restricting the
+canonical flat fusion to the three families selected from visualization E
+does not improve corrected PRMBench. The union has 27 N56 / 11 N16 channels,
+and automatic L-SML finds 7 / 4 groups. Both methods' within-answer AUC falls
+versus matched full banks; most Q80 PRMScore changes are small and unresolved.
+Retain the matched feature banks. Strong individual-family scores are not a
+joint-subset selection criterion: remaining families can supply complementary
+information and their deletion changes estimated groups/weights. This was a
+user-requested post-hoc development check, not an independent feature-selection
+confirmation. Evidence: `results/family_127_prmbench_v1_2026-10-12/`.
+
+**October 12, 2026 — specified clustered IU-PCR follow-up (Step 293):** The
+requested continuous L-SML clustering followed by relevance filtering and
+IU-PCR within/across groups completed on corrected PRMBench N16 and N56 and
+loses to both matched baselines. Retain the baseline methods; this run does
+not authorize or justify a new filter/cluster parameter sweep. Full contract,
+scores, uncertainty, exceptions and reproduction audit are in
+`results/clustered_iu_prmbench_v1_2026-10-12/README.md` and `index.html`.
+Evidence remains internal development validation.
+
 > *The per-token entropy trajectory H(n) is a signal, not a scalar. Collapsing it to its mean (EPR) discards temporal structure that predicts hallucination. Spectral features of H(n) recover that structure. L-SML fuses those features without labels, in a single forward pass. This gives a detector that is cheap (K=1), interpretable (spectral signal processing on an information-theoretic signal), and formally calibratable (the L-SML score is a continuous input to LTT). The thesis validates this on math reasoning, extends it to RAG and QA, and closes with a conformal chapter that turns the AUROC result into a deployment-ready detector with a formal false-negative-rate guarantee.*
 
 ## Step 327 - regression decision after full single-answer evaluation

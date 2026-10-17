@@ -9,6 +9,13 @@
 - Follow active user, system, and developer instructions when they impose stricter requirements than the repository guidance.
 - Read `docs/AGENT_OPERATING_CONTRACT.md` (permission boundary, reversible-or-auditable, fail loudly and stop, memory file, plan/test/simplicity) and the "Standing rules" table at the top of `LESSONS.md` at every session start. Append a `LESSONS.md` entry when a mistake is caught and at the end of any session that had one; both agents share that file. Before any cluster/GPU submission, perform the workflow in `.claude/commands/preflight.md` and refuse to submit without its PASS. The destructive-git commands listed in `.claude/hooks/guard_git.py` need a human in every tool.
 
+## Local Python runtime
+
+- For local project scripts, tests, and numerical experiments, use the repository virtual environment explicitly: `/Users/osegev/Desktop/hallucination_detection/.venv/bin/python` (Python 3.11; currently 3.11.9). Do not use the system `python` or `python3` for this repository.
+- Invoke Python tooling through that interpreter as well, for example `.venv/bin/python -m pytest` or `.venv/bin/python -m pip`. Worktrees should reuse the main checkout's virtual environment rather than expecting a separate `.venv` inside each worktree.
+- Before a numerical run, verify the interpreter and required imports with `.venv/bin/python -c 'import sys, numpy, scipy; print(sys.executable, sys.version, numpy.__version__, scipy.__version__)'`. A failed shell glob or worktree-local lookup is not evidence that the environment is missing.
+- Do not create a replacement environment or install/upgrade packages unless the user explicitly authorizes it.
+
 ## Google Drive data
 
 - Large experiment data, inference caches, and cluster results are stored in Google Drive under the configured rclone remote `gdrive:`.

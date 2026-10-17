@@ -1,0 +1,1141 @@
+{
+  "status": "COMPLETED",
+  "scope": "Saved-score development diagnostics; no method refit, threshold selection or held-out test",
+  "supersedes": "Initial RESULTS.json asset limitations concerning PRM arrays and authentic group availability; original stage remains historical",
+  "script_sha256": "b6edadab2a398fec455d37f2d9eb7568d7e510a3cc324acbcd1f56f139ca119a",
+  "input_sha256": {
+    "/Users/osegev/Desktop/hallucination_detection/docs/reviews/thinkfix_rescore_review_20261011/sources/prmscore_inputs/bank_N16.npz": "0798f94f6b0aacd550f4c7e7b743d24171757bf6ecb89b2dffff32a1553d79c4",
+    "/Users/osegev/Desktop/hallucination_detection/docs/reviews/thinkfix_rescore_review_20261011/sources/prmscore_inputs/prmbench_meta.json": "eb569f07ce0de61c1344411ecd475af6699e493f3b14f3f417cd3d1618802f51",
+    "/Users/osegev/Desktop/hallucination_detection/docs/reviews/thinkfix_rescore_review_20261011/sources/PRMBENCH_COMPARISON.csv": "8e562c129a3c9aab75d78a36a064c01392d743333d45c5b1f49d60e873b607dd",
+    "/Users/osegev/Desktop/hallucination_detection/docs/reviews/advisor_v10_followup_20261011/sources/prmbench_prm.pkl": "95be425c66d4dadc6a8e03567ad66ef2933aee27eb7967bf7200139c56518232",
+    "/Users/osegev/Desktop/hallucination_detection/docs/reviews/advisor_v10_followup_20261011/sources/CANONICAL_GROUPS.json": "63c767ffd373b37fdf08ff9ca7711260daa8ed527266ad5e619b7275015a5d94"
+  },
+  "grouping_version": "question_source_components_v2",
+  "grouping_rule": "Connect the official source-seed suffix and exact whitespace-normalized observed question text. Modified questions retain their source seed.",
+  "n_all_group_map_rows": 6969,
+  "n_aligned_answers": 6969,
+  "n_aligned_groups": 707,
+  "bootstrap": {
+    "seed": 20261011,
+    "n_draws": 5000,
+    "resampling": "Each draw samples 707 authentic groups with replacement from the aligned population; all answer rows inherit whole-group multiplicity; metric retains equal-answer weighting",
+    "group_order": "lexicographic canonical_group_id",
+    "sampled_group_indices_sha256": "bdc63c1e237ef927ce0f8f88f615df16ccfbcd29381b011033a01f50ce4e2054",
+    "intervals": "Paired percentile 95%; descriptive; no multiplicity correction across 45 fixed-for-run development contrasts",
+    "frozen_contrasts": [
+      [
+        "LSML_CONT",
+        "PRM"
+      ],
+      [
+        "IU_PCR",
+        "PRM"
+      ],
+      [
+        "LSML_CONT",
+        "ALL_EQ"
+      ],
+      [
+        "IU_PCR",
+        "ALL_EQ"
+      ],
+      [
+        "LSML_CONT",
+        "DS_FILTER_EQ"
+      ]
+    ],
+    "cohorts": [
+      "ALL",
+      "redundency",
+      "circular"
+    ],
+    "metrics": [
+      "within_auc",
+      "top1_on_error",
+      "same_bin_auc"
+    ]
+  },
+  "position_contract": {
+    "bin_definition": "floor(5*(position+0.5)/n_steps), 0-based position; 5 fixed bins",
+    "primary": "Within each answer, pool only same-bin error/correct pairs, calculate AUC, then average equally over eligible answers.",
+    "secondary": "Per-bin equal-answer AUC and pooled-pair AUC reported separately; weights differ.",
+    "warning": "Diagnostic on development data. Coarse bins retain within-bin position differences; eligibility and pair weighting change. Not proof of confound removal.",
+    "no_tuning": true
+  },
+  "checks": {
+    "input_hashes_unchanged": true,
+    "prm_historical_auc_top1_parity": "PASS",
+    "prior_stage_parity": "PASS",
+    "pair_vs_rank_auc": "PASS",
+    "authentic_all_row_group_alignment": "PASS",
+    "n_groups": 707,
+    "explicit_group_expansion_first_draw": "PASS for all 45 contrasts",
+    "rewards_half_ties": 40,
+    "native_labels_match_rewards_ge_half": "PASS"
+  },
+  "aggregates": [
+    {
+      "cohort": "ALL",
+      "metric": "within_auc",
+      "method": "LSML_CONT",
+      "n_answers": 6030,
+      "n_groups": 707,
+      "value": 0.779192910085869
+    },
+    {
+      "cohort": "ALL",
+      "metric": "within_auc",
+      "method": "IU_PCR",
+      "n_answers": 6030,
+      "n_groups": 707,
+      "value": 0.7804586557462
+    },
+    {
+      "cohort": "ALL",
+      "metric": "within_auc",
+      "method": "ALL_EQ",
+      "n_answers": 6030,
+      "n_groups": 707,
+      "value": 0.7707968307622146
+    },
+    {
+      "cohort": "ALL",
+      "metric": "within_auc",
+      "method": "DS_FILTER_EQ",
+      "n_answers": 6030,
+      "n_groups": 707,
+      "value": 0.7800796949617781
+    },
+    {
+      "cohort": "ALL",
+      "metric": "within_auc",
+      "method": "STEP_INDEX",
+      "n_answers": 6030,
+      "n_groups": 707,
+      "value": 0.6617314631377309
+    },
+    {
+      "cohort": "ALL",
+      "metric": "within_auc",
+      "method": "PRM",
+      "n_answers": 6030,
+      "n_groups": 707,
+      "value": 0.8011803689223951
+    },
+    {
+      "cohort": "ALL",
+      "metric": "top1_on_error",
+      "method": "LSML_CONT",
+      "n_answers": 6035,
+      "n_groups": 707,
+      "value": 0.5985086992543496
+    },
+    {
+      "cohort": "ALL",
+      "metric": "top1_on_error",
+      "method": "IU_PCR",
+      "n_answers": 6035,
+      "n_groups": 707,
+      "value": 0.5951946975973488
+    },
+    {
+      "cohort": "ALL",
+      "metric": "top1_on_error",
+      "method": "ALL_EQ",
+      "n_answers": 6035,
+      "n_groups": 707,
+      "value": 0.5882352941176471
+    },
+    {
+      "cohort": "ALL",
+      "metric": "top1_on_error",
+      "method": "DS_FILTER_EQ",
+      "n_answers": 6035,
+      "n_groups": 707,
+      "value": 0.6
+    },
+    {
+      "cohort": "ALL",
+      "metric": "top1_on_error",
+      "method": "STEP_INDEX",
+      "n_answers": 6035,
+      "n_groups": 707,
+      "value": 0.18906379453189726
+    },
+    {
+      "cohort": "ALL",
+      "metric": "top1_on_error",
+      "method": "PRM",
+      "n_answers": 6035,
+      "n_groups": 707,
+      "value": 0.5777961888980945
+    },
+    {
+      "cohort": "ALL",
+      "metric": "same_bin_auc",
+      "method": "LSML_CONT",
+      "n_answers": 4691,
+      "n_groups": 694,
+      "value": 0.7461664791666484
+    },
+    {
+      "cohort": "ALL",
+      "metric": "same_bin_auc",
+      "method": "IU_PCR",
+      "n_answers": 4691,
+      "n_groups": 694,
+      "value": 0.744826438361406
+    },
+    {
+      "cohort": "ALL",
+      "metric": "same_bin_auc",
+      "method": "ALL_EQ",
+      "n_answers": 4691,
+      "n_groups": 694,
+      "value": 0.7491825038035754
+    },
+    {
+      "cohort": "ALL",
+      "metric": "same_bin_auc",
+      "method": "DS_FILTER_EQ",
+      "n_answers": 4691,
+      "n_groups": 694,
+      "value": 0.7489435899823813
+    },
+    {
+      "cohort": "ALL",
+      "metric": "same_bin_auc",
+      "method": "STEP_INDEX",
+      "n_answers": 4691,
+      "n_groups": 694,
+      "value": 0.5339600839126595
+    },
+    {
+      "cohort": "ALL",
+      "metric": "same_bin_auc",
+      "method": "PRM",
+      "n_answers": 4691,
+      "n_groups": 694,
+      "value": 0.7361054927768589
+    },
+    {
+      "cohort": "redundency",
+      "metric": "within_auc",
+      "method": "LSML_CONT",
+      "n_answers": 758,
+      "n_groups": 707,
+      "value": 0.8544998790465792
+    },
+    {
+      "cohort": "redundency",
+      "metric": "within_auc",
+      "method": "IU_PCR",
+      "n_answers": 758,
+      "n_groups": 707,
+      "value": 0.8470463825269968
+    },
+    {
+      "cohort": "redundency",
+      "metric": "within_auc",
+      "method": "ALL_EQ",
+      "n_answers": 758,
+      "n_groups": 707,
+      "value": 0.8345330749204851
+    },
+    {
+      "cohort": "redundency",
+      "metric": "within_auc",
+      "method": "DS_FILTER_EQ",
+      "n_answers": 758,
+      "n_groups": 707,
+      "value": 0.8451426737734979
+    },
+    {
+      "cohort": "redundency",
+      "metric": "within_auc",
+      "method": "STEP_INDEX",
+      "n_answers": 758,
+      "n_groups": 707,
+      "value": 0.6076513239610579
+    },
+    {
+      "cohort": "redundency",
+      "metric": "within_auc",
+      "method": "PRM",
+      "n_answers": 758,
+      "n_groups": 707,
+      "value": 0.6542434116740699
+    },
+    {
+      "cohort": "redundency",
+      "metric": "top1_on_error",
+      "method": "LSML_CONT",
+      "n_answers": 758,
+      "n_groups": 707,
+      "value": 0.6886543535620053
+    },
+    {
+      "cohort": "redundency",
+      "metric": "top1_on_error",
+      "method": "IU_PCR",
+      "n_answers": 758,
+      "n_groups": 707,
+      "value": 0.6319261213720316
+    },
+    {
+      "cohort": "redundency",
+      "metric": "top1_on_error",
+      "method": "ALL_EQ",
+      "n_answers": 758,
+      "n_groups": 707,
+      "value": 0.6147757255936676
+    },
+    {
+      "cohort": "redundency",
+      "metric": "top1_on_error",
+      "method": "DS_FILTER_EQ",
+      "n_answers": 758,
+      "n_groups": 707,
+      "value": 0.6279683377308707
+    },
+    {
+      "cohort": "redundency",
+      "metric": "top1_on_error",
+      "method": "STEP_INDEX",
+      "n_answers": 758,
+      "n_groups": 707,
+      "value": 0.06596306068601583
+    },
+    {
+      "cohort": "redundency",
+      "metric": "top1_on_error",
+      "method": "PRM",
+      "n_answers": 758,
+      "n_groups": 707,
+      "value": 0.2678100263852243
+    },
+    {
+      "cohort": "redundency",
+      "metric": "same_bin_auc",
+      "method": "LSML_CONT",
+      "n_answers": 675,
+      "n_groups": 636,
+      "value": 0.8402276744221551
+    },
+    {
+      "cohort": "redundency",
+      "metric": "same_bin_auc",
+      "method": "IU_PCR",
+      "n_answers": 675,
+      "n_groups": 636,
+      "value": 0.8285202229501533
+    },
+    {
+      "cohort": "redundency",
+      "metric": "same_bin_auc",
+      "method": "ALL_EQ",
+      "n_answers": 675,
+      "n_groups": 636,
+      "value": 0.8233841675764658
+    },
+    {
+      "cohort": "redundency",
+      "metric": "same_bin_auc",
+      "method": "DS_FILTER_EQ",
+      "n_answers": 675,
+      "n_groups": 636,
+      "value": 0.8300529287455604
+    },
+    {
+      "cohort": "redundency",
+      "metric": "same_bin_auc",
+      "method": "STEP_INDEX",
+      "n_answers": 675,
+      "n_groups": 636,
+      "value": 0.5246294625891331
+    },
+    {
+      "cohort": "redundency",
+      "metric": "same_bin_auc",
+      "method": "PRM",
+      "n_answers": 675,
+      "n_groups": 636,
+      "value": 0.6242466664998063
+    },
+    {
+      "cohort": "circular",
+      "metric": "within_auc",
+      "method": "LSML_CONT",
+      "n_answers": 758,
+      "n_groups": 707,
+      "value": 0.8041703458928614
+    },
+    {
+      "cohort": "circular",
+      "metric": "within_auc",
+      "method": "IU_PCR",
+      "n_answers": 758,
+      "n_groups": 707,
+      "value": 0.8074487972807565
+    },
+    {
+      "cohort": "circular",
+      "metric": "within_auc",
+      "method": "ALL_EQ",
+      "n_answers": 758,
+      "n_groups": 707,
+      "value": 0.795233382228971
+    },
+    {
+      "cohort": "circular",
+      "metric": "within_auc",
+      "method": "DS_FILTER_EQ",
+      "n_answers": 758,
+      "n_groups": 707,
+      "value": 0.8047707014571054
+    },
+    {
+      "cohort": "circular",
+      "metric": "within_auc",
+      "method": "STEP_INDEX",
+      "n_answers": 758,
+      "n_groups": 707,
+      "value": 0.5669410561075204
+    },
+    {
+      "cohort": "circular",
+      "metric": "within_auc",
+      "method": "PRM",
+      "n_answers": 758,
+      "n_groups": 707,
+      "value": 0.7634624613811823
+    },
+    {
+      "cohort": "circular",
+      "metric": "top1_on_error",
+      "method": "LSML_CONT",
+      "n_answers": 758,
+      "n_groups": 707,
+      "value": 0.7137203166226913
+    },
+    {
+      "cohort": "circular",
+      "metric": "top1_on_error",
+      "method": "IU_PCR",
+      "n_answers": 758,
+      "n_groups": 707,
+      "value": 0.7229551451187335
+    },
+    {
+      "cohort": "circular",
+      "metric": "top1_on_error",
+      "method": "ALL_EQ",
+      "n_answers": 758,
+      "n_groups": 707,
+      "value": 0.7242744063324539
+    },
+    {
+      "cohort": "circular",
+      "metric": "top1_on_error",
+      "method": "DS_FILTER_EQ",
+      "n_answers": 758,
+      "n_groups": 707,
+      "value": 0.7335092348284961
+    },
+    {
+      "cohort": "circular",
+      "metric": "top1_on_error",
+      "method": "STEP_INDEX",
+      "n_answers": 758,
+      "n_groups": 707,
+      "value": 0.0712401055408971
+    },
+    {
+      "cohort": "circular",
+      "metric": "top1_on_error",
+      "method": "PRM",
+      "n_answers": 758,
+      "n_groups": 707,
+      "value": 0.6200527704485488
+    },
+    {
+      "cohort": "circular",
+      "metric": "same_bin_auc",
+      "method": "LSML_CONT",
+      "n_answers": 518,
+      "n_groups": 498,
+      "value": 0.7305132538117713
+    },
+    {
+      "cohort": "circular",
+      "metric": "same_bin_auc",
+      "method": "IU_PCR",
+      "n_answers": 518,
+      "n_groups": 498,
+      "value": 0.7397890313658508
+    },
+    {
+      "cohort": "circular",
+      "metric": "same_bin_auc",
+      "method": "ALL_EQ",
+      "n_answers": 518,
+      "n_groups": 498,
+      "value": 0.7223615026512601
+    },
+    {
+      "cohort": "circular",
+      "metric": "same_bin_auc",
+      "method": "DS_FILTER_EQ",
+      "n_answers": 518,
+      "n_groups": 498,
+      "value": 0.7354924863684972
+    },
+    {
+      "cohort": "circular",
+      "metric": "same_bin_auc",
+      "method": "STEP_INDEX",
+      "n_answers": 518,
+      "n_groups": 498,
+      "value": 0.5097015459212224
+    },
+    {
+      "cohort": "circular",
+      "metric": "same_bin_auc",
+      "method": "PRM",
+      "n_answers": 518,
+      "n_groups": 498,
+      "value": 0.692017105965893
+    }
+  ],
+  "contrasts": [
+    {
+      "cohort": "ALL",
+      "metric": "within_auc",
+      "lhs": "LSML_CONT",
+      "rhs": "PRM",
+      "n_answers": 6030,
+      "n_groups": 707,
+      "difference": -0.021987458836526086,
+      "ci95_low": -0.028784719447117774,
+      "ci95_high": -0.015313701762494055,
+      "n_draws": 5000,
+      "bootstrap_se": 0.0034592133310495446
+    },
+    {
+      "cohort": "ALL",
+      "metric": "within_auc",
+      "lhs": "IU_PCR",
+      "rhs": "PRM",
+      "n_answers": 6030,
+      "n_groups": 707,
+      "difference": -0.020721713176195113,
+      "ci95_low": -0.02739676060052917,
+      "ci95_high": -0.013936107568531914,
+      "n_draws": 5000,
+      "bootstrap_se": 0.003410021393356915
+    },
+    {
+      "cohort": "ALL",
+      "metric": "within_auc",
+      "lhs": "LSML_CONT",
+      "rhs": "ALL_EQ",
+      "n_answers": 6030,
+      "n_groups": 707,
+      "difference": 0.008396079323654436,
+      "ci95_low": 0.005850209583339561,
+      "ci95_high": 0.01079093309136721,
+      "n_draws": 5000,
+      "bootstrap_se": 0.0012745506623197218
+    },
+    {
+      "cohort": "ALL",
+      "metric": "within_auc",
+      "lhs": "IU_PCR",
+      "rhs": "ALL_EQ",
+      "n_answers": 6030,
+      "n_groups": 707,
+      "difference": 0.0096618249839854,
+      "ci95_low": 0.007141925627753706,
+      "ci95_high": 0.012157960607383092,
+      "n_draws": 5000,
+      "bootstrap_se": 0.0012855417607628994
+    },
+    {
+      "cohort": "ALL",
+      "metric": "within_auc",
+      "lhs": "LSML_CONT",
+      "rhs": "DS_FILTER_EQ",
+      "n_answers": 6030,
+      "n_groups": 707,
+      "difference": -0.0008867848759091099,
+      "ci95_low": -0.002513558176178055,
+      "ci95_high": 0.0007691517794675556,
+      "n_draws": 5000,
+      "bootstrap_se": 0.0008288537031259347
+    },
+    {
+      "cohort": "ALL",
+      "metric": "top1_on_error",
+      "lhs": "LSML_CONT",
+      "rhs": "PRM",
+      "n_answers": 6035,
+      "n_groups": 707,
+      "difference": 0.020712510356255178,
+      "ci95_low": 0.004783545631544218,
+      "ci95_high": 0.03654136706186679,
+      "n_draws": 5000,
+      "bootstrap_se": 0.008098243015312317
+    },
+    {
+      "cohort": "ALL",
+      "metric": "top1_on_error",
+      "lhs": "IU_PCR",
+      "rhs": "PRM",
+      "n_answers": 6035,
+      "n_groups": 707,
+      "difference": 0.01739850869925435,
+      "ci95_low": 0.0013278440954468938,
+      "ci95_high": 0.03345810346827254,
+      "n_draws": 5000,
+      "bootstrap_se": 0.008175479682085752
+    },
+    {
+      "cohort": "ALL",
+      "metric": "top1_on_error",
+      "lhs": "LSML_CONT",
+      "rhs": "ALL_EQ",
+      "n_answers": 6035,
+      "n_groups": 707,
+      "difference": 0.010273405136702569,
+      "ci95_low": 0.0021889777195340915,
+      "ci95_high": 0.018332471597013636,
+      "n_draws": 5000,
+      "bootstrap_se": 0.00410561161222746
+    },
+    {
+      "cohort": "ALL",
+      "metric": "top1_on_error",
+      "lhs": "IU_PCR",
+      "rhs": "ALL_EQ",
+      "n_answers": 6035,
+      "n_groups": 707,
+      "difference": 0.0069594034797017396,
+      "ci95_low": -0.00033411851547514803,
+      "ci95_high": 0.01428577293949276,
+      "n_draws": 5000,
+      "bootstrap_se": 0.003730015335207714
+    },
+    {
+      "cohort": "ALL",
+      "metric": "top1_on_error",
+      "lhs": "LSML_CONT",
+      "rhs": "DS_FILTER_EQ",
+      "n_answers": 6035,
+      "n_groups": 707,
+      "difference": -0.001491300745650373,
+      "ci95_low": -0.008231330100839063,
+      "ci95_high": 0.005542008569984027,
+      "n_draws": 5000,
+      "bootstrap_se": 0.0035726667175484546
+    },
+    {
+      "cohort": "ALL",
+      "metric": "same_bin_auc",
+      "lhs": "LSML_CONT",
+      "rhs": "PRM",
+      "n_answers": 4691,
+      "n_groups": 694,
+      "difference": 0.010060986389789528,
+      "ci95_low": -0.001552395631859717,
+      "ci95_high": 0.021989396206811035,
+      "n_draws": 5000,
+      "bootstrap_se": 0.005987669037765075
+    },
+    {
+      "cohort": "ALL",
+      "metric": "same_bin_auc",
+      "lhs": "IU_PCR",
+      "rhs": "PRM",
+      "n_answers": 4691,
+      "n_groups": 694,
+      "difference": 0.008720945584547177,
+      "ci95_low": -0.0029485063626740866,
+      "ci95_high": 0.02056603891431277,
+      "n_draws": 5000,
+      "bootstrap_se": 0.0059893009400160966
+    },
+    {
+      "cohort": "ALL",
+      "metric": "same_bin_auc",
+      "lhs": "LSML_CONT",
+      "rhs": "ALL_EQ",
+      "n_answers": 4691,
+      "n_groups": 694,
+      "difference": -0.003016024636926987,
+      "ci95_low": -0.008457971641913992,
+      "ci95_high": 0.0022979601698891808,
+      "n_draws": 5000,
+      "bootstrap_se": 0.002714431160134739
+    },
+    {
+      "cohort": "ALL",
+      "metric": "same_bin_auc",
+      "lhs": "IU_PCR",
+      "rhs": "ALL_EQ",
+      "n_answers": 4691,
+      "n_groups": 694,
+      "difference": -0.004356065442169332,
+      "ci95_low": -0.009634211840803196,
+      "ci95_high": 0.0007843805015647192,
+      "n_draws": 5000,
+      "bootstrap_se": 0.002619031764741438
+    },
+    {
+      "cohort": "ALL",
+      "metric": "same_bin_auc",
+      "lhs": "LSML_CONT",
+      "rhs": "DS_FILTER_EQ",
+      "n_answers": 4691,
+      "n_groups": 694,
+      "difference": -0.0027771108157329054,
+      "ci95_low": -0.006456505033865156,
+      "ci95_high": 0.0008999879576621693,
+      "n_draws": 5000,
+      "bootstrap_se": 0.0018730801927722362
+    },
+    {
+      "cohort": "redundency",
+      "metric": "within_auc",
+      "lhs": "LSML_CONT",
+      "rhs": "PRM",
+      "n_answers": 758,
+      "n_groups": 707,
+      "difference": 0.20025646737250935,
+      "ci95_low": 0.1810340877911007,
+      "ci95_high": 0.21790638132737253,
+      "n_draws": 5000,
+      "bootstrap_se": 0.009420419721215467
+    },
+    {
+      "cohort": "redundency",
+      "metric": "within_auc",
+      "lhs": "IU_PCR",
+      "rhs": "PRM",
+      "n_answers": 758,
+      "n_groups": 707,
+      "difference": 0.19280297085292694,
+      "ci95_low": 0.17352929304462736,
+      "ci95_high": 0.21104963697367424,
+      "n_draws": 5000,
+      "bootstrap_se": 0.009500425143086985
+    },
+    {
+      "cohort": "redundency",
+      "metric": "within_auc",
+      "lhs": "LSML_CONT",
+      "rhs": "ALL_EQ",
+      "n_answers": 758,
+      "n_groups": 707,
+      "difference": 0.01996680412609417,
+      "ci95_low": 0.014188754596729183,
+      "ci95_high": 0.025763674540989944,
+      "n_draws": 5000,
+      "bootstrap_se": 0.002917336486225212
+    },
+    {
+      "cohort": "redundency",
+      "metric": "within_auc",
+      "lhs": "IU_PCR",
+      "rhs": "ALL_EQ",
+      "n_answers": 758,
+      "n_groups": 707,
+      "difference": 0.012513307606511734,
+      "ci95_low": 0.006969538058259417,
+      "ci95_high": 0.017884073949552676,
+      "n_draws": 5000,
+      "bootstrap_se": 0.0028222777923680126
+    },
+    {
+      "cohort": "redundency",
+      "metric": "within_auc",
+      "lhs": "LSML_CONT",
+      "rhs": "DS_FILTER_EQ",
+      "n_answers": 758,
+      "n_groups": 707,
+      "difference": 0.009357205273081447,
+      "ci95_low": 0.005647951766673918,
+      "ci95_high": 0.013107622052785588,
+      "n_draws": 5000,
+      "bootstrap_se": 0.0018683085642816274
+    },
+    {
+      "cohort": "redundency",
+      "metric": "top1_on_error",
+      "lhs": "LSML_CONT",
+      "rhs": "PRM",
+      "n_answers": 758,
+      "n_groups": 707,
+      "difference": 0.420844327176781,
+      "ci95_low": 0.37898936170212766,
+      "ci95_high": 0.46144042232277527,
+      "n_draws": 5000,
+      "bootstrap_se": 0.021382106506172917
+    },
+    {
+      "cohort": "redundency",
+      "metric": "top1_on_error",
+      "lhs": "IU_PCR",
+      "rhs": "PRM",
+      "n_answers": 758,
+      "n_groups": 707,
+      "difference": 0.3641160949868074,
+      "ci95_low": 0.3209536709674457,
+      "ci95_high": 0.40494872726900394,
+      "n_draws": 5000,
+      "bootstrap_se": 0.021524099746788924
+    },
+    {
+      "cohort": "redundency",
+      "metric": "top1_on_error",
+      "lhs": "LSML_CONT",
+      "rhs": "ALL_EQ",
+      "n_answers": 758,
+      "n_groups": 707,
+      "difference": 0.07387862796833773,
+      "ci95_low": 0.05053157038915224,
+      "ci95_high": 0.0971151325791333,
+      "n_draws": 5000,
+      "bootstrap_se": 0.011886210576788668
+    },
+    {
+      "cohort": "redundency",
+      "metric": "top1_on_error",
+      "lhs": "IU_PCR",
+      "rhs": "ALL_EQ",
+      "n_answers": 758,
+      "n_groups": 707,
+      "difference": 0.017150395778364115,
+      "ci95_low": -0.002635046113306983,
+      "ci95_high": 0.03684331877123637,
+      "n_draws": 5000,
+      "bootstrap_se": 0.010082539492125179
+    },
+    {
+      "cohort": "redundency",
+      "metric": "top1_on_error",
+      "lhs": "LSML_CONT",
+      "rhs": "DS_FILTER_EQ",
+      "n_answers": 758,
+      "n_groups": 707,
+      "difference": 0.06068601583113457,
+      "ci95_low": 0.03968122916273511,
+      "ci95_high": 0.08279681861510176,
+      "n_draws": 5000,
+      "bootstrap_se": 0.011022217183087686
+    },
+    {
+      "cohort": "redundency",
+      "metric": "same_bin_auc",
+      "lhs": "LSML_CONT",
+      "rhs": "PRM",
+      "n_answers": 675,
+      "n_groups": 636,
+      "difference": 0.21598100792234878,
+      "ci95_low": 0.18733910455618205,
+      "ci95_high": 0.24483997429744062,
+      "n_draws": 5000,
+      "bootstrap_se": 0.014383774184262838
+    },
+    {
+      "cohort": "redundency",
+      "metric": "same_bin_auc",
+      "lhs": "IU_PCR",
+      "rhs": "PRM",
+      "n_answers": 675,
+      "n_groups": 636,
+      "difference": 0.20427355645034678,
+      "ci95_low": 0.17461172272323808,
+      "ci95_high": 0.23303131554716658,
+      "n_draws": 5000,
+      "bootstrap_se": 0.014787857826420215
+    },
+    {
+      "cohort": "redundency",
+      "metric": "same_bin_auc",
+      "lhs": "LSML_CONT",
+      "rhs": "ALL_EQ",
+      "n_answers": 675,
+      "n_groups": 636,
+      "difference": 0.016843506845689363,
+      "ci95_low": 0.004123700864675709,
+      "ci95_high": 0.029844893161399582,
+      "n_draws": 5000,
+      "bootstrap_se": 0.006569785460866928
+    },
+    {
+      "cohort": "redundency",
+      "metric": "same_bin_auc",
+      "lhs": "IU_PCR",
+      "rhs": "ALL_EQ",
+      "n_answers": 675,
+      "n_groups": 636,
+      "difference": 0.005136055373687361,
+      "ci95_low": -0.007209199960169049,
+      "ci95_high": 0.017078802585576505,
+      "n_draws": 5000,
+      "bootstrap_se": 0.006275828195874284
+    },
+    {
+      "cohort": "redundency",
+      "metric": "same_bin_auc",
+      "lhs": "LSML_CONT",
+      "rhs": "DS_FILTER_EQ",
+      "n_answers": 675,
+      "n_groups": 636,
+      "difference": 0.01017474567659474,
+      "ci95_low": -0.0006340212114983908,
+      "ci95_high": 0.02068194804036805,
+      "n_draws": 5000,
+      "bootstrap_se": 0.005350331203513576
+    },
+    {
+      "cohort": "circular",
+      "metric": "within_auc",
+      "lhs": "LSML_CONT",
+      "rhs": "PRM",
+      "n_answers": 758,
+      "n_groups": 707,
+      "difference": 0.04070788451167904,
+      "ci95_low": 0.026701455757674818,
+      "ci95_high": 0.05540704083202003,
+      "n_draws": 5000,
+      "bootstrap_se": 0.007322232205666873
+    },
+    {
+      "cohort": "circular",
+      "metric": "within_auc",
+      "lhs": "IU_PCR",
+      "rhs": "PRM",
+      "n_answers": 758,
+      "n_groups": 707,
+      "difference": 0.04398633589957421,
+      "ci95_low": 0.030090637246286158,
+      "ci95_high": 0.058309415632185016,
+      "n_draws": 5000,
+      "bootstrap_se": 0.007219286241210806
+    },
+    {
+      "cohort": "circular",
+      "metric": "within_auc",
+      "lhs": "LSML_CONT",
+      "rhs": "ALL_EQ",
+      "n_answers": 758,
+      "n_groups": 707,
+      "difference": 0.008936963663890615,
+      "ci95_low": 0.003323708965517732,
+      "ci95_high": 0.014719852190643458,
+      "n_draws": 5000,
+      "bootstrap_se": 0.0029705579712303786
+    },
+    {
+      "cohort": "circular",
+      "metric": "within_auc",
+      "lhs": "IU_PCR",
+      "rhs": "ALL_EQ",
+      "n_answers": 758,
+      "n_groups": 707,
+      "difference": 0.012215415051785776,
+      "ci95_low": 0.0062366012743747794,
+      "ci95_high": 0.018157918925703984,
+      "n_draws": 5000,
+      "bootstrap_se": 0.003039304267848621
+    },
+    {
+      "cohort": "circular",
+      "metric": "within_auc",
+      "lhs": "LSML_CONT",
+      "rhs": "DS_FILTER_EQ",
+      "n_answers": 758,
+      "n_groups": 707,
+      "difference": -0.0006003555642440017,
+      "ci95_low": -0.004498792134997321,
+      "ci95_high": 0.0033427674313535366,
+      "n_draws": 5000,
+      "bootstrap_se": 0.001986556989704519
+    },
+    {
+      "cohort": "circular",
+      "metric": "top1_on_error",
+      "lhs": "LSML_CONT",
+      "rhs": "PRM",
+      "n_answers": 758,
+      "n_groups": 707,
+      "difference": 0.09366754617414248,
+      "ci95_low": 0.05326231691078562,
+      "ci95_high": 0.1345646437994723,
+      "n_draws": 5000,
+      "bootstrap_se": 0.020405958092737573
+    },
+    {
+      "cohort": "circular",
+      "metric": "top1_on_error",
+      "lhs": "IU_PCR",
+      "rhs": "PRM",
+      "n_answers": 758,
+      "n_groups": 707,
+      "difference": 0.10290237467018469,
+      "ci95_low": 0.06241699867197875,
+      "ci95_high": 0.14210981243001114,
+      "n_draws": 5000,
+      "bootstrap_se": 0.020023111469036948
+    },
+    {
+      "cohort": "circular",
+      "metric": "top1_on_error",
+      "lhs": "LSML_CONT",
+      "rhs": "ALL_EQ",
+      "n_answers": 758,
+      "n_groups": 707,
+      "difference": -0.010554089709762533,
+      "ci95_low": -0.0325531443529987,
+      "ci95_high": 0.011873350923482849,
+      "n_draws": 5000,
+      "bootstrap_se": 0.011567327519883428
+    },
+    {
+      "cohort": "circular",
+      "metric": "top1_on_error",
+      "lhs": "IU_PCR",
+      "rhs": "ALL_EQ",
+      "n_answers": 758,
+      "n_groups": 707,
+      "difference": -0.0013192612137203166,
+      "ci95_low": -0.022136138160039114,
+      "ci95_high": 0.018494055482166448,
+      "n_draws": 5000,
+      "bootstrap_se": 0.010273046007528493
+    },
+    {
+      "cohort": "circular",
+      "metric": "top1_on_error",
+      "lhs": "LSML_CONT",
+      "rhs": "DS_FILTER_EQ",
+      "n_answers": 758,
+      "n_groups": 707,
+      "difference": -0.01978891820580475,
+      "ci95_low": -0.038464095744680855,
+      "ci95_high": -0.0013088577490332964,
+      "n_draws": 5000,
+      "bootstrap_se": 0.009659231949363379
+    },
+    {
+      "cohort": "circular",
+      "metric": "same_bin_auc",
+      "lhs": "LSML_CONT",
+      "rhs": "PRM",
+      "n_answers": 518,
+      "n_groups": 498,
+      "difference": 0.038496147845878306,
+      "ci95_low": 0.005643786568269902,
+      "ci95_high": 0.07201365705129141,
+      "n_draws": 5000,
+      "bootstrap_se": 0.01700998287905589
+    },
+    {
+      "cohort": "circular",
+      "metric": "same_bin_auc",
+      "lhs": "IU_PCR",
+      "rhs": "PRM",
+      "n_answers": 518,
+      "n_groups": 498,
+      "difference": 0.04777192539995775,
+      "ci95_low": 0.015453509139791401,
+      "ci95_high": 0.08026259491741061,
+      "n_draws": 5000,
+      "bootstrap_se": 0.01649979077772526
+    },
+    {
+      "cohort": "circular",
+      "metric": "same_bin_auc",
+      "lhs": "LSML_CONT",
+      "rhs": "ALL_EQ",
+      "n_answers": 518,
+      "n_groups": 498,
+      "difference": 0.00815175116051127,
+      "ci95_low": -0.010215261840385532,
+      "ci95_high": 0.02697036899993317,
+      "n_draws": 5000,
+      "bootstrap_se": 0.009394318374132089
+    },
+    {
+      "cohort": "circular",
+      "metric": "same_bin_auc",
+      "lhs": "IU_PCR",
+      "rhs": "ALL_EQ",
+      "n_answers": 518,
+      "n_groups": 498,
+      "difference": 0.01742752871459071,
+      "ci95_low": -0.00037269153483466557,
+      "ci95_high": 0.03568885406679575,
+      "n_draws": 5000,
+      "bootstrap_se": 0.00911807102805369
+    },
+    {
+      "cohort": "circular",
+      "metric": "same_bin_auc",
+      "lhs": "LSML_CONT",
+      "rhs": "DS_FILTER_EQ",
+      "n_answers": 518,
+      "n_groups": 498,
+      "difference": -0.004979232556725818,
+      "ci95_low": -0.01634259056915307,
+      "ci95_high": 0.006274027732449424,
+      "n_draws": 5000,
+      "bootstrap_se": 0.005772604470786313
+    }
+  ],
+  "figure_data": [
+    {
+      "method": "LSML_CONT",
+      "n_answers": 4691,
+      "unrestricted_same_answers": 0.7736325472436201,
+      "same_bin_auc": 0.7461664791666484
+    },
+    {
+      "method": "IU_PCR",
+      "n_answers": 4691,
+      "unrestricted_same_answers": 0.7739802359998249,
+      "same_bin_auc": 0.744826438361406
+    },
+    {
+      "method": "ALL_EQ",
+      "n_answers": 4691,
+      "unrestricted_same_answers": 0.7659871871215432,
+      "same_bin_auc": 0.7491825038035754
+    },
+    {
+      "method": "DS_FILTER_EQ",
+      "n_answers": 4691,
+      "unrestricted_same_answers": 0.7745047231273966,
+      "same_bin_auc": 0.7489435899823813
+    },
+    {
+      "method": "STEP_INDEX",
+      "n_answers": 4691,
+      "unrestricted_same_answers": 0.6557992274427564,
+      "same_bin_auc": 0.5339600839126595
+    },
+    {
+      "method": "PRM",
+      "n_answers": 4691,
+      "unrestricted_same_answers": 0.7931606223022057,
+      "same_bin_auc": 0.7361054927768589
+    }
+  ],
+  "remaining_limits": [
+    "Development selection; no holdout",
+    "Coarse relative-position bins leave residual position variation",
+    "Token lengths and repetition features absent",
+    "LR raw scores absent"
+  ]
+}
