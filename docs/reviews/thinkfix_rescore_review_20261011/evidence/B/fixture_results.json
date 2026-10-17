@@ -1,0 +1,45 @@
+{
+  "mask_fixtures": "PASS",
+  "already_empty_source_steps": "PASS",
+  "newly_empty_steps_rejected": "PASS",
+  "mask_n_tokens_metadata_stale": true,
+  "resume_fixtures": [
+    {
+      "path": "cluster/run_teacher_forced.py",
+      "returned_complete": true,
+      "stale_payload_kept": true
+    },
+    {
+      "path": "cluster/run_prmbench_teacher_forced.py",
+      "returned_complete": true,
+      "stale_payload_kept": true
+    }
+  ],
+  "independently_checked_PRMBench_export": {
+    "answers": 6969,
+    "steps": 94203,
+    "unique_ids": 6969,
+    "metadata_id_and_stepcount_match": true,
+    "finite_score_columns": 15,
+    "max_abs_answer_z_means": {
+      "S__ALL_EQ": 1.6653345369377348e-16,
+      "S__DS_FILTER_EQ": 1.6653345369377348e-16,
+      "S__HEM_MOM_cc": 1.7763568394002506e-16,
+      "S__MEAN_MOM_cc": 1.7763568394002506e-16,
+      "S__MEAN_MOM_ga": 1.6653345369377348e-16,
+      "S__TCI_ONLY_ga": 1.5860328923216522e-16,
+      "S__HEM_MOM_ga": 1.7763568394002506e-16,
+      "S__MEAN_EQ": 1.6148698540002277e-16,
+      "S__HEM_EQ": 1.7763568394002506e-16,
+      "S__LSML_CONT": 1.7763568394002506e-16,
+      "S__IU_PCR": 1.9032394707859825e-16,
+      "S__LSML_CONT_LEVELSIGN": 1.7763568394002506e-16,
+      "S__IU_PCR_LEVELSIGN": 1.9032394707859825e-16,
+      "S__ALL_EQ_ORIENTED": 2.516505522483688e-16
+    }
+  },
+  "limitations": [
+    "Only bank_N16 legacy export is tracked, not variant per-answer arrays or raw GPU caches.",
+    "PB13769-total and external3195 counts currently verified only from manifests/status/seals, not raw population."
+  ]
+}

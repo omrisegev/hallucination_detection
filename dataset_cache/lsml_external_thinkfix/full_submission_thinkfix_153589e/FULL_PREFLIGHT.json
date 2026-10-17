@@ -1,0 +1,30 @@
+{
+  "verdict": "PASS",
+  "session_id": "external-thinkfix-20261010",
+  "utc": "2026-10-10T19:15:01.131028+00:00",
+  "protocol_hash": "d0e2c985bddb8dd4e4b228368656d2bfbe9fa68b5c82aa7f0511e068574d47b6",
+  "code": "/shared/cycle2_tau_averbuch_prj/omrisegev1/code_tf_thinkfix_153589e (git archive of 153589e43; SYNC_COMMIT.json)",
+  "cluster_jobs_before_submit": "PRMBench/ProcessBench think-fix chains 280425-280430 only",
+  "tests": "tests/test_external_generalization.py 8 PASS; tests/test_runtime_fusion_protocol.py 6 PASS; scripts/test_teacher_forced_think_prefix.py 5 PASS (Qwen3-8B template snapshot)",
+  "driver_cpu_smoke": "tests/test_external_generalization.py --cpu-smoke PASS (GPT2 fixture; its template has no enable_thinking, so the block itself is checked by the GPU pilots: Gate B 280415/280416 and PRMBench pilot 280422/decode 280423)",
+  "label_sanity": {
+    "hard2verify": {
+      "correct_steps": 1080,
+      "incorrect_steps": 780,
+      "schema_label_sanity": "PASS",
+      "prediction_quality_evaluated": false
+    },
+    "socratic": {
+      "correct_steps": 17127,
+      "incorrect_steps": 8928,
+      "schema_label_sanity": "PASS",
+      "prediction_quality_evaluated": false
+    }
+  },
+  "input_integrity": "answers.json files unchanged from the pinned 2026-09-24 inputs (hashes in INPUT_HASHES below)",
+  "INPUT_HASHES": {
+    "hard2verify": "cab434419f8e292743947ca483054586e834a372c9a1c8198988b5ebfd70762c",
+    "socratic": "24e67d6c6e241f0d6b3e63a26b0b9bd8adf8fee4b4a9c42c3aa8befe5b7a2591"
+  },
+  "gpu_gate": "v2 fixed-shape full-vocabulary target offsets and future-token invariance; exact pinned QwQ numerical diagnostic required for its reproduced prefix discrepancy"
+}

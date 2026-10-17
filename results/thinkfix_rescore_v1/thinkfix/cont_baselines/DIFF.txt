@@ -1,0 +1,31 @@
+--- /shared/cycle2_tau_averbuch_prj/omrisegev1/thinkfix_downstream/C:\Users\omris\TAU\hallucination_detection/results/monday_cont_baselines_v1/run.py
++++ /shared/cycle2_tau_averbuch_prj/omrisegev1/results/thinkfix_rescore_v1/thinkfix/cont_baselines/run_patched.py
+@@ -1,3 +1,5 @@
++# PATCHED COPY of results/monday_cont_baselines_v1/run.py for thinkfix_rescore_v1 (variant=thinkfix).
++# Changes: V2 = this variant's nested_banks run; ext.FE set by the wrapper; export hook.
+ """monday_cont_baselines_v1: continuous L-SML and IU-PCR on the v2 nested banks (development).
+ 
+ Same per-cell inputs (bank['V'] = channels as they are), same metrics and bootstrap as
+@@ -13,12 +15,12 @@
+ import pandas as pd
+ from scipy.stats import rankdata
+ 
+-OUT = Path(__file__).resolve().parent; MAIN = OUT.parents[1]; V2 = MAIN / 'results/monday_nested_banks_v2'
++OUT = Path(__file__).resolve().parent; MAIN = Path(r'/shared/cycle2_tau_averbuch_prj/omrisegev1/thinkfix_downstream/C:\Users\omris\TAU\hallucination_detection'); V2 = Path(r'/shared/cycle2_tau_averbuch_prj/omrisegev1/results/thinkfix_rescore_v1/thinkfix/nested_banks')
+ sys.path.insert(0, str(MAIN))
+ from spectral_utils.fusion_utils import lsml_continuous
+ from spectral_utils.upcr import upcr_fit
+ from spectral_utils.laplacian_upcr import IU_FIT_DEFAULTS
+-spec = importlib.util.spec_from_file_location('dev_run', V2 / 'dev_run.py'); dr = importlib.util.module_from_spec(spec); spec.loader.exec_module(dr)
++spec = importlib.util.spec_from_file_location('dev_run', V2 / 'dev_run_patched.py'); dr = importlib.util.module_from_spec(spec); spec.loader.exec_module(dr)
+ ext = dr.ext; NB = dr.NB; BANKS = dr.BANKS; M4 = dr.METHODS4
+ BASE = ['LSML_CONT', 'IU_PCR']; SCORERS = BASE + [b + '_LEVELSIGN' for b in BASE] + ['ALL_EQ_ORIENTED']
+ 
+@@ -85,6 +87,7 @@
+                     failures.append({'bank': bk, 'cell': ce, 'scorer': name, 'reason': f'{type(exc).__name__}: {exc}'[:300]})
+                     diag[f'{bk}/{ce}/{name}'] = {'FAILED': str(exc)[:300]}
+                     for nm in (name, name + '_LEVELSIGN'): R[(bk, nm)]['failed'][ans] = True
++            _HOOK(bk, ce, bank, scores)
+             for nm, s in scores.items():
+                 st = R[(bk, nm)]
+                 for j, i in enumerate(ans):

@@ -1,0 +1,21 @@
+# thinkfix_rescore_v1 step 3: QwQ removed; A2 Windows-separator normalization of METHOD_FREEZE code keys
+--- scripts/evaluate_external_locked_scores.py (frozen)
++++ scripts/evaluate_external_locked_scores.py (thinkfix)
+@@ -12,7 +12,7 @@
+ from spectral_utils.external_generalization.evaluation import confusion,metric,within_auc
+ from spectral_utils.external_bootstrap import bootstrap_all,contrast_from_draws
+ from spectral_utils.label_sanity import check_labels,feasibility_tag
+-CELLS={'hard2verify_qwen3_8b':'hard2verify','socratic_qwen3_8b':'socratic','socratic_qwq32b':'socratic'}
++CELLS={'hard2verify_qwen3_8b':'hard2verify','socratic_qwen3_8b':'socratic'}  # thinkfix: QwQ not re-collected
+ CONTRASTS=[(v+'_lsml',v+'_'+c) for v in ('frozen','local') for c in ('equal','partition_equal')]+[(v+'_lsml','ct7') for v in ('frozen','local')]
+ 
+ 
+@@ -48,7 +48,7 @@
+     code=ROOT/'spectral_utils/external_generalization'
+     if identity['code']!={str(f.relative_to(code)):file_hash(f) for f in sorted(code.rglob('*.py'))}:raise ValueError('scoring code changed since execution')
+     freeze=load(a.root/'METHOD_FREEZE.json')
+-    frozen_code={str(Path(k).relative_to('spectral_utils/external_generalization')):v for k,v in freeze['code'].items()}
++    frozen_code={str(Path(k.replace(chr(92),'/')).relative_to('spectral_utils/external_generalization')):v for k,v in freeze['code'].items()}  # thinkfix A2: freeze keys use Windows separators
+     if identity['code']!=frozen_code:raise ValueError('execution differs from frozen method code')
+     expected_identity=digest(identity)
+     all_predictions={}

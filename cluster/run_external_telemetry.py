@@ -27,15 +27,18 @@ def stop(*_):
     STOP = True
 
 
-def make_items(answers, tokenizer, max_context):
-    # Exact source telemetry conditioning: math_prompt + /no_think, followed by
-    # the tokenizer's default chat template. QwQ's template differs; pin/hash it.
+def make_items(answers, tokenizer, max_context, think_prefix="empty_block"):
+    # Source telemetry conditioning: math_prompt + /no_think, then the chat template with
+    # Qwen3's empty think block after the assistant header (think_prefix="empty_block"), the
+    # state a generated /no_think answer starts its content in. Templates without
+    # enable_thinking (QwQ) render unchanged; pin/hash them. think_prefix="none" reproduces
+    # the pre-2026-10-10 collections.
     from spectral_utils.data_loaders import math_prompt
+    from spectral_utils.processbench import teacher_forced_prompt
     items = []
     for a in answers:
         prompt = math_prompt({"problem": a.question}) + " /no_think"
-        rendered = tokenizer.apply_chat_template([{"role": "user", "content": prompt}],
-                                                 tokenize=False, add_generation_prompt=True)
+        rendered = teacher_forced_prompt(tokenizer, prompt, " /no_think", think_prefix)
         prompt_ids = tokenizer(rendered)["input_ids"]
         items.append(tokenize_answer(a, tokenizer, prompt_ids, max_context))
     return items
@@ -63,6 +66,33 @@ def collect_quantities(model, item):
             "token_spilled_energies": q["token_spilled_energies"],
             "actual_token_logprobs": (-np.asarray(q["token_spilled_energies"])).tolist(),
             "top_k_logprobs": {"ids": top["ids"].tolist(), "logprobs": top["logprobs"].tolist()}}
+
+
+# Reviewed Qwen3-8B bf16 prefix exception (Omri, 2026-10-13, after diagnostic job 283828):
+# serial-prefix vs batched log-probs differ by one bf16 logit step (0.25-0.9) on low-probability
+# tokens; fp32 gives <=0.029 and causal/target-offset errors are 0. Bound to the revision, bf16,
+# the shortest agent item of each benchmark and this exact evidence file. Not a blanket tolerance.
+QWEN3_8B_REVISION = 'b968826d9c46dd6066d109eabc6255188de91218'
+QWEN3_8B_AGENT_G7_EVIDENCE_SHA = 'b23f34117d02e6bfa28215e139c328632111e6e1fe409bc5a7e9e9bb6650af91'
+QWEN3_8B_AGENT_G7_UIDS = ('apb:hotpotqa:143', 'tprm:bfcl:multi_turn_base_130:case18:A',
+                          'aft:agentic:85854e4a13734c2d')
+
+
+def qwen3_8b_agent_prefix_evidence(evidence, *, model_id, revision, dtype, uid, positions, differences):
+    """Return the evidence sha256 if this exact discrepancy was reviewed, else raise."""
+    if (evidence is None or model_id != 'Qwen/Qwen3-8B' or revision != QWEN3_8B_REVISION or
+            dtype != 'torch.bfloat16' or uid not in QWEN3_8B_AGENT_G7_UIDS or
+            file_hash(evidence) != QWEN3_8B_AGENT_G7_EVIDENCE_SHA):
+        raise ValueError('prefix discrepancy requires reviewed pinned numerical evidence')
+    diagnostic = json.loads(Path(evidence).read_text())
+    runs = [r for r in diagnostic['runs'] if r['config'] == 'bf16_sdpa' and r['uid'] == uid]
+    if diagnostic['env']['revision'] != revision or len(runs) != 1:
+        raise ValueError('prefix discrepancy does not reproduce reviewed diagnostic')
+    reviewed = {r['j']: r['abs_diff_target'] for r in runs[0]['gate16']['rows']}
+    if (len(positions) != len(differences) or any(j not in reviewed for j in positions) or
+            any(abs(reviewed[j]-d) > 1e-4 for j, d in zip(positions, differences))):
+        raise ValueError('prefix discrepancy does not reproduce reviewed diagnostic')
+    return file_hash(evidence)
 
 
 def alignment_gate(model, item, *, model_id=None, revision=None, evidence=None):
@@ -97,7 +127,11 @@ def alignment_gate(model, item, *, model_id=None, revision=None, evidence=None):
     if max(causal_errors + offset_errors) > 1e-5:
         raise ValueError('fixed-shape causal/target-offset gate failed')
     evidence_sha = None
-    if max(differences) > .05:
+    if max(differences) > .05 and model_id == 'Qwen/Qwen3-8B':
+        positions = sorted({0, len(short["gen_ids"])//2, len(short["gen_ids"])-1})
+        evidence_sha = qwen3_8b_agent_prefix_evidence(evidence, model_id=model_id, revision=revision,
+            dtype=str(model.dtype), uid=item['uid'], positions=positions, differences=differences)
+    elif max(differences) > .05:
         # A single reviewed numerical exception, bound to exact immutable evidence,
         # checkpoint and example. Never turn this into a blanket bf16 tolerance.
         if (evidence is None or model_id != 'Qwen/QwQ-32B' or
@@ -153,6 +187,7 @@ def main():
     p.add_argument("--max-context", type=int, default=32768)
     p.add_argument("--validate-pkl", type=Path)
     p.add_argument("--alignment-evidence", type=Path)
+    p.add_argument("--think-prefix", choices=["empty_block", "none"], default="empty_block")
     args = p.parse_args()
     signal.signal(signal.SIGTERM, stop)
     signal.signal(signal.SIGINT, stop)
@@ -170,13 +205,15 @@ def main():
     from transformers import AutoModelForCausalLM, AutoTokenizer
     answers = [Answer(**row) for row in json.loads(args.answers.read_text(encoding="utf8"))]
     tok = AutoTokenizer.from_pretrained(args.model, revision=args.revision, use_fast=True)
-    items = make_items(answers, tok, args.max_context)
+    items = make_items(answers, tok, args.max_context, args.think_prefix)
     lengths = [len(i["prompt_ids"])+len(i["gen_ids"]) for i in items]
     selected = smoke_indices(lengths, [a.uid for a in answers]) if args.mode == "smoke" else list(range(len(items)))
     identity = {"model": args.model, "revision": args.revision, "dtype": "bfloat16", "attn": "sdpa",
                 "answers_sha256": file_hash(args.answers), "protocol_sha256": file_hash(args.protocol),
                 "chat_template_sha256": digest(tok.chat_template), "prompt_suffix": " /no_think",
-                "thinking_mode": "tokenizer_default_with_source_no_think_suffix",
+                "thinking_mode": ("tokenizer_default_with_source_no_think_suffix"
+                                  if args.think_prefix == "none" else
+                                  "source_no_think_suffix_with_empty_think_block"),
                 "max_context": args.max_context, "schema": 1, "mode": args.mode,
                 "selected_uids": [items[i]["uid"] for i in selected], 'alignment_gate_version': 2,
                 'alignment_evidence_sha256': file_hash(args.alignment_evidence) if args.alignment_evidence else None}
@@ -196,6 +233,7 @@ def main():
         from run_teacher_forced import run_gate_b
         run_gate_b(model, tok, SimpleNamespace(validate_pkl=str(args.validate_pkl),
                    validate_dataset="gsm8k", validate_n=5, validate_prompt_suffix=" /no_think",
+                   think_prefix=args.think_prefix,
                    max_batch=1, logprob_top_k=50))
     atomic_json(args.out / "ALIGNMENT_GATE.json", gate)
     with RecordStore(args.out / "records", identity) as store:

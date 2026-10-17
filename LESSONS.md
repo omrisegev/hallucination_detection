@@ -470,3 +470,12 @@ What happened: the orthogonal-family report completed its file writes, hash mani
 Why: explicitly encoding file writes does not configure the Windows console stream.
 Rule: launch report scripts that print Hebrew with PYTHONIOENCODING=utf-8; distinguish a console-print failure from failed artifact generation and verify existing hashes before a rerun.
 Enforced by: command (UTF-8 environment on the report_orthogonal_family_fusion.py rerun). Session also corrected the pre-fit manifest-type smoke error; original empty smoke and completed smoke_v2 are preserved.
+
+
+## 2026-10-13 - A targeted fetch may update FETCH_HEAD without a remote-tracking ref
+What happened: `git fetch origin codex/agent-step-telemetry-v1` retrieved Claude's commit, but a subsequent origin/branch range lookup failed because this checkout's fetch configuration did not create that remote-tracking ref. No changes were lost.
+Why: the configured fetch refspec was assumed to include the requested branch.
+Rule: verify the fetched named commit or FETCH_HEAD before selecting the checkout; a missing tracking ref does not mean the remote branch is absent.
+Enforced by: command (verified afae64a and fast-forwarded only that commit); CODE_PIN.json checks every relevant runtime file against the exact Git blob.
+
+Documentation check: appending CRLF to the mixed-line-ending HISTORY.md was flagged as trailing whitespace. Only the new block was changed to LF; the existing Git-blob prefix was verified byte-identical. Keep old history bytes and use LF for new blocks.

@@ -1,0 +1,38 @@
+{
+  "findings": [
+    {
+      "priority": "P1",
+      "title": "Self-generated equivalence rule accepts arbitrarily broad intervals",
+      "path": "docs/reviews/consolidation_20261003/sources/b16_eval.py",
+      "line": 126,
+      "code": "abs(ow-pw)<MARGIN and cw[0]<=0<=cw[1]",
+      "impact": "Cannot establish equivalence within +/- .03; rename to point-close/non-significant or perform proper bounded interval/TOST test",
+      "proof": "EQUIVALENCE_COUNTEREXAMPLE.json"
+    },
+    {
+      "priority": "P2",
+      "title": "Restricted feature LR nested scores use globally supervised selected subsets",
+      "path": "results/thinkfix_rescore_v1/thinkfix/lr_weights/run_patched.py",
+      "lines": [
+        163,
+        166,
+        200
+      ],
+      "impact": "Development diagnostic only; feature selection must be repeated within outer training folds for unbiased OOF assessment"
+    }
+  ],
+  "verified": [
+    "N16 export score-only label-count preserving within-answer permutation null returns chance",
+    "Full LR reference C tuning and StandardScaler fit confined to train subsets; class_weight and balanced inner loss present; decision-function scores evaluated within answer",
+    "No label-driven max(AUC,1-AUC) observed in patched dev/cont/reference evaluation code",
+    "External adapter independently refits lf channel signs by correlation with level, not labels; top1 is quota/ranking, not answer detection"
+  ],
+  "limitations": [
+    "N16 export has no feature matrix/source_group/fold keys; full extraction+fusion null and source-level correlated randomization not performed",
+    "Selfgen generated FIT/STEP_SCORES/labels and reference STEP_SCORES raw files absent, cannot reproduce real-data equivalence/bootstrap or counts",
+    "Underlying monday_fusion_core/monday_fusion_decision/er_stage_a implementation absent from snapshot, adapter audit alone cannot prove entire label firewall",
+    "Repository venv lacks pandas/sklearn; no packages installed; used NumPy/SciPy and extracted pure numerical compare functions",
+    "Selfgen within AUC is first-error vs preceding steps only, f=0 omitted; own_n/pb_n count all erroneous answers, not valid AUC denominator",
+    "step4_pb_reference reports replay deviations but does not enforce tolerance as executable gate"
+  ]
+}

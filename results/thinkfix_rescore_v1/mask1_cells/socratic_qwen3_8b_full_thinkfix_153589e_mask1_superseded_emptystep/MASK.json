@@ -1,0 +1,26 @@
+{
+  "rule": "mask1: drop forced token 0 from every per-token field; step spans [lo,hi) -> [max(lo-1,0), hi-1]; a step that becomes empty raises MaskError",
+  "module": "spectral_utils/first_token_mask.py",
+  "written_utc": "2026-10-10T21:14:05+00:00",
+  "job_id": "280515",
+  "source_dir": "/shared/cycle2_tau_averbuch_prj/omrisegev1/results/lsml_external_generalization_v1/socratic_qwen3_8b_full_thinkfix_153589e",
+  "n_in": 2995,
+  "n_out": 2992,
+  "n_failures": 3,
+  "failures": [
+    {
+      "uid": "socratic:test_decomposition_incompleteness:Omni-MATH#75",
+      "error": "step 6 span (387, 387) becomes empty after dropping token 0"
+    },
+    {
+      "uid": "socratic:test_premise_redundancy:mathbench-A#360",
+      "error": "step 8 span (631, 631) becomes empty after dropping token 0"
+    },
+    {
+      "uid": "socratic:test_regather_redundancy:OlympiadBench#751",
+      "error": "step 2 span (230, 230) becomes empty after dropping token 0"
+    }
+  ],
+  "note": "step_char_spans and prompt_ids are unchanged (not per-token)",
+  "files": []
+}

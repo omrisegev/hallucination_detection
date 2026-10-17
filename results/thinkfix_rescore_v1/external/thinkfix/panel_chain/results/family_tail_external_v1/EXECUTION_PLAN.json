@@ -1,0 +1,40 @@
+{
+  "status": "IMPLEMENTATION_AND_SOURCE_PARITY_PENDING",
+  "source_branch": "codex/family15-tail20-transfer-v1",
+  "source_commit": "df8371f3c56574b69f69db14299a460ebc225bc1",
+  "lock_sha256": "65b35336fcc2f66b7843ec040d3bdafbbaa03bb44ae5f61f1d00335abfaea5cf",
+  "assumption": "All 48 locked channels can be reconstructed from existing telemetry with original source definitions. No GPU or new inference.",
+  "success_gate": "All 13769 source answers, every channel after answer-z max abs error <=1e-6. Exact external masks; frozen source weights and thresholds.",
+  "falsification": "Any unexplained source parity failure stops external scoring; no threshold/feature substitutions. Resolve conflict before run.",
+  "cells": [
+    "hard2verify_qwen3_8b",
+    "socratic_qwen3_8b",
+    "socratic_qwq32b"
+  ],
+  "methods": [
+    "B11_lsml",
+    "F15_tailtie_lsml",
+    "F15_cov_lsml",
+    "K28_cov_lsml",
+    "K28_equal",
+    "F15_equal",
+    "B11_equal",
+    "B11_partition_equal",
+    "A48o_equal",
+    "ct7"
+  ],
+  "draws": 100000,
+  "seed": 20260924,
+  "primary_family": 18,
+  "access": "exploratory follow-up, external benchmarks already seen",
+  "source_precision_correction": "CT7_TOKEN_MATRICES.tokens actual dtype float64, despite historical comments; preserve actual values. Bank11 tokens float32.",
+  "plots": [
+    "all registered official scores, separate benchmark panels",
+    "PRMScore = mean(F1_correct,F1_error), with both F1 plus class precision/recall",
+    "category panels where labels provide categories",
+    "paired corrected contrasts",
+    "fully-correct-answer false alarms and length/position diagnostics",
+    "published literature separate from measured same-run results; missing components remain missing"
+  ],
+  "published_comparators": "literature context, not new reproduced GPU comparator inference"
+}

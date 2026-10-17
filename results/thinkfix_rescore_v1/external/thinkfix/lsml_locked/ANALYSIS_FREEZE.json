@@ -1,0 +1,29 @@
+{
+  "time_utc": "2026-10-11T05:56:49.275880+00:00",
+  "external_quality_inspected": false,
+  "draws": 100000,
+  "seed": 20260924,
+  "primary_family": 18,
+  "disjoint_panel": "registered sensitivity, no additional confirmatory claims",
+  "files": {
+    "scripts/evaluate_external_locked_scores.py": "274e98b133cc6f1c5b41e9ce227a315d85a50d1cd3d56e9380e47a7137898c7f",
+    "scripts/run_external_local_cpu.py": "18c67d46aa2d3bedc8676b3361e774fedabef0ac8a6470e961863efcf0f257f0",
+    "spectral_utils/external_bootstrap.py": "5551a97e89d4d1cf76ad10fec06725941977ddbc7ef94c1bb192a5c874bc0565",
+    "spectral_utils/label_sanity.py": "4d46b1abd9878aa0b28b21604c5f49f60659125d4d42507bc92e300d99cbb3da",
+    "docs/experiments/LSML_EXTERNAL_EVALUATION_LOCK_20260924.md": "27ee3deaa867be49551dd63e12c30abcd3af41b5d43ba09fc6fcc582841c2d98"
+  },
+  "method_freeze_sha256": "eb2fcf45366e73c683480e3a27e4672988906a5625dd75286f084b7fa51a2592",
+  "supersedes": {
+    "file": "ANALYSIS_FREEZE.frozen_20260924.json",
+    "sha256": "d57783f6d05a0492893f077d86d636678617358159725bb3335374168981e49a"
+  },
+  "thinkfix_note": "Re-evaluation of the LOCKED method (unchanged METHOD_FREEZE, BUNDLE, scoring code) on think-fix teacher-forced records. Only change: socratic_qwq32b removed from the cell list. The registered contrast family stays 18 (Bonferroni unchanged); 12 of 18 contrasts exist with two cells, so EVALUATION_PROVENANCE 'complete' is expected to be false. Written before any label is opened.",
+  "amendments": [
+    {
+      "id": "A2",
+      "time_utc": "2026-10-11T06:05:12.702528+00:00",
+      "labels_opened_before": false,
+      "change": "normalize Windows path separators in METHOD_FREEZE code keys before relative_to (failed on Linux, job 280816, before sealing; only OVERLAP.json had been written)"
+    }
+  ]
+}

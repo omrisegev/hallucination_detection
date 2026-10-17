@@ -1,0 +1,28 @@
+--- /shared/cycle2_tau_averbuch_prj/omrisegev1/thinkfix_downstream/C:\Users\omris\TAU\hallucination_detection/results/monday_lr_weights_v1/run.py
++++ /shared/cycle2_tau_averbuch_prj/omrisegev1/results/thinkfix_rescore_v1/old/lr_weights/run_patched.py
+@@ -1,3 +1,4 @@
++# PATCHED COPY of results/monday_lr_weights_v1/run.py (thinkfix_rescore_v1, variant=old): REF -> this variant's lr_reference; N16 0.822366 gate enforced only for variant=old.
+ """monday_lr_weights_v1: which channels get ~zero weight in the supervised LR reference, and is that zero set unique?
+ 
+ SUPERVISED analysis of monday_lr_reference_v1 (uses PRMBench step labels). Development data, CPU, no new inference.
+@@ -19,8 +20,8 @@
+ import pandas as pd
+ 
+ MAIN = Path(r'C:\Users\omris\TAU\hallucination_detection'); OUT = Path(__file__).resolve().parent; CACHE = OUT / 'cache'
+-REF = MAIN / 'results/monday_lr_reference_v1'
+-_spec = importlib.util.spec_from_file_location('lr_ref', REF / 'run.py'); ref = importlib.util.module_from_spec(_spec); _spec.loader.exec_module(ref)
++REF = Path(r'/shared/cycle2_tau_averbuch_prj/omrisegev1/results/thinkfix_rescore_v1/old/lr_reference')
++_spec = importlib.util.spec_from_file_location('lr_ref', REF / 'run_patched.py'); ref = importlib.util.module_from_spec(_spec); _spec.loader.exec_module(ref)
+ from sklearn.exceptions import ConvergenceWarning  # noqa: E402
+ from sklearn.linear_model import LogisticRegression  # noqa: E402
+ from sklearn.preprocessing import StandardScaler  # noqa: E402
+@@ -101,7 +102,8 @@
+     out['N16_refit'] = {'oof_within_auc': auc, 'target': 0.822366, 'abs_diff': abs(auc - 0.822366), 'max_coef_diff_vs_cache': cdiff,
+                         'C': [x['C'] for x in diag], 'runtime_s': round(time.time() - t0, 1)}
+     print('N16 refit', out['N16_refit'], flush=True)
+-    if abs(auc - 0.822366) > 1e-6: raise SystemExit('GATE FAIL: N16 AUC not reproduced')
++    out['N16_refit']['enforced'] = _ENFORCE_N16
++    if abs(auc - 0.822366) > 1e-6 and _ENFORCE_N16: raise SystemExit('GATE FAIL: N16 AUC not reproduced')
+     (OUT / 'GATE.json').write_text(json.dumps(out, indent=1), encoding='utf8')
+ 
+ 

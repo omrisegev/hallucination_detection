@@ -1,0 +1,17 @@
+{
+ "amendment": "A2",
+ "date": "2026-10-06",
+ "trigger": "Two independent reviews (Opus and Fable) of the nested design, received while the development run was finishing; written before any nested metric table existed.",
+ "changes": [
+  "Add control ALL_EQ_ORIENTED: plain average of every channel after a label-free sign per channel and cell = sign(corr(channel answer-z, 5-channel LEVEL mean)) (the rule already used for lf__ channels). Reported with the same prominence as ALL_EQ and DS_FILTER_EQ, so the gain of a method over ALL_EQ can be split into orientation, DS filtering and weighting.",
+  "Disclosure: the primary reference was switched from DS_FILTER_EQ to ALL_EQ (Omri, 2026-10-06) after DS_FILTER_EQ-reference results of the original banks had been seen.",
+  "Failure handling: only the registered grouping failure ('groups before merge: minimum is 3' / 'Fewer than 3 groups') is an Amendment A1 INCOMPLETE; any other exception must stop. Development: every recorded failure reason is checked post hoc against this message (the run used a broad except); external: the scorer catches only that message.",
+  "Parity: N13/N16 have exactly the channels of B13/B16; their development scores for MEAN_MOM_ga, HEM_MOM_ga, MEAN_MOM_cc, HEM_MOM_cc and DS_FILTER_EQ are compared with the frozen candidate-panel scores on all 9 cells (extends the PRMBench-only gate). TCI_ONLY_ga differs by design because the TCI anchor seed is 1000*bank_position+cell_index and the position changed; the difference vs the frozen B16/B13 TCI is reported.",
+  "Highlight honesty: if the highlight is N13 or N16, its external transfer is labelled as already seen (identical to B13/B16, whose external results were opened at 20:26 before this protocol).",
+  "Wording: no 'bank size' conclusion from a single nested order; report as 'adding family X'. PRM comparisons state the range over all configurations beside the highlight; the error-type table gets a step-index column; external ranks report best and worst.",
+  "Per-benchmark completeness (replaces A1's bank-wide rule): a grouping failure in a ProcessBench cell makes that bank x scorer INCOMPLETE for ProcessBench only; its PRMBench rows (within-answer AUC, top-1-on-error) are reported when the PRMBench fit succeeded. Highlight eligibility uses PRMBench completeness (the highlight rule is a PRMBench rule).",
+  "Transfer statistics drop INCOMPLETE rows before Spearman/ranks; bank-level (n=8) Spearman is reported beside the 72-configuration one; highlight ranks are reported for all 4 methods (min..max), with B13/N13 beside B16/N16.",
+  "Published external comparators are context only: no arithmetic differences between our transductive-q80 metric and paper numbers with fixed thresholds.",
+  "Equal-flag-budget PRMScore is labelled 'localization on error-containing answers' and always shown with own-rule PRMScore and ProcessBench F1; the content-only stratum is labelled diagnostic; the longest-step share is recomputed from PER_ANSWER with a stated definition."
+ ]
+}

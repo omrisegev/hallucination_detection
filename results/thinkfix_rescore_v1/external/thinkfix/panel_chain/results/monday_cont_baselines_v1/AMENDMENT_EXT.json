@@ -1,0 +1,10 @@
+{
+ "amendment": "EXT-1",
+ "date": "2026-10-07",
+ "approved_by": "Omri, 2026-10-07 ('yes' to the sealed external run of IU-PCR and continuous L-SML)",
+ "change": "Extends PROTOCOL.json scope from development only to the three exploratory external cells already used by monday_nested_banks_v2: hard2verify_qwen3_8b, socratic_qwen3_8b, socratic_qwq32b.",
+ "unchanged": "Methods (LSML_CONT = lsml_continuous defaults; IU_PCR = upcr_fit with IU_FIT_DEFAULTS), inputs (bank['V'] of the validated adapter, channels as they are), the failure rule (L-SML K<3 or any exception = recorded, no fallback), all 10 nested banks. Native sign; the level-sign check is recorded.",
+ "decision_rule": "ANSWER_Z_Q80, exactly the formula used for ALL_EQ_ORIENTED in monday_nested_banks_v2/external_oriented.py: per-answer z-score of the step score, flag steps at or above the cell's 0.8 quantile; official metric from the frozen evaluator (Hard2Verify Balanced F1, Socratic PRMScore) plus within-answer AUC.",
+ "sealing": "Stage 1 (score_ext.py) fits label-free on each cell's unlabeled steps, writes predictions and step scores, and records their SHA-256 in SEAL.json without reading any evaluator file. Stage 2 (evaluate_ext.py) refuses to run if SEAL.json is missing or a hash differs.",
+ "use_of_results": "Exploratory: external labels were opened in earlier rounds. External numbers may only veto a candidate, never promote one. No tuning after the seal."
+}

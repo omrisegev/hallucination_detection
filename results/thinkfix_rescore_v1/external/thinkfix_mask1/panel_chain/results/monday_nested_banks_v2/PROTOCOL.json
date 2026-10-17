@@ -1,0 +1,12 @@
+{
+  "schema": "monday-nested-banks-v2",
+  "status": "FROZEN",
+  "frozen_local_date": "2026-10-07",
+  "author": "Claude, at Omri's request (2026-10-07): include the old 32/35-channel family instead of dropping it",
+  "change_from_v1": "Same protocol as results/monday_nested_banks_v1/PROTOCOL.json with Amendments A1 and A2 built in, plus two banks: N40 = N22 + the 18 history-spectral channels that formed the old 32/35-channel bank (raw, not sign-flipped; label-free orientation is handled by the DS filter and by the oriented plain-average control), and N43 = N40 + 3 digit channels. Chains: N11 < N13 < N22 < N40 < N53 and N14 < N16 < N25 < N43 < N56. N40/N43 are appended at the end of the bank list so the other banks keep their TCI seeds; N53 keeps v1's channel order.",
+  "development": {"highlight_rule": "unchanged (A2): highest mean PRMBench within-answer AUC over the 4 registered methods among banks complete on PRMBench, decided before external scoring"},
+  "external": "label-free refit on target, sealed before labels, official evaluators replayed; ALL_EQ_ORIENTED computed after the seal with the A2 formula; exploratory (labels exposed earlier)",
+  "comparators_published_only": "as in v1 (context only)",
+  "figures": "names on X, scores on Y",
+  "statistics": {"bootstrap_draws": 5000, "seed": 20261006}
+}

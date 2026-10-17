@@ -18,6 +18,38 @@
   a step, find the live line across remote branches; local `git fetch` is narrow and fails on
   a missing object.
 
+## 2026-10-17: competitor-fusion pilot: same-backbone judge + telemetry helps on APB (Claude)
+
+**START HERE:** HISTORY Step 454 and [the pilot README](results/agent_step_telemetry_v1_competitor_fusion_pilot_2026-10-17/README.md).
+
+- **APB (same backbone): positive.** Fusing the Qwen3-8B LLM judge with Qwen3-8B telemetry (IU-PCR ansz, length+position residualized) raises first error vs prior clean from 0.592 to **0.681 (+0.089 [0.055, 0.121])**, and step AUROC from 0.581 to 0.637. This is the first positive agent-benchmark result.
+- **TPRM (cross-backbone, Qwen3-8B features): mixed.**
+  - Clear gains for weak competitors: Nemotron +0.19 on ToolSandbox, +0.11 on bfcl.
+  - Small gains for strong ones on ToolSandbox (+0.04 to +0.05).
+  - Losses on tooltalk.
+- **Next, if pursued.**
+  - Add judge+length / judge+position controls on APB.
+  - Run the own-backbone TPRM test: GPU telemetry from Skywork-o1-PRM-7B first (Qwen2.5-7B, the same pattern as PRMBench `122500e2`), then Nemotron-49B and Qwen3-Coder-Next. Needs Omri's GPU go.
+
+## 2026-10-16: agent-step telemetry evaluated: no robust label-free signal (Claude)
+
+**START HERE:** HISTORY Step 453 [Claude agent telemetry] and [the fair-protocol README](results/agent_step_telemetry_v1_n16_2026-10-16/fair_protocols/README.md).
+
+- The Qwen3-8B telemetry collection on AgentProcessBench / ToolPRMBench / AFTraj-2K is complete on Drive (`cluster_results/agent_step_telemetry_v1/*_813d11b_full`). This step is the first quality evaluation of it.
+- **Verdict.** Simple NLL/entropy baselines and N16 Continuous L-SML / IU-PCR show almost no signal once length, step position and dataset construction are controlled:
+  - TPRM: length wins.
+  - AFT: the high AUROC comes from injection artifacts; diagnosed errors are at chance.
+  - APB: the only surviving margin is modest, about 0.61 after length and position residualization, on first error vs prior clean steps.
+- **References.** ToolPRMBench published RMs/judges reach 0.38-0.83 per subset. The Qwen3-8B judge on APB gets official `first_neg1_idx_acc` 0.407.
+- **Fair protocols to use from now on:**
+  - TPRM: per subset, same-format pairs, length-matched/residualized; GTA only as a format probe.
+  - APB: first error vs the clean steps before it, length+position residualized.
+  - AFT: diagnosed only, online; injected only as safe-twin pairs at the mistake step; always include a constant-position localization baseline.
+- **Open.**
+  - Canonical per-answer z is undefined on single-step items (TPRM); `cellz` is an added variant, not canonical.
+  - Later step starts were not masked.
+  - Whether agent benchmarks stay in scope is Omri's call.
+
 ## 2026-10-15: Advisor meeting findings documented — Section 5 external transfer & PRM boosting (Codex)
 
 **START HERE:** [docs/reports/ADVISOR_MEETING_EXTERNAL_AND_PRM_BOOSTING_FINDINGS_20261015.md](docs/reports/ADVISOR_MEETING_EXTERNAL_AND_PRM_BOOSTING_FINDINGS_20261015.md).
@@ -6621,3 +6653,20 @@ Omri requested SML/MoM/HEM/DS on a common-plus-orthogonal-contrast representatio
 PRMB primary RAW -> ORTH: SML: B13 0.778598 -> 0.599104; B32 0.731631 -> 0.737647 | MOM: B13 0.779632 -> 0.491271; B32 0.742690 -> 0.559498 | HEM: B13 0.778355 -> 0.753295; B32 0.746882 -> 0.602148 | DS: B13 0.779285 -> 0.522549; B32 0.741728 -> 0.622258. 7/8 primary PRMB comparisons have negative paired 95% intervals; 1/8 positive. SML B32 gains .006016 [.002004,.009977] over RAW SML but remains below COMMON_EQ. With MoM between groups, its differences against RAW SML+MoM and COMMON_MOM both include zero. No general recovery of the supervised gap.
 
 Four tests, all common-only/raw EQ/raw HEM replay controls, 432 independent metric rows and unchanged input/code hashes PASS. All candidate scores sealed before full-run quality evaluation. Native small-group equal guards and clipping documented; expected failures: 0. Orthogonality does not imply independent error votes. This result tests one fixed representation/normalization/weighting recipe, not the whole contrast direction. No supervised-label use to orient or weight contrasts, no GPU/inference, no historical score overwrite. Initial manifest-type smoke error preserved and corrected without changing a numerical gate.
+
+
+## 2026-10-13 - Agent telemetry CPU rerun v2 passes (Codex)
+
+Branch `codex/agent-step-telemetry-v1`, tested Claude correction `afae64a`.
+Full fresh `inputs_v2_20261013`: 4,166 items / 35,705 steps; APB 1,000,
+TPRM 890, AFT 2,276. G1-G6 and LENGTH PASS with unchanged gate/runtime
+code. AFT explicit metadata/raw-ID leak checks, independent full source
+prompt reconstruction and label/test-metadata invariance pass for every
+AFT row; all normalized tasks share consistent groups.
+[Evidence](results/agent_step_telemetry_v1/cpu_rerun_v2_20261013/README.md) includes complete hashes, counts, gate outputs and
+per-item AFT boundary diagnostics. Seventeen tests and nine-item
+interrupt/resume/fresh CPU model smoke pass. Ten overlength exclusions
+unchanged; no truncation; older data/reports preserved.
+CPU only: no benchmark inference/scoring, AIRCC access, Drive transfer or
+GPU permission. Claude reviews the full evidence next; G7/smoke/budget
+remain pending. Thursday 2026-10-15 remains PRMBench focused.
