@@ -1,3 +1,7 @@
+# Research Directions — Thesis Roadmap
+*Omri Segev | Supervised by Bracha Laufer-Goldshtein & Ofir Lindenbaum*
+
+---
 ## 2026-10-17: LR-gap direction CLOSED (Step 464 [LR-gap closed])
 
 **Status: Closed (exhausted for now) — Omri, 2026-10-17.** Question (advisor deck slide 16): on PRMBench, supervised LR keeps improving as channels are added (N14→N56 within-answer AUC .797→.821) while label-free L-SML (.776→.770) and IU-PCR do not. Finding: LR's gain is supervised *selection + weighting* — non-negative LR closes 86–94% of the gap with about half the channels; negative weights add only 0.2–0.7 pt. For a voting rule, redundant copies of the strong uncertainty signal act as its weight. Label-free μ is uninformative in the weak half of Σ (cosine ≈ 0), so removing redundant strong members shifts the vote to channels that label-free estimation cannot weight. L-SML on the NNLR-kept set (N56 .712) and effective-dimension pruning inside L-SML clusters (N43 .635, N56 .727) are both worse than the full banks. Keep the full matched banks for label-free fusion. Not pursued: keep-the-strongest-member pruning (expected to return to baseline). Evidence: `results/lr_gap_explanation_draft_2026-10-15/` and HISTORY Step 464 [LR-gap closed].
