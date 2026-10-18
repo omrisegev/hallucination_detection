@@ -30,10 +30,13 @@
     background: var(--bg);
     font-family: "Heebo", "Segoe UI", Arial, sans-serif;
     color: var(--ink);
-    display: flex; align-items: center; justify-content: center;
-    overflow: hidden;
+    overflow-y: auto; overflow-x: hidden;
+    scroll-snap-type: y mandatory;
   }
-  .stage { width: 1600px; height: 900px; transform-origin: center center; flex: none; }
+  .frame { margin: 0 auto; overflow: hidden; scroll-snap-align: center; }
+  .deck { display: flex; flex-direction: column; align-items: center; gap: 24px; padding: 20px 0; }
+  .stage { width: 1600px; height: 900px; transform-origin: top left; }
+  body.single .deck { padding: 0; gap: 0; }
   .slide {
     width: 1600px; height: 900px; background: var(--slide);
     padding: 22px 36px 12px; display: flex; flex-direction: column; gap: 9px;
@@ -59,6 +62,7 @@
   table.ot td.good { color: var(--ours); font-weight: 600; }
   table.ot td.bad { color: var(--crop); font-weight: 600; }
   table.ot td.neg { color: var(--warn); font-weight: 700; }
+  table.ot tr.hl td.neg { color: var(--warn); }
   table.ot td.n, table.ot th.n { direction: ltr; text-align: center; font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: 500; }
   table.ot th:nth-child(n+2) { text-align: center; }
   table.ot td:nth-child(n+2) { text-align: center; }
@@ -98,9 +102,48 @@
   .checks div.c b { display: block; font-size: 15px; }
   .checks div.c.neg b { color: var(--warn); }
 
+  /* slide 2: RLVR */
+  :root { --rl: #1f5f8b; --rl-soft: #e6f0f7; --near: #0f5c4d; --near-soft: #e3f2ee; }
+  .r-row1 { display: grid; grid-template-columns: 1.35fr 1fr; gap: 14px; }
+  .box { border: 1px solid var(--line); border-radius: 10px; padding: 9px 16px; }
+  .box h2 { font-size: 18px; font-weight: 800; color: var(--rl); margin-bottom: 4px; }
+  .box ol { padding-right: 20px; }
+  .box li { font-size: 14.5px; line-height: 1.4; }
+  .box .weak { margin-top: 6px; font-size: 14.5px; line-height: 1.38; background: var(--warn-soft); color: var(--warn); border-radius: 6px; padding: 5px 9px; }
+  table.tr { width: 100%; border-collapse: collapse; font-size: 14.5px; margin-top: 2px; }
+  table.tr th { font-size: 13px; color: var(--muted); font-weight: 700; text-align: right; padding: 2px 6px; border-bottom: 1px solid var(--line); }
+  table.tr td { padding: 2px 6px; border-bottom: 1px solid #eef1f4; }
+  table.tr td.n { direction: ltr; text-align: center; font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: 500; }
+  table.tr td.rl { color: var(--rl); font-weight: 700; }
+  table.tr th:nth-child(n+2) { text-align: center; }
+  .small { font-size: 12.5px; color: var(--muted); line-height: 1.35; margin-top: 5px; }
+  .r-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; flex: 1; min-height: 0; }
+  .pc { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
+  .pc h3 { font-size: 17.5px; font-weight: 800; padding: 6px 12px; background: var(--rl-soft); color: var(--rl); }
+  .pc.near { border: 2px solid var(--near); }
+  .pc.near h3 { background: var(--near-soft); color: var(--near); }
+  .pc ul { list-style: none; padding: 6px 12px 6px; }
+  .pc li { font-size: 14.6px; line-height: 1.38; margin-bottom: 8px; }
+  .pc li b { font-weight: 700; }
+  .pc li .pt { direction: ltr; unicode-bidi: isolate; display: inline-block; }
+  .pc li .id { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 12px; color: var(--muted); direction: ltr; unicode-bidi: isolate; display: inline-block; }
+  .r-row3 { display: grid; grid-template-columns: 1fr 1.25fr; gap: 14px; }
+  .box ul.dot { list-style: none; }
+  .box ul.dot li { font-size: 14.3px; line-height: 1.38; padding-right: 13px; position: relative; margin-bottom: 3px; }
+  .box ul.dot li::before { content: ""; position: absolute; right: 0; top: .62em; width: 5px; height: 5px; border-radius: 50%; background: var(--rl); }
+  .lv { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 10px; align-items: baseline; font-size: 14.3px; line-height: 1.36; }
+  .lv .k { font-weight: 800; color: var(--rl); }
+  .tag { font-size: 12px; font-weight: 700; border-radius: 10px; padding: 1px 8px; white-space: nowrap; }
+  .tag.ok { background: var(--near-soft); color: var(--near); }
+  .tag.ask { background: var(--crop-soft); color: var(--crop); }
+  .tag.no { background: var(--warn-soft); color: var(--warn); }
+  .rec { margin-top: 6px; font-size: 14.3px; font-weight: 700; color: var(--near); }
+
   footer { font-size: 11.5px; color: var(--muted); line-height: 1.35; }
   @media print {
     body { background: #fff; display: block; overflow: visible; }
+    .deck { padding: 0; gap: 0; }
+    .frame { width: auto !important; height: auto !important; break-after: page; }
     .stage { transform: none !important; }
     .slide { box-shadow: none; }
     @page { size: 1600px 900px; margin: 0; }
@@ -108,7 +151,8 @@
 </style>
 </head>
 <body>
-<div class="stage" id="stage">
+<div class="deck">
+<div class="frame" id="s1"><div class="stage">
 <section class="slide">
 
   <header>
@@ -122,8 +166,8 @@
       <tr><th>שיטה</th><th>channels</th><th>בחירת channels</th><th>PRMBench PRMScore</th><th>PRMBench within-AUC</th><th>Socratic PRMScore</th></tr>
       <tr><td>PRM לבד</td><td>—</td><td>—</td><td class="n">65.49</td><td class="n">0.801</td><td class="n">68.1</td></tr>
       <tr><td>LSML_CONT</td><td class="n">3</td><td class="bad">עם labels</td><td class="n">69.48</td><td class="n">0.850</td><td class="n neg">64.7</td></tr>
-      <tr class="hl"><td>CHAIN_N16</td><td class="n">16</td><td class="good">ללא labels</td><td class="n">68.25</td><td class="n">0.838</td><td>לא הורץ</td></tr>
-      <tr><td>CHAIN_N13 (בלי digit channels)</td><td class="n">13</td><td class="good">ללא labels</td><td class="n">67.82</td><td class="n">0.829</td><td>לא הורץ</td></tr>
+      <tr class="hl"><td>CHAIN_N16</td><td class="n">16</td><td class="good">ללא labels</td><td class="n">68.25</td><td class="n">0.838</td><td class="n neg">65.5</td></tr>
+      <tr><td>CHAIN_N13 (בלי digit channels)</td><td class="n">13</td><td class="good">ללא labels</td><td class="n">67.82</td><td class="n">0.829</td><td class="n neg">62.7</td></tr>
       <tr><td>LSML_N16_PRMG</td><td class="n">16</td><td class="good">ללא labels</td><td class="n">67.80</td><td class="n">0.830</td><td class="n neg">65.1</td></tr>
     </table>
   </div>
@@ -228,7 +272,7 @@
 
   <div class="checks">
     <div class="t">מה צריך<br>לבדוק אצלנו</div>
-    <div class="c neg"><b>ההכללה ל-Socratic נכשלה</b>על Socratic (<span class="ltr num">2,995</span> answers), ה-L-SML fusion מוריד את Qwen-7B מ-<span class="ltr num">68.1</span> ל-<span class="ltr num">64.7–65.1</span>. הוא משפר רק את RLHFlow (<span class="ltr num">1</span> מתוך <span class="ltr num">5</span> PRMs). לכן לא הרצנו Hard2Verify.</div>
+    <div class="c neg"><b>ההכללה ל-Socratic נכשלה</b>על Socratic (<span class="ltr num">2,995</span> answers), כל ה-L-SML fusions, כולל CHAIN, מורידים את Qwen-7B מ-<span class="ltr num">68.1</span> ל-<span class="ltr num">62.7–65.5</span>. הם משפרים רק את RLHFlow (<span class="ltr num">1</span> מתוך <span class="ltr num">5</span> PRMs). לכן לא הרצנו Hard2Verify.</div>
     <div class="c"><b>האם energy_level הוא proxy לאורך או למיקום?</b>energy_level לבד נותן redundancy <span class="ltr num">67.6</span> ו-circular <span class="ltr num">70.5</span>. ב-CROP, position/length לבד נותנים <span class="ltr num">0.775</span>.</div>
     <div class="c"><b>חלק מה-gain מגיע מכלל ההחלטה</b>PRM לבד עם כלל Q80 נותן redundancy <span class="ltr num">55.2</span> ו-circular <span class="ltr num">63.8</span>. כאן משתנה רק ה-threshold.</div>
     <div class="c"><b>כל metric בפאנל נפרד</b>PRMScore מול PRISM. pooled AUROC ו-retained prefix מול CROP. accuracy מול SLIDER.</div>
@@ -237,18 +281,131 @@
   <footer>
     המספרים שלנו: <span class="ltr">results/prm_boosting_generalization_v1/run_v1/eval_lsml4/README.md</span> (Qwen-7B, <span class="ltr">N=6,969</span> answers) ·
     <span class="ltr">results/remote_claims_replay_2026-10-15/PRM7B_BY_TYPE.csv</span> (category, energy_level, Q80) ·
-    <span class="ltr">results/prm_boosting_bank_sweep_v1/README.md</span> (CHAIN, N13, N16) · <span class="ltr">results/prm_boost_external_v1/eval_socratic/RESULTS_socratic.csv</span> (Socratic, <span class="ltr">N=2,995</span>).
+    <span class="ltr">results/prm_boosting_bank_sweep_v1/README.md</span> (CHAIN, N13, N16) · <span class="ltr">results/prm_boost_external_v1/eval_socratic/RESULTS_socratic.csv</span> (Socratic, <span class="ltr">N=2,995</span>) · <span class="ltr">results/prm_boost_external_v1/chain_socratic/</span> (CHAIN, Socratic).
     מספרי המאמרים: PRISM Table 7 · CROP Appendix Table 6 · SLIDER Fig. 7. מספרי PRMBench הם development data. קראנו את התקצירים ואת הטבלאות הרלוונטיות, לא את המאמרים המלאים.
   </footer>
 
 </section>
+</div></div>
+
+<div class="frame" id="s2"><div class="stage">
+<section class="slide">
+
+  <header>
+    <h1>RLVR: לאן הולך התחום, ואיך PRM boosting מתחבר אליו</h1>
+    <p>RLVR = Reinforcement Learning with Verifiable Rewards. זו שיטת אימון, לא סוג מודל. המודל לומד ב-RL מ-reward אוטומטי: האם התשובה הסופית נכונה. אין reward model ואין ציון לכל צעד. כך אומנו DeepSeek-R1 ו-Qwen3.</p>
+  </header>
+
+  <div class="r-row1">
+    <div class="box">
+      <h2>איך זה עובד</h2>
+      <ol>
+        <li>המודל מייצר כמה תשובות לאותה שאלה (למשל <span class="ltr num">8</span>).</li>
+        <li>בדיקה אוטומטית נותנת לכל תשובה reward של <span class="ltr num">1</span> או <span class="ltr num">0</span> לפי התשובה הסופית.</li>
+        <li>GRPO משווה כל תשובה לממוצע של הקבוצה ומחזק את מה שהצליח. אין value network ואין PRM.</li>
+      </ol>
+      <div class="weak"><b>החולשה:</b> ה-reward דליל. כל ה-tokens בתשובה מקבלים את אותו ציון, גם צעדים נכונים בתשובה שגויה. זו בעיית credit assignment, ושם אנחנו נכנסים.</div>
+    </div>
+    <div class="box">
+      <h2>המגמה בכנסים: כותרות של מאמרים שהתקבלו</h2>
+      <table class="tr">
+        <tr><th>כנס</th><th>PRM</th><th>RLVR</th></tr>
+        <tr><td>NeurIPS <span class="ltr num">2024 → 2025</span></td><td class="n">3 → 9</td><td class="n rl">0 → 4</td></tr>
+        <tr><td>ICLR <span class="ltr num">2025 → 2026</span></td><td class="n">2 → 10</td><td class="n rl">0 → 22</td></tr>
+        <tr><td>ICML <span class="ltr num">2025 → 2026</span></td><td class="n">3 → 11</td><td class="n rl">0 → 28</td></tr>
+      </table>
+      <div class="small">PRM עדיין רק בערך <span class="ltr num">0.15%</span> מהמאמרים. המונח RLVR נטבע רק ב-<span class="ltr num">11.2024</span>, ולכן ה-<span class="ltr num">0</span> הוא בחלקו מונח חדש. הספירה נעשתה על ידי subagent מרשימות המאמרים, ולא אומתה בנפרד.</div>
+    </div>
+  </div>
+
+  <div class="r-cards">
+    <article class="pc">
+      <h3>יסודות</h3>
+      <ul>
+        <li><span class="pt"><b>DeepSeekMath</b> <span class="id">2402.03300</span></span><br>הציג את GRPO.</li>
+        <li><span class="pt"><b>Tülu 3</b> <span class="id">2411.15124</span></span><br>טבע את המונח RLVR.</li>
+        <li><span class="pt"><b>DeepSeek-R1</b> <span class="id">2501.12948</span> (Nature 2025)</span><br>RL עם outcome reward בלבד. הם ניסו PRM ונכשלו: reward hacking ועלות.</li>
+        <li><span class="pt"><b>DAPO</b> <span class="id">2503.14476</span>, <b>Dr. GRPO</b> <span class="id">2503.20783</span></span><br>תיקונים ל-GRPO.</li>
+      </ul>
+    </article>
+    <article class="pc">
+      <h3>ביקורת: מה RLVR באמת עושה</h3>
+      <ul>
+        <li><span class="pt"><b>Does RL Really Incentivize Reasoning?</b> <span class="id">2504.13837</span></span><br>RLVR מצמצם את מה שהמודל כבר יודע. ב-pass@k עם k גדול, מודל הבסיס מנצח.</li>
+        <li><span class="pt"><b>Spurious Rewards</b> <span class="id">2506.10947</span></span><br>על Qwen2.5-Math גם reward אקראי משפר. צריך זהירות עם מסקנות ממודלי Qwen-Math.</li>
+        <li><span class="pt"><b>1-shot RLVR</b> <span class="id">2504.20571</span></span><br>דוגמת אימון אחת מספיקה לשיפור גדול.</li>
+      </ul>
+    </article>
+    <article class="pc near">
+      <h3>reward ללא labels: הכי קרוב אלינו</h3>
+      <ul>
+        <li><span class="pt"><b>TTRL</b> <span class="id">2504.16084</span></span><br>ה-reward הוא majority vote.</li>
+        <li><span class="pt"><b>INTUITOR</b> <span class="id">2505.19590</span></span><br>ה-reward הוא self-certainty של המודל.</li>
+        <li><span class="pt"><b>Entropy Minimization</b> <span class="id">2505.15134</span></span><br>הורדת entropy בלבד משפרת reasoning.</li>
+        <li><span class="pt"><b>RLPR</b> <span class="id">2506.18254</span></span><br>ה-reward הוא ההסתברות של התשובה הנכונה. אין צורך ב-verifier.</li>
+        <li><span class="pt"><b>Absolute Zero</b> <span class="id">2505.03335</span></span><br>self-play, בלי נתונים.</li>
+      </ul>
+    </article>
+    <article class="pc">
+      <h3>entropy ו-dense reward</h3>
+      <ul>
+        <li><span class="pt"><b>Beyond the 80/20 Rule</b> <span class="id">2506.01939</span></span><br>הלמידה מגיעה בעיקר מכ-<span class="ltr num">20%</span> מה-tokens, אלה עם entropy גבוהה ("forking tokens").</li>
+        <li><span class="pt"><b>Entropy Mechanism of RL</b> <span class="id">2505.22617</span></span><br>ה-entropy קורסת במהלך האימון ומגבילה את השיפור.</li>
+        <li><span class="pt"><b>PRIME</b> <span class="id">2502.01456</span></span><br>implicit PRM שנלמד מה-outcome reward.</li>
+        <li><span class="pt"><b>VPPO</b> <span class="id">2601.18984</span>, <b>Cliff</b> <span class="id">2609.02817</span></span><br>מאתרים את השגיאה הראשונה, נותנים reward לפניה ועונש אחריה.</li>
+      </ul>
+    </article>
+  </div>
+
+  <div class="r-row3">
+    <div class="box">
+      <h2>הקשר אלינו</h2>
+      <ul class="dot">
+        <li><b>אותם אותות:</b> entropy, spilled energy ו-top-k logprobs. הם משתמשים בהם כ-reward לכל התשובה. אנחנו ממזגים אותם ללא labels כדי למצוא את הצעד השגוי.</li>
+        <li><b>VPPO ו-Cliff צריכים locator של השגיאה הראשונה</b> (PRM או LLM teacher). ה-step localizer שלנו הוא חלופה זולה וללא labels. PRMBench ו-ProcessBench מודדים בדיוק את זה.</li>
+        <li><b>סיכון (Goodhart):</b> reward מטלמטריה מלמד את ה-policy להוריד את הטלמטריה. גם ה-entropy קורסת ממילא, וה-fusion לא יציב על Socratic.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h2>איך מתפתחים לשם</h2>
+      <div class="lv">
+        <span class="k">1</span><span><b>בלי חישוב חדש:</b> מסגור התזה כ-dense credit signal ללא labels. ניתוח על נתונים קיימים: האם הצעד שהגלאי מסמן נופל על forking tokens?</span><span class="tag ok">בתוך ההרשאה</span>
+        <span class="k">2</span><span><b>inference חדשה:</b> להריץ את הגלאי על rollouts של מודל RLVR (Qwen3 thinking). PRMs נכשלים על traces כאלה (EACL 2026).</span><span class="tag ask">צריך אישור תקציב</span>
+        <span class="k">3</span><span><b>אימון GRPO קטן:</b> outcome-only, מול outcome + PRM, מול outcome + עונש מהגלאי שלנו. לבדוק גם מודל שאינו Qwen-Math.</span><span class="tag no">אימון GPU אסור כרגע</span>
+      </div>
+      <div class="rec">המלצה: להתחיל ב-1. לא לעבור ל-3 לפני שה-fusion יציב על Socratic.</div>
+    </div>
+  </div>
+
+  <footer>
+    כל ה-arXiv IDs נבדקו מול arXiv API ב-<span class="ltr">2026-10-18</span>. VPPO ו-Cliff מגיעים מרשימת המאמרים שמצטטים את PRMBench. ספירות הכנסים: subagent, מרשימות ה-virtual site של NeurIPS, ICLR ו-ICML, ולא אומתו בנפרד. מאמר EACL 2026: "Out of Distribution, Out of Luck".
+  </footer>
+
+</section>
+</div></div>
 </div>
 <script>
+  var q = new URLSearchParams(location.search).get('slide');
+  if (q) {
+    document.body.classList.add('single');
+    document.querySelectorAll('.frame').forEach(function (f) { if (f.id !== 's' + q) f.style.display = 'none'; });
+  }
   function fit() {
     var s = Math.min(window.innerWidth / 1640, window.innerHeight / 940);
-    document.getElementById('stage').style.transform = 'scale(' + s + ')';
+    document.querySelectorAll('.frame').forEach(function (f) {
+      f.style.width = (1600 * s) + 'px'; f.style.height = (900 * s) + 'px';
+      f.querySelector('.stage').style.transform = 'scale(' + s + ')';
+    });
   }
   window.addEventListener('resize', fit); fit();
+  document.addEventListener('keydown', function (e) {
+    var fr = Array.prototype.slice.call(document.querySelectorAll('.frame'));
+    var mid = window.scrollY + window.innerHeight / 2;
+    var i = fr.findIndex(function (f) { return f.offsetTop <= mid && mid < f.offsetTop + f.offsetHeight; });
+    if (i < 0) i = 0;
+    if (['ArrowDown', 'PageDown', 'ArrowLeft', ' '].indexOf(e.key) >= 0 && i < fr.length - 1) { fr[i + 1].scrollIntoView({ block: 'center' }); e.preventDefault(); }
+    if (['ArrowUp', 'PageUp', 'ArrowRight'].indexOf(e.key) >= 0 && i > 0) { fr[i - 1].scrollIntoView({ block: 'center' }); e.preventDefault(); }
+  });
 </script>
 </body>
 </html>
