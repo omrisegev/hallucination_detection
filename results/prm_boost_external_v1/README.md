@@ -49,3 +49,11 @@ Jobs are linear 2-link chains, all with the frozen recipe and the same code dir:
 | qwen_prm_72b | 288077 → 288078 | 8 h |
 
 Outputs go to `$SHARED/results/prm_boost_external_v1/full_<adapter>_socratic/`.
+
+## Downstream pipeline, frozen before any full external result
+
+1. `build_bank_external.py` (AIRCC CPU, cwd `code_thinkfix_bank_553de79`): computes the same per-step 56-channel bank as on PRMBench, using the frozen `rebuild_source_bank_v4.one`. It applies mask1, drops empty steps, writes the external_banks_v4 layout, and saves rewards and native flags to `REWARDS.npz`. Labels are not read.
+2. `score_external.py` (AIRCC CPU, cwd `eval_mirror_prm_gen_v1`): computes the label-free arms on each PRM's own unlabeled cell. The arms are PRM, HALF_N16, LSML_N16_PRMG and LSML_CONT, with the same code path as `results/prm_boosting_controls_v1/lsml_controls.py`. Output: `SCORES.npz`.
+3. `eval_external.py` (local; the gold labels never leave this machine): reports the official benchmark metric and within-AUC under PRM native and ANSWER_Z_Q80, with a paired bootstrap over answers.
+
+Smoke check: steps 1-3 ran end to end on the 12-row timing cells (jobs 288087 and a scoring smoke). Those numbers are a pipeline check only, not a result.
