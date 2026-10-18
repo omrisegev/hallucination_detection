@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PRMBench Citing Papers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #eef0f3;
+    --slide: #ffffff;
+    --ink: #17202b;
+    --muted: #5a6573;
+    --line: #dde2e8;
+    --ours: #0f5c4d;
+    --ours-soft: #e3f2ee;
+    --prism: #2f4fb3;
+    --prism-soft: #e8edfb;
+    --crop: #a3511a;
+    --crop-soft: #fbefe5;
+    --slider: #7a3b98;
+    --slider-soft: #f3eaf8;
+    --warn: #9a2d2d;
+    --warn-soft: #fbecec;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    font-family: "Heebo", "Segoe UI", Arial, sans-serif;
+    color: var(--ink);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .stage { width: 1600px; height: 900px; transform-origin: center center; flex: none; }
+  .slide {
+    width: 1600px; height: 900px; background: var(--slide);
+    padding: 26px 40px 16px; display: flex; flex-direction: column; gap: 11px;
+    box-shadow: 0 6px 30px rgba(20,30,45,.12);
+  }
+  .ltr { direction: ltr; unicode-bidi: isolate; display: inline-block; white-space: nowrap; }
+  .num { font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: 500; font-size: .93em; }
+  header h1 { font-size: 31px; font-weight: 800; letter-spacing: -.2px; line-height: 1.15; }
+  header p { font-size: 16px; color: var(--muted); margin-top: 4px; }
+
+  .ours {
+    background: var(--ours-soft); border-right: 6px solid var(--ours);
+    border-radius: 8px; padding: 8px 18px;
+    display: grid; grid-template-columns: 1.7fr repeat(4, 1fr); gap: 16px; align-items: center;
+  }
+  .ours .lbl { font-size: 15px; line-height: 1.3; }
+  .ours .lbl b { color: var(--ours); font-size: 19px; display: block; }
+  .kpi { text-align: center; }
+  .kpi .k { font-size: 14px; color: var(--muted); }
+  .kpi .v { font-size: 21px; font-weight: 700; color: var(--ours); }
+
+  .cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; flex: 1; min-height: 0; }
+  .card { border: 1px solid var(--line); border-radius: 10px; display: flex; flex-direction: column; overflow: hidden; }
+  .card .top { padding: 8px 14px 7px; }
+  .card .top h2 { font-size: 23px; font-weight: 800; display: flex; align-items: baseline; gap: 10px; }
+  .card .top h2 small { font-size: 13px; font-weight: 500; color: var(--muted); }
+  .card .top .one { font-size: 15px; margin-top: 2px; font-weight: 500; }
+  .prism .top { background: var(--prism-soft); } .prism h2 { color: var(--prism); }
+  .crop .top { background: var(--crop-soft); }   .crop h2 { color: var(--crop); }
+  .slider .top { background: var(--slider-soft); } .slider h2 { color: var(--slider); }
+
+  .sec { padding: 8px 14px 0; }
+  .sec h3 { font-size: 13.5px; font-weight: 700; color: var(--muted); text-transform: none; margin-bottom: 3px; letter-spacing: .2px; }
+  .sec ul { list-style: none; }
+  .sec li { font-size: 15px; line-height: 1.4; padding-right: 13px; position: relative; }
+  .sec li::before { content: ""; position: absolute; right: 0; top: .62em; width: 5px; height: 5px; border-radius: 50%; background: #9aa5b1; }
+  .prism .cmp li::before { background: var(--prism); }
+  .crop .cmp li::before { background: var(--crop); }
+  .slider .cmp li::before { background: var(--slider); }
+
+  table.res { width: 100%; border-collapse: collapse; font-size: 14.3px; margin-top: 2px; }
+  table.res td { padding: 2px 4px; border-bottom: 1px solid #eef1f4; }
+  table.res td:last-child { text-align: left; white-space: nowrap; }
+  table.res tr.hl td { font-weight: 700; }
+  .note { margin: auto 10px 9px; padding: 5px 9px; border-radius: 6px; background: var(--warn-soft); color: var(--warn); font-size: 13.5px; line-height: 1.33; }
+
+  .checks { border: 1px solid var(--line); border-radius: 10px; padding: 7px 16px; display: grid; grid-template-columns: auto 1fr 1fr 1fr; gap: 18px; align-items: start; }
+  .checks .t { font-size: 18px; font-weight: 800; color: var(--warn); line-height: 1.2; }
+  .checks div.c { font-size: 14px; line-height: 1.35; }
+  .checks div.c b { display: block; font-size: 15px; }
+
+  footer { font-size: 11.5px; color: var(--muted); line-height: 1.35; }
+  @media print {
+    body { background: #fff; display: block; overflow: visible; }
+    .stage { transform: none !important; }
+    .slide { box-shadow: none; }
+    @page { size: 1600px 900px; margin: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+<section class="slide">
+
+  <header>
+    <h1>מאמרים מ-<span class="ltr num">2026</span> שמצטטים את PRMBench: למי אפשר להשוות את PRM boosting</h1>
+    <p><span class="ltr num">134</span> מאמרים מצטטים את PRMBench. <span class="ltr num">64</span> מהם מ-<span class="ltr num">2026</span> (מקור: Semantic Scholar, <span class="ltr num">2026-10-18</span>). לרוב המצוטטים יש קשר חלש אלינו (agents, multimodal, RL). שלושה מאמרים מתאימים להשוואה ישירה.</p>
+  </header>
+
+  <div class="ours">
+    <div class="lbl"><b>אנחנו: PRM boosting</b><span class="ltr">Qwen-PRM-7B</span> + <span class="ltr num">3</span> telemetry channels מאותו forward pass. ה-fusion הוא L-SML, ללא labels.</div>
+    <div class="kpi"><div class="k">PRMScore</div><div class="v ltr num">65.49 → 69.48</div></div>
+    <div class="kpi"><div class="k">within-answer AUC</div><div class="v ltr num">0.801 → 0.850</div></div>
+    <div class="kpi"><div class="k">redundancy (macro-F1)</div><div class="v ltr num">49.0 → 67.7</div></div>
+    <div class="kpi"><div class="k">circular (macro-F1)</div><div class="v ltr num">54.9 → 71.8</div></div>
+  </div>
+
+  <div class="cols">
+
+    <article class="card prism">
+      <div class="top">
+        <h2>PRISM <small class="ltr">arXiv 2606.09078</small></h2>
+        <div class="one">הם מאמנים מחדש את ה-PRM כדי להוריד false positives.</div>
+      </div>
+      <div class="sec">
+        <h3>מה הם עושים</h3>
+        <ul>
+          <li>fine-tuning ל-Qwen2.5-Math-PRM-7B על pairwise step comparisons.</li>
+          <li>hard negatives מ-temporal lookahead, ו-curriculum. אין human labels חדשים.</li>
+        </ul>
+      </div>
+      <div class="sec">
+        <h3>התוצאה שלהם על PRMBench</h3>
+        <table class="res">
+          <tr><td>PRMScore</td><td class="ltr num">65.5 → 68.0</td></tr>
+          <tr><td>redundancy (NR)</td><td class="ltr num">49.1 → 53.5</td></tr>
+          <tr><td>circular (NCL)</td><td class="ltr num">55.0 → 66.0</td></tr>
+          <tr><td>FPR</td><td class="ltr num">69.3% → 47.1%</td></tr>
+        </table>
+      </div>
+      <div class="sec cmp">
+        <h3>איך משווים</h3>
+        <ul>
+          <li>אותו PRM ואותו metric. ה-baseline שלהם זהה לשלנו: <span class="ltr num">65.49 / 49.0 / 54.9</span>. כך ה-evaluator שלנו מאומת.</li>
+          <li>השוואה ישירה של טבלה מול טבלה, כולל categories.</li>
+          <li>PRISM משנה את המודל, ואנחנו מוסיפים שכבה אחריו. אפשר לשלב: boosting על ה-checkpoint שלהם, אם הוא זמין.</li>
+        </ul>
+      </div>
+      <div class="note">זהירות: בחרנו את <span class="ltr num">3</span> הערוצים עם labels על PRMBench. בלי בחירה (PRM + N16) התוצאה היא <span class="ltr num">67.80</span>: קרוב ל-<span class="ltr num">68.0</span>, לא מעליו.</div>
+    </article>
+
+    <article class="card crop">
+      <div class="top">
+        <h2>CROP <small class="ltr">arXiv 2605.30085</small></h2>
+        <div class="one">הרעיון הכי קרוב אלינו: PRM + telemetry, עם conformal guarantee.</div>
+      </div>
+      <div class="sec">
+        <h3>מה הם עושים</h3>
+        <ul>
+          <li>conformal threshold על step risk. הם מחזירים את ה-prefix הארוך ביותר מתחת ל-threshold, עם <span class="ltr num">P(error in prefix) ≤ α</span>.</li>
+          <li>ה-risk proxy: Qwen-PRM-7B + position/length/format + trace features מ-Llama-3.1-8B. ה-fusion: supervised LR.</li>
+        </ul>
+      </div>
+      <div class="sec">
+        <h3>התוצאה שלהם על PRMBench (<span class="ltr num">5,000</span> traces, pooled step AUROC)</h3>
+        <table class="res">
+          <tr><td>position / length / format בלבד</td><td class="ltr num">0.775</td></tr>
+          <tr><td>trace features</td><td class="ltr num">0.781</td></tr>
+          <tr><td>PRM בלבד</td><td class="ltr num">0.801</td></tr>
+          <tr class="hl"><td>trace + PRM</td><td class="ltr num">0.834</td></tr>
+          <tr><td>retained prefix, <span class="ltr">α=0.05</span> (PRM → trace+PRM)</td><td class="ltr num">4.8% → 21.8%</td></tr>
+        </table>
+      </div>
+      <div class="sec cmp">
+        <h3>איך משווים</h3>
+        <ul>
+          <li>נחשב pooled step AUROC (ה-within-answer AUC שלנו הוא metric אחר).</li>
+          <li>נכניס את ה-fused score שלנו ל-CROP כ-risk proxy ונמדוד retained prefix.</li>
+          <li>נוסיף baseline של position/length בלבד.</li>
+        </ul>
+      </div>
+      <div class="note">access שונה: ב-CROP ה-fusion וה-calibration משתמשים ב-labels. ה-fusion שלנו לא. צריך לציין את זה בכל השוואה.</div>
+    </article>
+
+    <article class="card slider">
+      <div class="top">
+        <h2>SLIDER <small class="ltr">arXiv 2610.00571</small></h2>
+        <div class="one">מדד information-theoretic ל-redundancy בין צעדים.</div>
+      </div>
+      <div class="sec">
+        <h3>מה הם עושים</h3>
+        <ul>
+          <li>Partial Information Decomposition בין הצעד הנוכחי לצעדים הקודמים. Step-RRI מודד כמה מהמידע על התשובה כבר הופיע קודם.</li>
+          <li>הם יוצרים <span class="ltr num">50</span> numerical variants לכל בעיה עם GPT-4o-mini. בערך <span class="ltr num">38</span> שניות ל-sample.</li>
+        </ul>
+      </div>
+      <div class="sec">
+        <h3>התוצאה שלהם על PRMBench (redundancy בלבד, בערך <span class="ltr num">750</span> בעיות)</h3>
+        <table class="res">
+          <tr class="hl"><td>Step-RRI, step-level accuracy</td><td class="ltr num">61.91%</td></tr>
+          <tr><td>שיפור לעומת cosine similarity</td><td class="ltr num">+10.31</td></tr>
+          <tr><td>שיפור לעומת InfoGain</td><td class="ltr num">+13.53</td></tr>
+        </table>
+      </div>
+      <div class="sec cmp">
+        <h3>איך משווים</h3>
+        <ul>
+          <li>נחשב step-level accuracy על אותה קטגוריה, עם threshold מ-held-out set. ה-macro-F1 שלנו (<span class="ltr num">67.7</span>) הוא metric אחר.</li>
+          <li>cost: אצלם <span class="ltr num">50</span> קריאות LLM לבעיה, אצלנו forward pass אחד.</li>
+          <li>לשאלת המנחה: redundancy היא מידע שחוזר, לא טעות. PRM מאומן לזהות טעויות.</li>
+        </ul>
+      </div>
+      <div class="note">ה-threshold שלהם נלמד מ-labels (linear classifier). צריך לכייל את שתי השיטות באותה צורה.</div>
+    </article>
+
+  </div>
+
+  <div class="checks">
+    <div class="t">מה צריך<br>לבדוק אצלנו</div>
+    <div class="c"><b>האם energy_level הוא proxy לאורך או למיקום?</b>energy_level לבד נותן redundancy <span class="ltr num">67.6</span> ו-circular <span class="ltr num">70.5</span>. זה כמעט כל ה-gain. ב-CROP, position/length לבד נותנים <span class="ltr num">0.775</span>.</div>
+    <div class="c"><b>חלק מה-gain מגיע מכלל ההחלטה</b>PRM לבד עם כלל Q80 נותן redundancy <span class="ltr num">55.2</span> ו-circular <span class="ltr num">63.8</span>. אנחנו לא משנים את ה-score כאן, רק את ה-threshold.</div>
+    <div class="c"><b>כל metric בפאנל נפרד</b>PRMScore מול PRISM. pooled AUROC ו-retained prefix מול CROP. redundancy accuracy מול SLIDER. אסור לערבב metrics או רמות access.</div>
+  </div>
+
+  <footer>
+    המספרים שלנו: <span class="ltr">results/prm_boosting_generalization_v1/run_v1/eval_lsml4/README.md</span> (Qwen-7B, <span class="ltr">N=6,969</span> answers) ·
+    <span class="ltr">results/remote_claims_replay_2026-10-15/PRM7B_BY_TYPE.csv</span> (category, energy_level, Q80) ·
+    <span class="ltr">results/prm_boosting_controls_v1/README.md</span> (<span class="ltr">LSML_N16_PRMG 67.80</span>).
+    מספרי המאמרים: PRISM Table 7 · CROP Appendix Table 6 · SLIDER Fig. 7. כל המספרים הם development data על PRMBench. קראנו את התקצירים ואת הטבלאות הרלוונטיות, לא את המאמרים המלאים.
+  </footer>
+
+</section>
+</div>
+<script>
+  function fit() {
+    var s = Math.min(window.innerWidth / 1640, window.innerHeight / 940);
+    document.getElementById('stage').style.transform = 'scale(' + s + ')';
+  }
+  window.addEventListener('resize', fit); fit();
+</script>
+</body>
+</html>
