@@ -22,14 +22,17 @@ appears for agents (judge + telemetry on APB +0.089, Step 454 [Claude agent tele
 
 ### Active (in priority order)
 1. **PRM boosting — evidence collection.** Plan: `docs/post_advisor_2026-10-17/05_PRM_BOOSTING_EVIDENCE_PLAN_HE.md`.
-   Gaps: PRMBench only; three channels chosen with PRM-7B labels; no leaderboard comparability check;
+   CPU controls done (`results/prm_boosting_controls_v1`, 2026-10-18): a recipe with no label-chosen
+   channel (1/2 PRM + 1/2 N16 mean; and L-SML with the PRM as its own group) beats the native PRM on all
+   5 PRMs, CIs exclude 0; answer-shuffled channels destroy the gain. Remaining gaps: PRMBench only; no leaderboard comparability check;
    Skywork/ReasonEval blocked; no generative (thinking) PRM. CPU controls first, then external GPU runs.
 2. **PRM voters on PRMBench** (2 judges done 6,969/6,969; Qwen2.5-72B critic running, AIRCC 287344-61).
    Go/no-go fixed in advance: all-voter and PRM-only L-SML must beat the best single PRM and the
    boosted PRM. Also the MoM per-answer error count across independent verifiers.
 3. **Per-answer flag count.** Headroom is the largest measured: N16 Q80 65.4 -> true counts 71.7
-   (label oracle). Telemetry-only count models (A-D family, Step 292) are closed. Open: count from the
-   PRM's native rule + fused ranking; MoM count from voters; a continuous emission model with dependence.
+   (label oracle). Telemetry-only count models (A-D family, Step 292) are closed; the PRM-native count with
+   the fused order is also negative on all 5 PRMs (`results/prm_boosting_controls_v1`). Open: MoM count
+   from voters; a continuous emission model with dependence.
 4. **Repo refactor** (stage 0 done: `scripts/verify_current_line.py`; stage 1: canonical package with
    raw re-fit replay). Plan: `docs/post_advisor_2026-10-17/03_REPO_REFACTOR_PLAN_HE.md`.
 
