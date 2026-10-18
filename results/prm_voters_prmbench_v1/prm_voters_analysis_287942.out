@@ -1,0 +1,24 @@
+== ALL VOTERS
+joined 4648/6969  dropped {'prm7b': 0, 'prm72b': 0, 'pure': 0, 'rlhflow': 0, 'mshep': 0, 'j8b': 399, 'j14b': 2238, 'c72b': 8}  MoM FAILED
+counts (noncontrol): TRUTH 2.15 (MAE 0.00), prm7b 0.95 (MAE 1.51), prm72b 1.25 (MAE 1.40), pure 1.35 (MAE 1.64), rlhflow 1.42 (MAE 1.71), mshep 7.04 (MAE 6.11), j8b 0.57 (MAE 1.60), j14b 0.45 (MAE 1.77), c72b 4.26 (MAE 3.58)
+prm7b          NATIVE=0.6242 Q80=0.6505  stepAUC=0.773
+prm72b         NATIVE=0.6492 Q80=0.6641  stepAUC=0.758
+pure           NATIVE=0.6212 Q80=0.6280  stepAUC=0.757
+rlhflow        NATIVE=0.5247 Q80=0.5407  stepAUC=0.588
+mshep          NATIVE=0.4618 Q80=0.5671  stepAUC=0.570
+j8b            NATIVE=0.4664 Q80=0.4655  stepAUC=0.581
+j14b           NATIVE=0.5414 Q80=0.5725  stepAUC=0.649
+c72b           NATIVE=0.5800 Q80=0.5999  stepAUC=0.632
+LSML_all       Q80=0.6349  stepAUC=0.720
+{"Q80": {"best_single": "prm72b", "point": -0.029180179187391686, "ci95": [-0.03460238717843909, -0.02395781710165177]}}
+== PRMS ONLY
+joined 6969/6969  dropped {'prm7b': 0, 'prm72b': 0, 'pure': 0, 'rlhflow': 0, 'mshep': 0}  MoM PASS
+counts (noncontrol): TRUTH 2.14 (MAE 0.00), prm7b 1.16 (MAE 1.43), prm72b 1.52 (MAE 1.32), pure 1.71 (MAE 1.62), rlhflow 1.48 (MAE 1.68), mshep 6.77 (MAE 5.71), MOM 1.42 (MAE 1.39)
+prm7b          NATIVE=0.6546 Q80=0.6732 MOM_COUNT=0.6680  stepAUC=0.798
+prm72b         NATIVE=0.6818 Q80=0.6868 MOM_COUNT=0.6741  stepAUC=0.785
+pure           NATIVE=0.6531 Q80=0.6472 MOM_COUNT=0.6494  stepAUC=0.778
+rlhflow        NATIVE=0.5443 Q80=0.5654 MOM_COUNT=0.5962  stepAUC=0.626
+mshep          NATIVE=0.4702 Q80=0.5773 MOM_COUNT=0.5953  stepAUC=0.587
+LSML_all       Q80=0.6580 MOM_COUNT=0.6713  stepAUC=0.749
+MOM_POSTERIOR  NATIVE=0.6712 Q80=0.6453 MOM_COUNT=0.6720  stepAUC=0.712
+{"Q80": {"best_single": "prm72b", "point": -0.028789991270451343, "ci95": [-0.032807663503012334, -0.024812052127135942]}, "MOM_COUNT": {"best_single": "prm72b", "point": -0.0027791172382037876, "ci95": [-0.005376364742452591, -0.00010524218099241534]}}
