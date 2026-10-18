@@ -67,6 +67,20 @@ def _load(path):
     return out, files
 
 
+def recover_step_logp_err(scores):
+    """Per-step log P(step incorrect) from uPRM candidate scores (keys 1..T+1), as
+    cluster/run_prmbench_step_voters.py:step_error_logprobs, returning the reconstruction gap
+    |sum log P(correct) - S(T+1)| instead of raising on it."""
+    sc = {int(k): float(v) for k, v in scores.items()}
+    T = len(sc) - 1
+    out, cum = [], 0.0
+    for j in range(1, T + 1):
+        lpn = sc[j] - cum
+        out.append(lpn)
+        cum += np.log1p(-np.exp(min(lpn, -1e-12)))
+    return out, abs(cum - sc[T + 1])
+
+
 def _pair(s):
     name, path = s.split('=', 1)
     return name, path
@@ -94,8 +108,23 @@ def load_voters(cfg):
         voters[name] = prm_view(recs, name, 'native_labels')
     for name, path in map(_pair, cfg.judge):
         recs, prov[name] = _load(path)
-        voters[name] = {i: (np.exp(r['step_logp_err']), np.exp(r['step_logp_err']) > .5)
-                        for i, r in recs.items() if not r.get('failed') and r.get('step_logp_err') is not None}
+        v, n_rec = {}, 0
+        for i, r in recs.items():
+            if r.get('failed'):
+                continue
+            lp = r.get('step_logp_err')
+            if lp is None and r.get('scores'):
+                # The driver's per-step recovery check uses a 1e-4 relative tolerance, which bf16
+                # candidate scores miss by ~1e-3 (2026-10-18: 6,593 / 6,509 of 6,969 judge rows).
+                # The candidate scores are intact; recover the per-step view here and bound the gap.
+                lp, gap = recover_step_logp_err(r['scores'])
+                if gap > cfg.recovery_tol:
+                    continue
+                n_rec += 1
+            if lp is not None:
+                v[i] = (np.exp(lp), np.exp(lp) > .5)
+        voters[name] = v
+        prov[name + '_recovered_rows'] = n_rec
     for name, path in map(_pair, cfg.critic):
         recs, prov[name] = _load(path)
         v = {}
@@ -185,6 +214,8 @@ def main():
     ap.add_argument('--critic', action='append', default=[])
     ap.add_argument('--out', required=True)
     ap.add_argument('--seed', type=int, default=20261016)
+    ap.add_argument('--recovery-tol', type=float, default=0.02,
+                    help='max |log| gap when recovering judge per-step scores from candidate scores')
     cfg = ap.parse_args()
     os.makedirs(cfg.out, exist_ok=True)
 
