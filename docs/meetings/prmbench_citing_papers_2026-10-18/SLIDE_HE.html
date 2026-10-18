@@ -36,12 +36,12 @@
   .stage { width: 1600px; height: 900px; transform-origin: center center; flex: none; }
   .slide {
     width: 1600px; height: 900px; background: var(--slide);
-    padding: 26px 40px 16px; display: flex; flex-direction: column; gap: 11px;
+    padding: 22px 36px 12px; display: flex; flex-direction: column; gap: 9px;
     box-shadow: 0 6px 30px rgba(20,30,45,.12);
   }
   .ltr { direction: ltr; unicode-bidi: isolate; display: inline-block; white-space: nowrap; }
   .num { font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: 500; font-size: .93em; }
-  header h1 { font-size: 31px; font-weight: 800; letter-spacing: -.2px; line-height: 1.15; }
+  header h1 { font-size: 29px; font-weight: 800; letter-spacing: -.2px; line-height: 1.15; }
   header p { font-size: 16px; color: var(--muted); margin-top: 4px; }
 
   .ours {
@@ -51,6 +51,17 @@
   }
   .ours .lbl { font-size: 15px; line-height: 1.3; }
   .ours .lbl b { color: var(--ours); font-size: 19px; display: block; }
+  .ours { grid-template-columns: 1fr 2.9fr !important; }
+  table.ot { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.ot th { font-size: 13px; font-weight: 700; color: var(--muted); text-align: right; padding: 1px 8px; border-bottom: 1px solid #c9ded8; }
+  table.ot td { padding: 0 8px; border-bottom: 1px solid #d3e7e1; }
+  table.ot tr.hl td { font-weight: 700; color: var(--ours); }
+  table.ot td.good { color: var(--ours); font-weight: 600; }
+  table.ot td.bad { color: var(--crop); font-weight: 600; }
+  table.ot td.neg { color: var(--warn); font-weight: 700; }
+  table.ot td.n, table.ot th.n { direction: ltr; text-align: center; font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: 500; }
+  table.ot th:nth-child(n+2) { text-align: center; }
+  table.ot td:nth-child(n+2) { text-align: center; }
   .kpi { text-align: center; }
   .kpi .k { font-size: 14px; color: var(--muted); }
   .kpi .v { font-size: 21px; font-weight: 700; color: var(--ours); }
@@ -58,32 +69,34 @@
   .cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; flex: 1; min-height: 0; }
   .card { border: 1px solid var(--line); border-radius: 10px; display: flex; flex-direction: column; overflow: hidden; }
   .card .top { padding: 8px 14px 7px; }
-  .card .top h2 { font-size: 23px; font-weight: 800; display: flex; align-items: baseline; gap: 10px; }
+  .card .top h2 { font-size: 21px; font-weight: 800; display: flex; align-items: baseline; gap: 10px; }
   .card .top h2 small { font-size: 13px; font-weight: 500; color: var(--muted); }
-  .card .top .one { font-size: 15px; margin-top: 2px; font-weight: 500; }
+  .card .top .one { font-size: 14.5px; margin-top: 2px; font-weight: 500; }
   .prism .top { background: var(--prism-soft); } .prism h2 { color: var(--prism); }
   .crop .top { background: var(--crop-soft); }   .crop h2 { color: var(--crop); }
   .slider .top { background: var(--slider-soft); } .slider h2 { color: var(--slider); }
 
-  .sec { padding: 8px 14px 0; }
+  .sec { padding: 5px 14px 0; }
   .sec h3 { font-size: 13.5px; font-weight: 700; color: var(--muted); text-transform: none; margin-bottom: 3px; letter-spacing: .2px; }
   .sec ul { list-style: none; }
-  .sec li { font-size: 15px; line-height: 1.4; padding-right: 13px; position: relative; }
+  .sec li { font-size: 14.3px; line-height: 1.34; padding-right: 13px; position: relative; }
   .sec li::before { content: ""; position: absolute; right: 0; top: .62em; width: 5px; height: 5px; border-radius: 50%; background: #9aa5b1; }
   .prism .cmp li::before { background: var(--prism); }
   .crop .cmp li::before { background: var(--crop); }
   .slider .cmp li::before { background: var(--slider); }
 
-  table.res { width: 100%; border-collapse: collapse; font-size: 14.3px; margin-top: 2px; }
-  table.res td { padding: 2px 4px; border-bottom: 1px solid #eef1f4; }
+  table.res { width: 100%; border-collapse: collapse; font-size: 13.6px; margin-top: 2px; }
+  table.res td { padding: 1px 4px; border-bottom: 1px solid #eef1f4; }
   table.res td:last-child { text-align: left; white-space: nowrap; }
+  table.res td.n { direction: ltr; font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: 500; }
   table.res tr.hl td { font-weight: 700; }
   .note { margin: auto 10px 9px; padding: 5px 9px; border-radius: 6px; background: var(--warn-soft); color: var(--warn); font-size: 13.5px; line-height: 1.33; }
 
-  .checks { border: 1px solid var(--line); border-radius: 10px; padding: 7px 16px; display: grid; grid-template-columns: auto 1fr 1fr 1fr; gap: 18px; align-items: start; }
+  .checks { border: 1px solid var(--line); border-radius: 10px; padding: 7px 16px; display: grid; grid-template-columns: auto 1.25fr 1fr 1fr 0.9fr; gap: 16px; align-items: start; }
   .checks .t { font-size: 18px; font-weight: 800; color: var(--warn); line-height: 1.2; }
   .checks div.c { font-size: 14px; line-height: 1.35; }
   .checks div.c b { display: block; font-size: 15px; }
+  .checks div.c.neg b { color: var(--warn); }
 
   footer { font-size: 11.5px; color: var(--muted); line-height: 1.35; }
   @media print {
@@ -104,11 +117,15 @@
   </header>
 
   <div class="ours">
-    <div class="lbl"><b>אנחנו: PRM boosting</b><span class="ltr">Qwen-PRM-7B</span> + <span class="ltr num">3</span> telemetry channels מאותו forward pass. ה-fusion הוא L-SML, ללא labels.</div>
-    <div class="kpi"><div class="k">PRMScore</div><div class="v ltr num">65.49 → 69.48</div></div>
-    <div class="kpi"><div class="k">within-answer AUC</div><div class="v ltr num">0.801 → 0.850</div></div>
-    <div class="kpi"><div class="k">redundancy (macro-F1)</div><div class="v ltr num">49.0 → 67.7</div></div>
-    <div class="kpi"><div class="k">circular (macro-F1)</div><div class="v ltr num">54.9 → 71.8</div></div>
+    <div class="lbl"><b>אנחנו: PRM boosting</b><span class="ltr">Qwen-PRM-7B</span> + telemetry channels מאותו forward pass. ה-fusion הוא L-SML, ללא labels.</div>
+    <table class="ot">
+      <tr><th>שיטה</th><th>channels</th><th>בחירת channels</th><th>PRMBench PRMScore</th><th>PRMBench within-AUC</th><th>Socratic PRMScore</th></tr>
+      <tr><td>PRM לבד</td><td>—</td><td>—</td><td class="n">65.49</td><td class="n">0.801</td><td class="n">68.1</td></tr>
+      <tr><td>LSML_CONT</td><td class="n">3</td><td class="bad">עם labels</td><td class="n">69.48</td><td class="n">0.850</td><td class="n neg">64.7</td></tr>
+      <tr class="hl"><td>CHAIN_N16</td><td class="n">16</td><td class="good">ללא labels</td><td class="n">68.25</td><td class="n">0.838</td><td>לא הורץ</td></tr>
+      <tr><td>CHAIN_N13 (בלי digit channels)</td><td class="n">13</td><td class="good">ללא labels</td><td class="n">67.82</td><td class="n">0.829</td><td>לא הורץ</td></tr>
+      <tr><td>LSML_N16_PRMG</td><td class="n">16</td><td class="good">ללא labels</td><td class="n">67.80</td><td class="n">0.830</td><td class="n neg">65.1</td></tr>
+    </table>
   </div>
 
   <div class="cols">
@@ -128,21 +145,20 @@
       <div class="sec">
         <h3>התוצאה שלהם על PRMBench</h3>
         <table class="res">
-          <tr><td>PRMScore</td><td class="ltr num">65.5 → 68.0</td></tr>
-          <tr><td>redundancy (NR)</td><td class="ltr num">49.1 → 53.5</td></tr>
-          <tr><td>circular (NCL)</td><td class="ltr num">55.0 → 66.0</td></tr>
-          <tr><td>FPR</td><td class="ltr num">69.3% → 47.1%</td></tr>
+          <tr><td>PRMScore</td><td class="n">65.5 → 68.0</td></tr>
+          <tr><td>redundancy (NR)</td><td class="n">49.1 → 53.5</td></tr>
+          <tr><td>circular (NCL)</td><td class="n">55.0 → 66.0</td></tr>
+          <tr><td>FPR</td><td class="n">69.3% → 47.1%</td></tr>
         </table>
       </div>
       <div class="sec cmp">
         <h3>איך משווים</h3>
         <ul>
-          <li>אותו PRM ואותו metric. ה-baseline שלהם זהה לשלנו: <span class="ltr num">65.49 / 49.0 / 54.9</span>. כך ה-evaluator שלנו מאומת.</li>
-          <li>השוואה ישירה של טבלה מול טבלה, כולל categories.</li>
-          <li>PRISM משנה את המודל, ואנחנו מוסיפים שכבה אחריו. אפשר לשלב: boosting על ה-checkpoint שלהם, אם הוא זמין.</li>
+          <li>אותו PRM ואותו metric. ה-baseline שלהם זהה לשלנו: <span class="ltr num">65.49 / 49.0 / 54.9</span>. כך ה-evaluator שלנו מאומת, ואפשר להשוות טבלה מול טבלה.</li>
+                    <li>PRISM משנה את המודל, ואנחנו מוסיפים שכבה אחריו. אפשר לשלב: boosting על ה-checkpoint שלהם, אם הוא זמין.</li>
         </ul>
       </div>
-      <div class="note">זהירות: בחרנו את <span class="ltr num">3</span> הערוצים עם labels על PRMBench. בלי בחירה (PRM + N16) התוצאה היא <span class="ltr num">67.80</span>: קרוב ל-<span class="ltr num">68.0</span>, לא מעליו.</div>
+      <div class="note">בלי בחירת channels עם labels: CHAIN_N16 נותן <span class="ltr num">68.25</span>, כמו <span class="ltr num">68.0</span> של PRISM (אין CI ל-PRISM). N16 כולל <span class="ltr num">3</span> digit channels. בלי digits (CHAIN_N13): <span class="ltr num">67.82</span>.</div>
     </article>
 
     <article class="card crop">
@@ -160,20 +176,19 @@
       <div class="sec">
         <h3>התוצאה שלהם על PRMBench (<span class="ltr num">5,000</span> traces, pooled step AUROC)</h3>
         <table class="res">
-          <tr><td>position / length / format בלבד</td><td class="ltr num">0.775</td></tr>
-          <tr><td>trace features</td><td class="ltr num">0.781</td></tr>
-          <tr><td>PRM בלבד</td><td class="ltr num">0.801</td></tr>
-          <tr class="hl"><td>trace + PRM</td><td class="ltr num">0.834</td></tr>
-          <tr><td>retained prefix, <span class="ltr">α=0.05</span> (PRM → trace+PRM)</td><td class="ltr num">4.8% → 21.8%</td></tr>
+          <tr><td>position / length / format בלבד</td><td class="n">0.775</td></tr>
+          <tr><td>trace features</td><td class="n">0.781</td></tr>
+          <tr><td>PRM בלבד</td><td class="n">0.801</td></tr>
+          <tr class="hl"><td>trace + PRM</td><td class="n">0.834</td></tr>
+          <tr><td>retained prefix, <span class="ltr">α=0.05</span> (PRM → trace+PRM)</td><td class="n">4.8% → 21.8%</td></tr>
         </table>
       </div>
       <div class="sec cmp">
         <h3>איך משווים</h3>
         <ul>
           <li>נחשב pooled step AUROC (ה-within-answer AUC שלנו הוא metric אחר).</li>
-          <li>נכניס את ה-fused score שלנו ל-CROP כ-risk proxy ונמדוד retained prefix.</li>
-          <li>נוסיף baseline של position/length בלבד.</li>
-        </ul>
+          <li>נכניס את ה-fused score שלנו ל-CROP כ-risk proxy ונמדוד retained prefix. נוסיף baseline של position/length.</li>
+                  </ul>
       </div>
       <div class="note">access שונה: ב-CROP ה-fusion וה-calibration משתמשים ב-labels. ה-fusion שלנו לא. צריך לציין את זה בכל השוואה.</div>
     </article>
@@ -193,9 +208,9 @@
       <div class="sec">
         <h3>התוצאה שלהם על PRMBench (redundancy בלבד, בערך <span class="ltr num">750</span> בעיות)</h3>
         <table class="res">
-          <tr class="hl"><td>Step-RRI, step-level accuracy</td><td class="ltr num">61.91%</td></tr>
-          <tr><td>שיפור לעומת cosine similarity</td><td class="ltr num">+10.31</td></tr>
-          <tr><td>שיפור לעומת InfoGain</td><td class="ltr num">+13.53</td></tr>
+          <tr class="hl"><td>Step-RRI, step-level accuracy</td><td class="n">61.91%</td></tr>
+          <tr><td>שיפור לעומת cosine similarity</td><td class="n">+10.31</td></tr>
+          <tr><td>שיפור לעומת InfoGain</td><td class="n">+13.53</td></tr>
         </table>
       </div>
       <div class="sec cmp">
@@ -213,16 +228,17 @@
 
   <div class="checks">
     <div class="t">מה צריך<br>לבדוק אצלנו</div>
-    <div class="c"><b>האם energy_level הוא proxy לאורך או למיקום?</b>energy_level לבד נותן redundancy <span class="ltr num">67.6</span> ו-circular <span class="ltr num">70.5</span>. זה כמעט כל ה-gain. ב-CROP, position/length לבד נותנים <span class="ltr num">0.775</span>.</div>
-    <div class="c"><b>חלק מה-gain מגיע מכלל ההחלטה</b>PRM לבד עם כלל Q80 נותן redundancy <span class="ltr num">55.2</span> ו-circular <span class="ltr num">63.8</span>. אנחנו לא משנים את ה-score כאן, רק את ה-threshold.</div>
-    <div class="c"><b>כל metric בפאנל נפרד</b>PRMScore מול PRISM. pooled AUROC ו-retained prefix מול CROP. redundancy accuracy מול SLIDER. אסור לערבב metrics או רמות access.</div>
+    <div class="c neg"><b>ההכללה ל-Socratic נכשלה</b>על Socratic (<span class="ltr num">2,995</span> answers), ה-L-SML fusion מוריד את Qwen-7B מ-<span class="ltr num">68.1</span> ל-<span class="ltr num">64.7–65.1</span>. הוא משפר רק את RLHFlow (<span class="ltr num">1</span> מתוך <span class="ltr num">5</span> PRMs). לכן לא הרצנו Hard2Verify.</div>
+    <div class="c"><b>האם energy_level הוא proxy לאורך או למיקום?</b>energy_level לבד נותן redundancy <span class="ltr num">67.6</span> ו-circular <span class="ltr num">70.5</span>. ב-CROP, position/length לבד נותנים <span class="ltr num">0.775</span>.</div>
+    <div class="c"><b>חלק מה-gain מגיע מכלל ההחלטה</b>PRM לבד עם כלל Q80 נותן redundancy <span class="ltr num">55.2</span> ו-circular <span class="ltr num">63.8</span>. כאן משתנה רק ה-threshold.</div>
+    <div class="c"><b>כל metric בפאנל נפרד</b>PRMScore מול PRISM. pooled AUROC ו-retained prefix מול CROP. accuracy מול SLIDER.</div>
   </div>
 
   <footer>
     המספרים שלנו: <span class="ltr">results/prm_boosting_generalization_v1/run_v1/eval_lsml4/README.md</span> (Qwen-7B, <span class="ltr">N=6,969</span> answers) ·
     <span class="ltr">results/remote_claims_replay_2026-10-15/PRM7B_BY_TYPE.csv</span> (category, energy_level, Q80) ·
-    <span class="ltr">results/prm_boosting_controls_v1/README.md</span> (<span class="ltr">LSML_N16_PRMG 67.80</span>).
-    מספרי המאמרים: PRISM Table 7 · CROP Appendix Table 6 · SLIDER Fig. 7. כל המספרים הם development data על PRMBench. קראנו את התקצירים ואת הטבלאות הרלוונטיות, לא את המאמרים המלאים.
+    <span class="ltr">results/prm_boosting_bank_sweep_v1/README.md</span> (CHAIN, N13, N16) · <span class="ltr">results/prm_boost_external_v1/eval_socratic/RESULTS_socratic.csv</span> (Socratic, <span class="ltr">N=2,995</span>).
+    מספרי המאמרים: PRISM Table 7 · CROP Appendix Table 6 · SLIDER Fig. 7. מספרי PRMBench הם development data. קראנו את התקצירים ואת הטבלאות הרלוונטיות, לא את המאמרים המלאים.
   </footer>
 
 </section>
