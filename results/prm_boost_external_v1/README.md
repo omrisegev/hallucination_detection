@@ -57,3 +57,32 @@ Outputs go to `$SHARED/results/prm_boost_external_v1/full_<adapter>_socratic/`.
 3. `eval_external.py` (local; the gold labels never leave this machine): reports the official benchmark metric and within-AUC under PRM native and ANSWER_Z_Q80, with a paired bootstrap over answers.
 
 Smoke check: steps 1-3 ran end to end on the 12-row timing cells (jobs 288087 and a scoring smoke). Those numbers are a pipeline check only, not a result.
+
+## Socratic result (2026-10-18): the boosting does not transfer consistently
+
+CPU job 288317 built the banks and scored the cells without labels. The local evaluation (`eval_external.py`) wrote `eval_socratic/RESULTS_socratic.csv` and `eval_socratic/BOOTSTRAP_socratic.csv`, with a paired bootstrap over 2,995 answers.
+
+Parity check: PRM-7B native gives 0.6809 PRMScore and 0.8236 within-AUC, the same as the earlier external PRM run (0.680 / 0.824).
+
+| PRM | PRM native | PRM Q80 | HALF_N16 (Q80) | LSML_N16_PRMG | LSML_CONT (3 ch.) |
+|---|---|---|---|---|---|
+| Qwen-7B | **0.681** | 0.674 | 0.674 | 0.651 | 0.647 |
+| Qwen-72B | **0.720** | 0.669 | 0.673 | 0.587 | 0.575 |
+| PURE | 0.637 | 0.641 | **0.676** | 0.644 | 0.624 |
+| RLHFlow | 0.481 | 0.491 | 0.517 | **0.576** | 0.534 |
+| MathShepherd | **0.644** | 0.595 | 0.621 | 0.500 | 0.509 |
+
+The table shows official PRMScore. Within-AUC for HALF_N16 minus PRM:
+
+| PRM | Δ within-AUC | 95% CI |
+|---|---|---|
+| MathShepherd | +0.017 | [+0.012, +0.023] |
+| PURE | +0.017 | [+0.011, +0.022] |
+| Qwen-7B | −0.011 | [−0.015, −0.007] |
+| Qwen-72B | −0.005 | [−0.010, −0.000] |
+| RLHFlow | +0.022 | [+0.017, +0.028] |
+
+Reading:
+- **L-SML fusions break on the strong PRMs.** Within-AUC drops by 0.07–0.27. L-SML gives the telemetry much more weight than the PRM: the fused score's correlation with the PRM is only 0.06–0.53. RLHFlow is the exception and gains +9.4 PRMScore.
+- **The clean ½·PRM + ½·N16 recipe beats the PRM under the same Q80 rule in all 5 models** (+0.0 to +3.5). Against each PRM's native threshold it wins only for PURE (+3.9) and RLHFlow (+3.6). It loses for Qwen-7B (−0.7), Qwen-72B (−4.7) and MathShepherd (−2.3).
+- **The pre-registered success rule fails on Socratic.** That rule required a positive gain with a CI above 0. Hard2Verify is therefore not run, per Omri's condition.

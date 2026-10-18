@@ -53,7 +53,25 @@ def main():
     raw = pickle.load(open(a.raw, 'rb'))
     failed = {str(e['idx']): e['failure'] for e in raw.values() if 'failure' in e}
     good = {k: e for k, e in raw.items() if 'failure' not in e}
+    # Steps that are already empty in the raw telemetry (empty step text) make mask1 raise. Mask the
+    # record without them and put them back as empty spans; the external layout drops them anyway.
+    pre_empty = {}
+    for k, e in good.items():
+        sp = e['step_token_spans']; emp = [s for s, (lo, hi) in enumerate(sp) if hi <= lo]
+        if emp:
+            pre_empty[k] = (emp, len(sp)); e = dict(e); e['step_token_spans'] = [x for x in sp if x[1] > x[0]]
+            good[k] = e
     masked, failures = M.mask_cache(good)
+    for k, (emp, n) in pre_empty.items():
+        if k in masked:
+            kept = iter(masked[k]['step_token_spans']); full = []
+            for s in range(n):
+                if s in emp:
+                    at = full[-1][1] if full else 0; full.append((at, at))
+                else:
+                    full.append(tuple(next(kept)))
+            masked[k] = dict(masked[k], step_token_spans=full)
+            masked[k]['rewards'] = raw[k]['rewards']; masked[k]['native_labels'] = raw[k]['native_labels']
     if failures:
         json.dump({'status': 'FAIL', 'mask_failures': failures}, open(a.out / 'FAILURE.json', 'w'), indent=1, default=str)
         raise SystemExit('mask failures')
@@ -83,7 +101,7 @@ def main():
     np.savez_compressed(a.out / 'REWARDS.npz', uids=np.array([str(e['idx']) for e in recs]), rewards=rew,
                         native_labels=nat, nonempty_lengths=lens)
     json.dump({'raw': str(a.raw), 'raw_sha256': sha(a.raw), 'mask_rule': M.RULE, 'n_records': len(recs),
-               'n_failed_rows': len(failed), 'failed_rows': failed, 'steps_total': int(lens.sum()),
+               'n_failed_rows': len(failed), 'failed_rows': failed, 'pre_empty_steps': {str(raw[k]['idx']): v[0] for k, v in pre_empty.items()}, 'steps_total': int(lens.sum()),
                'steps_nonempty': int(nonempty.sum()), 'labels_read': False,
                'features_sha256': sha(a.out / 'FEATURES.npz'), 'seconds': round(time.perf_counter() - t0, 1),
                'job_id': os.environ.get('SLURM_JOB_ID', '')}, open(a.out / 'MANIFEST.json', 'w'), indent=1)
