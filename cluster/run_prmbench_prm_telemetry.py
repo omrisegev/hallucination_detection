@@ -73,6 +73,20 @@ def _on_sigterm(signum, frame):
     print("[prm-tel] SIGTERM received; will checkpoint after the current row", flush=True)
 
 
+def answers_rows(path, n_samples=None):
+    """Rows of a label-free external answers.json (uid, question, steps): same uids and step lists as
+    our Qwen3 external telemetry. classification/error_steps stay None; labels live in the evaluator."""
+    with open(path, encoding="utf8") as f:
+        rows = json.load(f)
+    rows = rows[:n_samples] if n_samples else rows
+    if len({r["uid"] for r in rows}) != len(rows):
+        raise ValueError("duplicate uid in answers.json")
+    meta = [{"idx": r["uid"], "source_idx": r.get("source_id"), "classification": None,
+             "category": r.get("benchmark"), "question": r["question"], "steps": list(r["steps"]),
+             "error_steps": None} for r in rows]
+    return meta, {"answers": os.path.abspath(path), "n_rows": len(meta)}
+
+
 def row_record(row, extra):
     rec = {k: row[k] for k in ("idx", "source_idx", "classification", "category", "question", "steps")}
     rec["error_steps"] = row["error_steps"]       # carried for evaluation only, never read by a fit
@@ -253,6 +267,8 @@ def main():
     ap.add_argument("--checkpoint-every", type=int, default=200)
     ap.add_argument("--meta-pkl", default=None, help="take PRMBench rows from this telemetry pkl (no datasets import)")
     ap.add_argument("--verify-rows", type=int, default=20)
+    ap.add_argument("--answers", default=None, help="external label-free answers.json (Socratic, Hard2Verify); "
+                    "output is external_telemetry.pkl")
     cfg = ap.parse_args()
     if cfg.mode == 'prm' and cfg.adapter == 'qwen_prm' and cfg.model and '72B' in cfg.model:
         ap.error('Use --adapter qwen_prm_72b for the 72B official template and chunked vocabulary projection')
@@ -263,7 +279,11 @@ def main():
         ap.error('--adapter applies only to --mode prm')
     signal.signal(signal.SIGTERM, _on_sigterm)
     os.makedirs(cfg.out, exist_ok=True)
-    if cfg.meta_pkl:   # rows (question, steps, ids) of an existing PRMBench telemetry cell: same rows, same order
+    if cfg.answers and cfg.meta_pkl:
+        ap.error('--answers and --meta-pkl are exclusive')
+    if cfg.answers:
+        meta, diag = answers_rows(cfg.answers, cfg.n_samples)
+    elif cfg.meta_pkl:   # rows (question, steps, ids) of an existing PRMBench telemetry cell: same rows, same order
         src = load_cache(cfg.meta_pkl)
         meta = [{k: e[k] for k in ("idx", "source_idx", "classification", "category", "question", "steps", "error_steps")}
                 for _, e in sorted(src.items())][:cfg.n_samples]
@@ -272,7 +292,7 @@ def main():
     else:
         meta, diag = load_prmbench(n_samples=cfg.n_samples, seed=cfg.seed)
     print(f"[prm-tel] mode={cfg.mode} model={cfg.model} rows={len(meta)}", flush=True)
-    out_path = os.path.join(cfg.out, "prmbench_telemetry.pkl"); t0 = time.time(); extra = {}
+    out_path = os.path.join(cfg.out, "external_telemetry.pkl" if cfg.answers else "prmbench_telemetry.pkl"); t0 = time.time(); extra = {}
     identity_path = os.path.join(cfg.out, 'run_identity.json')
     identity = {'adapter': cfg.adapter, 'mode': cfg.mode, 'model': cfg.model,
                 'logprob_top_k': cfg.logprob_top_k, 'row_ids': [str(r['idx']) for r in meta],

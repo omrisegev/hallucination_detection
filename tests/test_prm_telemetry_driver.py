@@ -130,3 +130,21 @@ class Driver(unittest.TestCase):
 
 
 if __name__=='__main__':unittest.main()
+
+
+class ExternalAnswers(unittest.TestCase):
+    def test_answers_rows_are_label_free_and_keep_uids_and_steps(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / 'answers.json'
+            p.write_text(json.dumps([
+                {'uid': 'u1', 'question': 'q1', 'steps': ['a', 'b'], 'benchmark': 'socratic', 'source_id': 's1'},
+                {'uid': 'u2', 'question': 'q2', 'steps': ['c'], 'benchmark': 'socratic', 'source_id': 's2'}]))
+            meta, diag = D.answers_rows(str(p))
+            self.assertEqual([m['idx'] for m in meta], ['u1', 'u2'])
+            self.assertEqual(meta[0]['steps'], ['a', 'b'])
+            self.assertIsNone(meta[0]['error_steps']); self.assertIsNone(meta[0]['classification'])
+            self.assertEqual(diag['n_rows'], 2)
+            self.assertEqual(len(D.answers_rows(str(p), 1)[0]), 1)
+            p.write_text(json.dumps([{'uid': 'u', 'question': 'q', 'steps': []}] * 2))
+            with self.assertRaises(ValueError):
+                D.answers_rows(str(p))
