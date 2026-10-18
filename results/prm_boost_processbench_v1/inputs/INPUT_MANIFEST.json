@@ -1,0 +1,86 @@
+{
+ "source": "local pkls of AIRCC job 177776 (dataset fields only)",
+ "source_files": {
+  "gsm8k": {
+   "path": "/Users/osegev/Desktop/hallucination_detection/dataset_cache/four_localization/pb_prm_qwen25math7b_full/pb_prm_gsm8k.pkl",
+   "sha256": "8b0ef348e0a31e36b0513cc4415e1f4cd7e51e4b91826c9990801719d8a0f35b"
+  },
+  "math": {
+   "path": "/Users/osegev/Desktop/hallucination_detection/dataset_cache/four_localization/pb_prm_qwen25math7b_full/pb_prm_math.pkl",
+   "sha256": "d7dcc604b7805cde0c44c28079d437194dbf9109699ef827127faf0872e43a35"
+  },
+  "olympiadbench": {
+   "path": "/Users/osegev/Desktop/hallucination_detection/dataset_cache/four_localization/pb_prm_qwen25math7b_full/pb_prm_olympiadbench.pkl",
+   "sha256": "84afdd49f0f72a2692e3afd14bc494fa7c926f0131308ba007f13d722db5b682"
+  },
+  "omnimath": {
+   "path": "/Users/osegev/Desktop/hallucination_detection/dataset_cache/four_localization/pb_prm_qwen25math7b_full/pb_prm_omnimath.pkl",
+   "sha256": "bf805250db2998a44c6598362b3c7a608ae1be9c067a1f806fdecbc615cf3325"
+  }
+ },
+ "population_id": "processbench@e8024636bcab::official-3400",
+ "ordered_id_sha256": "7a7edc7a6e4a67ac16968c915900805620fc86314368105afe05a4d1ffd20e10",
+ "ordered_id_sha256_matches_audit": true,
+ "label_convention": "0-based first erroneous step, -1 = correct (ProcessBench)",
+ "n_answers": 3400,
+ "n_steps_total": 25697,
+ "per_subset": {
+  "gsm8k": {
+   "n_answers": 400,
+   "n_error": 207,
+   "n_correct": 193,
+   "n_steps": 2082
+  },
+  "math": {
+   "n_answers": 1000,
+   "n_error": 594,
+   "n_correct": 406,
+   "n_steps": 6505
+  },
+  "olympiadbench": {
+   "n_answers": 1000,
+   "n_error": 661,
+   "n_correct": 339,
+   "n_steps": 8819
+  },
+  "omnimath": {
+   "n_answers": 1000,
+   "n_error": 759,
+   "n_correct": 241,
+   "n_steps": 8291
+  }
+ },
+ "steps_labelled_prefix_domain": 16548,
+ "n_first_error_steps": 2221,
+ "n_answers_label0": 272,
+ "timing12_uids": [
+  "gsm8k-276",
+  "gsm8k-335",
+  "gsm8k-348",
+  "math-33",
+  "math-702",
+  "math-734",
+  "olympiadbench-452",
+  "olympiadbench-692",
+  "olympiadbench-769",
+  "omnimath-2",
+  "omnimath-18",
+  "omnimath-462"
+ ],
+ "timing_seed": 20261018,
+ "mean_chars_per_answer": {
+  "all": 2071.0979411764706,
+  "timing12": 1829.0833333333333,
+  "gsm8k": 1204.8525,
+  "math": 1636.718,
+  "olympiadbench": 2433.027,
+  "omnimath": 2490.047
+ },
+ "sha256": {
+  "answers.json": "1f0acbb36f73444e6f6fcf0b2ad573eea223df1c80be6e03e67ad1668c9f85fe",
+  "answers_timing12.json": "4a1d1ff32b1c519ae4af65f1255cf0efe1941192cb8f7018724820718a344d9e",
+  "processbench_gold.json": "54d9d0c661f48ad497658042f39c1acc9c521e230c042d14f76165c2c53406ac"
+ },
+ "gold_dir": "local/ (never synced to AIRCC)",
+ "labels_in_answers_json": false
+}
