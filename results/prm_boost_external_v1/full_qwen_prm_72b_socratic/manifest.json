@@ -1,0 +1,48 @@
+{
+  "driver": "run_prmbench_prm_telemetry.py",
+  "mode": "prm",
+  "model": "Qwen/Qwen2.5-Math-PRM-72B",
+  "dataset_diagnostics": {
+    "answers": "/shared/cycle2_tau_averbuch_prj/omrisegev1/data/lsml_external_20260924/socratic/answers.json",
+    "n_rows": 2995
+  },
+  "n_rows": 2995,
+  "logprob_top_k": 50,
+  "system_prompt": "Please reason step by step, and put your final answer within \boxed{}.",
+  "n_boundary_whitespace": 0,
+  "token_surprisal_median": 0.5530219078063965,
+  "token_surprisal_mean": 1.5290923099669589,
+  "token_entropy15_median": 0.3444628566503525,
+  "n_step_text_mismatch": 0,
+  "n_rows_step_text_mismatch": 0,
+  "max_input_tokens": 3337,
+  "n_rows_over_4096_tokens": 0,
+  "lm_head_check": {
+    "lm_head_source": "own_unused",
+    "lm_head_vs_base_max_abs_diff": 0.0,
+    "hidden_after_final_norm": true,
+    "adapter": "qwen_prm_72b",
+    "official_wrapper_commit": "a1ae4eab803e14c4c6316bf89d1679b0486faa8c",
+    "base_model": "Qwen/Qwen2.5-Math-72B-Instruct",
+    "model_revision": "9df429b02adb5f764cd6e30e76a0cca16d501ae1",
+    "scored_positions": "step content only; logits at absolute token position minus one",
+    "prm_lm_head_shape": [
+      152064,
+      8192
+    ]
+  },
+  "reward_path_max_abs_gap": 0.0,
+  "status": "COMPLETE",
+  "n_failed_rows": 0,
+  "n_successful_rows": 2995,
+  "failed_rows": {},
+  "n_rows_context_overflow": 0,
+  "adapter": "qwen_prm_72b",
+  "lm_head_source": "own_unused",
+  "lm_head_vs_base_max_abs_diff": 0.0,
+  "hidden_after_final_norm": true,
+  "official_wrapper_commit": "a1ae4eab803e14c4c6316bf89d1679b0486faa8c",
+  "elapsed_sec": 104.01132464408875,
+  "job_id": "288078",
+  "written_utc": "2026-10-18T12:35:52+00:00"
+}
