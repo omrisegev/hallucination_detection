@@ -8,6 +8,11 @@ the B channels enter ONE continuous L-SML (spectral_utils.fusion_utils.lsml_cont
              group scores and the PRM.
   AUTO_<B>   automatic grouping over PRM + B (the PRM may be absorbed into a telemetry group).
   TELE_<B>   L-SML on B alone (no PRM), for reference.
+  CHAIN_<B>  the groups that L-SML finds on B alone (the TELE_<B> fit), each reduced to its
+             within-group SML score and answer-z standardized, then concatenated with z(PRM) and
+             fused by one SML across the K+1 group scores. The PRM is one group of K+1, on the same
+             scale as each telemetry group. PRMG_<B> has the same structure but feeds the cross stage
+             unstandardized group scores, so a group's weight there also depends on its scale.
 Plus PRM_native and LSML_CONT (the 3 label-chosen channels; replays results/prm_boosting_controls_v1).
 
 Banks: the nested family N11, N13, N14, N16 (results/monday_nested_banks_v2/BANKS.json), every
@@ -129,7 +134,22 @@ def main():
                     'AUTO_prm_share': prm_share(arms[f'AUTO_{bk}'], VP),
                     'degenerate': {'TELE': bool(dt.get('degenerate', False)), 'PRMG': bool(dg.get('degenerate', False)),
                                    'AUTO': bool(da.get('degenerate', False))}}
-        for a in ('TELE', 'PRMG', 'AUTO'): bank_of[f'{a}_{bk}'] = bk
+        # CHAIN: concatenate z(PRM) with the bank's own group scores, all answer-z, and run one SML
+        # across them (singleton groups, so lsml_continuous does only the cross stage).
+        vg = np.asarray(dt['virtual_classifiers'], float)
+        VC = np.column_stack([zp] + [EV.az(vg[:, g], o) for g in range(vg.shape[1])])
+        arms[f'CHAIN_{bk}'], dc = lsml(VC, groups=np.arange(VC.shape[1]))
+        cw, gw = np.abs(np.asarray(dc['cross_weights'], float)), np.abs(np.asarray(dg['cross_weights'], float))
+        diag[bk].update({'CHAIN_n_views': int(VC.shape[1]),
+                         'CHAIN_undetermined': bool(VC.shape[1] <= 3),  # SML with <= 3 views has no spare degrees of freedom
+                         'CHAIN_cross_weights': np.asarray(dc['cross_weights'], float).tolist(),
+                         'CHAIN_prm_cross_share': float(cw[0] / cw.sum()),
+                         'PRMG_cross_weights': np.asarray(dg['cross_weights'], float).tolist(),
+                         # the PRM has the largest group id in PRMG, so it is the last cross-stage view
+                         'PRMG_prm_cross_share': float(gw[-1] / gw.sum()),
+                         'PRMG_group_score_sd': [float(v.std()) for v in np.asarray(dg['virtual_classifiers'], float).T],
+                         'CHAIN_prm_share': prm_share(arms[f'CHAIN_{bk}'], VP)})
+        for a in ('TELE', 'PRMG', 'AUTO', 'CHAIN'): bank_of[f'{a}_{bk}'] = bk
 
     flags = {}
     for n, s in arms.items():
@@ -161,8 +181,10 @@ def main():
     for n in arms:
         for ref in ('PRM_native', 'LSML_CONT'):
             if n != ref: pairs.append(((n, 'Q80'), (ref, 'Q80')))
-        if n.startswith('PRMG_') or n.startswith('AUTO_'):
+        if n.startswith(('PRMG_', 'AUTO_', 'CHAIN_')):
             pairs.append(((n, 'Q80'), ('TELE_' + bank_of[n], 'Q80')))
+        if n.startswith('CHAIN_'):
+            pairs.append(((n, 'Q80'), ('PRMG_' + bank_of[n], 'Q80')))
         pairs.append(((n, 'ORACLE'), (n, 'Q80')))
     con = []
     for a, b in pairs:
