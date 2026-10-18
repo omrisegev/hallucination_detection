@@ -33,3 +33,19 @@ The full run needs about **8.1 GPU-h** of compute, plus about 1.5 minutes of set
 - **Hard2Verify, Qwen2.5-Math family** (qwen_prm, qwen_prm_72b, pure_prm, math_shepherd): 2 of 12 answers exceed the 4,096-token context and are recorded as counted failures.
   - Proposed handling: no truncation. Compare all PRMs on the answers every model can read, and report coverage.
 - **rlhflow_prm on Hard2Verify:** 3 step-text mismatches. This must be checked before the full run.
+
+## Full run: Socratic only (Omri, 2026-10-18)
+
+Omri approved running Socratic first. Hard2Verify runs only if the Socratic result is good.
+
+Jobs are linear 2-link chains, all with the frozen recipe and the same code dir:
+
+| adapter | jobs | wall per link |
+|---|---|---|
+| qwen_prm | 288069 → 288070 | 3 h |
+| pure_prm | 288071 → 288072 | 3 h |
+| rlhflow_prm | 288073 → 288074 | 3 h |
+| math_shepherd | 288075 → 288076 | 3 h |
+| qwen_prm_72b | 288077 → 288078 | 8 h |
+
+Outputs go to `$SHARED/results/prm_boost_external_v1/full_<adapter>_socratic/`.
