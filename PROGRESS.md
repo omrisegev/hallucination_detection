@@ -1,3 +1,11 @@
+## 2026-10-20: SML sign rule and weight estimator, Step 467 (Claude)
+
+**START HERE:** HISTORY Step 467 [SML weight estimator], `results/sml_weight_estimator_v1/README.md`.
+
+- Socratic CHAIN below chance is a sign-rule bug: `sml_fuse_signed` on pre-oriented views, followed by the anchor flip. It fired in 3 of 20 Socratic fits and 0 of 60 recorded PRMBench fits. Non-negative weights remove it, but CHAIN still loses to the PRM on Socratic (4 of 5).
+- The SML weights shrink toward equal relative to the model. The unbiased rank-one fit LOSES on the development banks (N16 ProcessBench 41.61 -> 38.61, PRMBench .7958 -> .7762). Do not adopt it. |v| weights help only the large banks with negative cross weights (N40, N43, N53).
+- Open: decide on a sign-handling candidate (non-negative weights, no anchor flip, record violations) before the ProcessBench boosting Step 7. Repeat the bank test on thinkfix_mask1 on AIRCC (`processbench_banks/score_banks.py`, `socratic_sign/run_prmbench.py`).
+
 ## 2026-10-19: PRM boosting five-arm ablation, Math-Shepherd digit fix (Claude)
 
 **START HERE:** HISTORY Step 466 [PRM boosting ablation5], `results/prm_boost_ablation5_v1/digitfix_v1/README.md`, page `results/prm_boost_ablation5_v1/page/ablation5.html`.

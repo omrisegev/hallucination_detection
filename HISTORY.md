@@ -10643,6 +10643,26 @@ Drive preservation is verified: 21 archives, 8,253 source files, 4,521,223,525 o
 
 ---
 
+### Step 467 [SML weight estimator] — Sign-rule inversion on Socratic, and the SML weight bias that turns out to help (2026-10-20)
+
+**What**: Three linked diagnostics on the L-SML weights (`results/sml_weight_estimator_v1/`, CPU, label-free fitting).
+(1) Why Socratic Math-Shepherd CHAIN is below chance (.468), with the shipped code rerun locally and a covariance decomposition against the Socratic gold.
+(2) Non-negative SML weights on Socratic, 5 PRMs, post hoc.
+(3) The SML weight estimator on the nested banks N11-N56. The old-template source bank was rebuilt locally from hash-identical raw inputs, with exact parity to the frozen `thinkfix_rescore_v1/old/cont_baselines/ABSOLUTE.csv` on all 10 banks and both metrics. Compared on ProcessBench and PRMBench: shipped L-SML, level-oriented channels, |v| weights, an off-diagonal rank-one fit (new `fusion_utils.rank1_offdiag_fit` / `sml_fuse_rank1`), and the oriented plain mean. Also compared against the L-SML paper (Jaffe et al. 2016).
+
+**Why**: Omri asked why a fusion of two above-chance inputs scores below chance, whether enforcing positive weights contradicts the theory, how our implementation deviates from the paper, and whether the corrected weighting improves our banks on ProcessBench.
+
+**Result**:
+- **Sign rule (a method bug, not data).** `sml_fuse_signed` majority-signs the eigenvector, and callers then flip toward z(PRM). On Math-Shepherd, PRM and telemetry correlate -.176 = -.186 within class + .010 signal. The telemetry barely separates the classes (.06 SD), and step position enters the PRM (+.43) and the telemetry (-.53) with opposite signs. The PRM got w = -.209, the anchor flip inverted the telemetry, and CHAIN ≈ -TELE (corr -.988). The flip fired in 3 of 20 Socratic fits and in 0 of 60 recorded PRMBench fits.
+- **The paper assumes every view beats random (Lemma 4).** Enforcing non-negative weights on pre-oriented views is the paper's assumption, not a departure from it. The other hard deviations from the paper: a linear two-stage readout instead of maximum likelihood; CHAIN's stacking is our own design; and the data are not i.i.d. (pooled answer-z steps, with position as a latent factor outside the model).
+- **Socratic, non-negative weights.** The inversion is gone (Math-Shepherd CHAIN .468 -> .564-.599), but CHAIN still loses to the PRM alone on 4 of 5 PRMs.
+- **Weight estimator.** The zero-diagonal eigenvector is not the rank-one fit of the off-diagonal covariance; it shrinks weights toward equal (exact toy: true [.50,.17,.17,.17], eigenvector [.32,.23,.23,.23]). On the development banks the unbiased fit LOSES almost everywhere: N16 ProcessBench 41.61 -> 38.61, PRMBench .7958 -> .7762. It puts up to .89 of the weight on one group, because residual dependence inflates that group's loading. The shrinkage acts as a regularizer. |v| weights help only where the shipped fit had a negative cross weight (8 of 90 fits): PRMBench N40 .724 -> .773, N43 .758 -> .788; ProcessBench N53 33.5 -> 36.1. N16 with shipped L-SML stays best on both benchmarks. Old template only; thinkfix_mask1 is not tested (its banks are on AIRCC).
+- The rank-one result first looked like an improvement on one Socratic PRM, before the development test (LESSONS.md, 2026-10-20).
+
+**Files**: `results/sml_weight_estimator_v1/` (README, socratic_chain_flip/, socratic_sign/, processbench_banks/); `spectral_utils/fusion_utils.py` (`rank1_offdiag_fit`, `sml_fuse_rank1`, docstring notes on `sml_fuse` and `sml_fuse_signed`); `tests/test_sml_rank1_fit.py`; LESSONS.md.
+
+---
+
 ### Step 291 [prm-voters] — PRMBench step voters pilot execution and gate verification on AIRCC
 
 **What**: Executed and verified the PRMBench step voter pilots (N=30, 35 meta rows) on the `aircc` compute cluster (`power-gpu`, `owner_940`, NVIDIA B200 GPU).

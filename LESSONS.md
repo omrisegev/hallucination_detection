@@ -720,3 +720,17 @@ What happened: the hard-coded digit ids 15..24 are digits only in the Qwen and L
 Why: an amendment in a results README is prose. Nothing tied it to the code path that produced the next run.
 Rule: a data bug recorded in a results note gets a code fix or a hard guard before that bank is used again. Feature builders resolve tokenizer-dependent ids from the backbone's own tokenizer, and stop on a constant channel.
 Enforced by: code (spectral_utils/digit_token_ids.py resolve_digit_ids / check_digit_channels_vary; spectral_utils/fusion_utils.py lsml_continuous_guarded).
+
+## 2026-10-20 — A post-hoc win on an external panel was called an important finding before the development test
+
+What happened: an unbiased rank-one fit of the SML weights raised Qwen-7B telemetry within-AUC on Socratic (.712 -> .755). It was presented as very important and about to be documented. On the PRMBench/ProcessBench nested banks it lost almost everywhere (N16 ProcessBench 41.61 -> 38.61, PRMBench .7958 -> .7762).
+Why: one PRM on an already-inspected external benchmark was read as evidence about the estimator. The other 4 PRMs there were already flat or negative.
+Rule: a change to a fusion component is tested on the development banks, after exact parity with the frozen numbers, before it is called a finding. External results seen post hoc are diagnostics.
+Enforced by: prose (results/sml_weight_estimator_v1/README.md; fusion_utils.rank1_offdiag_fit docstring).
+
+## 2026-10-20 — sml_fuse_signed was used on pre-oriented views, outside its documented contract
+
+What happened: PRM boosting passes risk-oriented views to lsml_continuous, which uses sml_fuse_signed (written for un-oriented classifiers: a negative weight means "inverted"). Callers then flip the score toward an anchor. On Socratic, Math-Shepherd's PRM and telemetry were negatively correlated through step position. The PRM got a negative weight, the anchor flip inverted the telemetry, and CHAIN scored .468.
+Why: the docstring's contract was not checked against the caller's inputs, and the two sign rules (majority vote, then anchor flip) were never tested together.
+Rule: with pre-oriented views, a negative SML weight is a model-violation flag, not an orientation. Record it, and do not let an anchor flip turn it into an inverted view.
+Enforced by: prose (fusion_utils.sml_fuse_signed docstring; results/sml_weight_estimator_v1/). Not yet a code guard.
