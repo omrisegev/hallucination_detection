@@ -339,10 +339,10 @@
     <article class="pc near">
       <h3>reward ללא labels: הכי קרוב אלינו</h3>
       <ul>
-        <li><span class="pt"><b>TTRL</b> <span class="id">2504.16084</span></span><br>ה-reward הוא majority vote.</li>
+        <li><span class="pt"><b>TTRL</b> <span class="id">2504.16084</span>; המשך: <span class="id">2603.08660</span> (ICLR 2026)</span><br>ה-reward הוא majority vote. ההמשך: עובד רק כש-confidence מתיישב עם correctness.</li>
         <li><span class="pt"><b>INTUITOR</b> <span class="id">2505.19590</span></span><br>ה-reward הוא self-certainty של המודל.</li>
         <li><span class="pt"><b>Entropy Minimization</b> <span class="id">2505.15134</span></span><br>הורדת entropy בלבד משפרת reasoning.</li>
-        <li><span class="pt"><b>RLPR</b> <span class="id">2506.18254</span></span><br>ה-reward הוא ההסתברות של התשובה הנכונה. אין צורך ב-verifier.</li>
+        <li><span class="pt"><b>RLPR</b> <span class="id">2506.18254</span></span><br>ה-reward הוא ההסתברות של התשובה הנכונה.</li>
         <li><span class="pt"><b>Absolute Zero</b> <span class="id">2505.03335</span></span><br>self-play, בלי נתונים.</li>
       </ul>
     </article>
@@ -363,6 +363,7 @@
       <ul class="dot">
         <li><b>אותם אותות:</b> entropy, spilled energy ו-top-k logprobs. הם משתמשים בהם כ-reward לכל התשובה. אנחנו ממזגים אותם ללא labels כדי למצוא את הצעד השגוי.</li>
         <li><b>VPPO ו-Cliff צריכים locator של השגיאה הראשונה</b> (PRM או LLM teacher). ה-step localizer שלנו הוא חלופה זולה וללא labels. PRMBench ו-ProcessBench מודדים בדיוק את זה.</li>
+        <li><b>אותה תקרה אצלנו:</b> לפי 2603.08660, אות ללא labels עוזר רק כשה-confidence מתיישב עם correctness. כך גם ב-boosting: ב-PRMBench, ‏energy_level חזק כמו ה-PRM (<span class="ltr num">0.799</span> מול <span class="ltr num">0.801</span>) וה-fusion עוזר. ב-Socratic הוא חלש (<span class="ltr num">0.683</span> מול <span class="ltr num">0.824</span>) וה-fusion פוגע.</li>
         <li><b>סיכון (Goodhart):</b> reward מטלמטריה מלמד את ה-policy להוריד את הטלמטריה. גם ה-entropy קורסת ממילא, וה-fusion לא יציב על Socratic.</li>
       </ul>
     </div>
