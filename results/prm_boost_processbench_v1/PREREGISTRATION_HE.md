@@ -121,4 +121,4 @@ ProcessBench מקבל verdict משלו, והמסגור הכללי נקבע מר�
 4. **`local/eval_processbench.py`:** להוסיף את כלל NC ואת ה-bootstrap המקובץ לפי שאלה, עם בדיקות על fixture.
 5. **בדיקת parity:** בבנקים של Qwen/PURE/RLHFlow, ה-builder החדש צריך לתת בדיוק את מה שנתן הישן.
 
-כל השינויים האלה נכנסים ל-commit לפני שה-downstream רץ. ה-hash שלו יירשם כאן.
+כל השינויים האלה נכנסים ל-commit לפני שה-downstream רץ. ה-hash שלו יירשם כאן: `06d1a1256e9348ef2dd56d961bbbc9b85933e4f2`.
