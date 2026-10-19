@@ -150,3 +150,31 @@ predicted; the other four PRMs have 0. The ~0.9 GB telemetry pkls stay on AIRCC.
   (`parity_diag/parity_rebuiltref_then_down.sh`) builds the other 3 old-builder Socratic references, re-runs
   `bank_parity.py` (the failed summary is kept as `parity/PARITY_SUMMARY_existing_socratic_ref_FAIL.json`), then runs
   `pb_down.sh` unchanged. No builder or scorer code was changed.
+
+## Result (local evaluation, 2026-10-20; downstream job 289297, scores shipped from d6e9cb04a)
+
+**Registered verdict: FAIL.** CHAIN_N16 under the NC rule beats the PRM's native rule on only 1 of 5 PRMs
+(rlhflow_prm, the weakest), and on neither Qwen PRM. Registered rule: >= 3 of 5 with E1 and E2, including Qwen-7B or
+Qwen-72B. Source: `eval/VERDICT_processbench.json`, 3,400 answers, 2,842 question clusters.
+
+Parity anchor: qwen_prm `PRM_native` average F1 = 72.94, the job-177776 value exactly.
+
+| PRM | PRM native F1 | CHAIN_N16 NC F1 | Δ F1 (CI) | within-AUC PRM → CHAIN_N16 | Δ within (CI) | AUROC first_only PRM → CHAIN_N16 | POS_ONLY NC F1 | LEN_ONLY NC F1 | E1/E2 |
+|---|---|---|---|---|---|---|---|---|---|
+| qwen_prm | 72.94 | 67.23 | -5.71 (-7.01, -4.45) | 0.939 → 0.910 | -0.028 (-0.037, -0.020) | 0.883 → 0.801 | 25.20 | 44.12 | no/no |
+| qwen_prm_72b | 78.20 | 68.83 | -9.37 (-10.79, -7.88) | 0.951 → 0.920 | -0.031 (-0.041, -0.021) | 0.906 → 0.813 | 36.34 | 42.26 | no/no |
+| pure_prm | 52.58 | 42.07 | -10.50 (-13.28, -7.94) | 0.925 → 0.728 | -0.197 (-0.213, -0.180) | 0.766 → 0.757 | 27.32 | 34.60 | no/no |
+| rlhflow_prm | 29.16 | 33.04 | +3.88 (+1.80, +6.06) | 0.329 → 0.558 | +0.229 (+0.210, +0.248) | 0.698 → 0.716 | 14.49 | 30.70 | yes/yes |
+| math_shepherd | 29.72 | 13.85 | -15.87 (-18.58, -13.13) | 0.851 → 0.440 | -0.411 (-0.432, -0.391) | 0.597 → 0.313 | 26.22 | 25.58 | no/no |
+
+Caveats:
+- **within-AUC is degenerate here:** POS_ONLY has within-AUC 1.000 for every PRM, so step position alone ranks the
+  within-answer target perfectly on ProcessBench. Treat E1 and the within-AUC column as a position-sensitive measure,
+  not a localization quality measure. This is an inference from the POS_ONLY rows; the target definition was not re-checked.
+- math_shepherd CHAIN_N16 has AUROC first_only 0.313 (< 0.5) and within-AUC 0.44: the fused score is anti-oriented on
+  this PRM. rlhflow_prm's own reward has within-AUC 0.33.
+- The N16 arms contain 3 digit channels; N13 is digit-free (CHAIN_N13 NC: 64.73 / 68.44 / 35.54 / 30.76 / 18.21).
+- Context, not a headline (Omri): HALF_N16 NC is 71.36 / 76.88 / 53.70 / 30.17 / 34.33. It is above the native rule
+  on pure_prm and math_shepherd and below it on both Qwen PRMs.
+- CHAIN is a post-registration arm (see the results map). The Socratic reference used for parity is the old-builder
+  rebuild (Omri, option 1, above).
