@@ -134,3 +134,19 @@ Step 7 (downstream) stays gated on the pre-registration section 8 code changes.
 link 2 found the work done and rewrote the manifest, so the saved manifest shows the link-2 job id and elapsed time.
 rlhflow_prm: 87 rows (133 steps) with a step-text mismatch and 3,378 rows with boundary whitespace, as the census
 predicted; the other four PRMs have 0. The ~0.9 GB telemetry pkls stay on AIRCC.
+
+## Step 7 on AIRCC (2026-10-19/20, Windows session, code shipped from d6e9cb04a)
+
+- **PURE tokenizer.** The offline cache for `jinachris/Qwen2.5-Math-7B-PRM800K` has `vocab.json` + `merges.txt` but no
+  `tokenizer.json`, so parity job 289255 stopped at the digit check. Job 289257 (`parity_diag/derive_pure_tok.py`)
+  saved PURE's own tokenizer as `$S/tok_derived/pure_prm/tokenizer.json`: digit ids 15..24, `vocab.json` identical to
+  Qwen2.5-Math-7B-Instruct's. All later jobs run with `TOK_pure_prm` set to it. Digit ids OK on all 5 PRMs.
+- **Bank parity (job 289258):** all 4 `pb_<prm>` pairs exact (max_abs 0.0). All 4 `socratic_<prm>` pairs FAIL against the
+  existing Socratic `bank_v2` with max_abs 8.9e-10 to 5.4e-8 in `FEATURES.npz`.
+- **Diagnostic (job 289294, `parity_diag/parity_diag.sh`):** the OLD frozen builder, re-run today on the Socratic qwen_prm
+  telemetry, equals the v2 bank exactly and differs from the existing `bank_v2` by the same 3.26e-9. The gap is from
+  rebuilding, not from the v2 builder.
+- **Omri's decision (2026-10-19, option 1):** the Socratic reference is the old-builder rebuild. Job 289297
+  (`parity_diag/parity_rebuiltref_then_down.sh`) builds the other 3 old-builder Socratic references, re-runs
+  `bank_parity.py` (the failed summary is kept as `parity/PARITY_SUMMARY_existing_socratic_ref_FAIL.json`), then runs
+  `pb_down.sh` unchanged. No builder or scorer code was changed.
