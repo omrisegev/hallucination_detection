@@ -7,6 +7,7 @@ Omri's five arms, per PRM and per bank (N13 digit-free, N16 with 3 digit channel
   4 CHAIN_<bk>  L-SML boosting: PRM + bank, PRM its own group (= bank sweep CHAIN_<bk>); PRMG_<bk> also kept
   5 HALF_<bk>   1/2 z(PRM) + 1/2 mean(bank)                                  (= controls HALF_N16)
     EQ_<bk>     mean of z(PRM) and every channel, PRM weight 1/(K+1)                               NEW
+P-variants (NEW): HALFP/EQP/CHAINP_<bank> = HALF/EQ/CHAIN with the PRM channel as z(1 - reward) instead of z(logit(1 - reward)).
 Extra controls (NEW): PRM_Q80 / PRM_Q80_PROB = the PRM score (logit risk / 1 - reward) with the same Q80 flag rule as every fused arm. It splits
 "score is better" from "decision rule is different".
 Same inputs, orientation, Q80 rule and paired source-group bootstrap as ../prm_boosting_bank_sweep_v1/lsml_bank_sweep.py.
@@ -69,6 +70,7 @@ def main():
     prob = np.concatenate([1 - np.asarray(r['rewards'], float) for r in meta])
     # PRM_Q80 answer-z's the logit risk (the same zp the fusions use); PRM_Q80_PROB answer-z's 1 - reward.
     # The two give different Q80 flags, so both are reported (voters analysis used the prob scale).
+    zq = EV.az(prob, o)
     arms, diag = {'PRM_native': prm, 'PRM_Q80': prm, 'PRM_Q80_PROB': prob}, {}
     bt = pop.cell_bank('TRANSFER', ans)
     arms['LSML_CONT'], _ = lsml(np.column_stack([zp] + [bt['V'][:, bt['names'].index(c)] for c in S3]))
@@ -84,6 +86,11 @@ def main():
         arms[f'CHAIN_{bk}'], _ = lsml(VC, groups=np.arange(VC.shape[1]))
         arms[f'HALF_{bk}'] = .5 * zp + .5 * V.mean(1)
         arms[f'EQ_{bk}'] = VP.mean(1)
+        # P-variants: the same fusions with the PRM channel on the probability scale, z(1 - reward), instead of z(logit(1 - reward))
+        arms[f'HALFP_{bk}'] = .5 * zq + .5 * V.mean(1)
+        arms[f'EQP_{bk}'] = np.column_stack([zq, V]).mean(1)
+        VCq = np.column_stack([zq] + list(VC[:, 1:].T))
+        arms[f'CHAINP_{bk}'], _ = lsml(VCq, groups=np.arange(VCq.shape[1]))
         # corr of each arm with z(PRM): how much of the PRM ranking each fused score keeps
         diag[bk] = {'n_channels': V.shape[1], 'tele_K': int(dt['K']),
                     'corr_with_zprm': {a: float(np.corrcoef(arms[f'{a}_{bk}'], zp)[0, 1])
@@ -120,6 +127,8 @@ def main():
         pairs += [(f'TELE_{bk}', f'MEAN_{bk}'), (f'CHAIN_{bk}', f'HALF_{bk}'), (f'CHAIN_{bk}', f'EQ_{bk}'),
                   (f'PRMG_{bk}', f'HALF_{bk}'), (f'CHAIN_{bk}', f'TELE_{bk}'), (f'HALF_{bk}', f'MEAN_{bk}'),
                   (f'CHAIN_{bk}', 'LSML_CONT')]
+        for a in ('HALF', 'EQ', 'CHAIN'):
+            pairs += [(f'{a}P_{bk}', f'{a}_{bk}'), (f'{a}P_{bk}', 'PRM_Q80_PROB'), (f'{a}P_{bk}', 'PRM_native')]
     con = []
     for a, b in pairs:
         for j, mt in enumerate(('within_auc', 'prmscore')):
