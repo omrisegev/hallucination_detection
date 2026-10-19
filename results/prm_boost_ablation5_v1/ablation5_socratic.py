@@ -3,6 +3,7 @@
   TELE_<B>   (arm 1) L-SML on the bank alone          MEAN_<B>  (arm 2) simple mean of the same oriented channels
   PRM        (arm 3) native PRM (and PRM_Q80 in eval)  CHAIN_<B>/PRMG_<B> (arm 4) L-SML boosting
   HALF_<B>   (arm 5) 1/2 z(PRM) + 1/2 mean(bank)       EQ_<B>    mean of z(PRM) and every channel (PRM weight 1/(K+1))
+PRMPROB / HALFP / EQP / CHAINP_<B>: same arms with the PRM channel as z(1 - reward) instead of z(logit(1 - reward)).
 HALF_N16 and PRMG_N16 (= LSML_N16_PRMG) are parity checks against the frozen ../prm_boost_external_v1/scores_socratic.
 
     python ablation5_socratic.py <bank dir with FEATURES.npz and REWARDS.npz> <out SCORES.npz>
@@ -32,6 +33,7 @@ BANKS = ('N13', 'N16')
 ans = np.arange(len(F['uids']))
 pop = ext.Population(F, list(BANKS))
 prm = EV.risk(np.clip(R['rewards'][ne], 1e-6, 1 - 1e-6)); zp = EV.az(prm, o)
+prob = 1 - np.asarray(R['rewards'][ne], float); zq = EV.az(prob, o)  # probability-scale PRM channel (P-variants)
 
 
 def lsml(V, groups=None, anchor=None):
@@ -42,7 +44,7 @@ def lsml(V, groups=None, anchor=None):
     return s, d
 
 
-arms, diag = {'PRM': prm}, {}
+arms, diag = {'PRM': prm, 'PRMPROB': prob}, {}
 for bk in BANKS:
     b = pop.cell_bank(bk, ans); assert np.array_equal(b['off'], o)
     V = np.asarray(b['V'], float)
@@ -55,8 +57,13 @@ for bk in BANKS:
     arms[f'MEAN_{bk}'] = V.mean(1)
     arms[f'HALF_{bk}'] = .5 * zp + .5 * V.mean(1)
     arms[f'EQ_{bk}'] = np.column_stack([zp, V]).mean(1)
+    arms[f'HALFP_{bk}'] = .5 * zq + .5 * V.mean(1)
+    arms[f'EQP_{bk}'] = np.column_stack([zq, V]).mean(1)
+    VCq = np.column_stack([zq] + list(VC[:, 1:].T))
+    arms[f'CHAINP_{bk}'], _ = lsml(VCq, groups=np.arange(VCq.shape[1]))
     cw = np.abs(np.asarray(dc['cross_weights'], float))
     diag[bk] = {'channels': list(b['names']), 'tele_K': int(dt['K']), 'tele_groups': cn.tolist(),
+                'zero_var_channels': [str(n) for n, sd in zip(b['names'], V.std(0)) if sd < 1e-9],
                 'CHAIN_n_views': int(VC.shape[1]), 'CHAIN_undetermined': bool(VC.shape[1] <= 3),
                 'CHAIN_prm_cross_share': float(cw[0] / cw.sum()),
                 'corr_with_prm': {a: float(np.corrcoef(arms[f'{a}_{bk}'], prm)[0, 1]) for a in ('TELE', 'MEAN', 'PRMG', 'CHAIN', 'HALF', 'EQ')}}

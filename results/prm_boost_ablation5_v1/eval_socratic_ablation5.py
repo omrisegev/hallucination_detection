@@ -1,5 +1,6 @@
 """Five-arm ablation copy of ../prm_boost_external_v1/eval_external.py: same metrics and bootstrap, plus
-paired contrasts between arms (TELE-MEAN, CHAIN-HALF, CHAIN-EQ, PRMG-HALF, CHAIN-TELE, HALF-MEAN).
+paired contrasts between arms (TELE-MEAN, CHAIN-HALF, CHAIN-EQ, PRMG-HALF, CHAIN-TELE, HALF-MEAN, EQ-MEAN, EQP-MEAN),
+and P-variants (probability-scale PRM channel) against their logit twins and PRMPROB_Q80.
 
 Evaluate the frozen PRM-boosting recipes on an external benchmark (local, gold labels stay local).
 
@@ -66,7 +67,11 @@ for f in sorted(sdir.glob('SCORES_*.npz')):
     pairs = [(a, r) for a in res for r in ('PRM_native', 'PRM_Q80') if a != r]
     for b in ('N13', 'N16'):
         pairs += [(f'TELE_{b}_Q80', f'MEAN_{b}_Q80'), (f'CHAIN_{b}_Q80', f'HALF_{b}_Q80'), (f'CHAIN_{b}_Q80', f'EQ_{b}_Q80'),
-                  (f'PRMG_{b}_Q80', f'HALF_{b}_Q80'), (f'CHAIN_{b}_Q80', f'TELE_{b}_Q80'), (f'HALF_{b}_Q80', f'MEAN_{b}_Q80')]
+                  (f'PRMG_{b}_Q80', f'HALF_{b}_Q80'), (f'CHAIN_{b}_Q80', f'TELE_{b}_Q80'), (f'HALF_{b}_Q80', f'MEAN_{b}_Q80'),
+                  (f'EQ_{b}_Q80', f'MEAN_{b}_Q80'), (f'EQP_{b}_Q80', f'MEAN_{b}_Q80')]
+        for a in ('HALF', 'EQ', 'CHAIN'):
+            pairs += [(f'{a}P_{b}_Q80', f'{a}_{b}_Q80'), (f'{a}P_{b}_Q80', 'PRMPROB_Q80')]
+    pairs = [(a, r) for a, r in pairs if a in res and r in res]
     for name, ref in pairs:
         if True:
             d = np.array([np.subtract(stat(*res[name], w), stat(*res[ref], w)) for w in W])

@@ -93,6 +93,7 @@ def main():
         arms[f'CHAINP_{bk}'], _ = lsml(VCq, groups=np.arange(VCq.shape[1]))
         # corr of each arm with z(PRM): how much of the PRM ranking each fused score keeps
         diag[bk] = {'n_channels': V.shape[1], 'tele_K': int(dt['K']),
+                    'zero_var_channels': [str(n) for n, sd in zip(pop.cell_bank(bk, ans)['names'], V.std(0)) if sd < 1e-9],
                     'corr_with_zprm': {a: float(np.corrcoef(arms[f'{a}_{bk}'], zp)[0, 1])
                                        for a in ('TELE', 'MEAN', 'PRMG', 'CHAIN', 'HALF', 'EQ')},
                     'corr_TELE_MEAN': float(np.corrcoef(arms[f'TELE_{bk}'], arms[f'MEAN_{bk}'])[0, 1])}
@@ -129,6 +130,7 @@ def main():
                   (f'CHAIN_{bk}', 'LSML_CONT')]
         for a in ('HALF', 'EQ', 'CHAIN'):
             pairs += [(f'{a}P_{bk}', f'{a}_{bk}'), (f'{a}P_{bk}', 'PRM_Q80_PROB'), (f'{a}P_{bk}', 'PRM_native')]
+        pairs += [(f'EQ_{bk}', f'MEAN_{bk}'), (f'EQP_{bk}', f'MEAN_{bk}')]
     con = []
     for a, b in pairs:
         for j, mt in enumerate(('within_auc', 'prmscore')):
