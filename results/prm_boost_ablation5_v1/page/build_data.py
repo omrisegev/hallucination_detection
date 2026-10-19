@@ -99,11 +99,19 @@ def socratic(p):
     return arms, pairs
 
 
+def fill_fair_auc(arms):
+    # within-AUC is rank-based inside each answer, and 1 - reward is a monotone map of the native risk, so the
+    # same-rule PRM has the same per-answer AUC as PRM_native: its within-AUC contrast equals the native one.
+    for e in arms.values():
+        if 'da' in e and 'daf' not in e: e['daf'] = e['da']
+
+
 out = {'prms': PRMS, 'names': NAMES, 'bench': {}}
 for bench, fn in (('prmbench', prmbench), ('socratic', socratic)):
     out['bench'][bench] = {}
     for p in PRMS:
         arms, pairs = fn(p)
+        fill_fair_auc(arms)
         out['bench'][bench][p] = {'arms': arms, 'pairs': pairs}
 (H / 'data.json').write_text(json.dumps(out, indent=1))
 for b in out['bench']:
