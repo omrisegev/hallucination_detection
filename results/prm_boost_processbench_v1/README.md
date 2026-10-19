@@ -127,3 +127,10 @@ Submitted with `BUDGET_OK=1 WALL_7B=02:00:00 WALL_72B=07:00:00 submit_full_chain
 | qwen_prm_72b | 289066 | 289067 | 07:00:00 |
 
 Step 7 (downstream) stays gated on the pre-registration section 8 code changes.
+
+**Full-run outcome:** all 10 jobs COMPLETED 0:0; all 5 manifests (`full_<prm>/manifest.json`) are COMPLETE with
+3,400/3,400 rows, 0 failures, 0 context overflow, `reward_path_max_abs_gap` 0.0. Link 1 did all the scoring
+(elapsed_sec from the link-1 logs: qwen_prm 304, pure_prm 308, rlhflow_prm 370, math_shepherd 350, qwen_prm_72b 712);
+link 2 found the work done and rewrote the manifest, so the saved manifest shows the link-2 job id and elapsed time.
+rlhflow_prm: 87 rows (133 steps) with a step-text mismatch and 3,378 rows with boundary whitespace, as the census
+predicted; the other four PRMs have 0. The ~0.9 GB telemetry pkls stay on AIRCC.
