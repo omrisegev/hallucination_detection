@@ -112,3 +112,18 @@ setup per job (about 7.4 GPU-h with 10 links). Each timing job took 1.4-2.1 minu
 
 **Proposed walls per link** (1.5 × estimate, rounded up): `WALL_7B=02:00:00`, `WALL_72B=07:00:00`. Two links give
 twice that capacity. Waiting for Omri's budget decision; nothing beyond timing has been submitted.
+
+## Full run (Omri approved all 5 PRMs, 2026-10-19)
+
+Submitted with `BUDGET_OK=1 WALL_7B=02:00:00 WALL_72B=07:00:00 submit_full_chains.sh`; linear 2-link chains (link 2 =
+`afterany:<link 1>`, same `--out`).
+
+| adapter | link 1 | link 2 | wall per link |
+|---|---|---|---|
+| qwen_prm | 289058 | 289059 | 02:00:00 |
+| pure_prm | 289060 | 289061 | 02:00:00 |
+| rlhflow_prm | 289062 | 289063 | 02:00:00 |
+| math_shepherd | 289064 | 289065 | 02:00:00 |
+| qwen_prm_72b | 289066 | 289067 | 07:00:00 |
+
+Step 7 (downstream) stays gated on the pre-registration section 8 code changes.
