@@ -26,10 +26,10 @@ Check out or rebase to that tip. Confirm `results/prm_boost_processbench_v1/` ex
 Run the local tests (CPU, seconds):
 
 ```bash
-python -m unittest tests.test_prm_boost_processbench_metrics
+python -m unittest tests.test_prm_boost_processbench_metrics tests.test_prm_boost_processbench_prereg
 ```
 
-Expect `Ran 11 tests ... OK`.
+Expect `Ran 32 tests ... OK` (the `PARITY y FAIL` lines it prints are an expected failure case inside a test).
 
 ## Step 1: ship inputs and code (from the repo root, Git Bash)
 
@@ -56,7 +56,7 @@ for f in cluster/run_prmbench_prm_telemetry.py cluster/submit_prm_telemetry_offl
 
 The two hashes on every line must be equal. If one differs, stop and report it; do not sync over that dir.
 
-The downstream reuses the same dirs as Socratic: `code_thinkfix_bank_553de79`, `code_thinkfix_rescore_v1`, `eval_mirror_prm_gen_v1`, and `results/prm_boost_v1/bank_prm/FEATURES.npz`. `pb_down.sh` checks with `cmp` that the AIRCC bank builder and `score_external` copies equal the repo versions, and refuses otherwise.
+The downstream reuses the same dirs as Socratic: `code_thinkfix_bank_553de79`, `code_thinkfix_rescore_v1`, `eval_mirror_prm_gen_v1`, and `results/prm_boost_v1/bank_prm/FEATURES.npz`. Since the section 8 changes it uses the v2 files under new names (step 7), and never overwrites the old copies.
 
 ## Step 3: /preflight, then the context census (CPU, no GPU)
 
@@ -120,34 +120,80 @@ For each of the 5 PRMs, the script prints `<prm> <link1> <link2>`. Link 2 is `--
 
 Record all 10 job ids in README.md (the same table as the Socratic "Full run" section). Then commit and push. Outputs go to `$O/full_<prm>/external_telemetry.pkl` and `manifest.json`.
 
-## Step 7: CPU downstream (bank + all scoring arms, label-free)
+## Step 7: CPU downstream (bank parity, then bank + all scoring arms, label-free)
 
-**GATE: do not run this step yet.** Omri approved the pre-registration on 2026-10-19
-([PREREGISTRATION_HE.md](PREREGISTRATION_HE.md)). Step 7 runs only after every code change in its section 8 is committed
-and its commit hash is recorded there:
-1. Mistral digit ids verified on AIRCC (`../prm_boost_ablation5_v1/HANDOFF_MS_DIGIT_FIX_2026-10-19.md`, step 2).
-2. `pb_down.sh` uses the v2 bank builder with `--tokenizer`, and `lsml_continuous_guarded` in both scorers.
-3. The added control arms in `score_chain_pb.py`.
-4. The NC rule and the question-clustered bootstrap in `local/eval_processbench.py`, with tests.
-5. Bank parity: the new builder gives the old banks exactly for Qwen, PURE and RLHFlow.
+Omri approved the pre-registration on 2026-10-19 ([PREREGISTRATION_HE.md](PREREGISTRATION_HE.md)). The section 8 code
+changes are in the commit whose hash is recorded on the last line of its section 8. Status of the gate:
 
-Until then, stop after step 6, including the `DEP=afterany:...` shortcut below. Steps 0–6 (GPU telemetry) do not depend on
-the recipe and may run as written.
+| # | section 8 item | status |
+|---|---|---|
+| 1 | Mistral digit ids | Verified in AIRCC job 288932 (`claude/prm-boosting` c2c33946, `../prm_boost_ablation5_v1/digitfix_v1/README.md`): 28734, 28740, 28750, 28770, 28781, 28782, 28784, 28787, 28783, 28774. `bank_parity.sh` re-checks all 5 tokenizers (7b) and `pb_down.sh` checks each one before its build. PURE's tokenizer has not been resolved on AIRCC yet; the same check covers it. |
+| 2 | v2 builder with `--tokenizer`, guarded L-SML in both scorers | In code: `pb_down.sh` builds `full_<prm>/bank_v3` with `prm_boost_build_bank_external_v2.py --tokenizer`, then `score_external_v2.py` and `score_chain_pb.py` (both `lsml_continuous_guarded`). |
+| 3 | control arms | In code: `score_chain_pb.py` adds MEAN/HALF/EQ on N13 and N16, POS_ONLY, LEN_ONLY. |
+| 4 | NC rule, clustered bootstrap, tests | In code: `local/eval_processbench.py`, `local/pb_metrics.py`, `tests/test_prm_boost_processbench_prereg.py`. |
+| 5 | bank parity | **Open, AIRCC only:** step 7b. `pb_down.sh` (RUN=full) refuses to run until it passes. |
 
-When all 10 jobs have ended (`/aircc-status`), submit:
+Do not run 7b or 7c before step 6 has finished (all 10 chain jobs ended), except as noted in 7b.
+
+### 7a. Ship the new code
+
+Re-run step 1 (`ship.sh`) from the pushed tip, with LF line endings in the checkout. New files in `$O/code/`:
+`build_bank_external_v2.repo.py`, `digit_token_ids.repo.py`, `score_external_v2.repo.py`, `bank_parity.sh`,
+`bank_parity.py`, `submit_parity.sh`. The old `build_bank_external.repo.py` and `score_external.repo.py` on AIRCC are
+not re-sent and stay as they are.
+
+On AIRCC the v2 files get new names. They are installed when absent; an existing copy must be byte-identical, or the script stops (nothing is overwritten):
+- `$BANK_CODE/scripts/prm_boost_build_bank_external_v2.py` and `$BANK_CODE/scripts/digit_token_ids.py`. Job 288932 already installed both from the same source, so `cmp` should pass.
+- `$MIRROR/prm_boost_score_external_v2.py`.
+
+The mirror's `spectral_utils/fusion_utils.py` must contain `lsml_continuous_guarded`. Job 288932 appended it (`guarded_append.py`), and `pb_down.sh` checks the import.
+
+Tokenizers come from `$S/hf_cache/hub` (`tok_for` in `env.sh`). Math-Shepherd uses the Mistral-7B-v0.1 `tokenizer.json`, the same tokenizer as in job 288932. If a lookup fails, export `TOK_<prm>=<path to tokenizer.json>` before the submit; the jobs use `--export=ALL`.
+
+### 7b. Bank parity (section 8 step 5; CPU job, 12 bank builds, about 1-2 h)
+
+```bash
+ssh aircc 'bash /shared/cycle2_tau_averbuch_prj/omrisegev1/results/prm_boost_processbench_v1/code/submit_parity.sh'
+```
+
+Optionally, submit it right after step 6 with `DEP=afterany:<the 5 link-2 ids, colon-separated>`.
+
+For qwen_prm, pure_prm, rlhflow_prm and qwen_prm_72b (digit ids 15..24), it checks two cells into `$O/parity/`:
+- `socratic_<prm>`: the v2 builder on the Socratic raw telemetry, against the existing Socratic `bank_v2` (old builder);
+- `pb_<prm>`: the old and the v2 builder, both on the ProcessBench raw telemetry from step 6.
+
+It also verifies that the old builder on AIRCC is the frozen one (sha256 in `env.sh`).
+
+Expected log, `logs/pb_parity_<jobid>.out`:
+- 5 lines `digit ids OK <prm> [...]`. Math-Shepherd must show the Mistral ids above, all others 15..24.
+- 8 lines `PARITY <cell> OK max_abs 0.0 diffs 0`.
+- `PARITY SUMMARY OK`. It writes `parity/PARITY_SUMMARY.json`.
+
+Any `FAIL` means stop and report the line. Do not patch a builder.
+
+The job can run before step 6 ends. The pb cells then print `NOTE ... not checked`, and `pb_down.sh` still refuses. Re-run it after step 6; finished banks are reused.
+
+### 7c. Downstream
+
+Submit only after `PARITY SUMMARY OK`:
 
 ```bash
 ssh aircc 'bash /shared/cycle2_tau_averbuch_prj/omrisegev1/results/prm_boost_processbench_v1/code/submit_down.sh'
 ```
 
-Alternatively, submit right after step 6 with `DEP=afterany:<the 5 link-2 ids, colon-separated>`.
+You can also chain it behind 7b with `DEP=afterok:<parity job id>`.
 
-For each PRM, `pb_down.sh` does the following and stops on the first failure:
-1. It checks that the manifest is `COMPLETE`, or `COMPLETE_WITH_FAILURES` with only context-overflow failures.
-2. It builds `full_<prm>/bank_v2/`.
-3. It writes `scores/SCORES_<prm>.npz` (frozen arms) and `scores/SCORES_CHAIN_<prm>.npz` (CHAIN/TELE/PRMG for N13 and N16).
+For each PRM, `pb_down.sh` stops on the first failure:
+1. It checks `parity/PARITY_SUMMARY.json`: every `socratic_`/`pb_` pair must be exact (RUN=full only).
+2. It checks that the manifest is `COMPLETE`, or `COMPLETE_WITH_FAILURES` with only context-overflow failures.
+3. It checks the digit ids of the PRM's tokenizer.
+4. It builds `full_<prm>/bank_v3/` with the v2 builder and checks the ids recorded in its MANIFEST.
+5. It writes `scores/SCORES_<prm>.npz` with `score_external_v2.py` (the frozen arms, guarded L-SML).
+6. It writes `scores/SCORES_CHAIN_<prm>.npz` with `score_chain_pb.py`: CHAIN/TELE/PRMG and MEAN/HALF/EQ for N13 and N16, POS_ONLY, and LEN_ONLY from the raw step-token spans.
 
-`ONLY="qwen_prm pure_prm"` limits it to some PRMs, for example to re-run one after a fix. `bank_v2` is skipped when it already exists.
+`ONLY="qwen_prm pure_prm"` limits it to some PRMs, for example to re-run one after a fix. `bank_v3` is skipped when it already exists. A `bank_v2` from an older run (for example the step 4 smoke) is never reused.
+
+Send back the parity log lines, `parity/PARITY_SUMMARY.json`, each `bank_v3/MANIFEST.json` `digit_ids` block, and `scores/SCORES_CHAIN_<prm>.json` (`zero_var_channels`, `tele_dropped_constant`). Expect empty lists: with the digit fix, no channel should be constant.
 
 ## Step 8: upload to Drive (rclone on the cluster)
 
@@ -155,7 +201,7 @@ For each PRM, `pb_down.sh` does the following and stops on the first failure:
 ssh aircc 'bash /shared/cycle2_tau_averbuch_prj/omrisegev1/results/prm_boost_processbench_v1/code/upload_drive.sh'
 ```
 
-This copies `full_*/bank_v2/*` (FEATURES.npz, REWARDS.npz, MANIFEST.json), the telemetry manifests, `census/` and `scores/` to `gdrive:hallucination_detection/cluster_results/prm_boost_processbench_v1/`. The ~1 GB telemetry pkls stay on AIRCC. For a slow upload, run it detached with `nohup` and poll the log.
+This copies `full_*/bank_v3/*` (FEATURES.npz, REWARDS.npz, MANIFEST.json), the parity summary and manifests, the telemetry manifests, `census/` and `scores/` to `gdrive:hallucination_detection/cluster_results/prm_boost_processbench_v1/`. The ~1 GB telemetry pkls stay on AIRCC. For a slow upload, run it detached with `nohup` and poll the log.
 
 ## Step 9: local evaluation (gold labels stay on this machine)
 
@@ -168,7 +214,7 @@ This copies `full_*/bank_v2/*` (FEATURES.npz, REWARDS.npz, MANIFEST.json), the t
    scp 'aircc:/shared/cycle2_tau_averbuch_prj/omrisegev1/results/prm_boost_processbench_v1/scores/SCORES_*' results/prm_boost_processbench_v1/scores/
    ```
    ```bash
-   scp aircc:/shared/cycle2_tau_averbuch_prj/omrisegev1/results/prm_boost_processbench_v1/full_qwen_prm/bank_v2/REWARDS.npz results/prm_boost_processbench_v1/scores/REWARDS_qwen_prm.npz
+   scp aircc:/shared/cycle2_tau_averbuch_prj/omrisegev1/results/prm_boost_processbench_v1/full_qwen_prm/bank_v3/REWARDS.npz results/prm_boost_processbench_v1/scores/REWARDS_qwen_prm.npz
    ```
 
 2. **Evaluate:**
@@ -177,7 +223,12 @@ This copies `full_*/bank_v2/*` (FEATURES.npz, REWARDS.npz, MANIFEST.json), the t
    python results/prm_boost_processbench_v1/local/eval_processbench.py results/prm_boost_processbench_v1/scores results/prm_boost_processbench_v1/eval
    ```
 
-   This takes about a minute. It writes `eval/RESULTS_processbench.csv` (one row per PRM × arm × rule × population), `eval/SUBSETS_processbench.csv` (per-subset official and PRISM columns), `eval/BOOTSTRAP_processbench.csv` and `eval/EVAL_MANIFEST.json`.
+   This takes about two minutes. It writes:
+   - `eval/RESULTS_processbench.csv`: one row per PRM × arm × rule × population, with rules Q80, NC and native;
+   - `eval/SUBSETS_processbench.csv`: per-subset official and PRISM columns;
+   - `eval/BOOTSTRAP_processbench.csv`: question-clustered, stratified by subset;
+   - `eval/VERDICT_processbench.json`: E1, E2 and the verdict of section 4;
+   - `eval/EVAL_MANIFEST.json`. Its `clusters` should read 2,842 clusters and 988 answers in shared questions.
    - It stops if `score__PRM` or LSML_N16_PRMG differs between a PRM's two score files.
 
 3. **Parity anchor (qwen_prm).** `PRM_native` for qwen_prm should be close to the job-177776 values: average F1 72.94; GSM8K 81.77, MATH 77.23, OlympiadBench 66.69, Omni-MATH 66.05; AUROC first_only 0.883. If the job-177776 pkls are on this machine, also run:
@@ -194,7 +245,7 @@ This copies `full_*/bank_v2/*` (FEATURES.npz, REWARDS.npz, MANIFEST.json), the t
    - **pooled AUROC first_only:** beside CROP's 0.880 / 0.894;
    - the PRISM TPR/TNR from `SUBSETS_processbench.csv`.
 
-   Mark CHAIN as a post-registration arm. Do not headline HALF_N16 (Omri, see the results map).
+   On ProcessBench, CHAIN_N16 with NC is the pre-registered primary arm. Lead with its verdict line, then E1 and E2 per PRM. All other arms and Q80 are secondary. LSML_CONT is marked as using PRMBench label-chosen channels. HALF and EQ are controls. Do not headline HALF_N16 (Omri, see the results map).
 
 ## What to send back
 
