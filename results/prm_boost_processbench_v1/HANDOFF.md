@@ -122,6 +122,18 @@ Record all 10 job ids in README.md (the same table as the Socratic "Full run" se
 
 ## Step 7: CPU downstream (bank + all scoring arms, label-free)
 
+**GATE: do not run this step yet.** Omri approved the pre-registration on 2026-10-19
+([PREREGISTRATION_HE.md](PREREGISTRATION_HE.md)). Step 7 runs only after every code change in its section 8 is committed
+and its commit hash is recorded there:
+1. Mistral digit ids verified on AIRCC (`../prm_boost_ablation5_v1/HANDOFF_MS_DIGIT_FIX_2026-10-19.md`, step 2).
+2. `pb_down.sh` uses the v2 bank builder with `--tokenizer`, and `lsml_continuous_guarded` in both scorers.
+3. The added control arms in `score_chain_pb.py`.
+4. The NC rule and the question-clustered bootstrap in `local/eval_processbench.py`, with tests.
+5. Bank parity: the new builder gives the old banks exactly for Qwen, PURE and RLHFlow.
+
+Until then, stop after step 6, including the `DEP=afterany:...` shortcut below. Steps 0–6 (GPU telemetry) do not depend on
+the recipe and may run as written.
+
 When all 10 jobs have ended (`/aircc-status`), submit:
 
 ```bash
