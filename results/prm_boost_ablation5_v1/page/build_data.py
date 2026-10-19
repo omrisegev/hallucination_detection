@@ -20,9 +20,12 @@ SOC = {'qwen_prm_7b': 'qwen_prm'}
 NAMES = {'qwen_prm_7b': 'Qwen2.5-Math-PRM-7B', 'qwen_prm_72b': 'Qwen2.5-Math-PRM-72B', 'pure_prm': 'PURE-PRM-7B',
          'rlhflow_prm': 'RLHFlow-PRM-8B', 'math_shepherd': 'Math-Shepherd-PRM-7B'}
 ARMS = ['PRM_native', 'PRM_Q80', 'PRM_Q80_PROB', 'LSML_CONT'] + [f'{a}_{b}' for b in ('N16', 'N13', 'S5')
-                                                                   for a in ('TELE', 'MEAN', 'CHAIN', 'PRMG', 'HALF', 'EQ', 'HALFP', 'EQP', 'CHAINP')]
+                                                                   for a in ('TELE', 'MEAN', 'CHAIN', 'PRMG', 'HALF', 'EQ', 'HALFP', 'EQP', 'CHAINP',
+                                                                             'TELERES', 'MEANRES', 'EQRES', 'CHAINRES',
+                                                                             'TELEPERM', 'EQPERM', 'CHAINPERM')] + ['POS_ONLY', 'LEN_ONLY']
 PAIRS = ['TELE-MEAN', 'EQ-MEAN', 'EQP-MEAN', 'HALF-MEAN', 'CHAIN-HALF', 'CHAIN-TELE', 'CHAIN-EQ', 'PRMG-HALF',
-         'EQP-EQ', 'HALFP-HALF', 'CHAINP-CHAIN']
+         'EQP-EQ', 'HALFP-HALF', 'CHAINP-CHAIN', 'TELERES-TELE', 'MEANRES-MEAN', 'EQRES-EQ', 'CHAINRES-CHAIN',
+         'TELEPERM-TELE', 'EQPERM-EQ', 'CHAINPERM-CHAIN', 'EQRES-MEANRES', 'CHAINRES-TELERES']
 
 
 def rd(p):
