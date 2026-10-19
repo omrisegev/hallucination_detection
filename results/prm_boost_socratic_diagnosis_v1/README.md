@@ -118,3 +118,50 @@ Qwen-7B, oriented AUC (supervised sign in parentheses):
 - Banks root: `full_<prm>_socratic/bank_v2` from `gdrive:hallucination_detection/cluster_results/prm_boost_external_v1/`.
 - Gold: `results/remote_claims_replay_2026-10-15/inputs/socratic_gold.json`.
 - The OOF scores (npz) are not committed.
+
+## Part C: top-50 approximations of self-certainty (INTUITOR, arXiv 2505.19590), added 2026-10-20
+
+**Short answer: no.** The two approximations add no new information. They track channels already in the
+bank, and they are weaker step-error signals than those channels and than the PRM.
+
+**Why it cannot be exact.** Self-certainty is KL(U || p) = −log V − mean over the whole vocabulary of log p.
+The raw telemetry keeps only the top-50 log-probs per token, so the tail of ~150k tokens is not visible.
+
+**The two approximations** (`self_certainty_approx.py`), each averaged over the tokens of a step:
+- **SC_HEAD:** self-certainty of the renormalized top-50 distribution.
+- **SC_LB:** the uniform-tail lower bound. As expected, its within-answer ranking is identical to
+  −log(tail mass). Compare the `LOG_TAIL_MASS` rows.
+
+**Setup:**
+- The step mapping follows the bank builder: mask1, empty steps dropped. The step mask equals
+  `bank_v2/FEATURES.npz` on all 5 PRMs.
+- The raw pickles match the manifests' `raw_sha256`.
+- Labels are read for AUC and LR only. N = 2,995 answers per PRM.
+
+**Results.** Within-answer AUC uses the risk direction (low certainty = error), from
+`SELF_CERTAINTY_AUC.csv`. LR is the supervised out-of-fold LR from Part A, from `SELF_CERTAINTY_LR.csv`.
+
+| PRM | PRM | −SC_HEAD | −SC_LB | LR PRM+N16 | LR PRM+N16+SC (Δ) |
+|---|---|---|---|---|---|
+| Qwen-7B | 0.824 | 0.720 | 0.717 | 0.8363 | 0.8364 (+0.0001) |
+| Qwen-72B | 0.814 | 0.698 | 0.690 | 0.8384 | 0.8381 (−0.0003) |
+| PURE | 0.796 | 0.644 | 0.652 | 0.8296 | 0.8298 (+0.0002) |
+| RLHFlow | 0.549 | 0.525 | 0.532 | 0.7356 | 0.7482 (+0.0126) |
+| MathShepherd | 0.718 | 0.495 | 0.500 | 0.7611 | 0.7664 (+0.0053) |
+
+**Reading:**
+1. **They duplicate existing channels.**
+   - The within-answer Spearman correlation with the closest bank channels is 0.79–0.90:
+     hist_top1_logprob_series, hist_logprob_margin_series, H1_frac_above_z, hist_energy_series and top50_js.
+     These are Qwen-family numbers; for RLHFlow and MathShepherd the closest channels reach 0.68–0.82.
+   - The correlation with the PRM's risk is moderate: −0.18 to −0.52 (`SELF_CERTAINTY_CORR.csv`).
+2. **They are weaker than channels we already have.**
+   - On Qwen-7B, −SC is 0.72, while true_tail50 is 0.771 and q15_H1 is 0.736 (`CHANNEL_DIRECTION_socratic.csv`).
+   - On MathShepherd they are at chance (0.50).
+3. **They add nothing to the supervised ceiling for strong PRMs** (≤ +0.0002 AUC). Small gains appear only
+   on the two weak PRMs: +0.013 on RLHFlow and +0.005 on MathShepherd.
+
+**What stays open:** the EXACT self-certainty. Its distinctive part is the shape of the full-vocabulary tail,
+which these approximations cannot see. Measuring it needs one extra per-token scalar in the forward pass
+(the mean full-vocabulary log-softmax). Per Omri's decision on 2026-10-20, the ProcessBench driver was not
+changed.
