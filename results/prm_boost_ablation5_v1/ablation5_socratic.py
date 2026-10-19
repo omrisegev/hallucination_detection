@@ -20,7 +20,8 @@ _src = M / 'results/prm_boosting_generalization_v1/run_v1/evaluate_amended.py'
 EV = types.ModuleType('ev'); EV.__file__ = str(M / 'results/prm_boosting_generalization_v1/evaluate_amended.py')
 sys.modules['ev'] = EV
 exec(compile(_src.read_text(), str(_src), 'exec'), EV.__dict__)
-from spectral_utils.fusion_utils import lsml_continuous  # noqa: E402
+# Constant channels are dropped before L-SML (weight 0); without them this is exactly lsml_continuous.
+from spectral_utils.fusion_utils import lsml_continuous_guarded as lsml_continuous  # noqa: E402
 
 bank, out = Path(sys.argv[1]), Path(sys.argv[2])
 F = dict(np.load(bank / 'FEATURES.npz')); R = dict(np.load(bank / 'REWARDS.npz'))

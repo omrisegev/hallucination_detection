@@ -49,7 +49,7 @@ from .family_hist_features import STREAM_NAMES as HIST_STREAM_NAMES, token_strea
 VERSION = "external_banks_v4"
 NEW_NAMES = ("realized_z", "realized_drv", "ct7_ve1", "hist_entropy_series", "hist_spilled_series")
 DIGIT_NAMES = tuple(DIGIT_NAMES)
-DIGIT_IDS = tuple(range(15, 25))  # '0'..'9' for the Qwen2.5/Qwen3 BPE vocabulary (verified by the extractor)
+DIGIT_IDS = tuple(range(15, 25))  # '0'..'9' for Qwen2.5/Qwen3 and Llama-3 BPE only; other backbones: digit_token_ids.resolve_digit_ids
 
 VENDORED_SOURCES = {
     "ema, derivative_step_readout": {
@@ -206,13 +206,18 @@ def new_step_features(row, spans=None):
     return matrix, NEW_NAMES
 
 
-def digit_step_features(row, spans=None):
+def digit_step_features(row, spans=None, digit_ids=None):
     """Raw [steps, 3] digit values and their [steps, 3] availability mask.
 
     Mirrors scripts/run_digit_family_extension_v1.py: token_family(ids, logprobs,
-    range(15, 25)) then step_family. Unavailable steps hold storage zero.
+    digit ids) then step_family. Unavailable steps hold storage zero.
+
+    ``digit_ids`` defaults to DIGIT_IDS (15..24), which is only valid for the Qwen2.5/Qwen3 and
+    Llama-3 vocabularies. For any other backbone pass the ids from
+    spectral_utils.digit_token_ids.resolve_digit_ids(<its tokenizer.json>).
     """
     spans = checked_spans(row, spans)
     ids, lp = _topk(row)
-    values, active, _ = token_family(ids, lp, range(DIGIT_IDS[0], DIGIT_IDS[-1] + 1))
+    digit_ids = DIGIT_IDS if digit_ids is None else tuple(int(x) for x in digit_ids)
+    values, active, _ = token_family(ids, lp, digit_ids)
     return step_family(values, active, spans)

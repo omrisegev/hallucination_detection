@@ -12,7 +12,11 @@ Rewards and native flags are saved next to it (REWARDS.npz, aligned with all ste
 
 Run on AIRCC CPU with cwd = code_thinkfix_bank_553de79:
     python3 build_bank_external.py --raw <dir>/external_telemetry.pkl --mask-code <code_thinkfix_rescore_v1> \
-        --names-from <PRMBench FEATURES.npz> --out <dir>/bank [--workers 16]
+        --names-from <PRMBench FEATURES.npz> --tokenizer <backbone tokenizer.json> --out <dir>/bank [--workers 16]
+
+Digit channels use the '0'..'9' token ids of --tokenizer (spectral_utils/digit_token_ids.py), not the
+frozen 15..24, which are digits only in the Qwen and Llama-3 vocabularies. The build stops if a digit
+channel is constant over the cell, the signature of a tokenizer mismatch.
 """
 import os
 for _n in ('OMP_NUM_THREADS', 'OPENBLAS_NUM_THREADS', 'MKL_NUM_THREADS'):
@@ -25,6 +29,37 @@ import numpy as np
 sys.path.insert(0, os.getcwd())
 sys.path.insert(0, os.path.join(os.getcwd(), 'scripts'))
 import rebuild_source_bank_v4 as RB  # noqa: E402
+
+
+def _load_digit_token_ids():
+    """spectral_utils/digit_token_ids.py, loaded by path: the frozen cwd snapshot predates it. On AIRCC this builder
+    runs as a copy inside the snapshot's scripts/, so copy digit_token_ids.py next to it (or set DIGIT_TOKEN_IDS_PY)."""
+    here = Path(__file__).resolve()
+    tried = ([Path(os.environ['DIGIT_TOKEN_IDS_PY'])] if os.environ.get('DIGIT_TOKEN_IDS_PY') else []) + [
+        here.parent / 'digit_token_ids.py', here.parents[2] / 'spectral_utils/digit_token_ids.py',
+        Path.cwd() / 'spectral_utils/digit_token_ids.py']
+    path = next((p for p in tried if p.is_file()), None)
+    if path is None: raise SystemExit('digit_token_ids.py not found; tried ' + ', '.join(map(str, tried)))
+    spec = importlib.util.spec_from_file_location('digit_token_ids', path)
+    mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
+    return mod
+
+
+DT = _load_digit_token_ids()
+DIGITS = None   # digit token ids of this run's tokenizer, set in main() and in each worker
+
+
+def _init_worker(ids):
+    global DIGITS
+    DIGITS = tuple(ids)
+
+
+def digits_with_ids(row):
+    """The frozen digit_step_features, with this tokenizer's digit ids instead of the hard-coded 15..24."""
+    from spectral_utils.digit_feature_family import token_family, step_family
+    spans = RB.E.checked_spans(row, None); ids, lp = RB.E._topk(row)
+    values, active, _ = token_family(ids, lp, DIGITS)
+    return step_family(values, active, spans)
 
 def sha(p):
     h = hashlib.sha256()
@@ -39,6 +74,7 @@ def one_nonempty(item):
     sp = row['step_token_spans']; keep = [k for k, s in enumerate(sp) if s[1] > s[0]]
     r = dict(row); r['step_token_spans'] = [sp[k] for k in keep]
     _, b48, b5, d3, ac, sec = RB.one((i, r))
+    if DIGITS != tuple(RB.E.DIGIT_IDS): d3, ac = digits_with_ids(r)
     return i, keep, b48, b5, d3, ac
 
 
@@ -47,7 +83,11 @@ def main():
     ap.add_argument('--raw', type=Path, required=True); ap.add_argument('--mask-code', type=Path, required=True)
     ap.add_argument('--out', type=Path, required=True); ap.add_argument('--workers', type=int, default=16)
     ap.add_argument('--names-from', type=Path, required=True, help='any 56-channel source FEATURES.npz (channel order)')
-    a = ap.parse_args(); a.out.mkdir(parents=True, exist_ok=False); t0 = time.perf_counter()
+    ap.add_argument('--tokenizer', type=Path, required=True, help="the backbone's tokenizer.json (digit token ids)")
+    a = ap.parse_args()
+    global DIGITS
+    DIGITS, digit_record = DT.resolve_digit_ids(a.tokenizer)
+    a.out.mkdir(parents=True, exist_ok=False); t0 = time.perf_counter()
     mspec = importlib.util.spec_from_file_location('ftm', a.mask_code / 'spectral_utils/first_token_mask.py')
     M = importlib.util.module_from_spec(mspec); mspec.loader.exec_module(M)
     raw = pickle.load(open(a.raw, 'rb'))
@@ -78,7 +118,7 @@ def main():
     recs = sorted(masked.values(), key=lambda e: str(e['idx']))
     jobs = [(j, RB.safe_row(e)) for j, e in enumerate(recs)]
     out = [None] * len(recs)
-    with ProcessPoolExecutor(max_workers=a.workers) as ex:
+    with ProcessPoolExecutor(max_workers=a.workers, initializer=_init_worker, initargs=(DIGITS,)) as ex:
         for j, keep, b48, b5, d3, ac in ex.map(one_nonempty, jobs, chunksize=16):
             b5, _ = RB.fill_missing(b5)
             v = np.column_stack((b48, b5, d3))
@@ -93,6 +133,7 @@ def main():
     offsets = np.r_[0, np.cumsum([len(k) for k, _, _ in out])]
     names = np.load(a.names_from)['names']
     assert values.shape[1] == len(names) == 56, values.shape
+    DT.check_digit_channels_vary(values, names, RB.E.DIGIT_NAMES)
     np.savez_compressed(a.out / 'FEATURES.npz', names=names, values=values, digit_active=active, offsets=offsets,
                         uids=np.array([str(e['idx']) for e in recs]), nonempty=nonempty, nonempty_lengths=lens)
     rew = np.concatenate([np.asarray(e['rewards'], float) for e in recs])
@@ -100,7 +141,7 @@ def main():
     assert len(rew) == len(nat) == lens.sum()
     np.savez_compressed(a.out / 'REWARDS.npz', uids=np.array([str(e['idx']) for e in recs]), rewards=rew,
                         native_labels=nat, nonempty_lengths=lens)
-    json.dump({'raw': str(a.raw), 'raw_sha256': sha(a.raw), 'mask_rule': M.RULE, 'n_records': len(recs),
+    json.dump({'raw': str(a.raw), 'raw_sha256': sha(a.raw), 'mask_rule': M.RULE, 'digit_ids': digit_record, 'n_records': len(recs),
                'n_failed_rows': len(failed), 'failed_rows': failed, 'pre_empty_steps': {str(raw[k]['idx']): v[0] for k, v in pre_empty.items()}, 'steps_total': int(lens.sum()),
                'steps_nonempty': int(nonempty.sum()), 'labels_read': False,
                'features_sha256': sha(a.out / 'FEATURES.npz'), 'seconds': round(time.perf_counter() - t0, 1),

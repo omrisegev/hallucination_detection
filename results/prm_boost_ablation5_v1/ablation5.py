@@ -13,6 +13,8 @@ P-variants (NEW): HALFP/EQP/CHAINP_<bank> = HALF/EQ/CHAIN with the PRM channel a
 Extra controls (NEW): PRM_Q80 / PRM_Q80_PROB = the PRM score (logit risk / 1 - reward) with the same Q80 flag rule as every fused arm. It splits
 "score is better" from "decision rule is different".
 Same inputs, orientation, Q80 rule and paired source-group bootstrap as ../prm_boosting_bank_sweep_v1/lsml_bank_sweep.py.
+Since 2026-10-19 every L-SML fit drops constant channels first (fusion_utils.lsml_continuous_guarded). That changes only
+Math-Shepherd N16/S5, so a rerun no longer matches the committed ABL5 outputs or the bank sweep there.
 
     python3 ablation5.py <tag> <FEATURES.npz> <telemetry.pkl> <out_dir>
 """
@@ -33,7 +35,9 @@ def main():
     spec = importlib.util.spec_from_file_location('ev', M / 'results/prm_boosting_generalization_v1/evaluate_amended.py')
     EV = importlib.util.module_from_spec(spec); spec.loader.exec_module(EV)
     sys.path.insert(0, str(M))
-    from spectral_utils.fusion_utils import lsml_continuous
+    # Constant channels (Math-Shepherd's digit channels under the hard-coded 15..24 ids) are dropped before
+    # L-SML and get weight 0; without constant channels this is exactly lsml_continuous.
+    from spectral_utils.fusion_utils import lsml_continuous_guarded as lsml_continuous
 
     tag, feat, tele, out = sys.argv[1], Path(sys.argv[2]), Path(sys.argv[3]), Path(sys.argv[4])
     SE = M / '.worktrees/readout-quickest-detection-v1/results/step_evidence_v1'
