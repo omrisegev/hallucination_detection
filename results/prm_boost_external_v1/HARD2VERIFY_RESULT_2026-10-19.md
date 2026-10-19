@@ -26,6 +26,21 @@ Qwen-7B +0.007 [-0.023, +0.035]; Qwen-72B +0.017 [-0.001, +0.034]; PURE -0.016 [
 RLHFlow +0.033 [+0.005, +0.061]; MathShepherd +0.026 [-0.000, +0.054]. Within-AUC: worse for
 Qwen-7B (-0.027) and PURE (-0.048), better for RLHFlow (+0.060), within noise for the others.
 
+## CHAIN_N16 (the method under test), common 177 answers
+
+Balanced F1 / within-AUC, and CHAIN_N16 (Q80) minus PRM with 95% paired-bootstrap CI:
+
+| PRM | PRM native | PRM Q80 | CHAIN_N16 | vs PRM Q80, F1 | vs PRM Q80, within-AUC | vs PRM native, F1 |
+|---|---|---|---|---|---|---|
+| Qwen-7B | 0.163 / 0.638 | 0.394 / 0.638 | 0.385 / 0.584 | -0.009 [-0.041, +0.024] | -0.054 [-0.086, -0.022] | +0.222 [+0.172, +0.270] |
+| Qwen-72B | 0.311 / 0.513 | 0.367 / 0.513 | 0.378 / 0.548 | +0.011 [-0.020, +0.041] | +0.035 [+0.001, +0.070] | +0.066 [+0.024, +0.111] |
+| PURE | 0.526 / 0.763 | 0.442 / 0.763 | 0.342 / 0.486 | -0.100 [-0.144, -0.057] | -0.277 [-0.332, -0.226] | -0.184 [-0.246, -0.116] |
+| RLHFlow | 0.059 / 0.185 | 0.138 / 0.185 | 0.321 / 0.450 | +0.183 [+0.145, +0.227] | +0.265 [+0.226, +0.307] | +0.261 [+0.222, +0.296] |
+| MathShepherd | 0.079 / 0.525 | 0.340 / 0.525 | 0.385 / 0.540 | +0.045 [+0.005, +0.084] | +0.015 [-0.043, +0.068] | +0.306 [+0.255, +0.355] |
+
+CHAIN_N16 lands close to telemetry alone (TELE_N16) on every PRM: it helps where the PRM is weak or
+inverted (RLHFlow, MathShepherd) and hurts badly on the strongest PRM here (PURE).
+
 Caveats:
 - Parity: Qwen-7B PRM on these rows gives Q80 0.394 / within 0.638, matching the earlier
   external PRM run on all 200 rows (0.391 / 0.634).
