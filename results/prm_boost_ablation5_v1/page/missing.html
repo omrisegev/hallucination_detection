@@ -1,0 +1,18 @@
+<div class="panel"><h3>1. בקרת כלל הסימון: PRM_Q80<span class="tag">חסר, נוסף</span></h3>
+<p class="note">זרוע 3 משתמשת בסף של ה-PRM, וכל הזרועות המשולבות משתמשות ב-Q80. לכן 3 מול 4 מערבב "ציון טוב יותר" עם "כלל אחר". ב-Socratic, כלל Q80 לבדו עולה −5.10 ב-72B ו-−4.86 ב-MathShepherd. גם ב-PRMBench זה תלוי בסקאלה: PRM_Q80 על logit נותן ל-72B ‏66.24 (<code>prm_boosting_generalization_v1/run_v1/eval/SUMMARY.csv</code>), ועל 1−reward נותן 68.68 (voters). הג'וב מחשב את שתי הגרסאות.</p></div>
+<div class="panel"><h3>2. הפרשים מזווגים בין הזרועות<span class="tag">חסר, נוסף</span></h3>
+<p class="note">ההשוואה שמבודדת כל רכיב היא בין הזרועות עצמן, לא מול ה-PRM: 1−2 (fusion בלי PRM), 5−2 (תרומת ה-PRM), 4−5 (fusion עם PRM). ב-Socratic הם כבר כאן. ב-PRMBench הם ממתינים לזרוע MEAN.</p></div>
+<div class="panel"><h3>3. מאיזה backbone מגיעה הטלמטריה<span class="tag">קיים חלקית</span></h3>
+<p class="note">הטלמטריה מחושבת על ה-backbone של ה-PRM, שעבר fine-tune עם labels. ב-Qwen-7B, ‏N16 לבדו נותן 0.8131 / 67.20 על ה-backbone של ה-PRM, 0.7885 / 65.93 על Math-Instruct ו-0.7767 / 65.23 על Qwen3-8B (<code>prm_boosting_v1/README.md</code>). חלק מהכוח של הטלמטריה "label-free" מגיע מה-fine-tune של ה-PRM. זרוע backbone נפרד לכל 5 ה-PRMs תצטרך GPU.</p></div>
+<div class="panel"><h3>4. fit טרנסדוקטיבי<span class="tag">חסר</span></h3>
+<p class="note">L-SML עושה fit פעם אחת על כל 6,969 התשובות, כולל אלה שעליהן הוא נמדד. MEAN ו-HALF לא עושים fit בכלל. השוואה הוגנת דורשת cross-fitting: fit על folds וניקוד out-of-fold. זה ג'וב CPU.</p></div>
+<div class="panel"><h3>5. בקרות null ל-N16<span class="tag">חסר</span></h3>
+<p class="note">מבחן ה-permutation ‏(PERM_ANS, ‏51.5–53.5) והניכוי של position/length קיימים רק ל-LSML_CONT עם 3 ערוצים. בניכוי, PRMScore של 72B ו-PURE כבר לא מובהק. אותן בקרות צריך להריץ על TELE/MEAN/CHAIN/HALF_N16.</p></div>
+<div class="panel"><h3>6. נקודת עבודה מותאמת<span class="tag">כדאי להדגיש</span></h3>
+<p class="note">כשמזיזים רק את הסף של ה-PRM-7B כדי להגיע ל-TPR של PRISM, הוא מגיע ל-68.26, ו-CHAIN_N16 מגיע ל-68.20 (<code>prmbench_paper_metric_parity_v1/README.md</code>). בחירת הנקודה משתמשת ב-labels, אבל המשמעות היא שחלק מרווח ה-PRMScore הוא נקודת עבודה. within-AUC לא תלוי בכלל הסימון, ולכן כדאי להציג אותו לצד PRMScore.</p></div>
+<div class="panel"><h3>7. איפה הרווח נמצא<span class="tag">כדאי להדגיש</span></h3>
+<p class="note">ב-PRMBench הרווח כולו ב-Simplicity (redundancy/circular), למשל ב-72B מ-54.6 ל-70.4. Soundness ו-Sensitivity יורדים, כי Q80 מסמן לפחות צעד אחד כמעט בכל תשובה נכונה (MS). ההבדל בין ORACLE ל-Q80 בספירה הוא +5.8 עד +8.0 בכל זרוע משולבת. לכן הכיוון הבא הוא ספירת שגיאות לכל תשובה, ולא fusion אחר.</p></div>
+<div class="panel"><h3>8. ממצאים שלא הופיעו בהצעה<span class="tag">כדאי להדגיש</span></h3>
+<p class="note">ב-Socratic, ‏HALF אף פעם לא נמוך מ-PRM_Q80 ‏(5/5), בעוד ש-L-SML קורס ב-4/5. בחירת הבנק משנה 2–3 נקודות, וצורת ה-fusion פחות מנקודה (bank sweep). שילוב של כמה PRMs ‏(voters) נמוך מה-PRM הבודד הטוב ביותר: 65.80 מול 68.68. ספירת הסימונים של ה-PRM ‏(NATIVECOUNT) נמוכה מ-Q80 בכל 5. העלות לא נמדדה: אין השוואת latency בין PRM לבד ל-PRM+טלמטריה.</p></div>
+<div class="panel"><h3>9. ריבוי השוואות<span class="tag">לשים לב</span></h3>
+<p class="note">5 PRMs × 3 בנקים × 8 זרועות × 2 מדדים זה הרבה CIs. כדאי להצהיר מראש על השוואה ראשית אחת, למשל CHAIN_N16 מול HALF_N16 ב-within-AUC, ולתקן את השאר ב-Bonferroni, כפי שמוצע בתוכנית ההוכחות.</p></div>

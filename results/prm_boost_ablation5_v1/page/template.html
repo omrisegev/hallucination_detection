@@ -1,0 +1,281 @@
+<title>PRM Boosting Ablation</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Assistant:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column; each PRM is a "specimen sheet" with its table and its chart side by side. */
+:root {
+  --bg: #f7f8f6; --panel: #ffffff; --ink: #14171a; --ink-2: #4b5157; --ink-3: #767c82;
+  --rule: #dfe3e0; --grid: #eceeec; --accent: #1f5f8b;
+  --tele: #2a78d6; --prm: #eb6834; --boost: #1baf7a; --ref: #8a8f94;
+  --pos-bg: #e5f3ec; --neg-bg: #fbe9e6; --pend: #a26b00;
+  --f-display: "Frank Ruhl Libre", "Times New Roman", serif;
+  --f-body: "Assistant", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #141618; --panel: #1b1e21; --ink: #eef0ee; --ink-2: #b9bfbd; --ink-3: #8d9391;
+  --rule: #2e3337; --grid: #262a2d; --accent: #7db6e0;
+  --tele: #3987e5; --prm: #d95926; --boost: #199e70; --ref: #8d9391;
+  --pos-bg: #173226; --neg-bg: #3a1f1b; --pend: #e0a640; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #141618; --panel: #1b1e21; --ink: #eef0ee; --ink-2: #b9bfbd; --ink-3: #8d9391;
+  --rule: #2e3337; --grid: #262a2d; --accent: #7db6e0;
+  --tele: #3987e5; --prm: #d95926; --boost: #199e70; --ref: #8d9391;
+  --pos-bg: #173226; --neg-bg: #3a1f1b; --pend: #e0a640; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 28px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
+h1 { font-size: 2.1rem; font-weight: 700; }
+h2 { font-size: 1.45rem; font-weight: 700; margin-top: 8px; }
+h3 { font-size: 1.15rem; font-weight: 700; }
+p { margin: 0; max-width: 72ch; }
+.lede { color: var(--ink-2); margin-top: 6px; }
+.mono, td.n, .num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+code { font-family: var(--f-mono); font-size: .88em; direction: ltr; unicode-bidi: isolate; }
+section { display: flex; flex-direction: column; gap: 14px; margin-top: 34px; }
+.panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 16px; min-width: 0; }
+.eyebrow { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
+.controls { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--bg); padding-block: 10px; border-bottom: 1px solid var(--rule); }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; }
+.seg button { font: inherit; font-size: .9rem; border: 0; background: var(--panel); color: var(--ink-2); padding: 6px 12px; cursor: pointer; }
+.seg button + button { border-inline-start: 1px solid var(--rule); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--bg); font-weight: 600; }
+.seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.ctl-label { font-size: .85rem; color: var(--ink-3); margin-inline-end: 6px; }
+.arms { width: 100%; border-collapse: collapse; font-size: .92rem; }
+.arms th, .arms td { padding: 6px 8px; border-bottom: 1px solid var(--grid); text-align: start; vertical-align: top; }
+.arms th { font-size: .78rem; color: var(--ink-3); font-weight: 600; letter-spacing: .03em; }
+.scroll { overflow-x: auto; }
+.sheet { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 860px) { .sheet { grid-template-columns: minmax(0, 1fr); } }
+table.t { border-collapse: collapse; width: 100%; font-size: .88rem; }
+table.t th, table.t td { padding: 5px 7px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+table.t th { font-size: .74rem; color: var(--ink-3); font-weight: 600; text-align: start; }
+table.t td.n { text-align: end; }
+table.t tr.grp td { padding-top: 10px; font-size: .74rem; color: var(--ink-3); font-weight: 700; border-bottom: 0; letter-spacing: .04em; }
+table.t td.armname { white-space: normal; min-width: 150px; }
+.chip { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-inline-end: 6px; vertical-align: middle; border: 2px solid currentColor; }
+.chip.fill { background: currentColor; }
+.num-badge { display: inline-block; min-width: 1.5em; font-family: var(--f-mono); font-size: .78rem; color: var(--ink-3); }
+.pos { background: var(--pos-bg); } .neg { background: var(--neg-bg); }
+.pend { color: var(--pend); font-family: var(--f-body); font-size: .8rem; }
+.ci { color: var(--ink-3); font-size: .8em; }
+ul.take { margin: 0; padding-inline-start: 20px; display: flex; flex-direction: column; gap: 4px; color: var(--ink); font-size: .92rem; }
+ul.take li::marker { color: var(--accent); }
+.chart svg { width: 100%; height: auto; display: block; }
+.chart text { fill: var(--ink-2); font-family: var(--f-body); font-size: 12px; }
+.chart .ax { stroke: var(--rule); } .chart .zero { stroke: var(--ink-3); stroke-dasharray: 3 3; }
+.chart .gl { stroke: var(--grid); }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: .85rem; color: var(--ink-2); }
+.tip { position: fixed; pointer-events: none; background: var(--panel); color: var(--ink); border: 1px solid var(--rule); border-radius: 6px;
+  padding: 6px 9px; font-size: .82rem; box-shadow: 0 4px 14px rgba(0,0,0,.12); z-index: 20; max-width: 260px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); gap: 14px; }
+.cards .panel h3 { margin-bottom: 6px; }
+.tag { font-size: .72rem; font-weight: 700; padding: 1px 7px; border-radius: 10px; border: 1px solid var(--rule); color: var(--ink-2); margin-inline-start: 6px; }
+.note { font-size: .86rem; color: var(--ink-2); }
+footer { margin-top: 40px; font-size: .82rem; color: var(--ink-3); display: flex; flex-direction: column; gap: 4px; }
+@media (prefers-reduced-motion: no-preference) { .chart circle { transition: r .12s; } }
+</style>
+
+<div class="wrap" dir="rtl" lang="he">
+<header>
+  <div class="eyebrow">PRMBench · Socratic-PRMBench · 5 PRMs · 2026-10-19</div>
+  <h1>אבלציה של PRM Boosting</h1>
+  <p class="lede">מה תורם לשיפור: הטלמטריה, ה-PRM, או שיטת ה-fusion? לכל PRM יש טבלה ולצידה גרף. הגרף מראה את ההפרש מה-PRM כמו שהוא, עם 95% CI. השורות ממוינות לפי חמש הזרועות של עמרי, ומתחת לכל זרוע מופיעות בקרות נוספות.</p>
+</header>
+
+<div class="controls" role="toolbar" aria-label="בחירת תצוגה">
+  <div><span class="ctl-label">בנצ'מרק</span><span class="seg" id="c-bench">
+    <button type="button" id="b-prmbench" data-v="prmbench" aria-pressed="true">PRMBench</button>
+    <button type="button" id="b-socratic" data-v="socratic" aria-pressed="false">Socratic</button></span></div>
+  <div><span class="ctl-label">בנק</span><span class="seg" id="c-bank">
+    <button type="button" id="k-N16" data-v="N16" aria-pressed="true">N16</button>
+    <button type="button" id="k-N13" data-v="N13" aria-pressed="false">N13 (בלי digits)</button></span></div>
+  <div><span class="ctl-label">מדד</span><span class="seg" id="c-metric">
+    <button type="button" id="m-d" data-v="d" aria-pressed="true">PRMScore</button>
+    <button type="button" id="m-da" data-v="da" aria-pressed="false">within-AUC</button></span></div>
+</div>
+
+<section id="arms-def">
+  <h2>חמש הזרועות</h2>
+  <div class="panel scroll">
+  <table class="arms">
+    <thead><tr><th>#</th><th>זרוע</th><th>מה מחושב</th><th>שם בקוד</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td><span class="chip fill" style="color:var(--tele)"></span>השיטה שלנו בלבד</td><td>L-SML על ערוצי הבנק, בלי PRM. K קבוצות מ-spectral clustering, SML בתוך כל קבוצה ואז SML על פני הקבוצות</td><td><code>TELE_&lt;bank&gt;</code></td></tr>
+      <tr><td class="num">2</td><td><span class="chip" style="color:var(--tele)"></span>ממוצע הפיצ'רים</td><td>ממוצע פשוט של אותם ערוצים, אחרי answer-z ואחרי כיוון label-free</td><td><code>MEAN_&lt;bank&gt;</code></td></tr>
+      <tr><td class="num">3</td><td><span class="chip fill" style="color:var(--prm)"></span>ה-PRM כמו שהוא</td><td>ציון ה-PRM עם הסף שלו (reward &lt; 0.5). בקרה: אותו ציון עם כלל Q80 של הזרועות המשולבות</td><td><code>PRM_native</code>, <code>PRM_Q80</code></td></tr>
+      <tr><td class="num">4</td><td><span class="chip fill" style="color:var(--boost)"></span>PRM Boosting (fusion)</td><td>z(PRM) כ-view נפרד, יחד עם ציוני הקבוצות של הטלמטריה מה-backbone של אותו PRM, ואז SML על פני כולם (CHAIN). PRMG זהה, רק בלי answer-z לציוני הקבוצות</td><td><code>CHAIN_&lt;bank&gt;</code>, <code>PRMG_&lt;bank&gt;</code></td></tr>
+      <tr><td class="num">5</td><td><span class="chip" style="color:var(--boost)"></span>PRM Boosting (ממוצע)</td><td>½·z(PRM) + ½·ממוצע הבנק. בקרה: ממוצע שווה של ה-PRM ושל כל K הערוצים, כך שה-PRM מקבל משקל 1/(K+1)</td><td><code>HALF_&lt;bank&gt;</code>, <code>EQ_&lt;bank&gt;</code></td></tr>
+      <tr><td class="num">ref</td><td><span class="chip fill" style="color:var(--ref)"></span>רפרנס label-selected</td><td>ערוצים שנבחרו עם labels. מוצג רק כגבול עליון ולא כשיטה</td><td><code>CHAIN_S5</code>, <code>LSML_CONT</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">בנקים: N16 הוא 16 ערוצים label-free, כולל 3 ערוצי digits. N13 הוא אותו בנק בלי ה-digits. מדדים: PRMScore רשמי עם כלל Q80 (מסמנים את ה-20% העליונים של ציוני answer-z), ו-within-AUC. ה-CI הוא bootstrap מזווג: לפי source group ב-PRMBench (N=6,969), ולפי תשובה ב-Socratic (N=2,995). Socratic הוא בנצ'מרק חיצוני, ו-PRMBench הוא נתוני פיתוח.</p>
+</section>
+
+<section id="decomp">
+  <h2>פירוק התרומה, כל ה-PRMs יחד</h2>
+  <p class="note" id="decomp-sub"></p>
+  <div class="panel chart" id="decomp-chart"></div>
+  <div class="legend" id="decomp-legend"></div>
+  <ul class="take" id="decomp-take"></ul>
+</section>
+
+<section id="per-prm">
+  <h2>לכל PRM: טבלה וגרף</h2>
+  <div class="legend">
+    <span><span class="chip fill" style="color:var(--tele)"></span>טלמטריה בלבד</span>
+    <span><span class="chip fill" style="color:var(--prm)"></span>PRM בלבד</span>
+    <span><span class="chip fill" style="color:var(--boost)"></span>PRM + טלמטריה</span>
+    <span><span class="chip fill" style="color:var(--ref)"></span>label-selected</span>
+    <span><span class="chip" style="color:var(--ink-2)"></span>עיגול חלול = ממוצע פשוט, עיגול מלא = fusion</span>
+  </div>
+  <div id="sheets" style="display:flex;flex-direction:column;gap:22px"></div>
+</section>
+
+<section id="missing">
+  <h2>מה חסר בהצעה, ומה כדאי להדגיש</h2>
+  <div class="cards">__MISSING__</div>
+</section>
+
+<footer>
+  <div>נבנה מ-<code>results/prm_boost_ablation5_v1/page/build_data.py</code> על הענף <code>claude/prm-boost-ablation5-2026-10-19</code>. המקורות לכל מספר מופיעים בעמודת "מקור" שבתוך ה-tooltip.</div>
+  <div id="pending-note"></div>
+</footer>
+</div>
+<div class="tip" id="tip" hidden></div>
+
+<script>
+const DATA = __DATA__;
+const TAKE = __TAKE__;
+const S = { bench: 'prmbench', bank: 'N16', metric: 'd' };
+try { const s = JSON.parse(localStorage.getItem('abl5') || '{}'); Object.assign(S, s); } catch (e) {}
+const FAM = { tele: 'var(--tele)', prm: 'var(--prm)', boost: 'var(--boost)', ref: 'var(--ref)' };
+function rows(bank, bench) {
+  const r = [
+    { g: '1 · השיטה שלנו בלבד' },
+    { a: `TELE_${bank}`, n: '1', l: 'L-SML על הטלמטריה', f: 'tele', fill: true },
+    { g: '2 · ממוצע הפיצ\'רים' },
+    { a: `MEAN_${bank}`, n: '2', l: 'ממוצע פשוט של הטלמטריה', f: 'tele', fill: false },
+    { g: '3 · ה-PRM' },
+    { a: 'PRM_native', n: '3', l: 'PRM כמו שהוא (הסף שלו)', f: 'prm', fill: true },
+    { a: 'PRM_Q80', n: '3c', l: 'PRM עם כלל Q80 (בקרה)', f: 'prm', fill: false },
+    { g: '4 · PRM Boosting, fusion' },
+    { a: `CHAIN_${bank}`, n: '4', l: 'L-SML: PRM + קבוצות (CHAIN)', f: 'boost', fill: true },
+    { a: `PRMG_${bank}`, n: '4b', l: 'L-SML: PRM + ערוצים (PRMG)', f: 'boost', fill: true },
+    { g: '5 · PRM Boosting, ממוצע' },
+    { a: `HALF_${bank}`, n: '5', l: '½ PRM + ½ ממוצע', f: 'boost', fill: false },
+    { a: `EQ_${bank}`, n: '5b', l: 'ממוצע שווה של PRM ו-K ערוצים', f: 'boost', fill: false },
+  ];
+  if (bench === 'prmbench') r.push({ g: 'רפרנס label-selected' },
+    { a: 'CHAIN_S5', n: 'ref', l: 'CHAIN על S5 (5 ערוצים)', f: 'ref', fill: true },
+    { a: 'LSML_CONT', n: 'ref', l: 'L-SML: PRM + 3 ערוצים', f: 'ref', fill: true });
+  return r;
+}
+const fmt = (v, k) => v == null ? '' : (k === 'auc' ? v.toFixed(3) : v.toFixed(2));
+const sgn = (v, k) => (v > 0 ? '+' : v < 0 ? '−' : '') + fmt(Math.abs(v), k);
+const unit = () => S.metric === 'd' ? 'PRMScore' : 'within-AUC';
+const dk = () => S.metric === 'd' ? 'score' : 'auc';
+const tip = document.getElementById('tip');
+function showTip(ev, html) { tip.innerHTML = html; tip.hidden = false; const x = Math.min(ev.clientX + 12, innerWidth - 270); tip.style.left = x + 'px'; tip.style.top = (ev.clientY + 12) + 'px'; }
+function hideTip() { tip.hidden = true; }
+const SRC = { ablation5: 'ABL5 (AIRCC, ablation5.py)', bank_sweep: 'bank sweep 288319', controls: 'controls 287777', socratic: 'Socratic, ablation5_socratic.py' };
+
+function dotChart(items, opts) {
+  // items: {label, v:[d,lo,hi]|null, color, fill, key}; horizontal dot + CI vs 0 (= reference).
+  const W = opts.W || 540, rowH = 26, top = 26, left = 12, right = opts.right || 190, H = top + items.length * rowH + 30;
+  const vals = items.filter(i => i.v).flatMap(i => [i.v[1], i.v[2], i.v[0]]).concat([0]);
+  let lo = Math.min(...vals), hi = Math.max(...vals); const pad = (hi - lo) * .08 || 1; lo -= pad; hi += pad;
+  const x = v => left + (v - lo) / (hi - lo) * (W - left - right);
+  const step = niceStep((hi - lo) / 5); const ticks = []; for (let t = Math.ceil(lo / step) * step; t <= hi + 1e-9; t += step) ticks.push(+t.toFixed(6));
+  let s = `<svg viewBox="0 0 ${W} ${H}" direction="ltr" style="direction:ltr" role="img" aria-label="${opts.aria}">`;
+  ticks.forEach(t => { s += `<line class="gl" x1="${x(t)}" x2="${x(t)}" y1="${top - 6}" y2="${H - 24}"/><text x="${x(t)}" y="${H - 8}" text-anchor="middle" direction="ltr">${S.metric === 'd' ? (t > 0 ? '+' : '') + t.toFixed(step < 1 ? 1 : 0) : (t > 0 ? '+' : '') + t.toFixed(step < .01 ? 3 : 2)}</text>`; });
+  s += `<line class="zero" x1="${x(0)}" x2="${x(0)}" y1="${top - 10}" y2="${H - 24}"/><text x="${x(0)}" y="${top - 13}" text-anchor="middle" style="font-size:11px">${opts.zeroLabel}</text>`;
+  items.forEach((it, i) => {
+    const y = top + i * rowH + rowH / 2;
+    s += `<text x="${W - right + 10}" y="${y + 4}" text-anchor="end" direction="rtl" style="font-size:12px;unicode-bidi:plaintext">${it.label}</text>`;
+    if (!it.v) { s += `<text x="${x(0)}" y="${y + 4}" text-anchor="middle" style="font-size:11px;fill:var(--pend)">ממתין ל-AIRCC</text>`; return; }
+    const [d, a, b] = it.v;
+    s += `<g data-k="${i}" class="hit"><rect x="0" y="${y - rowH / 2}" width="${W}" height="${rowH}" fill="transparent"/>`;
+    if (a !== b) s += `<line x1="${x(a)}" x2="${x(b)}" y1="${y}" y2="${y}" stroke="${it.color}" stroke-width="2" stroke-linecap="round"/>`;
+    s += `<circle cx="${x(d)}" cy="${y}" r="5" fill="${it.fill ? it.color : 'var(--panel)'}" stroke="${it.color}" stroke-width="2"/></g>`;
+  });
+  return s + '</svg>';
+}
+function niceStep(r) { const p = Math.pow(10, Math.floor(Math.log10(r))); const m = r / p; return (m < 1.5 ? 1 : m < 3.5 ? 2 : m < 7.5 ? 5 : 10) * p; }
+function bindTips(el, items, fn) { el.querySelectorAll('.hit').forEach(g => { const it = items[+g.dataset.k];
+  g.addEventListener('mousemove', e => showTip(e, fn(it))); g.addEventListener('mouseleave', hideTip); }); }
+
+function renderSheets() {
+  const host = document.getElementById('sheets'); host.innerHTML = '';
+  const B = DATA.bench[S.bench]; const k = dk(); const dd = S.metric;
+  DATA.prms.forEach(p => {
+    const A = B[p].arms; const R = rows(S.bank, S.bench);
+    const sss = S.bench === 'prmbench';
+    let t = `<div class="scroll"><table class="t"><thead><tr><th>#</th><th>זרוע</th><th>PRMScore</th><th>Δ מול PRM [95% CI]</th><th>within-AUC</th><th>Δ AUC</th>${sss ? '<th>Simp.</th><th>Sound.</th><th>Sens.</th>' : ''}</tr></thead><tbody>`;
+    const items = [];
+    R.forEach(r => {
+      if (r.g) { t += `<tr class="grp"><td colspan="${sss ? 9 : 6}">${r.g}</td></tr>`; return; }
+      const e = A[r.a];
+      const chip = `<span class="chip${r.fill ? ' fill' : ''}" style="color:${FAM[r.f]}"></span>`;
+      if (!e) { t += `<tr><td class="num-badge">${r.n}</td><td class="armname">${chip}${r.l}</td><td colspan="${sss ? 7 : 4}" class="pend">ממתין לג'וב ה-CPU על AIRCC</td></tr>`;
+        items.push({ label: r.n + ' · ' + r.l, v: null }); return; }
+      const d = r.a === 'PRM_native' ? [0, 0, 0] : e.d, da = r.a === 'PRM_native' ? [0, 0, 0] : e.da;
+      const cls = v => v && r.a !== 'PRM_native' ? (v[1] > 0 ? 'pos' : v[2] < 0 ? 'neg' : '') : '';
+      t += `<tr><td class="num-badge">${r.n}</td><td class="armname">${chip}${r.l}</td><td class="n">${fmt(e.score)}</td>`
+        + `<td class="n ${cls(d)}">${d ? sgn(d[0]) + ' <span class="ci">[' + sgn(d[1]) + ', ' + sgn(d[2]) + ']</span>' : ''}</td>`
+        + `<td class="n">${fmt(e.auc, 'auc')}</td><td class="n ${cls(da)}">${da ? sgn(da[0], 'auc') : ''}</td>`
+        + (sss ? `<td class="n">${fmt(e.simp)}</td><td class="n">${fmt(e.sound)}</td><td class="n">${fmt(e.sens)}</td>` : '') + '</tr>';
+      const v = dd === 'd' ? d : da;
+      items.push({ label: r.n + ' · ' + r.l, v: v || null, color: FAM[r.f], fill: r.fill, e, r });
+    });
+    t += '</tbody></table></div>';
+    const tk = (TAKE[S.bench] && TAKE[S.bench][p]) || [];
+    const box = document.createElement('div'); box.className = 'panel'; box.id = 'prm-' + p;
+    box.innerHTML = `<h3>${DATA.names[p]}</h3><div class="sheet" style="margin-top:10px"><div>${t}</div><div class="chart">${dotChart(items, { aria: DATA.names[p] + ' Δ ' + unit(), zeroLabel: 'PRM native' })}<div class="note" style="margin-top:4px">Δ ${unit()} מול ה-PRM כמו שהוא, עם 95% CI. עיגול מלא = fusion, חלול = ממוצע.</div></div></div>`
+      + (tk.length ? `<ul class="take" style="margin-top:12px">${tk.map(x => '<li>' + x + '</li>').join('')}</ul>` : '');
+    host.appendChild(box);
+    bindTips(box.querySelector('.chart'), items, it => `<b>${it.r.l}</b><br><span class="mono">${unit()}: ${fmt(it.e[k], k === 'auc' ? 'auc' : '')}</span><br><span class="mono">Δ ${sgn(it.v[0], k === 'auc' ? 'auc' : '')} [${sgn(it.v[1], k === 'auc' ? 'auc' : '')}, ${sgn(it.v[2], k === 'auc' ? 'auc' : '')}]</span><br><span style="color:var(--ink-3)">${SRC[it.e.src] || it.e.src}</span>`);
+  });
+}
+
+const PAIRS = [
+  { k: 'TELE-MEAN', l: 'L-SML מול ממוצע, בלי PRM', s: '1 − 2', c: 'var(--tele)' },
+  { k: 'HALF-MEAN', l: 'הוספת PRM לממוצע', s: '5 − 2', c: 'var(--prm)' },
+  { k: 'CHAIN-TELE', l: 'הוספת PRM ל-L-SML', s: '4 − 1', c: 'var(--prm)' },
+  { k: 'CHAIN-HALF', l: 'L-SML מול ממוצע, עם PRM', s: '4 − 5', c: 'var(--boost)' },
+];
+function renderDecomp() {
+  const host = document.getElementById('decomp-chart'); const B = DATA.bench[S.bench];
+  const short = { qwen_prm_7b: 'Qwen-7B', qwen_prm_72b: 'Qwen-72B', pure_prm: 'PURE', rlhflow_prm: 'RLHFlow', math_shepherd: 'MathShepherd' };
+  let html = '<div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))">';
+  const all = [];
+  PAIRS.forEach((pr, j) => {
+    const items = DATA.prms.map(p => { const c = B[p].pairs[pr.k + '_' + S.bank]; const v = c && c[S.metric];
+      return { label: short[p], v: v || null, color: pr.c, fill: true, p, pr }; });
+    all.push(items);
+    html += `<div style="min-width:0"><div style="font-weight:700;font-size:.92rem">${pr.l} <span class="mono" style="color:var(--ink-3);font-weight:400">(${pr.s})</span></div><div data-j="${j}">${dotChart(items, { aria: pr.l, zeroLabel: '0', W: 330, right: 96 })}</div></div>`;
+  });
+  host.innerHTML = html + '</div>';
+  all.forEach((items, j) => bindTips(host.querySelector(`[data-j="${j}"]`), items, it => `<b>${it.label}</b>: ${it.pr.l}<br><span class="mono">Δ ${unit()} ${sgn(it.v[0], S.metric === 'da' ? 'auc' : '')} [${sgn(it.v[1], S.metric === 'da' ? 'auc' : '')}, ${sgn(it.v[2], S.metric === 'da' ? 'auc' : '')}]</span>`));
+  document.getElementById('decomp-sub').textContent = `כל פאנל הוא הפרש מזווג בין שתי זרועות, עם 95% CI, על ${S.bench === 'prmbench' ? 'PRMBench' : 'Socratic'}, בנק ${S.bank}, ${unit()}. ערך מעל 0 אומר שהצד הראשון טוב יותר.`;
+  const tk = (TAKE[S.bench] && TAKE[S.bench].decomp) || [];
+  document.getElementById('decomp-take').innerHTML = tk.map(x => '<li>' + x + '</li>').join('');
+}
+function sync() {
+  for (const [id, key] of [['c-bench', 'bench'], ['c-bank', 'bank'], ['c-metric', 'metric']])
+    document.querySelectorAll(`#${id} button`).forEach(b => b.setAttribute('aria-pressed', b.dataset.v === S[key]));
+  try { localStorage.setItem('abl5', JSON.stringify(S)); } catch (e) {}
+  renderDecomp(); renderSheets();
+  const miss = DATA.prms.some(p => !DATA.bench.prmbench[p].arms['MEAN_N16']);
+  document.getElementById('pending-note').textContent = miss ? 'ב-PRMBench, זרועות MEAN, EQ, PRM_Q80 ו-HALF_N13 ממתינות לג\'וב CPU על AIRCC. זרועות 1, 3, 4 ו-HALF_N16 כבר מחושבות.' : '';
+}
+for (const [id, key] of [['c-bench', 'bench'], ['c-bank', 'bank'], ['c-metric', 'metric']])
+  document.querySelectorAll(`#${id} button`).forEach(b => b.addEventListener('click', () => { S[key] = b.dataset.v; sync(); }));
+sync();
+</script>
