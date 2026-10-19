@@ -713,3 +713,10 @@ Why: historical sign changes recomputed only a column slice, whose memory layout
 Rule: preserve original mark columns and recompute changed-sign slices exactly as the historical implementation; never relax an exact replay gate to hide an implementation difference.
 Enforced by: code (spectral_utils/monday_fusion_execution.py zero_removal; ZERO_DIAGNOSIS.json).
 
+
+## 2026-10-19 — A bug recorded as an amendment was never fixed in code, and the affected arm ran again
+
+What happened: the hard-coded digit ids 15..24 are digits only in the Qwen and Llama-3 vocabularies. For Math-Shepherd (Mistral-7B-v0.1) all three digit channels were exactly zero. This was written down as Amendment A2 in results/prm_boosting_generalization_v1/run_v1/RESULTS_README.md, but the builders kept the constant, and ablation5 ran N16 on Math-Shepherd again. The zero columns changed L-SML's partition (4 -> 6 groups), so the advisor page showed L-SML losing to averaging (CHAIN_N16 - HALF_N16 within-AUC -0.052). With the Mistral digit ids (AIRCC job 288932) the same contrast is +0.0085 [+0.0026, +0.0148].
+Why: an amendment in a results README is prose. Nothing tied it to the code path that produced the next run.
+Rule: a data bug recorded in a results note gets a code fix or a hard guard before that bank is used again. Feature builders resolve tokenizer-dependent ids from the backbone's own tokenizer, and stop on a constant channel.
+Enforced by: code (spectral_utils/digit_token_ids.py resolve_digit_ids / check_digit_channels_vary; spectral_utils/fusion_utils.py lsml_continuous_guarded).

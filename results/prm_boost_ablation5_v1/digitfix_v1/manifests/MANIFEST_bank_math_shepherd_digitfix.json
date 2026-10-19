@@ -1,0 +1,64 @@
+{
+ "raw": "/shared/cycle2_tau_averbuch_prj/omrisegev1/results/prm_boost_gen_v1/full_math_shepherd/prmbench_telemetry.pkl",
+ "raw_sha256": "e042f6607247aaac10190f693fd1baefe4a3ba5168f16797be3fb2ab8090cc7e",
+ "base": "/shared/cycle2_tau_averbuch_prj/omrisegev1/results/thinkfix_rescore_v1/source_bank_thinkfix_mask1/FEATURES.npz",
+ "base_sha256": "f14ab5d68360cd30819077051329678944bc631b94f2510bc67c9b697bf0948f",
+ "mask_rule": "mask1: drop forced token 0 from every per-token field; step spans [lo,hi) -> [max(lo-1,0), hi-1]; a step that becomes empty raises MaskError",
+ "digit_ids": {
+  "tokenizer_json": "/shared/cycle2_tau_averbuch_prj/omrisegev1/hf_cache/hub/models--mistralai--Mistral-7B-v0.1/snapshots/27d67f1b5f57dc0953326b2601d68371d40ea8da/tokenizer.json",
+  "tokenizer_sha256": "11c08db21487c885d8c792180f0be237f6a261b89a46f128a6a80a3aa4bd1720",
+  "digit_ids": [
+   28734,
+   28740,
+   28750,
+   28770,
+   28781,
+   28782,
+   28784,
+   28787,
+   28783,
+   28774
+  ],
+  "matches_qwen_15_24": false
+ },
+ "n_prmbench_answers": 6969,
+ "mask_failures": 0,
+ "empty_step_fills": [
+  {
+   "row": "confidence_confidence_prm_train_p1_303",
+   "empty_steps": [
+    1,
+    2,
+    4,
+    5,
+    7,
+    8
+   ],
+   "filled_values": 306
+  },
+  {
+   "row": "deception_deception_prm_test_p1_87",
+   "empty_steps": [
+    15
+   ],
+   "filled_values": 51
+  },
+  {
+   "row": "step_contradiction_step_contradiction_prm_test_p2_991",
+   "empty_steps": [
+    4,
+    9,
+    15,
+    21,
+    24,
+    31,
+    33,
+    35
+   ],
+   "filled_values": 408
+  }
+ ],
+ "features_sha256": "8c386effb366ea09c57529941c0ed48e5474e54db2b18cdaa79540ffd667689e",
+ "seconds": 308.0,
+ "job_id": "288932"
+}
