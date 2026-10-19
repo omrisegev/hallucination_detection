@@ -2,8 +2,8 @@
 <p class="note">ההפרש מ-PRM native מערבב ציון טוב יותר עם כלל סימון אחר. הבקרה ההוגנת היא ה-PRM עם אותו כלל Q80 על 1−reward (PRM_Q80_PROB), והיא ברירת המחדל בדף. מולה, ב-PRMBench ‏PRMScore: ‏CHAIN_N16 מחזיק ב-7B (+0.93) וב-PURE (+2.57), אבל לא ב-72B (−0.14). הטלמטריה לבדה לא עוקפת את ה-PRM ב-7B וב-72B. ב-MathShepherd, ‏10.7 מתוך 13.1 הנקודות מגיעים מהכלל.</p></div>
 <div class="panel"><h3>2. מה מחזיק<span class="tag">להציג</span></h3>
 <p class="note">ב-PRMBench, ‏within-AUC (לא תלוי בסף) עולה מעל ה-PRM בכל 5 ה-PRMs, גם בלי digits: ‏CHAIN_N13 בין +0.026 ל-+0.096, וכל ה-CIs מעל 0. הוספת ה-PRM לטלמטריה עוזרת: EQ − MEAN חיובי בכל 5. כשמעבירים את הטלמטריה לתשובה אחרת עם אותו מספר צעדים, הרווח נעלם (job 287777, על המתכון עם 3 ערוצים).</p></div>
-<div class="panel"><h3>3. L-SML מול ממוצע<span class="tag">לא הוכח</span></h3>
-<p class="note">עם PRM בפנים, CHAIN לא עוקף את ½ PRM + ½ ממוצע ב-within-AUC ב-7B, ב-72B וב-PURE. ב-MathShepherd הוא מפסיד, ורק ב-RLHFlow הוא מנצח. ב-Socratic, ‏HALF מנצח ב-4 מתוך 5. אי אפשר לטעון ש-L-SML מוסיף מעל fusion קבוע כשה-PRM בפנים. אבל HALF הוא משקל קבוע שנבחר, וכשה-PRM חלש הוא פוגע (RLHFlow).</p></div>
+<div class="panel"><h3>3. L-SML מול ממוצע<span class="tag">חלקי</span></h3>
+<p class="note">מול ממוצע שווה של ה-PRM וכל הערוצים (שיטה 5), L-SML עם PRM (שיטה 4) גבוה יותר ב-within-AUC ב-4 מתוך 5 PRMs ב-PRMBench, ולא ב-Math-Shepherd. משקל קבוע של ½ ל-PRM נבחר ידנית ואינו שיטה, ולכן הוא מוצג רק בבקרות. ב-3 ה-PRMs החזקים הוא משתווה ל-L-SML, וב-RLHFlow, שבו ה-PRM חלש, הוא פוגע (PRMScore ‏60.46 מול 63.92). ב-Socratic, משקל ½ עדיף על L-SML ב-4 מתוך 5 PRMs.</p></div>
 <div class="panel"><h3>4. ה-backbone אומן עם labels<span class="tag">פתוח</span></h3>
 <p class="note">הטלמטריה מחושבת על ה-backbone של ה-PRM, שעבר fine-tune עם labels. רק ב-Qwen-7B יש backbone אחר, ובלי CI: ‏N16 נותן 67.20 על ה-backbone של ה-PRM, 65.93 על Math-Instruct ו-65.23 על Qwen3-8B, מול 65.46 ל-PRM native. הניסוח הנכון: "fusion ללא labels של אותות מרשת שאומנה עם labels", ולא "השיטה שלנו בלבד". להרחבה לכל ה-PRMs צריך inference על GPU.</p></div>
 <div class="panel"><h3>5. אורך ומיקום<span class="tag">נבדק</span></h3>
