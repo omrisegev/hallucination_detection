@@ -108,9 +108,9 @@ footer { margin-top: 40px; font-size: .82rem; color: var(--ink-3); display: flex
     <tbody>
       <tr><td class="num">1</td><td><span class="chip fill" style="color:var(--tele)"></span>השיטה שלנו בלבד</td><td>L-SML על ערוצי הבנק, בלי PRM. K קבוצות מ-spectral clustering, SML בתוך כל קבוצה ואז SML על פני הקבוצות</td><td><code>TELE_&lt;bank&gt;</code></td></tr>
       <tr><td class="num">2</td><td><span class="chip" style="color:var(--tele)"></span>ממוצע הפיצ'רים</td><td>ממוצע פשוט של אותם ערוצים, אחרי answer-z ואחרי כיוון label-free</td><td><code>MEAN_&lt;bank&gt;</code></td></tr>
-      <tr><td class="num">3</td><td><span class="chip fill" style="color:var(--prm)"></span>ה-PRM כמו שהוא</td><td>ציון ה-PRM עם הסף שלו (reward &lt; 0.5). בקרה: אותו ציון עם כלל Q80 של הזרועות המשולבות</td><td><code>PRM_native</code>, <code>PRM_Q80</code></td></tr>
+      <tr><td class="num">3</td><td><span class="chip fill" style="color:var(--prm)"></span>ה-PRM כמו שהוא</td><td>ציון ה-PRM עם הסף שלו (reward &lt; 0.5). בקרות: אותו ציון עם כלל Q80 של הזרועות המשולבות, פעם על logit(1−reward) ופעם על 1−reward</td><td><code>PRM_native</code>, <code>PRM_Q80</code>, <code>PRM_Q80_PROB</code></td></tr>
       <tr><td class="num">4</td><td><span class="chip fill" style="color:var(--boost)"></span>PRM Boosting (fusion)</td><td>z(PRM) כ-view נפרד, יחד עם ציוני הקבוצות של הטלמטריה מה-backbone של אותו PRM, ואז SML על פני כולם (CHAIN). PRMG זהה, רק בלי answer-z לציוני הקבוצות</td><td><code>CHAIN_&lt;bank&gt;</code>, <code>PRMG_&lt;bank&gt;</code></td></tr>
-      <tr><td class="num">5</td><td><span class="chip" style="color:var(--boost)"></span>PRM Boosting (ממוצע)</td><td>½·z(PRM) + ½·ממוצע הבנק. בקרה: ממוצע שווה של ה-PRM ושל כל K הערוצים, כך שה-PRM מקבל משקל 1/(K+1)</td><td><code>HALF_&lt;bank&gt;</code>, <code>EQ_&lt;bank&gt;</code></td></tr>
+      <tr><td class="num">5</td><td><span class="chip" style="color:var(--boost)"></span>PRM Boosting (ממוצע)</td><td>ממוצע שווה של z(PRM) ושל כל K הערוצים, כך שה-PRM מקבל משקל 1/(K+1). ‏baseline: ½·z(PRM) + ½·ממוצע הבנק</td><td><code>EQ_&lt;bank&gt;</code>, <code>HALF_&lt;bank&gt;</code></td></tr>
       <tr><td class="num">ref</td><td><span class="chip fill" style="color:var(--ref)"></span>רפרנס label-selected</td><td>ערוצים שנבחרו עם labels. מוצג רק כגבול עליון ולא כשיטה</td><td><code>CHAIN_S5</code>, <code>LSML_CONT</code></td></tr>
     </tbody>
   </table>
@@ -164,13 +164,18 @@ function rows(bank, bench) {
     { a: `MEAN_${bank}`, n: '2', l: 'ממוצע פשוט של הטלמטריה', f: 'tele', fill: false },
     { g: '3 · ה-PRM' },
     { a: 'PRM_native', n: '3', l: 'PRM כמו שהוא (הסף שלו)', f: 'prm', fill: true },
-    { a: 'PRM_Q80', n: '3c', l: 'PRM עם כלל Q80 (בקרה)', f: 'prm', fill: false },
+    { a: 'PRM_Q80', n: '3c', l: 'PRM עם כלל Q80, logit (בקרה)', f: 'prm', fill: false },
+    { a: 'PRM_Q80_PROB', n: '3d', l: 'PRM עם כלל Q80, הסתברות (בקרה)', f: 'prm', fill: false },
     { g: '4 · PRM Boosting, fusion' },
     { a: `CHAIN_${bank}`, n: '4', l: 'L-SML: PRM + קבוצות (CHAIN)', f: 'boost', fill: true },
     { a: `PRMG_${bank}`, n: '4b', l: 'L-SML: PRM + ערוצים (PRMG)', f: 'boost', fill: true },
     { g: '5 · PRM Boosting, ממוצע' },
-    { a: `HALF_${bank}`, n: '5', l: '½ PRM + ½ ממוצע', f: 'boost', fill: false },
-    { a: `EQ_${bank}`, n: '5b', l: 'ממוצע שווה של PRM ו-K ערוצים', f: 'boost', fill: false },
+    { a: `EQ_${bank}`, n: '5', l: 'ממוצע שווה של PRM ו-K ערוצים', f: 'boost', fill: false },
+    { a: `HALF_${bank}`, n: '5b', l: '½ PRM + ½ ממוצע (baseline)', f: 'boost', fill: false },
+    { g: 'PRM בסקאלת הסתברות, z(1 − reward) במקום logit' },
+    { a: `CHAINP_${bank}`, n: '4p', l: 'CHAIN, PRM בהסתברות', f: 'boost', fill: true },
+    { a: `EQP_${bank}`, n: '5p', l: 'EQ, PRM בהסתברות', f: 'boost', fill: false },
+    { a: `HALFP_${bank}`, n: '5bp', l: 'HALF, PRM בהסתברות', f: 'boost', fill: false },
   ];
   if (bench === 'prmbench') r.push({ g: 'רפרנס label-selected' },
     { a: 'CHAIN_S5', n: 'ref', l: 'CHAIN על S5 (5 ערוצים)', f: 'ref', fill: true },
@@ -246,9 +251,9 @@ function renderSheets() {
 
 const PAIRS = [
   { k: 'TELE-MEAN', l: 'L-SML מול ממוצע, בלי PRM', s: '1 − 2', c: 'var(--tele)' },
-  { k: 'HALF-MEAN', l: 'הוספת PRM לממוצע', s: '5 − 2', c: 'var(--prm)' },
+  { k: 'EQ-MEAN', l: 'הוספת PRM כערוץ אחד לממוצע', s: '5 − 2', c: 'var(--prm)' },
   { k: 'CHAIN-TELE', l: 'הוספת PRM ל-L-SML', s: '4 − 1', c: 'var(--prm)' },
-  { k: 'CHAIN-HALF', l: 'L-SML מול ממוצע, עם PRM', s: '4 − 5', c: 'var(--boost)' },
+  { k: 'CHAIN-EQ', l: 'L-SML מול ממוצע, עם PRM', s: '4 − 5', c: 'var(--boost)' },
 ];
 function renderDecomp() {
   const host = document.getElementById('decomp-chart'); const B = DATA.bench[S.bench];
@@ -272,8 +277,8 @@ function sync() {
     document.querySelectorAll(`#${id} button`).forEach(b => b.setAttribute('aria-pressed', b.dataset.v === S[key]));
   try { localStorage.setItem('abl5', JSON.stringify(S)); } catch (e) {}
   renderDecomp(); renderSheets();
-  const miss = DATA.prms.some(p => !DATA.bench.prmbench[p].arms['MEAN_N16']);
-  document.getElementById('pending-note').textContent = miss ? 'ב-PRMBench, זרועות MEAN, EQ, PRM_Q80 ו-HALF_N13 ממתינות לג\'וב CPU על AIRCC. זרועות 1, 3, 4 ו-HALF_N16 כבר מחושבות.' : '';
+  const miss = DATA.prms.some(p => !DATA.bench.prmbench[p].arms['EQP_N16']);
+  document.getElementById('pending-note').textContent = miss ? 'ב-PRMBench, גרסאות ההסתברות (4p, 5p, 5bp) ממתינות לג\'וב CPU על AIRCC.' : '';
 }
 for (const [id, key] of [['c-bench', 'bench'], ['c-bank', 'bank'], ['c-metric', 'metric']])
   document.querySelectorAll(`#${id} button`).forEach(b => b.addEventListener('click', () => { S[key] = b.dataset.v; sync(); }));

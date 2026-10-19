@@ -20,8 +20,9 @@ SOC = {'qwen_prm_7b': 'qwen_prm'}
 NAMES = {'qwen_prm_7b': 'Qwen2.5-Math-PRM-7B', 'qwen_prm_72b': 'Qwen2.5-Math-PRM-72B', 'pure_prm': 'PURE-PRM-7B',
          'rlhflow_prm': 'RLHFlow-PRM-8B', 'math_shepherd': 'Math-Shepherd-PRM-7B'}
 ARMS = ['PRM_native', 'PRM_Q80', 'PRM_Q80_PROB', 'LSML_CONT'] + [f'{a}_{b}' for b in ('N16', 'N13', 'S5')
-                                                                   for a in ('TELE', 'MEAN', 'CHAIN', 'PRMG', 'HALF', 'EQ')]
-PAIRS = ['TELE-MEAN', 'HALF-MEAN', 'CHAIN-HALF', 'CHAIN-TELE', 'CHAIN-EQ', 'PRMG-HALF']
+                                                                   for a in ('TELE', 'MEAN', 'CHAIN', 'PRMG', 'HALF', 'EQ', 'HALFP', 'EQP', 'CHAINP')]
+PAIRS = ['TELE-MEAN', 'EQ-MEAN', 'EQP-MEAN', 'HALF-MEAN', 'CHAIN-HALF', 'CHAIN-TELE', 'CHAIN-EQ', 'PRMG-HALF',
+         'EQP-EQ', 'HALFP-HALF', 'CHAINP-CHAIN']
 
 
 def rd(p):
@@ -72,12 +73,12 @@ def prmbench(p):
 def socratic(p):
     q = SOC.get(p, p); d = R / 'prm_boost_ablation5_v1/socratic'
     bd = {(b['contrast'], b['metric']): b for b in rd(d / 'BOOTSTRAP_socratic.csv') if b['model'] == q}
-    nm = lambda a: a if a == 'PRM_native' else ('PRM' if a == 'PRM_Q80' else a) + '_Q80'
+    nm = lambda a: a if a == 'PRM_native' else {'PRM_Q80': 'PRM', 'PRM_Q80_PROB': 'PRMPROB'}.get(a, a) + '_Q80'
     arms = {}
     for r in rd(d / 'RESULTS_socratic.csv'):
         if r['model'] != q: continue
         a = 'PRM_native' if r['arm'] == 'PRM_native' else r['arm'][:-4]
-        if a == 'PRM': a = 'PRM_Q80'
+        a = {'PRM': 'PRM_Q80', 'PRMPROB': 'PRM_Q80_PROB'}.get(a, a)
         e = {'score': 100 * float(r['official_metric']), 'auc': float(r['within_auc']), 'src': 'socratic'}
         for mt, k, s in (('official_metric', 'd', 100), ('within_auc', 'da', 1)):
             b = bd.get((f'{nm(a)} - PRM_native', mt))
