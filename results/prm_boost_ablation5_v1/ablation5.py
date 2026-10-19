@@ -7,6 +7,8 @@ Omri's five arms, per PRM and per bank (N13 digit-free, N16 with 3 digit channel
   4 CHAIN_<bk>  L-SML boosting: PRM + bank, PRM its own group (= bank sweep CHAIN_<bk>); PRMG_<bk> also kept
   5 HALF_<bk>   1/2 z(PRM) + 1/2 mean(bank)                                  (= controls HALF_N16)
     EQ_<bk>     mean of z(PRM) and every channel, PRM weight 1/(K+1)                               NEW
+Length/position controls (NEW): <A>RES_<bank> (channels residualised on position + log step tokens), <A>PERM_<bank>
+(channels moved to another answer with the same step count), POS_ONLY / LEN_ONLY trivial baselines.
 P-variants (NEW): HALFP/EQP/CHAINP_<bank> = HALF/EQ/CHAIN with the PRM channel as z(1 - reward) instead of z(logit(1 - reward)).
 Extra controls (NEW): PRM_Q80 / PRM_Q80_PROB = the PRM score (logit risk / 1 - reward) with the same Q80 flag rule as every fused arm. It splits
 "score is better" from "decision rule is different".
@@ -74,6 +76,25 @@ def main():
     arms, diag = {'PRM_native': prm, 'PRM_Q80': prm, 'PRM_Q80_PROB': prob}, {}
     bt = pop.cell_bank('TRANSFER', ans)
     arms['LSML_CONT'], _ = lsml(np.column_stack([zp] + [bt['V'][:, bt['names'].index(c)] for c in S3]))
+    n_steps = np.diff(o)
+    pos = np.concatenate([(np.arange(k) + .5) / k for k in n_steps])
+    spans = [m.get('step_token_spans') for m in meta]
+    loglen = None
+    if all(sp is not None for sp in spans):
+        loglen = np.concatenate([np.log1p([max(b - a, 0) for a, b in sp]) for sp in spans])
+        if len(loglen) != o[-1]: loglen = None
+    XR = np.column_stack([np.ones(o[-1]), pos] + ([loglen] if loglen is not None else []))
+    rng_p = np.random.default_rng(20261018)
+    perm_rows = np.arange(o[-1])
+    for k in np.unique(n_steps):
+        js = np.flatnonzero(n_steps == k)
+        if len(js) < 2: continue
+        tgt = js[rng_p.permutation(len(js))]
+        for a, b in zip(js, tgt): perm_rows[o[a]:o[a + 1]] = np.arange(o[b], o[b + 1])
+    # Trivial baselines: flag by step position alone / by step length alone (no telemetry, no PRM)
+    arms['POS_ONLY'] = EV.az(pos, o)
+    if loglen is not None: arms['LEN_ONLY'] = EV.az(loglen, o)
+    diag['controls'] = {'covariates': ['position'] + (['log_step_tokens'] if loglen is not None else [])}
     for bk in BANKS:
         V = np.asarray(pop.cell_bank(bk, ans)['V'], float)
         arms[f'TELE_{bk}'], dt = lsml(V, anchor=V.mean(1))
@@ -91,6 +112,24 @@ def main():
         arms[f'EQP_{bk}'] = np.column_stack([zq, V]).mean(1)
         VCq = np.column_stack([zq] + list(VC[:, 1:].T))
         arms[f'CHAINP_{bk}'], _ = lsml(VCq, groups=np.arange(VCq.shape[1]))
+        if bk in ('N16', 'N13'):
+            # Length/position controls (same construction as prm_boosting_controls_v1 C3/C4, now on the full bank):
+            # RES = every channel residualised on relative position and log step tokens (label-free OLS), then answer-z;
+            # PERM = channel block moved to another answer with the same step count (PRM stays in place).
+            Rz = V - XR @ np.linalg.lstsq(XR, V, rcond=None)[0]
+            Rz = np.column_stack([EV.az(Rz[:, j], o) for j in range(V.shape[1])])
+            arms[f'TELERES_{bk}'], dr = lsml(Rz, anchor=Rz.mean(1))
+            arms[f'MEANRES_{bk}'] = Rz.mean(1)
+            arms[f'EQRES_{bk}'] = np.column_stack([zp, Rz]).mean(1)
+            vr = np.asarray(dr['virtual_classifiers'], float)
+            VR = np.column_stack([zp] + [EV.az(vr[:, g], o) for g in range(vr.shape[1])])
+            arms[f'CHAINRES_{bk}'], _ = lsml(VR, groups=np.arange(VR.shape[1]))
+            Vp = V[perm_rows]
+            arms[f'TELEPERM_{bk}'], dp = lsml(Vp, anchor=Vp.mean(1))
+            arms[f'EQPERM_{bk}'] = np.column_stack([zp, Vp]).mean(1)
+            vp = np.asarray(dp['virtual_classifiers'], float)
+            VPp = np.column_stack([zp] + [EV.az(vp[:, g], o) for g in range(vp.shape[1])])
+            arms[f'CHAINPERM_{bk}'], _ = lsml(VPp, groups=np.arange(VPp.shape[1]))
         # corr of each arm with z(PRM): how much of the PRM ranking each fused score keeps
         diag[bk] = {'n_channels': V.shape[1], 'tele_K': int(dt['K']),
                     'zero_var_channels': [str(n) for n, sd in zip(pop.cell_bank(bk, ans)['names'], V.std(0)) if sd < 1e-9],
@@ -131,6 +170,13 @@ def main():
         for a in ('HALF', 'EQ', 'CHAIN'):
             pairs += [(f'{a}P_{bk}', f'{a}_{bk}'), (f'{a}P_{bk}', 'PRM_Q80_PROB'), (f'{a}P_{bk}', 'PRM_native')]
         pairs += [(f'EQ_{bk}', f'MEAN_{bk}'), (f'EQP_{bk}', f'MEAN_{bk}')]
+        if bk in ('N16', 'N13'):
+            for a in ('TELE', 'MEAN', 'EQ', 'CHAIN'):
+                pairs += [(f'{a}RES_{bk}', 'PRM_native'), (f'{a}RES_{bk}', 'PRM_Q80_PROB'), (f'{a}RES_{bk}', f'{a}_{bk}')]
+            for a in ('TELE', 'EQ', 'CHAIN'):
+                pairs += [(f'{a}PERM_{bk}', 'PRM_native'), (f'{a}PERM_{bk}', f'{a}_{bk}')]
+            pairs += [(f'EQRES_{bk}', f'MEANRES_{bk}'), (f'CHAINRES_{bk}', f'TELERES_{bk}')]
+    pairs += [(a, 'PRM_native') for a in ('POS_ONLY', 'LEN_ONLY') if a in arms]
     con = []
     for a, b in pairs:
         for j, mt in enumerate(('within_auc', 'prmscore')):
