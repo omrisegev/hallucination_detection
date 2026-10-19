@@ -44,7 +44,8 @@ def lsml(V, groups=None, anchor=None):
     return s, d
 
 
-arms, diag = {'PRM': prm, 'PRMPROB': prob}, {}
+nst = np.diff(o); pos = np.concatenate([(np.arange(k) + .5) / k for k in nst])
+arms, diag = {'PRM': prm, 'PRMPROB': prob, 'POS_ONLY': EV.az(pos, o), 'PRMPOS': .5 * zq + .5 * EV.az(pos, o)}, {}
 for bk in BANKS:
     b = pop.cell_bank(bk, ans); assert np.array_equal(b['off'], o)
     V = np.asarray(b['V'], float)

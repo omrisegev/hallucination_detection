@@ -64,7 +64,7 @@ for f in sorted(sdir.glob('SCORES_*.npz')):
                          within_auc=float(np.nanmean(A)), n_answers=n))
     W = rng.integers(0, n, size=(1000, n))
     def stat(C, A, idx): return summary(C[idx], bench)['metric'], float(np.nanmean(A[idx]))
-    pairs = [(a, r) for a in res for r in ('PRM_native', 'PRM_Q80') if a != r]
+    pairs = [(a, r) for a in res for r in ('PRM_native', 'PRM_Q80', 'PRMPROB_Q80', 'PRMPOS_Q80') if a != r]
     for b in ('N13', 'N16'):
         pairs += [(f'TELE_{b}_Q80', f'MEAN_{b}_Q80'), (f'CHAIN_{b}_Q80', f'HALF_{b}_Q80'), (f'CHAIN_{b}_Q80', f'EQ_{b}_Q80'),
                   (f'PRMG_{b}_Q80', f'HALF_{b}_Q80'), (f'CHAIN_{b}_Q80', f'TELE_{b}_Q80'), (f'HALF_{b}_Q80', f'MEAN_{b}_Q80'),

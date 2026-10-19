@@ -22,7 +22,7 @@ NAMES = {'qwen_prm_7b': 'Qwen2.5-Math-PRM-7B', 'qwen_prm_72b': 'Qwen2.5-Math-PRM
 ARMS = ['PRM_native', 'PRM_Q80', 'PRM_Q80_PROB', 'LSML_CONT'] + [f'{a}_{b}' for b in ('N16', 'N13', 'S5')
                                                                    for a in ('TELE', 'MEAN', 'CHAIN', 'PRMG', 'HALF', 'EQ', 'HALFP', 'EQP', 'CHAINP',
                                                                              'TELERES', 'MEANRES', 'EQRES', 'CHAINRES',
-                                                                             'TELEPERM', 'EQPERM', 'CHAINPERM')] + ['POS_ONLY', 'LEN_ONLY']
+                                                                             'TELEPERM', 'EQPERM', 'CHAINPERM')] + ['POS_ONLY', 'LEN_ONLY', 'PRMPOS', 'PRMPOSLEN']
 PAIRS = ['TELE-MEAN', 'EQ-MEAN', 'EQP-MEAN', 'HALF-MEAN', 'CHAIN-HALF', 'CHAIN-TELE', 'CHAIN-EQ', 'PRMG-HALF',
          'EQP-EQ', 'HALFP-HALF', 'CHAINP-CHAIN', 'TELERES-TELE', 'MEANRES-MEAN', 'EQRES-EQ', 'CHAINRES-CHAIN',
          'TELEPERM-TELE', 'EQPERM-EQ', 'CHAINPERM-CHAIN', 'EQRES-MEANRES', 'CHAINRES-TELERES']
@@ -48,9 +48,10 @@ def prmbench(p):
             if a in arms or a not in ARMS or not keep(r): continue
             e = {'score': float(r['prmscore']), 'auc': float(r['within_auc']), **sss(r), 'src': tag}
             if 'flag_rate' in r and r['flag_rate']: e['flag_rate'] = float(r['flag_rate'])
-            for mt, k in (('prmscore', 'd'), ('within_auc', 'da')):
-                b = bd.get((cname(a, 'PRM_native'), mt))
-                if b: e[k] = [float(b['delta']), float(b['ci_low']), float(b['ci_high'])]
+            for ref, sfx in (('PRM_native', ''), ('PRM_Q80_PROB', 'f')):
+                for mt, k in (('prmscore', 'd'), ('within_auc', 'da')):
+                    b = bd.get((cname(a, ref), mt))
+                    if b: e[k + sfx] = [float(b['delta']), float(b['ci_low']), float(b['ci_high'])]
             arms[a] = e
     ab = A5 / f'ABL5_RESULTS_{p}.csv'
     if ab.exists(): add(rd(ab), rd(A5 / f'ABL5_BOOTSTRAP_{p}.csv'), 'ablation5')
@@ -81,11 +82,12 @@ def socratic(p):
     for r in rd(d / 'RESULTS_socratic.csv'):
         if r['model'] != q: continue
         a = 'PRM_native' if r['arm'] == 'PRM_native' else r['arm'][:-4]
-        a = {'PRM': 'PRM_Q80', 'PRMPROB': 'PRM_Q80_PROB'}.get(a, a)
+        a = {'PRM': 'PRM_Q80', 'PRMPROB': 'PRM_Q80_PROB', 'PRMPOS': 'PRMPOS'}.get(a, a)
         e = {'score': 100 * float(r['official_metric']), 'auc': float(r['within_auc']), 'src': 'socratic'}
-        for mt, k, s in (('official_metric', 'd', 100), ('within_auc', 'da', 1)):
-            b = bd.get((f'{nm(a)} - PRM_native', mt))
-            if b: e[k] = [s * float(b['delta']), s * float(b['ci_low']), s * float(b['ci_high'])]
+        for ref, sfx in (('PRM_native', ''), ('PRMPROB_Q80', 'f')):
+            for mt, k, s in (('official_metric', 'd', 100), ('within_auc', 'da', 1)):
+                b = bd.get((f'{nm(a)} - {ref}', mt))
+                if b: e[k + sfx] = [s * float(b['delta']), s * float(b['ci_low']), s * float(b['ci_high'])]
         arms[a] = e
     pairs = {}
     for pr in PAIRS:
