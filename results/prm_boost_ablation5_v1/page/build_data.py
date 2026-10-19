@@ -5,6 +5,8 @@ PRMBench sources, first match wins per arm:
   ../../prm_boosting_bank_sweep_v1/SWEEP_*  (PRM_native, LSML_CONT, TELE/PRMG/CHAIN_<bank>, Q80 rows)
   ../../prm_boosting_controls_v1/CONTROLS_* (HALF_N16)
 Socratic: ../socratic/{RESULTS,BOOTSTRAP}_socratic.csv (ablation5_socratic.py + eval_socratic_ablation5.py).
+Math-Shepherd comes from the digit-fixed rebuild when present (../digitfix_v1/, AIRCC job 288932): PRMBench
+digitfix/ABL5_*_math_shepherd.*, Socratic digitfix_v1/socratic/*. The committed zero-digit files stay as records.
 PRMBench S/S/S follow the paper: Simplicity = mean(redundancy, circular); Soundness = mean(counterfactual,
 step contradiction, domain inconsistency, confidence); Sensitivity = mean(missing condition, deception, MS),
 with MS = 2 x prmscore__multi_solutions (valid-F1 only on all-correct answers).
@@ -14,7 +16,7 @@ with MS = 2 x prmscore__multi_solutions (valid-F1 only on all-correct answers).
 import csv, json
 from pathlib import Path
 
-H = Path(__file__).resolve().parent; A5 = H.parent; R = A5.parent
+H = Path(__file__).resolve().parent; A5 = H.parent; R = A5.parent; DIGITFIX = A5 / 'digitfix_v1/digitfix'
 PRMS = ['qwen_prm_7b', 'qwen_prm_72b', 'pure_prm', 'rlhflow_prm', 'math_shepherd']
 SOC = {'qwen_prm_7b': 'qwen_prm'}
 NAMES = {'qwen_prm_7b': 'Qwen2.5-Math-PRM-7B', 'qwen_prm_72b': 'Qwen2.5-Math-PRM-72B', 'pure_prm': 'PURE-PRM-7B',
@@ -53,8 +55,9 @@ def prmbench(p):
                     b = bd.get((cname(a, ref), mt))
                     if b: e[k + sfx] = [float(b['delta']), float(b['ci_low']), float(b['ci_high'])]
             arms[a] = e
-    ab = A5 / f'ABL5_RESULTS_{p}.csv'
-    if ab.exists(): add(rd(ab), rd(A5 / f'ABL5_BOOTSTRAP_{p}.csv'), 'ablation5')
+    src = DIGITFIX if p == 'math_shepherd' and (DIGITFIX / f'ABL5_RESULTS_{p}.csv').exists() else A5
+    ab = src / f'ABL5_RESULTS_{p}.csv'
+    if ab.exists(): add(rd(ab), rd(src / f'ABL5_BOOTSTRAP_{p}.csv'), 'digitfix' if src == DIGITFIX else 'ablation5')
     sw = R / 'prm_boosting_bank_sweep_v1'
     add(rd(sw / f'SWEEP_RESULTS_{p}.csv'), rd(sw / f'SWEEP_BOOTSTRAP_{p}.csv'), 'bank_sweep',
         keep=lambda r: r['rule'] == 'Q80', cname=lambda a, b: f'{a}[Q80] - {b}[Q80]')
@@ -62,7 +65,7 @@ def prmbench(p):
     add(rd(co / f'CONTROLS_RESULTS_{p}.csv'), rd(co / f'CONTROLS_BOOTSTRAP_{p}.csv'), 'controls')
     pairs = {}
     boots = []
-    if ab.exists(): boots += [(b, '') for b in rd(A5 / f'ABL5_BOOTSTRAP_{p}.csv')]
+    if ab.exists(): boots += [(b, '') for b in rd(src / f'ABL5_BOOTSTRAP_{p}.csv')]
     boots += [(b, '[Q80]') for b in rd(sw / f'SWEEP_BOOTSTRAP_{p}.csv')]
     for b, sfx in boots:
         for pr in PAIRS:
@@ -76,6 +79,8 @@ def prmbench(p):
 
 def socratic(p):
     q = SOC.get(p, p); d = R / 'prm_boost_ablation5_v1/socratic'
+    if p == 'math_shepherd' and (A5 / 'digitfix_v1/socratic/RESULTS_socratic.csv').exists():
+        d = A5 / 'digitfix_v1/socratic'
     bd = {(b['contrast'], b['metric']): b for b in rd(d / 'BOOTSTRAP_socratic.csv') if b['model'] == q}
     nm = lambda a: a if a == 'PRM_native' else {'PRM_Q80': 'PRM', 'PRM_Q80_PROB': 'PRMPROB'}.get(a, a) + '_Q80'
     arms = {}

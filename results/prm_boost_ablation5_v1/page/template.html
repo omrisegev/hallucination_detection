@@ -164,7 +164,7 @@ footer { margin-top: 40px; font-size: .82rem; color: var(--ink-3); display: flex
 </section>
 
 <footer>
-  <div>נבנה מ-<code>results/prm_boost_ablation5_v1/page/build_data.py</code> ו-<code>build_page.py</code>, על הענף <code>claude/prm-boosting</code>. מקורות: <code>ABL5_RESULTS_&lt;prm&gt;.csv</code>, <code>ABL5_BOOTSTRAP_&lt;prm&gt;.csv</code> (AIRCC jobs 288711, 288712, 288716 ו-288786), ו-<code>socratic/RESULTS_socratic.csv</code>.</div>
+  <div>נבנה מ-<code>results/prm_boost_ablation5_v1/page/build_data.py</code> ו-<code>build_page.py</code>, על הענף <code>claude/prm-boosting</code>. מקורות: <code>ABL5_RESULTS_&lt;prm&gt;.csv</code>, <code>ABL5_BOOTSTRAP_&lt;prm&gt;.csv</code> (AIRCC jobs 288711, 288712, 288716 ו-288786; ל-Math-Shepherd: <code>digitfix_v1/</code>, job 288932), ו-<code>socratic/RESULTS_socratic.csv</code>.</div>
 </footer>
 </div>
 <div class="tip" id="tip" hidden></div>
@@ -222,7 +222,7 @@ const label = (x, y, s, cls) => `<text x="${x}" y="${y}" text-anchor="start" dir
 // ---------- overview: all five methods, one panel per PRM ----------
 function renderOverview() {
   document.getElementById('ov-title').textContent = `${unit()} של חמש השיטות, לכל PRM`;
-  document.getElementById('ov-sub').textContent = `${ctx()}. כל שורה היא שיטה אחת. השיטה הגבוהה ביותר בכל PRM מודגשת. ציר ה-x נפרד לכל PRM.` + (S.bank === 'N16' ? ' במודל Math-Shepherd שלושת ערוצי ה-digits קבועים, ולכן כדאי לבדוק שם גם את N13.' : '');
+  document.getElementById('ov-sub').textContent = `${ctx()}. כל שורה היא שיטה אחת. השיטה הגבוהה ביותר בכל PRM מודגשת. ציר ה-x נפרד לכל PRM.` + ' Math-Shepherd מוצג מהבנייה מחדש עם מזהי הספרות של Mistral (job 288932). בגרסה הקודמת שלושת ערוצי ה-digits שלו היו אפס.';
   const host = document.getElementById('ov-grid'); host.innerHTML = '';
   DATA.prms.forEach(p => {
     const vs = ORDER.map(id => mval(p, id)); const best = Math.max(...vs.filter(v => v != null));

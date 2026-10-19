@@ -10627,6 +10627,22 @@ preserved; no fits/inference/install were rerun for publication.
 
 Drive preservation is verified: 21 archives, 8,253 source files, 4,521,223,525 original bytes / 2,339,085,998 compressed bytes. The checksum check matched 26 storage payloads plus the manifest with zero differences; the remote manifest was read back identically. Split archive parts reassemble to their original hashes, and a downloaded sample passes all 11 member hashes. Index, full member SHA256, five old-worktree patches and restore instructions: `docs/archives/integration_completion_20261017/`. Source worktrees and payloads are preserved. Historical snapshots are not active method adoption. Original presentation HTML and frozen scientific tables/seals are unchanged.
 
+### Step 466 [PRM boosting ablation5] — Five-arm ablation, Math-Shepherd digit-id fix, and the position/length caveat (2026-10-19)
+
+**What**: Five-arm ablation of PRM boosting on PRMBench and Socratic for 5 PRMs (`results/prm_boost_ablation5_v1/`, AIRCC CPU jobs 288711/288712/288716/288786): L-SML on telemetry (TELE), mean of telemetry (MEAN), PRM alone (same Q80 rule), L-SML of PRM + telemetry (CHAIN), equal mean of PRM + channels (EQ), plus controls (fixed 1/2 PRM weight HALF, probability-scale PRM, position/length residualization and permutation, label-selected references). Math-Shepherd was the only PRM where L-SML lost to the mean. Diagnosis: `external_banks_v4.DIGIT_IDS = 15..24` is '0'..'9' only for Qwen and Llama-3; in Mistral (Math-Shepherd) those ids are byte tokens, so all three digit channels were exactly 0 (already recorded as Amendment A2 in `results/prm_boosting_generalization_v1/run_v1/RESULTS_README.md`, never fixed in code). Code fix (commit db054926): `spectral_utils/digit_token_ids.py` (ids from tokenizer.json, loud failure), required `--tokenizer` and a constant-digit-channel stop in both bank builders, `fusion_utils.lsml_continuous_guarded` (constant views dropped before L-SML, weight 0). Rerun on AIRCC job 288932 (`results/prm_boost_ablation5_v1/digitfix_v1/`). The page was restructured to method-vs-method charts with a cross-PRM summary (commit 466ddc3d); published as a private artifact.
+
+**Why**: Omri asked after the 2026-10-15 advisor meeting what contributes to PRM boosting (telemetry, PRM or L-SML weighting), and asked to fix the only PRM where L-SML lost to averaging.
+
+**Result**: PRMBench, N16, within-AUC (development data, 5 PRMs, means are over PRMs):
+- PRM + telemetry (CHAIN) beats the PRM alone on all 5 PRMs, by +0.027 to +0.112. Most of it comes from adding the telemetry with equal weights (EQ minus PRM); L-SML weighting over equal weights (CHAIN minus EQ) adds +0.013 to +0.024 on all 5 after the fix. PRMScore against the same-rule PRM: positive on 4 of 5 (72B -0.14).
+- Math-Shepherd after the digit fix: CHAIN_N16 .712 -> .778, EQ_N16 .737 -> .754, CHAIN - EQ +.024 [+.022, +.027], CHAIN - HALF +.0085 [+.0026, +.0148] (paired source-group bootstrap). Checks: Mistral digit ids verified on AIRCC, Qwen3 bank parity 0.0, guarded L-SML identical on qwen_prm_7b (49 arms), no zero-variance channels left.
+- **Caveat found on review:** the Math-Shepherd digit gain does not survive the position/length control. CHAINRES_N16 is .712, below CHAINRES_N13 .735; the residualization costs .066 on Math-Shepherd versus .009-.027 on the other PRMs. Its digit channels track step position/length. In N13 Math-Shepherd still loses to the mean (CHAIN - EQ -.0097 [-.0121, -.0073]) because L-SML gives its PRM a cross share of about 0.05 (PRM-telemetry correlation .07).
+- Socratic (external): the pre-registered success rule failed; CHAIN loses to the PRM on 4 of 5, position alone beats telemetry on 5 of 5, and Math-Shepherd CHAIN stays below chance (.427) after the fix.
+
+**Files**: `results/prm_boost_ablation5_v1/` (ABL5_*, socratic/, digitfix_v1/README.md, HANDOFF_MS_DIGIT_FIX_2026-10-19.md, page/), `spectral_utils/digit_token_ids.py`, `tests/test_digit_token_ids.py`, `tests/test_lsml_constant_guard.py`, LESSONS.md entry (digit-id amendment never fixed in code).
+
+---
+
 ### Step 291 [prm-voters] — PRMBench step voters pilot execution and gate verification on AIRCC
 
 **What**: Executed and verified the PRMBench step voter pilots (N=30, 35 meta rows) on the `aircc` compute cluster (`power-gpu`, `owner_940`, NVIDIA B200 GPU).

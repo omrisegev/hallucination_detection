@@ -1,3 +1,11 @@
+## 2026-10-19: PRM boosting five-arm ablation, Math-Shepherd digit fix (Claude)
+
+**START HERE:** HISTORY Step 466 [PRM boosting ablation5], `results/prm_boost_ablation5_v1/digitfix_v1/README.md`, page `results/prm_boost_ablation5_v1/page/ablation5.html`.
+
+- On PRMBench, adding telemetry to the PRM raises within-AUC on all 5 PRMs; most of the gain is the telemetry itself, and L-SML weighting adds a smaller, consistent amount over equal weights (5/5 on N16 after the fix).
+- Math-Shepherd's digit channels were zero (hard-coded Qwen digit ids). Fixed in code (db054926) and rerun (job 288932): CHAIN_N16 .712 -> .778. But that gain disappears after removing position/length (CHAINRES_N16 .712 < CHAINRES_N13 .735). Do not present the Math-Shepherd digit gain as content signal.
+- Still open: in N13, L-SML underweights the Math-Shepherd PRM (cross share ~0.05) and loses to the mean; Socratic Math-Shepherd CHAIN is below chance (.427), possibly an orientation problem, not checked.
+
 ## 2026-10-17: post-advisor consolidation, voters full run submitted, refactor stage 0 (Claude)
 
 **START HERE:** [post-advisor docs](docs/post_advisor_2026-10-17/) (branch consolidation, research-direction review, refactor plan; Hebrew).
