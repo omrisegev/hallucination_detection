@@ -192,6 +192,8 @@ function rows(bank, bench) {
     { a: `TELEPERM_${bank}`, n: '1x', l: 'L-SML, טלמטריה מתשובה אחרת', f: 'tele', fill: true },
     { a: `CHAINPERM_${bank}`, n: '4x', l: 'CHAIN, טלמטריה מתשובה אחרת', f: 'boost', fill: true },
     { a: `EQPERM_${bank}`, n: '5x', l: 'EQ, טלמטריה מתשובה אחרת', f: 'boost', fill: false });
+  if (bench === 'socratic') r.push({ g: 'בקרת מיקום' },
+    { a: 'POS_ONLY', n: 'c1', l: 'מיקום הצעד בלבד (בלי טלמטריה ובלי PRM)', f: 'ref', fill: false });
   if (bench === 'prmbench') r.push({ g: 'רפרנס label-selected' },
     { a: 'CHAIN_S5', n: 'ref', l: 'CHAIN על S5 (5 ערוצים)', f: 'ref', fill: true },
     { a: 'LSML_CONT', n: 'ref', l: 'L-SML: PRM + 3 ערוצים', f: 'ref', fill: true });
