@@ -8,7 +8,7 @@ Omri's five arms, per PRM and per bank (N13 digit-free, N16 with 3 digit channel
   5 HALF_<bk>   1/2 z(PRM) + 1/2 mean(bank)                                  (= controls HALF_N16)
     EQ_<bk>     mean of z(PRM) and every channel, PRM weight 1/(K+1)                               NEW
 Length/position controls (NEW): <A>RES_<bank> (channels residualised on position + log step tokens), <A>PERM_<bank>
-(channels moved to another answer with the same step count), POS_ONLY / LEN_ONLY trivial baselines.
+(channels moved to another answer with the same step count), POS_ONLY / LEN_ONLY trivial baselines; PRMPOS / PRMPOSLEN = z(1-reward) averaged with z(position) [and z(log step tokens)].
 P-variants (NEW): HALFP/EQP/CHAINP_<bank> = HALF/EQ/CHAIN with the PRM channel as z(1 - reward) instead of z(logit(1 - reward)).
 Extra controls (NEW): PRM_Q80 / PRM_Q80_PROB = the PRM score (logit risk / 1 - reward) with the same Q80 flag rule as every fused arm. It splits
 "score is better" from "decision rule is different".
@@ -94,6 +94,10 @@ def main():
     # Trivial baselines: flag by step position alone / by step length alone (no telemetry, no PRM)
     arms['POS_ONLY'] = EV.az(pos, o)
     if loglen is not None: arms['LEN_ONLY'] = EV.az(loglen, o)
+    # PRM + position (and + length): does the boost survive against a PRM that also knows where the step sits?
+    zq0 = EV.az(np.concatenate([1 - np.asarray(r['rewards'], float) for r in meta]), o)
+    arms['PRMPOS'] = .5 * zq0 + .5 * EV.az(pos, o)
+    if loglen is not None: arms['PRMPOSLEN'] = np.column_stack([zq0, EV.az(pos, o), EV.az(loglen, o)]).mean(1)
     diag['controls'] = {'covariates': ['position'] + (['log_step_tokens'] if loglen is not None else [])}
     for bk in BANKS:
         V = np.asarray(pop.cell_bank(bk, ans)['V'], float)
@@ -176,7 +180,11 @@ def main():
             for a in ('TELE', 'EQ', 'CHAIN'):
                 pairs += [(f'{a}PERM_{bk}', 'PRM_native'), (f'{a}PERM_{bk}', f'{a}_{bk}')]
             pairs += [(f'EQRES_{bk}', f'MEANRES_{bk}'), (f'CHAINRES_{bk}', f'TELERES_{bk}')]
-    pairs += [(a, 'PRM_native') for a in ('POS_ONLY', 'LEN_ONLY') if a in arms]
+    pairs += [(a, 'PRM_native') for a in ('POS_ONLY', 'LEN_ONLY', 'PRMPOS', 'PRMPOSLEN') if a in arms]
+    pairs += [(a, 'PRM_Q80_PROB') for a in ('PRMPOS', 'PRMPOSLEN') if a in arms]
+    for bk in ('N16', 'N13'):
+        for a in ('CHAIN', 'EQ', 'HALF', 'TELE', 'CHAINP', 'EQP', 'HALFP'):
+            pairs += [(f'{a}_{bk}', c) for c in ('PRMPOS', 'PRMPOSLEN') if c in arms]
     con = []
     for a, b in pairs:
         for j, mt in enumerate(('within_auc', 'prmscore')):
