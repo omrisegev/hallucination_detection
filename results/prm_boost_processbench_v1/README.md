@@ -81,3 +81,34 @@ AIRCC paths: inputs `$SHARED/data/prm_boost_processbench_v1/`, everything else `
    Table 6 the same way as here, and it has a CROP split-protocol reproduction for PRMBench (`crop_metrics.py`). Its ProcessBench row
    can be added once these scores exist. **Target:** CROP's stated 6.6% erroneous-step rate does not match `first_only` (8.6%) or any other target we tried. Their split protocol (10 × 60/20/20, supervised LR fusion) also differs from our full-population, label-free scoring.
 3. **Budget.** This is a guess before timing: the Socratic per-row rates × 3,400 rows, scaled for the longer answers, give about 9–13 GPU-h. The timing jobs replace this guess.
+
+## Census and timing on AIRCC (2026-10-19, Windows session)
+
+Shipped at commit 9ce261d80 (hub `claude/prm-boosting` + the pre-registration commit). The remote sha256 of both
+input files matched the manifest, and all 8 telemetry files in `code_integration_7534b8bf4` matched this checkout.
+`/preflight` passed.
+
+**Census** (job 289024, CPU, all 3,400 answers; files in `census/`): 0 build errors and 0 context overflows on all
+5 PRMs. rlhflow_prm has **87 rows with a step-text mismatch** (gsm8k 2, math 19, olympiadbench 30, omnimath 36). The
+uids are in `census/MISMATCH_rlhflow_prm.json` (diagnostic job 289052, script `census/mismatch_uids.py`). None of the
+12 timing rows is among them. The cause is not yet diagnosed; it is not explained by non-ASCII text.
+
+Operational note: `submit_census.sh` submits to power-gpu without a GPU, so Slurm moves it to `cpu`, where the NVIDIA
+container hook fails (`nvidia-container-cli` not found, job 289021). Resubmitting with `-p cpu` and
+`--export=...,NVIDIA_VISIBLE_DEVICES=void` works (jobs 289024, 289052).
+
+**Timing** (jobs 289026-289030, 12 answers, 1 GPU, 1 h wall each; manifests in `timing_<prm>/`):
+
+| adapter | job | rows | elapsed s | s/row | full-run GPU-h | max input tokens (census) | context overflow (census) | step-text mismatch | status |
+|---|---|---|---|---|---|---|---|---|---|
+| qwen_prm | 289026 | 12 | 9.0 | 0.75 | 0.80 | 2610 | 0 | 0 (timing: 0) | COMPLETE |
+| pure_prm | 289027 | 12 | 6.0 | 0.50 | 0.53 | 2580 | 0 | 0 (timing: 0) | COMPLETE |
+| rlhflow_prm | 289028 | 12 | 9.2 | 0.77 | 0.82 | 2899 | 0 | 87 (timing: 0) | COMPLETE |
+| math_shepherd | 289029 | 12 | 6.9 | 0.57 | 0.61 | 2853 | 0 | 0 (timing: 0) | COMPLETE |
+| qwen_prm_72b | 289030 | 12 | 48.9 | 4.08 | 4.35 | 2612 | 0 | 0 (timing: 0) | COMPLETE |
+
+full-run GPU-h = s/row × 3,400 × 1.13 / 3,600. Total about **7.1 GPU-h** of compute, plus about 1.5 minutes of
+setup per job (about 7.4 GPU-h with 10 links). Each timing job took 1.4-2.1 minutes of wall in total.
+
+**Proposed walls per link** (1.5 × estimate, rounded up): `WALL_7B=02:00:00`, `WALL_72B=07:00:00`. Two links give
+twice that capacity. Waiting for Omri's budget decision; nothing beyond timing has been submitted.
