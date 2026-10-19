@@ -83,3 +83,32 @@ python results/sml_weight_estimator_v1/socratic_sign/run_socratic.py . abs <socr
 python results/sml_weight_estimator_v1/socratic_chain_flip/cov_decomp.py <socratic_gold.json> <SCORES npz ...>
 ```
 `run_prmbench.py` is the same sign-mode wrapper for `ablation5.py` on AIRCC. It has not been run yet.
+
+## 4. Where the PRM enters, and whether nnr1 gives it its weight (`socratic_sign/prm_placement.py`, 2026-10-20)
+Question (Omri): does the rank-one fit give the PRM its proper weight when the PRM is not forced into its own group?
+- **Placements:** AUTO = L-SML over [z(PRM), channels] with its own grouping. FLAT = one SML stage over all views.
+  CHAIN = shipped.
+- **Weight share:** the effective PRM weight share is the least-squares weight of the fused score on its input views,
+  normalized (fit R² ≥ .99). Files: `RESULTS_socratic_placement.csv`, `PRM_WEIGHT_SHARE_placement.json`.
+
+N16, within-AUC (signed PRM weight share), PRM order Qwen-7B / Qwen-72B / PURE / RLHFlow / Math-Shepherd:
+
+| arm | | | | | |
+|---|---|---|---|---|---|
+| PRM alone | .824 | .814 | .796 | .549 | .718 |
+| CHAIN nnr1 | .790 (.18) | .634 (.04) | .691 (.07) | .586 (.01) | .564 (.00) |
+| AUTO nnr1 | .732 (.05) | .689 (.04) | .667 (.00) | .598 (.04) | .553 (.00) |
+| FLAT nnr1 | .749 (.06) | .677 (.03) | .673 (.02) | .605 (.02) | .559 (.00) |
+| AUTO signed | .722 (.06) | .661 (.04) | .660 (-.03) | .595 (.03) | .458 (.05) |
+
+**No.** In every placement and mode the PRM gets 0-8% of the weight (CHAIN up to 21% on Qwen-7B). Every arm is far below the
+PRM alone on the strong PRMs.
+- **Mechanism (model reading, not separately tested):** under the rank-one model the PRM's loading is
+  v_p = sqrt(r_pa·r_pb / r_ab).
+  - A PRM that correlates weakly with the telemetry (r_pa, r_pb small) gets a small loading.
+  - Telemetry channels that correlate strongly with each other (r_ab large, inflated by shared nuisance such as
+    step position) shrink it further.
+  - No covariance-only estimator can see that the PRM is the strongest view in that case.
+- **The external benchmarks show the same picture** (ProcessBench, job 289297, `../prm_boost_processbench_v1/`;
+  Hard2Verify, branch `claude/prm-boost-external-2026-10-18`): CHAIN lands near the telemetry alone. It helps the weak
+  PRMs (RLHFlow) and hurts the strong ones.
