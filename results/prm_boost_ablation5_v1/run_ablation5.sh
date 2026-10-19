@@ -1,7 +1,8 @@
 #!/bin/bash
 #SBATCH -J prmboost_abl5
 #SBATCH -p cpu
-#SBATCH -A owner_940
+#SBATCH -A cycle3_tau_averbuch_prj
+#SBATCH --qos=owner_940
 #SBATCH --mem=96G
 #SBATCH -c 8
 #SBATCH -t 01:00:00

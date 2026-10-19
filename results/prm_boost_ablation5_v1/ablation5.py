@@ -7,7 +7,7 @@ Omri's five arms, per PRM and per bank (N13 digit-free, N16 with 3 digit channel
   4 CHAIN_<bk>  L-SML boosting: PRM + bank, PRM its own group (= bank sweep CHAIN_<bk>); PRMG_<bk> also kept
   5 HALF_<bk>   1/2 z(PRM) + 1/2 mean(bank)                                  (= controls HALF_N16)
     EQ_<bk>     mean of z(PRM) and every channel, PRM weight 1/(K+1)                               NEW
-Extra control (NEW): PRM_Q80 = the PRM score with the same Q80 flag rule as every fused arm. It splits
+Extra controls (NEW): PRM_Q80 / PRM_Q80_PROB = the PRM score (logit risk / 1 - reward) with the same Q80 flag rule as every fused arm. It splits
 "score is better" from "decision rule is different".
 Same inputs, orientation, Q80 rule and paired source-group bootstrap as ../prm_boosting_bank_sweep_v1/lsml_bank_sweep.py.
 
@@ -66,7 +66,10 @@ def main():
         if np.corrcoef(s, ref)[0, 1] < 0: s = -s
         return s, d
 
-    arms, diag = {'PRM_native': prm, 'PRM_Q80': prm}, {}
+    prob = np.concatenate([1 - np.asarray(r['rewards'], float) for r in meta])
+    # PRM_Q80 answer-z's the logit risk (the same zp the fusions use); PRM_Q80_PROB answer-z's 1 - reward.
+    # The two give different Q80 flags, so both are reported (voters analysis used the prob scale).
+    arms, diag = {'PRM_native': prm, 'PRM_Q80': prm, 'PRM_Q80_PROB': prob}, {}
     bt = pop.cell_bank('TRANSFER', ans)
     arms['LSML_CONT'], _ = lsml(np.column_stack([zp] + [bt['V'][:, bt['names'].index(c)] for c in S3]))
     for bk in BANKS:
@@ -110,10 +113,10 @@ def main():
         t = W @ G; tp, fp, tn, fn = t[:, 2:].T
         B[n] = (t[:, 0] / t[:, 1], 50 * (tp / (tp + .5 * (fp + fn)) + tn / (tn + .5 * (fp + fn))))
 
-    pairs = [('PRM_Q80', 'PRM_native')]
+    pairs = [('PRM_Q80', 'PRM_native'), ('PRM_Q80_PROB', 'PRM_native')]
     for bk in BANKS:
         for a in ('TELE', 'MEAN', 'PRMG', 'CHAIN', 'HALF', 'EQ'):
-            pairs += [(f'{a}_{bk}', 'PRM_native'), (f'{a}_{bk}', 'PRM_Q80')]
+            pairs += [(f'{a}_{bk}', 'PRM_native'), (f'{a}_{bk}', 'PRM_Q80'), (f'{a}_{bk}', 'PRM_Q80_PROB')]
         pairs += [(f'TELE_{bk}', f'MEAN_{bk}'), (f'CHAIN_{bk}', f'HALF_{bk}'), (f'CHAIN_{bk}', f'EQ_{bk}'),
                   (f'PRMG_{bk}', f'HALF_{bk}'), (f'CHAIN_{bk}', f'TELE_{bk}'), (f'HALF_{bk}', f'MEAN_{bk}'),
                   (f'CHAIN_{bk}', 'LSML_CONT')]
