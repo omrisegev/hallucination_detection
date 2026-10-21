@@ -1,3 +1,9 @@
+## 2026-10-21: pre-thinkfix weight-estimator analyses removed, Step 468 (Claude)
+
+- `results/sml_weight_estimator_v1/processbench_banks/` and `answer_local/` ran on the old Qwen3 template and were removed (Omri). The 2026-10-20 entry below cites their numbers; do not use them.
+- Corrected template, PRMBench only (collection section 3a): the rank-one fit is below shipped L-SML on 7 of 10 banks (N16 .7792 -> .7704). |v| helps only N40 and N43. The plain mean matches or beats L-SML on 7 of 10 banks. Do not adopt the rank-one fit.
+- Open: the answer-local SML question has no corrected-template answer.
+
 ## 2026-10-20: SML sign rule and weight estimator, Step 467 (Claude)
 
 **START HERE:** HISTORY Step 467 [SML weight estimator], `results/sml_weight_estimator_v1/README.md`.

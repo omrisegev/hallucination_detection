@@ -41,6 +41,8 @@ def main(d):
         for v in ('within_auc', 'prmscore'):
             par.append(dict(item='3b controls (no digit channels: must not change)', key=f"{r.arm} {v}", old=r[f'{v}_old'], new=r[f'{v}_new'],
                             diff=r[f'{v}_delta'], status='PASS' if abs(r[f'{v}_delta']) < 1e-9 else 'FAIL'))
+    # Old-template RESULTS.csv was removed 2026-10-21 (HISTORY Step 468). To rerun, restore it first:
+    # git show b5c5c203:results/sml_weight_estimator_v1/processbench_banks/RESULTS.csv
     o = pd.read_csv(R / 'sml_weight_estimator_v1/processbench_banks/RESULTS.csv')
     n = pd.read_csv(d / 'score_banks_thinkfix_mask1/RESULTS.csv')
     B = side(o[['bank', 'arm', 'prmb_within_auc']], n[['bank', 'arm', 'prmb_within_auc']], ['bank', 'arm'], ['prmb_within_auc'])

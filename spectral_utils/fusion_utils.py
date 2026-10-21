@@ -245,10 +245,11 @@ def rank1_offdiag_fit(R, nonneg: bool = True, iters: int = 500, tol: float = 1e-
         this fit [0.50, 0.17, 0.17, 0.17], which is exact.
 
     EMPIRICAL RESULT, read before using it: on the development benchmarks the unbiased fit LOSES
-    (results/sml_weight_estimator_v1/, Step 467). Telemetry-only L-SML on the nested banks, old template:
-    N16 ProcessBench argmax hit 41.61 -> 38.61, PRMBench within-AUC .7958 -> .7762, and worse on almost every
-    bank. Residual dependence between L-SML groups inflates one loading; the exact fit then puts up to 0.89
-    of the weight on one group, while the eigenvector's shrinkage toward equal weights acts as a regularizer.
+    (results/sml_weight_estimator_v1/ section 3, from collection section 3a on the corrected Qwen3 template).
+    Telemetry-only L-SML on the nested PRMBench banks: N16 within-AUC .7792 -> .7704, and below the shipped
+    weights on 7 of 10 banks. Residual dependence between L-SML groups inflates one loading; the exact fit
+    then puts up to 0.88 of the weight on one group, while the eigenvector's shrinkage toward equal weights
+    acts as a regularizer.
 
     Projected coordinate descent from |leading eigenvector| * sqrt(eigenvalue). With ``nonneg`` the fit is
     constrained to v >= 0, the L-SML paper's assumption that every (pre-oriented) view beats random
@@ -289,8 +290,8 @@ def sml_fuse_rank1(*classifiers: np.ndarray, nonneg: bool = True) -> tuple:
     """SML with weights from ``rank1_offdiag_fit`` (the off-diagonal rank-one fit) instead of the
     zero-diagonal eigenvector. Inputs must be pre-oriented (higher = same class for every view).
 
-    Diagnostic alternative, not wired into lsml_continuous (Step 467). It lost to the shipped weights on the
-    PRMBench / ProcessBench development banks (see rank1_offdiag_fit); do not adopt it without a new test.
+    Diagnostic alternative, not wired into lsml_continuous (Step 467). It lost to the shipped weights on 7 of
+    10 PRMBench development banks (see rank1_offdiag_fit); do not adopt it without a new test.
 
     Returns:
         (fused_scores, weights) with weights L1-normalized; equal weights if the fit is all zero.
@@ -434,9 +435,9 @@ def sml_fuse_signed(*classifiers: np.ndarray, gates=None, small_m_guard: bool = 
       On Socratic Math-Shepherd a confounder (step position) made PRM and telemetry negatively correlated;
       the majority rule gave the PRM the negative weight and the caller's anchor flip then inverted the
       telemetry (CHAIN within-AUC .468, below chance).
-      On the nested PRMBench/ProcessBench banks 8 of 90 fits had a negative cross-group weight; taking |v|
-      there helped the large banks (PRMBench within-AUC N40 .724 -> .773, N43 .758 -> .788) and was neutral
-      to slightly negative on N11-N16 (results/sml_weight_estimator_v1/).
+      On the nested PRMBench banks (corrected template) 4 of 10 fits had a negative cross-group weight;
+      taking |v| helped N40 (within-AUC .739 -> .767) and N43 (.762 -> .775) and was within +/-.002
+      elsewhere (results/sml_weight_estimator_v1/ section 3).
     - Like sml_fuse, the zero-diagonal eigenvector shrinks weights toward equal; see rank1_offdiag_fit
       (the unbiased fit did worse on the development banks).
 

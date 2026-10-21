@@ -10663,6 +10663,14 @@ Drive preservation is verified: 21 archives, 8,253 source files, 4,521,223,525 o
 
 ---
 
+### Step 468 [SML weight estimator] — Pre-thinkfix weight-estimator analyses removed; the bank study now cites the corrected template (2026-10-21)
+
+**What**: Removed the two Step 467 analyses that ran on the old Qwen3 template, the one with the missing empty think block: `results/sml_weight_estimator_v1/processbench_banks/` (nested-bank weight-estimator study, ProcessBench + PRMBench) and `answer_local/` (answer-local SML bank/step-size study), plus their scratch banks. The old-template numbers in that README and in the `fusion_utils` docstrings (`rank1_offdiag_fit`, `sml_fuse_rank1`, `sml_fuse_signed`) are replaced by the corrected-template PRMBench result of collection section 3a (job 290578).
+**Why**: Omri, 2026-10-21: pre-thinkfix results are an error and must not be used for analysis. Scope approved explicitly: only this work. Historical records (this log, LESSONS, audits) and the raw telemetry in `dataset_cache/` stay.
+**Result**: On the corrected template, the unbiased rank-one fit is below the shipped L-SML on 7 of 10 PRMBench banks (N16 .7792 -> .7704) and puts up to .88 of the weight on one group (N53). |v| weights help clearly only on N40 (+.027) and N43 (+.014). The plain oriented mean matches or beats shipped L-SML on 7 of 10 banks, N16 included (.7811 vs .7792). ProcessBench was not re-run (out of focus). The answer-local question is open on the corrected template. The removed files remain in git history (last present in commit b5c5c203).
+
+---
+
 ### Step 291 [prm-voters] — PRMBench step voters pilot execution and gate verification on AIRCC
 
 **What**: Executed and verified the PRMBench step voter pilots (N=30, 35 meta rows) on the `aircc` compute cluster (`power-gpu`, `owner_940`, NVIDIA B200 GPU).

@@ -360,7 +360,8 @@ for every proxy already in [0,1].
 
 ## 11. Optional section 3 (approved by Omri 2026-10-21; job 290578)
 Code: `section3/run_section3.sh` and `section3/score_banks_prmbench.py`. The latter is a PRMBench-only copy of
-`sml_weight_estimator_v1/processbench_banks/score_banks.py`; the original is unchanged. Next to it are
+`sml_weight_estimator_v1/processbench_banks/score_banks.py`. That original ran on the old template and was
+removed on 2026-10-21 (HISTORY Step 468); it is in git history up to commit b5c5c203. Next to it are
 `rank1_fit.py` and `prm_label_contract.py`, both verbatim copies, because the AIRCC mirror lacks them.
 Report: `section3/section3_report.py`. Raw outputs: `section3/results/`.
 
