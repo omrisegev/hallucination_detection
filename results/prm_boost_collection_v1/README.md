@@ -270,6 +270,130 @@ python build_data.py && python build_page.py
 ## 9. Open points
 - **Drive upload: done.** One transient upload error was retried and succeeded. `rclone check` passed for the
   PRMBench export. Log: `aircc/logs/upload_drive.log`.
-- **Section 3 of the plan is optional and was not run:**
-  - the Step 467 bank study on thinkfix_mask1;
-  - the Math-Shepherd N14/S6 bank-sweep cells.
+- **Section 3 of the plan:** first left out as optional, then approved and run later the same day. See section 11.
+
+---
+
+## 10. CROP controls C1–C7 (plan §2.2 addendum, commit 20df0ecd; run 2026-10-21)
+Code is in `crop_controls/`: `crop_controls.py` (AIRCC), `run_crop_controls.sh`, `submit_v3.sh` and
+`crop_controls_report.py` (local). Raw per-seed rows: `crop_controls/raw_v3/`.
+
+**Runs.**
+- The preflight smoke jobs were 290559 and 290562. The vectorized version's CSV is byte-identical to the loop version's.
+- **v1 (290564–290568) and v2 (290573–290577) failed parity and are not used.**
+  - v1 built the earlier subset in FEATURES row order instead of Hub order.
+  - v2 stratified the split by "an in-range step is labelled an error" instead of "error_steps is non-empty".
+- **v3 (290585–290589) is the run of record.**
+
+**Parity.**
+- `CROP_CONTROLS_PARITY.csv`: the earlier-subset rows with the controls off reproduce `tables/COMP_CROP_T6.csv` for
+  all 5 PRMs. 134 of 135 numbers agree within 1e-9. The remaining one is RLHFlow position/length LR AUROC, off by
+  4e-9 (LR solver numerics); its kept and risk are exact.
+- C4: the inductive machinery fitted on 100% of the steps reproduces the transductive scores to ≤ 3.6e-15, for all
+  5 PRMs (`crop_controls/logs/CROP_CONTROLS_PARITY_*.json`).
+
+**C1, exact subset.**
+- The first 5,000 raw Hub rows hold 67,452 steps with an error rate of 15.86%. CROP reports 67,445 / 15.9%.
+- CROP's 5 duplicate `classification_idx` rows are all multi_solutions: 85 steps, no errors, raw positions 226–340.
+  Each has the same question as its twin but a different process. No telemetry or PRM score exists for them, and
+  scoring them would need new inference.
+- C1 therefore uses **4,995 scored traces** (67,367 steps, error rate 15.88%) and marks the 5 rows as unscored.
+
+**Tables** (`tables/`):
+- `CROP_C1_MAIN.csv`: C1 subset at α = .05, every proxy × grid.
+- `CROP_C4_INDUCTIVE.csv`: inductive vs transductive fits.
+- `CROP_C5_SHUFFLES.csv`: label and order shuffles.
+- `CROP_C6_ALPHA.csv`: the α sweep, with the empty-prefix rate, infeasible seeds and the 1/(n+1) > α mark. The mark
+  never fires (n_cal ≈ 1,000).
+- `CROP_C7_BOUNDARY.csv`: boundary deviation.
+
+Figure: `figures/crop_controls_c6_kept_vs_alpha.png`.
+
+**C2 map.** u = clip((s − min_train)/(max_train − min_train), 0, 1), from the training-split steps. It is fixed in
+advance and identical for every proxy. The train-quantile-201 grid is run as well, and so is CROP's raw fixed grid
+for every proxy already in [0,1].
+
+### Headline: kept % (risk %) at α = .05, quantile-201 grid, C1, mean of 10 seeds
+
+| proxy | access | Qwen-7B | Qwen-72B | PURE | RLHFlow | Math-Shepherd |
+|---|---|---|---|---|---|---|
+| Direct PRM (1−reward) | trained PRM | 17.3 (3.9) | 20.6 (7.4)\* | 17.2 (4.8) | 8.3 (4.4) | 11.5 (4.2) |
+| C3 Format/position LR | supervised | 16.7 (4.9) | (same) | (same) | (same) | (same) |
+| C3 Format/position + PRM LR | supervised | 21.7 (4.7) | 21.3 (4.9) | 22.1 (4.8) | 17.8 (4.6) | 18.6 (5.0) |
+| Telemetry13 + PRM LR | supervised | 25.1 (4.6) | 24.9 (5.1) | 25.2 (5.1) | 22.1 (4.7) | 20.6 (4.5) |
+| CHAIN_N16, transductive | label-free fusion | 23.3 (4.8) | 22.0 (4.7) | 20.7 (4.8) | 16.3 (4.2) | 17.3 (4.9) |
+| CHAIN_N16, inductive (C4) | label-free fusion | 23.2 (5.0) | 22.2 (4.7) | 20.7 (4.8) | 16.4 (4.2) | 17.4 (4.9) |
+| LSML_CONT, inductive (C4) | label-selected channels | 25.3 (4.6) | 26.2 (4.8) | 21.3 (4.8) | 18.2 (4.2) | 16.8 (4.9) |
+
+\* **Qwen-72B Direct PRM breaks the α guarantee: 7.4% risk at α = .05.**
+- 58% of its rewards are exactly 1.0, so its risk score has a large tie at 0.
+- Even the smallest λ keeps those steps, with 7.4% contamination.
+- No λ is feasible for α ≤ .05 in any of the 10 seeds, and CROP's fallback (the smallest λ) does not abstain.
+- The fused scores have no such ties.
+
+**Findings**
+- **C3 explains CROP's Trace+PRM row.** Our format/position + PRM LR keeps 21.7% on Qwen-7B. CROP's Trace+PRM keeps
+  21.8%, and the format/position LR alone keeps 16.7% (their Token/format: 16.2%). CROP's gain over the PRM is
+  matched by surface/position cues plus the PRM, without their Llama trace features.
+- **C4: inductive ≈ transductive** for every PRM, within 0.4 points. Fitting our fusion on all answers including the
+  test traces does not inflate the result.
+- **C2: the fused lead is not a grid effect.**
+  - On the fixed min-max grid, CHAIN_N16 drops by only 0.5–1.4 points (Qwen-7B 23.3 → 21.9).
+  - Direct PRM drops to 4.9 on that grid. Its 4.8% in CROP's paper is a grid artifact.
+- **The supervised Telemetry + PRM LR keeps the most** on every PRM (20.6–25.2). Label-free CHAIN_N16 reaches
+  82–93% of it on the Qwen and PURE PRMs.
+- **C5, label shuffle.**
+  - With shuffled calibration labels, the label-free arms become *more* conservative: risk about 1.4% and kept
+    roughly halved.
+  - Supervised LRs refitted on shuffled labels lose kept (Telemetry LR 25.1 → 15.9) but stay near α.
+  - So the certificate depends on real labels, but risk did not rise above α as the plan expected.
+- **C5, order shuffle.** Kept falls to 5–11% for every proxy. Prefix utility depends on where in the trace the errors
+  sit. The scores were computed in the original order and permuted together with their labels; re-scoring permuted
+  text would need inference.
+- **C7, boundary deviation |M−O|/T on Qwen-7B.** Direct PRM 36.4, Telemetry LR 28.4, LSML_CONT 28.3, CHAIN_N16 30.3.
+  Almost all of it is over-withholding; unsafe overshoot is about 1 for every proxy.
+
+## 11. Optional section 3 (approved by Omri 2026-10-21; job 290578)
+Code: `section3/run_section3.sh` and `section3/score_banks_prmbench.py`. The latter is a PRMBench-only copy of
+`sml_weight_estimator_v1/processbench_banks/score_banks.py`; the original is unchanged. Next to it are
+`rank1_fit.py` and `prm_label_contract.py`, both verbatim copies, because the AIRCC mirror lacks them.
+Report: `section3/section3_report.py`. Raw outputs: `section3/results/`.
+
+**Parity** (`SECTION3_PARITY.csv`): 82 of 82 pass, max diff 5.6e-16.
+- 3b: every arm without digit channels (N11, N13, PRM_native, LSML_CONT) is unchanged. That is 62 numbers.
+- 3a: LSML_CONT and ALL_EQ_ORIENTED reproduce `thinkfix_rescore_v1/thinkfix_mask1/cont_baselines/ABSOLUTE.csv` on all
+  10 banks (20 numbers).
+
+**3b, Math-Shepherd on the digit-fixed bank** (`tables/SECTION3_3B_SWEEP.csv`, `SECTION3_3B_CONTROLS.csv`; Q80).
+Within-AUC and PRMScore, old → new:
+
+| arm | within-AUC old → new | PRMScore old → new |
+|---|---|---|
+| CHAIN_N14 | .7019 → .7162 | 59.48 → 60.36 |
+| TELE_N14 | .6872 → .6947 | 58.46 → 59.21 |
+| PRMG_N14 | .6921 → .7077 | 58.70 → 60.11 |
+| CHAIN_S6 | .7586 → .7648 | 63.57 → 63.86 |
+| TELE_S6 | .7208 → .7239 | 61.46 → 61.68 |
+| PRMG_S6 | .7389 → .7505 | 62.36 → 63.16 |
+| controls HALF_N16 | .7640 → .7698 | 62.52 → 62.82 |
+| controls LSML_N16_PRMG | .7133 → .7608 | 60.58 → 63.52 |
+| controls LSML_N16_AUTO | .7285 → .7458 | 61.70 → 62.71 |
+
+**3a, weight estimator on thinkfix_mask1, PRMBench within-AUC** (`tables/SECTION3_3A_BANKS.csv`). This replaces the
+removed old-template sections 3 and 5. Values are old template → mask1.
+
+| bank | LSML_CONT (shipped) | LSML_ABS_ORI | LSML_RANK1_ORI | ALL_EQ_ORIENTED (plain mean) |
+|---|---|---|---|---|
+| N13 | .7803 → .7661 | .7770 → .7655 | .7677 → .7557 | .7757 → .7641 |
+| N16 | .7958 → **.7792** | .7919 → .7793 | .7762 → .7704 | .7906 → **.7811** |
+| N25 | .7821 → .7740 | .7853 → .7733 | .7637 → .7711 | .7823 → .7757 |
+| N40 | .7243 → .7393 | .7731 → .7666 | .7745 → .7609 | .7729 → .7606 |
+| N43 | .7583 → .7616 | .7877 → .7751 | .7779 → .7638 | .7836 → .7724 |
+| N56 | .7775 → .7705 | .7682 → .7687 | .7600 → .7500 | .7757 → .7731 |
+
+- **On mask1, the plain oriented mean matches or beats shipped L-SML on 7 of 10 banks**, N16 included (.7811 vs
+  .7792). On the old template, L-SML led on N16.
+- The rank-one fit is below shipped L-SML on 7 of 10 banks. It is above on N22, N40 and N43, the banks where
+  shipped L-SML is weakest.
+- |v| weights help clearly only on N40 (+.027) and N43 (+.014), where shipped L-SML had negative weights. Elsewhere
+  they are within ±.002.
