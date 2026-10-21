@@ -59,8 +59,9 @@ answers and step counts match the backbone run exactly.
   The standalone pass is batched.
 - **Rough full-run estimate before timing:** 0.3-0.8 GPU-h per 7B-class model and 2-5 GPU-h for the 72B, so about
   4-8 GPU-h in total.
-- **Gate:** the full runs go ahead only if the timing jobs are clean (COMPLETE, 0 failures, 0 context overflow) and
-  the measured full-run estimate is within the budget Omri confirms. Otherwise stop and report.
+- **Gate (Omri, 2026-10-22: "it should just run them, I don't care how long it will take"):** no budget limit. The
+  timing jobs stay as a correctness check only. If they are clean (COMPLETE, 0 failures, 0 context overflow), submit
+  the full runs at once. Stop and report only on a correctness failure.
 - **Disk:** about 190 GB of new checkpoints (72B: about 145 GB) plus about 1 GB of raw telemetry per model.
 - No sbatch without a `/preflight` PASS in the same session.
 
@@ -86,8 +87,8 @@ answers and step counts match the backbone run exactly.
      system header ("Today Date: 26 Jul 2024"). That is the model as released, so it is kept.
    - `pytest tests/test_standalone_prompt.py`.
 4. **Timing:** `bash aircc/submit_gpu.sh timing`. Report s/row, max input tokens and the status from each
-   `timing_<prm>/manifest.json`. Convert to the full-run estimate. **Stop here for Omri's budget decision** unless he
-   has already confirmed a cap.
+   `timing_<prm>/manifest.json`. If all five are clean, go straight to step 5: there is no budget stop (Omri,
+   2026-10-22). Raise a wall in `common.sh` (`SA_WALL`) if the measured rate needs it.
 5. **Full:** `bash aircc/submit_gpu.sh full`. A job that exits 85 (wall) is resumed by re-running the same command
    for that PRM. The driver refuses a resume with a different model, rows or prompt style.
 6. **Downstream:** `sbatch aircc/downstream.sbatch` (from `$W/code`). It must print `P1 PASS` and
