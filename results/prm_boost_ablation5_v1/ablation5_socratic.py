@@ -47,9 +47,11 @@ def lsml(V, groups=None, anchor=None):
 
 nst = np.diff(o); pos = np.concatenate([(np.arange(k) + .5) / k for k in nst])
 arms, diag = {'PRM': prm, 'PRMPROB': prob, 'POS_ONLY': EV.az(pos, o), 'PRMPOS': .5 * zq + .5 * EV.az(pos, o)}, {}
+CH = {}
 for bk in BANKS:
     b = pop.cell_bank(bk, ans); assert np.array_equal(b['off'], o)
     V = np.asarray(b['V'], float)
+    CH[f'channels__{bk}'] = V.astype(np.float32); CH[f'channel_names__{bk}'] = np.array(b['names'])
     arms[f'TELE_{bk}'], dt = lsml(V, anchor=V.mean(1))
     cn = np.asarray(dt['c'], int)
     arms[f'PRMG_{bk}'], dg = lsml(np.column_stack([zp, V]), groups=np.r_[cn.max() + 1, cn])
@@ -71,5 +73,10 @@ for bk in BANKS:
                 'corr_with_prm': {a: float(np.corrcoef(arms[f'{a}_{bk}'], prm)[0, 1]) for a in ('TELE', 'MEAN', 'PRMG', 'CHAIN', 'HALF', 'EQ')}}
 np.savez_compressed(out, uids=F['uids'], nonempty=ne, nonempty_lengths=F['nonempty_lengths'],
                     native_valid=R['native_labels'].astype(int), **{f'score__{k}': v for k, v in arms.items()})
+import os  # noqa: E402
+if os.environ.get('ABL5_EXPORT_SCORES') == '1':
+    # Optional, off by default (docs/experiments/PRM_BOOSTING_COLLECTION_PLAN_2026-10-21.md, section 1.5): the answer-z
+    # channel matrices for the supervised analogs. Label-free.
+    np.savez_compressed(Path(str(out)).with_name(Path(str(out)).stem + '_CHANNELS.npz'), uids=F['uids'], offsets=o, **CH)
 out.with_suffix('.json').write_text(json.dumps({'bank': str(bank), 'diag': diag, 'labels_read': False}, indent=1))
 print('DONE', out, {k: round(float(np.corrcoef(v, prm)[0, 1]), 3) for k, v in arms.items()})

@@ -103,8 +103,11 @@ def main():
     arms['PRMPOS'] = .5 * zq0 + .5 * EV.az(pos, o)
     if loglen is not None: arms['PRMPOSLEN'] = np.column_stack([zq0, EV.az(pos, o), EV.az(loglen, o)]).mean(1)
     diag['controls'] = {'covariates': ['position'] + (['log_step_tokens'] if loglen is not None else [])}
+    CH = {}
     for bk in BANKS:
         V = np.asarray(pop.cell_bank(bk, ans)['V'], float)
+        if bk in ('N13', 'N16'):
+            CH[f'channels__{bk}'] = V.astype(np.float32); CH[f'channel_names__{bk}'] = np.array(pop.cell_bank(bk, ans)['names'])
         arms[f'TELE_{bk}'], dt = lsml(V, anchor=V.mean(1))
         arms[f'MEAN_{bk}'] = V.mean(1)
         cn = np.asarray(dt['c'], int)
@@ -200,6 +203,17 @@ def main():
             wr = csv.DictWriter(f, list(dict.fromkeys(k for r in rr for k in r))); wr.writeheader(); wr.writerows(rr)
     (out / f'ABL5_DIAG_{tag}.json').write_text(json.dumps(diag, indent=1))
     for r in rows: print(tag, r['arm'], r['rule'], round(r['within_auc'], 4), round(r['prmscore'], 2), flush=True)
+    import os
+    if os.environ.get('ABL5_EXPORT_SCORES') == '1':
+        # Optional, off by default (docs/experiments/PRM_BOOSTING_COLLECTION_PLAN_2026-10-21.md, stage 1): per-step scores of
+        # every arm, label-free, so count rules (GAP) and competitor metrics can be computed offline. No labels saved.
+        np.savez_compressed(out / f'ABL5_SCORES_{tag}.npz', row_ids=ids, offsets=o,
+                            source_group=np.array([A[i]['source_group'] for i in ans]),
+                            reward=np.concatenate([np.asarray(r['rewards'], float) for r in meta]),
+                            native_error_flag=native, position=pos,
+                            log_step_tokens=loglen if loglen is not None else np.full(o[-1], np.nan),
+                            **{f'score__{k}': np.asarray(v, float) for k, v in arms.items()})
+        np.savez_compressed(out / f'ABL5_CHANNELS_{tag}.npz', row_ids=ids, offsets=o, **CH)
 
 
 if __name__ == '__main__':
