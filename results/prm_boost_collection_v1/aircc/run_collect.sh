@@ -1,4 +1,5 @@
 #!/bin/bash
+# SUPERSEDED by job_a_prmbench.sh / job_b_signabs.sh / job_c_external.sh (linear chain, submit_chain.sh). Kept as the Mac draft.
 # DRAFT, written on the Mac without AIRCC access. Check every path, the account/QoS and the tokenizer path during
 # /preflight before submitting. Plan: docs/experiments/PRM_BOOSTING_COLLECTION_PLAN_2026-10-21.md, stage 1.
 # CPU only, label-free scoring, every output in a NEW directory. Split into linearly chained jobs if it exceeds a wall.
