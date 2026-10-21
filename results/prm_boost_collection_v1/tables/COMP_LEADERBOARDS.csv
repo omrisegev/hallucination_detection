@@ -1,0 +1,94 @@
+benchmark,row,value,access,source
+PRMBench,Qwen2.5-Math-PRM-72B,68.2,trained PRM,PRMBench T3
+PRMBench,PRISM (re-trained 7B),68.0,trained (PRM800K pairs),PRISM T2
+PRMBench,PathFinder-PRM-7B,67.7,trained PRM,its T1
+PRMBench,R-PRM-7B-DPO,66.8,trained PRM (+ ~10 sampled critiques per step),its T2
+PRMBench,ActPRM-X,66.7,trained PRM,its T2
+PRMBench,Gemini-2.0-thinking-exp-1219,68.8,prompted critic,PRMBench T3
+PRMBench,o1-mini (394-sample subset),68.8,prompted critic,PRMBench T3
+PRMBench,GPT-4o,66.8,prompted critic,PRMBench T3
+PRMBench,Human (450 instances),83.8,human,PRMBench T3
+Socratic-PRMBench,o3-mini,75.7,prompted critic,Socratic T3/T4
+Socratic-PRMBench,QwQ-32B,73.8,prompted critic,Socratic T3/T4
+Socratic-PRMBench,Gemini-2.5-Pro,73.5,prompted critic,Socratic T3/T4
+Socratic-PRMBench,DeepSeek-R1,73.0,prompted critic,Socratic T3/T4
+Socratic-PRMBench,GPT-4o,70.8,prompted critic,Socratic T3/T4
+Socratic-PRMBench,Qwen-PRM-7B (best PRM),68.0,trained PRM,Socratic T3/T4
+PRMBench,ours: Qwen2.5-Math-PRM-7B native,65.48848312882983,trained by its authors (PRM),tables/STATUS_MAIN.csv
+PRMBench,ours: Qwen2.5-Math-PRM-7B CHAIN_N16 (GAP),70.399218646434,label-free fusion,tables/STATUS_MAIN.csv
+PRMBench,ours: Qwen2.5-Math-PRM-7B CHAIN_N13 (GAP),70.13626878816427,label-free fusion,tables/STATUS_MAIN.csv
+PRMBench,ours: Qwen2.5-Math-PRM-7B LSML_CONT (GAP),71.2274079058326,label-selected channels,tables/STATUS_MAIN.csv
+PRMBench,ours: Qwen2.5-Math-PRM-7B PRM same rule (better scale under GAP) (GAP),68.00788095877274,trained by its authors (PRM),tables/STATUS_MAIN.csv
+PRMBench,ours: Qwen2.5-Math-PRM-72B native,68.17941456285924,trained by its authors (PRM),tables/STATUS_MAIN.csv
+PRMBench,ours: Qwen2.5-Math-PRM-72B CHAIN_N16 (GAP),71.090168045494,label-free fusion,tables/STATUS_MAIN.csv
+PRMBench,ours: Qwen2.5-Math-PRM-72B CHAIN_N13 (GAP),71.12696997150576,label-free fusion,tables/STATUS_MAIN.csv
+PRMBench,ours: Qwen2.5-Math-PRM-72B LSML_CONT (GAP),71.85779643288785,label-selected channels,tables/STATUS_MAIN.csv
+PRMBench,ours: Qwen2.5-Math-PRM-72B PRM same rule (better scale under GAP) (GAP),69.49450901556327,trained by its authors (PRM),tables/STATUS_MAIN.csv
+PRMBench,ours: PURE-PRM-7B native,65.31430781654949,trained by its authors (PRM),tables/STATUS_MAIN.csv
+PRMBench,ours: PURE-PRM-7B CHAIN_N16 (GAP),69.50671964623271,label-free fusion,tables/STATUS_MAIN.csv
+PRMBench,ours: PURE-PRM-7B CHAIN_N13 (GAP),67.8566869531664,label-free fusion,tables/STATUS_MAIN.csv
+PRMBench,ours: PURE-PRM-7B LSML_CONT (GAP),68.66949164554515,label-selected channels,tables/STATUS_MAIN.csv
+PRMBench,ours: PURE-PRM-7B PRM same rule (better scale under GAP) (GAP),66.23546598732828,trained by its authors (PRM),tables/STATUS_MAIN.csv
+PRMBench,ours: RLHFlow-PRM-Mistral-8B native,54.42936657060371,trained by its authors (PRM),tables/STATUS_MAIN.csv
+PRMBench,ours: RLHFlow-PRM-Mistral-8B CHAIN_N16 (GAP),66.25127684341129,label-free fusion,tables/STATUS_MAIN.csv
+PRMBench,ours: RLHFlow-PRM-Mistral-8B CHAIN_N13 (GAP),65.11114483041518,label-free fusion,tables/STATUS_MAIN.csv
+PRMBench,ours: RLHFlow-PRM-Mistral-8B LSML_CONT (GAP),65.46891416807448,label-selected channels,tables/STATUS_MAIN.csv
+PRMBench,ours: RLHFlow-PRM-Mistral-8B PRM same rule (better scale under GAP) (GAP),59.38995351991002,trained by its authors (PRM),tables/STATUS_MAIN.csv
+PRMBench,ours: Math-Shepherd-Mistral-7B native,47.0157414558515,trained by its authors (PRM),tables/STATUS_MAIN.csv
+PRMBench,ours: Math-Shepherd-Mistral-7B CHAIN_N16 (GAP),66.38827798138693,label-free fusion,tables/STATUS_MAIN.csv
+PRMBench,ours: Math-Shepherd-Mistral-7B CHAIN_N13 (GAP),63.404416611102064,label-free fusion,tables/STATUS_MAIN.csv
+PRMBench,ours: Math-Shepherd-Mistral-7B LSML_CONT (GAP),65.66008126805004,label-selected channels,tables/STATUS_MAIN.csv
+PRMBench,ours: Math-Shepherd-Mistral-7B PRM same rule (better scale under GAP) (GAP),60.21108402794057,trained by its authors (PRM),tables/STATUS_MAIN.csv
+Socratic-PRMBench,ours: Qwen2.5-Math-PRM-7B native,68.09174282766462,trained by its authors (PRM),tables/STATUS_MAIN.csv
+Socratic-PRMBench,ours: Qwen2.5-Math-PRM-7B CHAIN_N16 (GAP),66.88888418060439,label-free fusion,tables/STATUS_MAIN.csv
+Socratic-PRMBench,ours: Qwen2.5-Math-PRM-7B CHAIN_N13 (GAP),64.11167188868747,label-free fusion,tables/STATUS_MAIN.csv
+Socratic-PRMBench,ours: Qwen2.5-Math-PRM-7B LSML_CONT (GAP),65.61031459060638,label-selected channels,tables/STATUS_MAIN.csv
+Socratic-PRMBench,ours: Qwen2.5-Math-PRM-7B PRM same rule (better scale under GAP) (GAP),70.09754055174817,trained by its authors (PRM),tables/STATUS_MAIN.csv
+Socratic-PRMBench,ours: Qwen2.5-Math-PRM-72B native,71.95529628614304,trained by its authors (PRM),tables/STATUS_MAIN.csv
+Socratic-PRMBench,ours: Qwen2.5-Math-PRM-72B CHAIN_N16 (GAP),57.43478465494953,label-free fusion,tables/STATUS_MAIN.csv
+Socratic-PRMBench,ours: Qwen2.5-Math-PRM-72B CHAIN_N13 (GAP),50.15203201013192,label-free fusion,tables/STATUS_MAIN.csv
+Socratic-PRMBench,ours: Qwen2.5-Math-PRM-72B LSML_CONT (GAP),58.00823772877488,label-selected channels,tables/STATUS_MAIN.csv
+Socratic-PRMBench,ours: Qwen2.5-Math-PRM-72B PRM same rule (better scale under GAP) (GAP),71.72433051225886,trained by its authors (PRM),tables/STATUS_MAIN.csv
+Socratic-PRMBench,ours: PURE-PRM-7B native,63.708039907832024,trained by its authors (PRM),tables/STATUS_MAIN.csv
+Socratic-PRMBench,ours: PURE-PRM-7B CHAIN_N16 (GAP),64.99383771262428,label-free fusion,tables/STATUS_MAIN.csv
+Socratic-PRMBench,ours: PURE-PRM-7B CHAIN_N13 (GAP),64.57507473277614,label-free fusion,tables/STATUS_MAIN.csv
+Socratic-PRMBench,ours: PURE-PRM-7B LSML_CONT (GAP),62.77780402666037,label-selected channels,tables/STATUS_MAIN.csv
+Socratic-PRMBench,ours: PURE-PRM-7B PRM same rule (better scale under GAP) (GAP),70.58644475948822,trained by its authors (PRM),tables/STATUS_MAIN.csv
+Socratic-PRMBench,ours: RLHFlow-PRM-Mistral-8B native,48.121973888264385,trained by its authors (PRM),tables/STATUS_MAIN.csv
+Socratic-PRMBench,ours: RLHFlow-PRM-Mistral-8B CHAIN_N16 (GAP),57.05555233877545,label-free fusion,tables/STATUS_MAIN.csv
+Socratic-PRMBench,ours: RLHFlow-PRM-Mistral-8B CHAIN_N13 (GAP),54.553512017044746,label-free fusion,tables/STATUS_MAIN.csv
+Socratic-PRMBench,ours: RLHFlow-PRM-Mistral-8B LSML_CONT (GAP),51.98704680296217,label-selected channels,tables/STATUS_MAIN.csv
+Socratic-PRMBench,ours: RLHFlow-PRM-Mistral-8B PRM same rule (better scale under GAP) (GAP),50.382501944480765,trained by its authors (PRM),tables/STATUS_MAIN.csv
+Socratic-PRMBench,ours: Math-Shepherd-Mistral-7B native,64.39251073664451,trained by its authors (PRM),tables/STATUS_MAIN.csv
+Socratic-PRMBench,ours: Math-Shepherd-Mistral-7B CHAIN_N16 (GAP),49.42755051098875,label-free fusion,tables/STATUS_MAIN.csv
+Socratic-PRMBench,ours: Math-Shepherd-Mistral-7B CHAIN_N13 (GAP),49.7744054240161,label-free fusion,tables/STATUS_MAIN.csv
+Socratic-PRMBench,ours: Math-Shepherd-Mistral-7B LSML_CONT (GAP),50.578712098763724,label-selected channels,tables/STATUS_MAIN.csv
+Socratic-PRMBench,ours: Math-Shepherd-Mistral-7B PRM same rule (better scale under GAP) (GAP),65.51542242902222,trained by its authors (PRM),tables/STATUS_MAIN.csv
+"Hard2Verify (step Balanced F1, 177 common)",ours: Qwen2.5-Math-PRM-7B native,16.32739311122068,trained by its authors (PRM),tables/STATUS_MAIN.csv
+"Hard2Verify (step Balanced F1, 177 common)",ours: Qwen2.5-Math-PRM-7B CHAIN_N16 (GAP),44.26973536704605,label-free fusion,tables/STATUS_MAIN.csv
+"Hard2Verify (step Balanced F1, 177 common)",ours: Qwen2.5-Math-PRM-7B CHAIN_N13 (GAP),46.062965960225036,label-free fusion,tables/STATUS_MAIN.csv
+"Hard2Verify (step Balanced F1, 177 common)",ours: Qwen2.5-Math-PRM-7B LSML_CONT (GAP),41.80356158188505,label-selected channels,tables/STATUS_MAIN.csv
+"Hard2Verify (step Balanced F1, 177 common)",ours: Qwen2.5-Math-PRM-7B PRM same rule (better scale under GAP) (GAP),45.81994303729991,trained by its authors (PRM),tables/STATUS_MAIN.csv
+"Hard2Verify (step Balanced F1, 177 common)",ours: Qwen2.5-Math-PRM-72B native,31.14466549730224,trained by its authors (PRM),tables/STATUS_MAIN.csv
+"Hard2Verify (step Balanced F1, 177 common)",ours: Qwen2.5-Math-PRM-72B CHAIN_N16 (GAP),43.36721396924681,label-free fusion,tables/STATUS_MAIN.csv
+"Hard2Verify (step Balanced F1, 177 common)",ours: Qwen2.5-Math-PRM-72B CHAIN_N13 (GAP),43.44814820319435,label-free fusion,tables/STATUS_MAIN.csv
+"Hard2Verify (step Balanced F1, 177 common)",ours: Qwen2.5-Math-PRM-72B LSML_CONT (GAP),40.483492693487285,label-selected channels,tables/STATUS_MAIN.csv
+"Hard2Verify (step Balanced F1, 177 common)",ours: Qwen2.5-Math-PRM-72B PRM same rule (better scale under GAP) (GAP),35.51592684475347,trained by its authors (PRM),tables/STATUS_MAIN.csv
+"Hard2Verify (step Balanced F1, 177 common)",ours: PURE-PRM-7B native,52.5884009804028,trained by its authors (PRM),tables/STATUS_MAIN.csv
+"Hard2Verify (step Balanced F1, 177 common)",ours: PURE-PRM-7B CHAIN_N16 (GAP),39.9629686776732,label-free fusion,tables/STATUS_MAIN.csv
+"Hard2Verify (step Balanced F1, 177 common)",ours: PURE-PRM-7B CHAIN_N13 (GAP),41.365721607721326,label-free fusion,tables/STATUS_MAIN.csv
+"Hard2Verify (step Balanced F1, 177 common)",ours: PURE-PRM-7B LSML_CONT (GAP),32.99314055438756,label-selected channels,tables/STATUS_MAIN.csv
+"Hard2Verify (step Balanced F1, 177 common)",ours: PURE-PRM-7B PRM same rule (better scale under GAP) (GAP),50.755229497514286,trained by its authors (PRM),tables/STATUS_MAIN.csv
+"Hard2Verify (step Balanced F1, 177 common)",ours: RLHFlow-PRM-Mistral-8B native,5.931023509288356,trained by its authors (PRM),tables/STATUS_MAIN.csv
+"Hard2Verify (step Balanced F1, 177 common)",ours: RLHFlow-PRM-Mistral-8B CHAIN_N16 (GAP),33.059862066576905,label-free fusion,tables/STATUS_MAIN.csv
+"Hard2Verify (step Balanced F1, 177 common)",ours: RLHFlow-PRM-Mistral-8B CHAIN_N13 (GAP),34.90717462216878,label-free fusion,tables/STATUS_MAIN.csv
+"Hard2Verify (step Balanced F1, 177 common)",ours: RLHFlow-PRM-Mistral-8B LSML_CONT (GAP),21.59053802765585,label-selected channels,tables/STATUS_MAIN.csv
+"Hard2Verify (step Balanced F1, 177 common)",ours: RLHFlow-PRM-Mistral-8B PRM same rule (better scale under GAP) (GAP),5.10983278393368,trained by its authors (PRM),tables/STATUS_MAIN.csv
+"Hard2Verify (step Balanced F1, 177 common)",ours: Math-Shepherd-Mistral-7B native,7.86522461376129,trained by its authors (PRM),tables/STATUS_MAIN.csv
+"Hard2Verify (step Balanced F1, 177 common)",ours: Math-Shepherd-Mistral-7B CHAIN_N16 (GAP),41.77371789299113,label-free fusion,tables/STATUS_MAIN.csv
+"Hard2Verify (step Balanced F1, 177 common)",ours: Math-Shepherd-Mistral-7B CHAIN_N13 (GAP),43.70521776240426,label-free fusion,tables/STATUS_MAIN.csv
+"Hard2Verify (step Balanced F1, 177 common)",ours: Math-Shepherd-Mistral-7B LSML_CONT (GAP),38.73191188988312,label-selected channels,tables/STATUS_MAIN.csv
+"Hard2Verify (step Balanced F1, 177 common)",ours: Math-Shepherd-Mistral-7B PRM same rule (better scale under GAP) (GAP),40.12209696964649,trained by its authors (PRM),tables/STATUS_MAIN.csv
+Hard2Verify (step Balanced F1),GPT-5,85.83,prompted critic,Hard2Verify T2
+Hard2Verify (step Balanced F1),Gemini-2.5-Pro,83.09,prompted critic,Hard2Verify T2
+Hard2Verify (step Balanced F1),Qwen-PRM-7B (paper),42.37,trained PRM,Hard2Verify T2

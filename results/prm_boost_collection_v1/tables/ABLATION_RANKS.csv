@@ -1,0 +1,941 @@
+benchmark,prm,rule,rank,arm,official,access
+prmbench,qwen_prm_7b,GAP,1,EQP_S5,72.00247176050934,label-selected channels
+prmbench,qwen_prm_7b,GAP,2,PRMG_S5,71.79466594871617,label-selected channels
+prmbench,qwen_prm_7b,GAP,3,CHAINP_S5,71.7767545067217,label-selected channels
+prmbench,qwen_prm_7b,GAP,4,CHAIN_S5,71.69450950348767,label-selected channels
+prmbench,qwen_prm_7b,GAP,5,EQ_S5,71.39032683072003,label-selected channels
+prmbench,qwen_prm_7b,GAP,6,LSML_CONT,71.2274079058326,label-selected channels
+prmbench,qwen_prm_7b,GAP,7,HALF_S5,71.00165361271735,label-selected channels
+prmbench,qwen_prm_7b,GAP,8,MEAN_S5,70.96586092798425,label-selected channels
+prmbench,qwen_prm_7b,GAP,9,TELE_S5,70.80294586376613,label-selected channels
+prmbench,qwen_prm_7b,GAP,10,CHAINP_N16,70.73461386821376,label-free fusion
+prmbench,qwen_prm_7b,GAP,11,CHAINP_N13,70.4013193965643,label-free fusion
+prmbench,qwen_prm_7b,GAP,12,CHAIN_N16,70.399218646434,label-free fusion
+prmbench,qwen_prm_7b,GAP,13,HALFP_S5,70.16541356295748,label-selected channels
+prmbench,qwen_prm_7b,GAP,14,CHAIN_N13,70.13626878816427,label-free fusion
+prmbench,qwen_prm_7b,GAP,15,PRMG_N16,70.1235554097045,label-free fusion
+prmbench,qwen_prm_7b,GAP,16,PRMG_N13,69.80933157920092,label-free fusion
+prmbench,qwen_prm_7b,GAP,17,HALF_N16,69.64311805625394,fixed control
+prmbench,qwen_prm_7b,GAP,18,HALF_N13,69.60072692849131,fixed control
+prmbench,qwen_prm_7b,GAP,19,EQP_N16,69.59034613401546,label-free fusion
+prmbench,qwen_prm_7b,GAP,20,CHAINRES_N16,69.42639746096731,label-free control (position/length residualised)
+prmbench,qwen_prm_7b,GAP,21,EQ_N16,69.3218193888689,label-free fusion
+prmbench,qwen_prm_7b,GAP,22,HALFP_N16,69.26740087795386,fixed control
+prmbench,qwen_prm_7b,GAP,23,TELE_N16,69.25744182372274,label-free fusion
+prmbench,qwen_prm_7b,GAP,24,HALFP_N13,69.12443539220388,fixed control
+prmbench,qwen_prm_7b,GAP,25,EQP_N13,68.89168298370174,label-free fusion
+prmbench,qwen_prm_7b,GAP,26,CHAINRES_N13,68.6526184074247,label-free control (position/length residualised)
+prmbench,qwen_prm_7b,GAP,27,EQ_N13,68.63695008659559,label-free fusion
+prmbench,qwen_prm_7b,GAP,28,TELE_N13,68.62701546361507,label-free fusion
+prmbench,qwen_prm_7b,GAP,29,MEAN_N16,68.6001826037451,label-free fusion
+prmbench,qwen_prm_7b,GAP,30,EQRES_N16,68.42343850991645,label-free control (position/length residualised)
+prmbench,qwen_prm_7b,GAP,31,TELERES_N16,68.371420435412,label-free control (position/length residualised)
+prmbench,qwen_prm_7b,GAP,32,PRM_Q80_PROB,68.00788095877274,trained by its authors (PRM)
+prmbench,qwen_prm_7b,GAP,33,MEAN_N13,67.76723424448768,label-free fusion
+prmbench,qwen_prm_7b,GAP,34,MEANRES_N16,67.73009458578636,label-free control (position/length residualised)
+prmbench,qwen_prm_7b,GAP,35,PRMPOSLEN,67.47176292871185,label-free control (no telemetry or no PRM)
+prmbench,qwen_prm_7b,GAP,36,EQRES_N13,67.34523214559991,label-free control (position/length residualised)
+prmbench,qwen_prm_7b,GAP,37,TELERES_N13,67.2580258183675,label-free control (position/length residualised)
+prmbench,qwen_prm_7b,GAP,38,MEANRES_N13,66.39943742892291,label-free control (position/length residualised)
+prmbench,qwen_prm_7b,GAP,39,PRM_Q80,66.37382408824588,trained by its authors (PRM)
+prmbench,qwen_prm_7b,GAP,40,PRMPOS,66.27327540430352,label-free control (no telemetry or no PRM)
+prmbench,qwen_prm_7b,GAP,41,LEN_ONLY,56.36524385796285,label-free control (no telemetry or no PRM)
+prmbench,qwen_prm_7b,GAP,42,CHAINPERM_N16,56.22708014995165,label-free control (permuted telemetry)
+prmbench,qwen_prm_7b,GAP,43,EQPERM_N16,55.70573555825668,label-free control (permuted telemetry)
+prmbench,qwen_prm_7b,GAP,44,EQPERM_N13,55.58767905237105,label-free control (permuted telemetry)
+prmbench,qwen_prm_7b,GAP,45,CHAINPERM_N13,55.22431507728582,label-free control (permuted telemetry)
+prmbench,qwen_prm_7b,GAP,46,TELEPERM_N16,54.939837832209506,label-free control (permuted telemetry)
+prmbench,qwen_prm_7b,GAP,47,POS_ONLY,54.348109569271145,label-free control (no telemetry or no PRM)
+prmbench,qwen_prm_7b,GAP,48,TELEPERM_N13,54.183903719686434,label-free control (permuted telemetry)
+prmbench,qwen_prm_7b,Q80,1,CHAINP_S5,69.99439864949031,label-selected channels
+prmbench,qwen_prm_7b,Q80,2,EQP_S5,69.98647970503691,label-selected channels
+prmbench,qwen_prm_7b,Q80,3,HALFP_S5,69.66960528306441,label-selected channels
+prmbench,qwen_prm_7b,Q80,4,PRMG_S5,69.65226598014651,label-selected channels
+prmbench,qwen_prm_7b,Q80,5,CHAIN_S5,69.6295950927215,label-selected channels
+prmbench,qwen_prm_7b,Q80,6,EQ_S5,69.5904970349674,label-selected channels
+prmbench,qwen_prm_7b,Q80,7,HALF_S5,69.50482694214382,label-selected channels
+prmbench,qwen_prm_7b,Q80,8,LSML_CONT,69.48257990072356,label-selected channels
+prmbench,qwen_prm_7b,Q80,9,MEAN_S5,68.95757880577627,label-selected channels
+prmbench,qwen_prm_7b,Q80,10,TELE_S5,68.90804451919,label-selected channels
+prmbench,qwen_prm_7b,Q80,11,CHAINP_N16,68.71979337301819,label-free fusion
+prmbench,qwen_prm_7b,Q80,12,HALFP_N16,68.709076772008,fixed control
+prmbench,qwen_prm_7b,Q80,13,HALFP_N13,68.66013816252105,fixed control
+prmbench,qwen_prm_7b,Q80,14,CHAINP_N13,68.45078763372805,label-free fusion
+prmbench,qwen_prm_7b,Q80,15,CHAIN_N16,68.25091765108573,label-free fusion
+prmbench,qwen_prm_7b,Q80,16,HALF_N16,68.11787162283092,fixed control
+prmbench,qwen_prm_7b,Q80,17,HALF_N13,68.10259111302233,fixed control
+prmbench,qwen_prm_7b,Q80,18,CHAIN_N13,67.81559678398754,label-free fusion
+prmbench,qwen_prm_7b,Q80,19,PRMG_N16,67.8013060248396,label-free fusion
+prmbench,qwen_prm_7b,Q80,20,PRMG_N13,67.32566687279173,label-free fusion
+prmbench,qwen_prm_7b,Q80,21,PRM_Q80_PROB,67.31803748723453,trained by its authors (PRM)
+prmbench,qwen_prm_7b,Q80,22,EQP_N16,67.28990865443144,label-free fusion
+prmbench,qwen_prm_7b,Q80,23,CHAINRES_N16,67.2697812367432,label-free control (position/length residualised)
+prmbench,qwen_prm_7b,Q80,24,TELE_N16,67.1117145302881,label-free fusion
+prmbench,qwen_prm_7b,Q80,25,EQ_N16,66.99624740510606,label-free fusion
+prmbench,qwen_prm_7b,Q80,26,EQP_N13,66.78897105337147,label-free fusion
+prmbench,qwen_prm_7b,Q80,27,CHAINRES_N13,66.60737287034031,label-free control (position/length residualised)
+prmbench,qwen_prm_7b,Q80,28,MEAN_N16,66.44156744486439,label-free fusion
+prmbench,qwen_prm_7b,Q80,29,EQRES_N16,66.3238523786919,label-free control (position/length residualised)
+prmbench,qwen_prm_7b,Q80,30,TELERES_N16,66.29727758906483,label-free control (position/length residualised)
+prmbench,qwen_prm_7b,Q80,31,EQ_N13,66.2894879695625,label-free fusion
+prmbench,qwen_prm_7b,Q80,32,TELE_N13,66.2383115477086,label-free fusion
+prmbench,qwen_prm_7b,Q80,33,PRM_Q80,65.81921556477266,trained by its authors (PRM)
+prmbench,qwen_prm_7b,Q80,34,MEANRES_N16,65.64253784979036,label-free control (position/length residualised)
+prmbench,qwen_prm_7b,Q80,35,MEAN_N13,65.52717501997222,label-free fusion
+prmbench,qwen_prm_7b,Q80,36,TELERES_N13,65.38868246799653,label-free control (position/length residualised)
+prmbench,qwen_prm_7b,Q80,37,PRMPOSLEN,65.33794535282492,label-free control (no telemetry or no PRM)
+prmbench,qwen_prm_7b,Q80,38,EQRES_N13,65.33199378656084,label-free control (position/length residualised)
+prmbench,qwen_prm_7b,Q80,39,MEANRES_N13,64.34127719173428,label-free control (position/length residualised)
+prmbench,qwen_prm_7b,Q80,40,PRMPOS,63.65408365500977,label-free control (no telemetry or no PRM)
+prmbench,qwen_prm_7b,Q80,41,LEN_ONLY,54.42008613798811,label-free control (no telemetry or no PRM)
+prmbench,qwen_prm_7b,Q80,42,CHAINPERM_N16,54.070066197106485,label-free control (permuted telemetry)
+prmbench,qwen_prm_7b,Q80,43,EQPERM_N16,53.80616928259443,label-free control (permuted telemetry)
+prmbench,qwen_prm_7b,Q80,44,EQPERM_N13,53.37854440207907,label-free control (permuted telemetry)
+prmbench,qwen_prm_7b,Q80,45,CHAINPERM_N13,53.21347840330182,label-free control (permuted telemetry)
+prmbench,qwen_prm_7b,Q80,46,TELEPERM_N16,52.96554207810422,label-free control (permuted telemetry)
+prmbench,qwen_prm_7b,Q80,47,POS_ONLY,52.76404332381244,label-free control (no telemetry or no PRM)
+prmbench,qwen_prm_7b,Q80,48,TELEPERM_N13,52.23270091901333,label-free control (permuted telemetry)
+prmbench,qwen_prm_72b,GAP,1,CHAINP_S5,72.73659994896366,label-selected channels
+prmbench,qwen_prm_72b,GAP,2,CHAIN_S5,72.62230245493267,label-selected channels
+prmbench,qwen_prm_72b,GAP,3,EQP_S5,72.59137075141913,label-selected channels
+prmbench,qwen_prm_72b,GAP,4,PRMG_S5,72.57255366961621,label-selected channels
+prmbench,qwen_prm_72b,GAP,5,EQ_S5,72.3000883518512,label-selected channels
+prmbench,qwen_prm_72b,GAP,6,LSML_CONT,71.85779643288785,label-selected channels
+prmbench,qwen_prm_72b,GAP,7,CHAINP_N13,71.2938563417394,label-free fusion
+prmbench,qwen_prm_72b,GAP,8,CHAINP_N16,71.29080581488631,label-free fusion
+prmbench,qwen_prm_72b,GAP,9,HALFP_S5,71.15574602953114,label-selected channels
+prmbench,qwen_prm_72b,GAP,10,CHAIN_N13,71.12696997150576,label-free fusion
+prmbench,qwen_prm_72b,GAP,11,CHAIN_N16,71.090168045494,label-free fusion
+prmbench,qwen_prm_72b,GAP,12,HALF_S5,71.04735770842414,label-selected channels
+prmbench,qwen_prm_72b,GAP,13,TELE_S5,70.97934190643129,label-selected channels
+prmbench,qwen_prm_72b,GAP,14,PRMG_N16,70.89650295019072,label-free fusion
+prmbench,qwen_prm_72b,GAP,15,MEAN_S5,70.79102078477342,label-selected channels
+prmbench,qwen_prm_72b,GAP,16,PRMG_N13,70.75963992882566,label-free fusion
+prmbench,qwen_prm_72b,GAP,17,HALFP_N13,70.56266172890169,fixed control
+prmbench,qwen_prm_72b,GAP,18,HALFP_N16,70.49664896917119,fixed control
+prmbench,qwen_prm_72b,GAP,19,HALF_N16,69.94429507168303,fixed control
+prmbench,qwen_prm_72b,GAP,20,HALF_N13,69.85522653371127,fixed control
+prmbench,qwen_prm_72b,GAP,21,TELE_N16,69.68477044201067,label-free fusion
+prmbench,qwen_prm_72b,GAP,22,EQP_N13,69.6135999479977,label-free fusion
+prmbench,qwen_prm_72b,GAP,23,TELE_N13,69.56604437550081,label-free fusion
+prmbench,qwen_prm_72b,GAP,24,PRM_Q80_PROB,69.49450901556327,trained by its authors (PRM)
+prmbench,qwen_prm_72b,GAP,25,CHAINRES_N16,69.452020176428,label-free control (position/length residualised)
+prmbench,qwen_prm_72b,GAP,26,EQ_N13,69.29396933613391,label-free fusion
+prmbench,qwen_prm_72b,GAP,27,EQP_N16,69.27443883053647,label-free fusion
+prmbench,qwen_prm_72b,GAP,28,CHAINRES_N13,69.27367312609549,label-free control (position/length residualised)
+prmbench,qwen_prm_72b,GAP,29,EQ_N16,69.00609095851723,label-free fusion
+prmbench,qwen_prm_72b,GAP,30,PRMPOSLEN,68.99641586916525,label-free control (no telemetry or no PRM)
+prmbench,qwen_prm_72b,GAP,31,EQRES_N16,68.8277595645753,label-free control (position/length residualised)
+prmbench,qwen_prm_72b,GAP,32,TELERES_N16,68.24113405449091,label-free control (position/length residualised)
+prmbench,qwen_prm_72b,GAP,33,MEAN_N16,68.10734947759092,label-free fusion
+prmbench,qwen_prm_72b,GAP,34,EQRES_N13,67.91285587359545,label-free control (position/length residualised)
+prmbench,qwen_prm_72b,GAP,35,PRMPOS,67.83180080771815,label-free control (no telemetry or no PRM)
+prmbench,qwen_prm_72b,GAP,36,MEAN_N13,67.82386851867943,label-free fusion
+prmbench,qwen_prm_72b,GAP,37,TELERES_N13,67.78230092199826,label-free control (position/length residualised)
+prmbench,qwen_prm_72b,GAP,38,MEANRES_N16,67.6991096595323,label-free control (position/length residualised)
+prmbench,qwen_prm_72b,GAP,39,MEANRES_N13,66.70409197415657,label-free control (position/length residualised)
+prmbench,qwen_prm_72b,GAP,40,PRM_Q80,64.4749075148083,trained by its authors (PRM)
+prmbench,qwen_prm_72b,GAP,41,LEN_ONLY,56.35218570798612,label-free control (no telemetry or no PRM)
+prmbench,qwen_prm_72b,GAP,42,EQPERM_N16,55.97493732861977,label-free control (permuted telemetry)
+prmbench,qwen_prm_72b,GAP,43,EQPERM_N13,55.713479496531015,label-free control (permuted telemetry)
+prmbench,qwen_prm_72b,GAP,44,CHAINPERM_N16,55.18597422421217,label-free control (permuted telemetry)
+prmbench,qwen_prm_72b,GAP,45,TELEPERM_N16,54.89849103426986,label-free control (permuted telemetry)
+prmbench,qwen_prm_72b,GAP,46,CHAINPERM_N13,54.77920621195014,label-free control (permuted telemetry)
+prmbench,qwen_prm_72b,GAP,47,TELEPERM_N13,54.3635370291399,label-free control (permuted telemetry)
+prmbench,qwen_prm_72b,GAP,48,POS_ONLY,54.348109569271145,label-free control (no telemetry or no PRM)
+prmbench,qwen_prm_72b,Q80,1,HALFP_S5,71.15330875401435,label-selected channels
+prmbench,qwen_prm_72b,Q80,2,CHAINP_S5,71.12970058316608,label-selected channels
+prmbench,qwen_prm_72b,Q80,3,CHAIN_S5,70.74750280159769,label-selected channels
+prmbench,qwen_prm_72b,Q80,4,PRMG_S5,70.71357383159787,label-selected channels
+prmbench,qwen_prm_72b,Q80,5,EQP_S5,70.53479093506432,label-selected channels
+prmbench,qwen_prm_72b,Q80,6,EQ_S5,70.35442345107417,label-selected channels
+prmbench,qwen_prm_72b,Q80,7,HALFP_N13,70.32139000601245,fixed control
+prmbench,qwen_prm_72b,Q80,8,HALFP_N16,70.28608434393367,fixed control
+prmbench,qwen_prm_72b,Q80,9,LSML_CONT,69.84229376533565,label-selected channels
+prmbench,qwen_prm_72b,Q80,10,HALF_S5,69.70667246122831,label-selected channels
+prmbench,qwen_prm_72b,Q80,11,PRM_Q80_PROB,69.04129542402627,trained by its authors (PRM)
+prmbench,qwen_prm_72b,Q80,12,CHAINP_N13,69.01696191132702,label-free fusion
+prmbench,qwen_prm_72b,Q80,13,TELE_S5,69.00872327598063,label-selected channels
+prmbench,qwen_prm_72b,Q80,14,CHAIN_N16,68.90478088894216,label-free fusion
+prmbench,qwen_prm_72b,Q80,15,PRMG_N16,68.82869230653651,label-free fusion
+prmbench,qwen_prm_72b,Q80,16,CHAINP_N16,68.8176659472885,label-free fusion
+prmbench,qwen_prm_72b,Q80,17,HALF_N16,68.8107476369299,fixed control
+prmbench,qwen_prm_72b,Q80,18,CHAIN_N13,68.80539587879977,label-free fusion
+prmbench,qwen_prm_72b,Q80,19,MEAN_S5,68.73540006519652,label-selected channels
+prmbench,qwen_prm_72b,Q80,20,HALF_N13,68.65358986109176,fixed control
+prmbench,qwen_prm_72b,Q80,21,PRMG_N13,68.37455211162921,label-free fusion
+prmbench,qwen_prm_72b,Q80,22,CHAINRES_N16,67.88742039901211,label-free control (position/length residualised)
+prmbench,qwen_prm_72b,Q80,23,TELE_N16,67.53395160011254,label-free fusion
+prmbench,qwen_prm_72b,Q80,24,CHAINRES_N13,67.43461599392208,label-free control (position/length residualised)
+prmbench,qwen_prm_72b,Q80,25,EQP_N16,67.30785514065602,label-free fusion
+prmbench,qwen_prm_72b,Q80,26,EQP_N13,67.18411383120711,label-free fusion
+prmbench,qwen_prm_72b,Q80,27,TELE_N13,67.16947738928656,label-free fusion
+prmbench,qwen_prm_72b,Q80,28,EQ_N16,67.10909992364367,label-free fusion
+prmbench,qwen_prm_72b,Q80,29,EQ_N13,66.93343413746106,label-free fusion
+prmbench,qwen_prm_72b,Q80,30,EQRES_N16,66.87191495138927,label-free control (position/length residualised)
+prmbench,qwen_prm_72b,Q80,31,PRMPOSLEN,66.55965060911619,label-free control (no telemetry or no PRM)
+prmbench,qwen_prm_72b,Q80,32,TELERES_N16,66.38812120921217,label-free control (position/length residualised)
+prmbench,qwen_prm_72b,Q80,33,PRM_Q80,66.24430759255526,trained by its authors (PRM)
+prmbench,qwen_prm_72b,Q80,34,MEAN_N16,66.16982664110554,label-free fusion
+prmbench,qwen_prm_72b,Q80,35,EQRES_N13,65.98992230184952,label-free control (position/length residualised)
+prmbench,qwen_prm_72b,Q80,36,MEANRES_N16,65.69197959884119,label-free control (position/length residualised)
+prmbench,qwen_prm_72b,Q80,37,MEAN_N13,65.6477974914711,label-free fusion
+prmbench,qwen_prm_72b,Q80,38,TELERES_N13,65.49027126210937,label-free control (position/length residualised)
+prmbench,qwen_prm_72b,Q80,39,PRMPOS,64.73048415896024,label-free control (no telemetry or no PRM)
+prmbench,qwen_prm_72b,Q80,40,MEANRES_N13,64.58303321176886,label-free control (position/length residualised)
+prmbench,qwen_prm_72b,Q80,41,LEN_ONLY,54.43947627377804,label-free control (no telemetry or no PRM)
+prmbench,qwen_prm_72b,Q80,42,EQPERM_N16,54.0190487423566,label-free control (permuted telemetry)
+prmbench,qwen_prm_72b,Q80,43,EQPERM_N13,53.51246599611963,label-free control (permuted telemetry)
+prmbench,qwen_prm_72b,Q80,44,CHAINPERM_N16,53.113067508326516,label-free control (permuted telemetry)
+prmbench,qwen_prm_72b,Q80,45,TELEPERM_N16,52.97608945548442,label-free control (permuted telemetry)
+prmbench,qwen_prm_72b,Q80,46,POS_ONLY,52.76404332381244,label-free control (no telemetry or no PRM)
+prmbench,qwen_prm_72b,Q80,47,CHAINPERM_N13,52.55971038055335,label-free control (permuted telemetry)
+prmbench,qwen_prm_72b,Q80,48,TELEPERM_N13,52.1972214989479,label-free control (permuted telemetry)
+prmbench,pure_prm,GAP,1,CHAINP_N16,69.80366010896178,label-free fusion
+prmbench,pure_prm,GAP,2,EQP_S5,69.65923074736965,label-selected channels
+prmbench,pure_prm,GAP,3,EQ_S5,69.64643478340477,label-selected channels
+prmbench,pure_prm,GAP,4,PRMG_S5,69.58597876300676,label-selected channels
+prmbench,pure_prm,GAP,5,CHAIN_N16,69.50671964623271,label-free fusion
+prmbench,pure_prm,GAP,6,CHAINP_S5,69.48084122957677,label-selected channels
+prmbench,pure_prm,GAP,7,CHAIN_S5,69.33665184157101,label-selected channels
+prmbench,pure_prm,GAP,8,PRMG_N16,69.26437976906156,label-free fusion
+prmbench,pure_prm,GAP,9,HALF_S5,68.99458569601894,label-selected channels
+prmbench,pure_prm,GAP,10,MEAN_S5,68.92453480396908,label-selected channels
+prmbench,pure_prm,GAP,11,EQP_N16,68.7823733322588,label-free fusion
+prmbench,pure_prm,GAP,12,HALFP_S5,68.76554583050887,label-selected channels
+prmbench,pure_prm,GAP,13,TELE_N16,68.70961828997035,label-free fusion
+prmbench,pure_prm,GAP,14,LSML_CONT,68.66949164554515,label-selected channels
+prmbench,pure_prm,GAP,15,HALF_N13,68.59477272087142,fixed control
+prmbench,pure_prm,GAP,16,HALF_N16,68.59291331192028,fixed control
+prmbench,pure_prm,GAP,17,EQ_N16,68.52291232403793,label-free fusion
+prmbench,pure_prm,GAP,18,TELE_S5,68.38929355661617,label-selected channels
+prmbench,pure_prm,GAP,19,EQP_N13,68.3066141725128,label-free fusion
+prmbench,pure_prm,GAP,20,HALFP_N16,68.2256567046277,fixed control
+prmbench,pure_prm,GAP,21,HALFP_N13,68.1539764354306,fixed control
+prmbench,pure_prm,GAP,22,CHAINP_N13,68.09660739013216,label-free fusion
+prmbench,pure_prm,GAP,23,MEAN_N16,67.98354425201906,label-free fusion
+prmbench,pure_prm,GAP,24,EQ_N13,67.87246900990324,label-free fusion
+prmbench,pure_prm,GAP,25,CHAIN_N13,67.8566869531664,label-free fusion
+prmbench,pure_prm,GAP,26,PRMG_N13,67.81225743475675,label-free fusion
+prmbench,pure_prm,GAP,27,EQRES_N16,67.76201547389735,label-free control (position/length residualised)
+prmbench,pure_prm,GAP,28,CHAINRES_N16,67.35604874939645,label-free control (position/length residualised)
+prmbench,pure_prm,GAP,29,TELE_N13,67.27003400921821,label-free fusion
+prmbench,pure_prm,GAP,30,MEAN_N13,67.2066374893642,label-free fusion
+prmbench,pure_prm,GAP,31,EQRES_N13,67.1940939998577,label-free control (position/length residualised)
+prmbench,pure_prm,GAP,32,MEANRES_N16,67.17950048094418,label-free control (position/length residualised)
+prmbench,pure_prm,GAP,33,TELERES_N16,66.85051075021387,label-free control (position/length residualised)
+prmbench,pure_prm,GAP,34,CHAINRES_N13,66.82272430386762,label-free control (position/length residualised)
+prmbench,pure_prm,GAP,35,MEANRES_N13,66.24165256904406,label-free control (position/length residualised)
+prmbench,pure_prm,GAP,36,PRM_Q80_PROB,66.23546598732828,trained by its authors (PRM)
+prmbench,pure_prm,GAP,37,PRMPOSLEN,65.88508717619095,label-free control (no telemetry or no PRM)
+prmbench,pure_prm,GAP,38,TELERES_N13,65.83078825593093,label-free control (position/length residualised)
+prmbench,pure_prm,GAP,39,PRM_Q80,64.67004662067043,trained by its authors (PRM)
+prmbench,pure_prm,GAP,40,PRMPOS,64.57406769866847,label-free control (no telemetry or no PRM)
+prmbench,pure_prm,GAP,41,LEN_ONLY,56.36524385796285,label-free control (no telemetry or no PRM)
+prmbench,pure_prm,GAP,42,EQPERM_N16,55.01228713221056,label-free control (permuted telemetry)
+prmbench,pure_prm,GAP,43,CHAINPERM_N16,54.69796214972186,label-free control (permuted telemetry)
+prmbench,pure_prm,GAP,44,EQPERM_N13,54.48806601823881,label-free control (permuted telemetry)
+prmbench,pure_prm,GAP,45,POS_ONLY,54.348109569271145,label-free control (no telemetry or no PRM)
+prmbench,pure_prm,GAP,46,TELEPERM_N16,53.98665183204927,label-free control (permuted telemetry)
+prmbench,pure_prm,GAP,47,CHAINPERM_N13,53.89117342659271,label-free control (permuted telemetry)
+prmbench,pure_prm,GAP,48,TELEPERM_N13,53.51531254188263,label-free control (permuted telemetry)
+prmbench,pure_prm,Q80,1,EQP_S5,67.87088835874783,label-selected channels
+prmbench,pure_prm,Q80,2,CHAINP_S5,67.58462298891618,label-selected channels
+prmbench,pure_prm,Q80,3,EQ_S5,67.57397112730987,label-selected channels
+prmbench,pure_prm,Q80,4,CHAINP_N16,67.52822973063432,label-free fusion
+prmbench,pure_prm,Q80,5,PRMG_S5,67.45685784402981,label-selected channels
+prmbench,pure_prm,Q80,6,CHAIN_N16,67.28899162498193,label-free fusion
+prmbench,pure_prm,Q80,7,HALFP_S5,67.28202450399489,label-selected channels
+prmbench,pure_prm,Q80,8,CHAIN_S5,67.18661264423586,label-selected channels
+prmbench,pure_prm,Q80,9,HALF_S5,67.1429655201633,label-selected channels
+prmbench,pure_prm,Q80,10,HALFP_N13,66.91435480710852,fixed control
+prmbench,pure_prm,Q80,11,PRMG_N16,66.87918955100967,label-free fusion
+prmbench,pure_prm,Q80,12,MEAN_S5,66.83445132465694,label-selected channels
+prmbench,pure_prm,Q80,13,HALFP_N16,66.82907237060735,fixed control
+prmbench,pure_prm,Q80,14,LSML_CONT,66.68958099346494,label-selected channels
+prmbench,pure_prm,Q80,15,HALF_N16,66.48863593166304,fixed control
+prmbench,pure_prm,Q80,16,EQP_N16,66.46432381369665,label-free fusion
+prmbench,pure_prm,Q80,17,EQ_N16,66.39243481654327,label-free fusion
+prmbench,pure_prm,Q80,18,HALF_N13,66.38377340605253,fixed control
+prmbench,pure_prm,Q80,19,TELE_N16,66.32892034130947,label-free fusion
+prmbench,pure_prm,Q80,20,TELE_S5,66.24973193150656,label-selected channels
+prmbench,pure_prm,Q80,21,CHAINP_N13,65.86144693071792,label-free fusion
+prmbench,pure_prm,Q80,22,MEAN_N16,65.82507162421874,label-free fusion
+prmbench,pure_prm,Q80,23,EQP_N13,65.76030562069735,label-free fusion
+prmbench,pure_prm,Q80,24,CHAIN_N13,65.5859455097089,label-free fusion
+prmbench,pure_prm,Q80,25,EQRES_N16,65.57814806154944,label-free control (position/length residualised)
+prmbench,pure_prm,Q80,26,CHAINRES_N16,65.53360344926337,label-free control (position/length residualised)
+prmbench,pure_prm,Q80,27,PRMG_N13,65.49233575363445,label-free fusion
+prmbench,pure_prm,Q80,28,EQ_N13,65.42976470867357,label-free fusion
+prmbench,pure_prm,Q80,29,MEANRES_N16,64.95079933414225,label-free control (position/length residualised)
+prmbench,pure_prm,Q80,30,TELE_N13,64.8991252270515,label-free fusion
+prmbench,pure_prm,Q80,31,CHAINRES_N13,64.89606147680898,label-free control (position/length residualised)
+prmbench,pure_prm,Q80,32,MEAN_N13,64.75474192758391,label-free fusion
+prmbench,pure_prm,Q80,33,EQRES_N13,64.74145514224557,label-free control (position/length residualised)
+prmbench,pure_prm,Q80,34,PRM_Q80_PROB,64.71736484054821,trained by its authors (PRM)
+prmbench,pure_prm,Q80,35,TELERES_N16,64.62724770322595,label-free control (position/length residualised)
+prmbench,pure_prm,Q80,36,MEANRES_N13,64.07216504658103,label-free control (position/length residualised)
+prmbench,pure_prm,Q80,37,PRMPOSLEN,63.89127685366237,label-free control (no telemetry or no PRM)
+prmbench,pure_prm,Q80,38,TELERES_N13,63.83368773822081,label-free control (position/length residualised)
+prmbench,pure_prm,Q80,39,PRM_Q80,63.26835309647472,trained by its authors (PRM)
+prmbench,pure_prm,Q80,40,PRMPOS,61.42299176859953,label-free control (no telemetry or no PRM)
+prmbench,pure_prm,Q80,41,LEN_ONLY,54.42008613798811,label-free control (no telemetry or no PRM)
+prmbench,pure_prm,Q80,42,EQPERM_N16,53.282998894668154,label-free control (permuted telemetry)
+prmbench,pure_prm,Q80,43,CHAINPERM_N16,52.796389248701644,label-free control (permuted telemetry)
+prmbench,pure_prm,Q80,44,POS_ONLY,52.76404332381244,label-free control (no telemetry or no PRM)
+prmbench,pure_prm,Q80,45,EQPERM_N13,52.38653120083465,label-free control (permuted telemetry)
+prmbench,pure_prm,Q80,46,TELEPERM_N16,52.09658864025868,label-free control (permuted telemetry)
+prmbench,pure_prm,Q80,47,CHAINPERM_N13,51.69493849962217,label-free control (permuted telemetry)
+prmbench,pure_prm,Q80,48,TELEPERM_N13,51.32010063732463,label-free control (permuted telemetry)
+prmbench,rlhflow_prm,GAP,1,PRMG_S5,68.18067954892251,label-selected channels
+prmbench,rlhflow_prm,GAP,2,CHAIN_S5,68.0308476370658,label-selected channels
+prmbench,rlhflow_prm,GAP,3,CHAINP_S5,67.8371548197761,label-selected channels
+prmbench,rlhflow_prm,GAP,4,EQP_S5,67.67554161982761,label-selected channels
+prmbench,rlhflow_prm,GAP,5,TELE_S5,67.60204981612779,label-selected channels
+prmbench,rlhflow_prm,GAP,6,EQ_S5,67.51798184179614,label-selected channels
+prmbench,rlhflow_prm,GAP,7,MEAN_S5,67.24013635217551,label-selected channels
+prmbench,rlhflow_prm,GAP,8,PRMG_N16,66.38440647906376,label-free fusion
+prmbench,rlhflow_prm,GAP,9,CHAIN_N16,66.25127684341129,label-free fusion
+prmbench,rlhflow_prm,GAP,10,EQRES_N16,66.19304902373511,label-free control (position/length residualised)
+prmbench,rlhflow_prm,GAP,11,TELE_N16,66.17227385636284,label-free fusion
+prmbench,rlhflow_prm,GAP,12,CHAINP_N16,66.103430053381,label-free fusion
+prmbench,rlhflow_prm,GAP,13,TELERES_N16,66.04394066294252,label-free control (position/length residualised)
+prmbench,rlhflow_prm,GAP,14,MEANRES_N16,66.03148626475908,label-free control (position/length residualised)
+prmbench,rlhflow_prm,GAP,15,MEANRES_N13,65.85396429154139,label-free control (position/length residualised)
+prmbench,rlhflow_prm,GAP,16,CHAINRES_N16,65.84709688982133,label-free control (position/length residualised)
+prmbench,rlhflow_prm,GAP,17,EQ_N16,65.81562005651982,label-free fusion
+prmbench,rlhflow_prm,GAP,18,EQRES_N13,65.80701545664787,label-free control (position/length residualised)
+prmbench,rlhflow_prm,GAP,19,EQP_N16,65.74611793375223,label-free fusion
+prmbench,rlhflow_prm,GAP,20,MEAN_N16,65.56563485454684,label-free fusion
+prmbench,rlhflow_prm,GAP,21,LSML_CONT,65.46891416807448,label-selected channels
+prmbench,rlhflow_prm,GAP,22,EQ_N13,65.45850416104516,label-free fusion
+prmbench,rlhflow_prm,GAP,23,EQP_N13,65.32183032250585,label-free fusion
+prmbench,rlhflow_prm,GAP,24,CHAINRES_N13,65.28043970525813,label-free control (position/length residualised)
+prmbench,rlhflow_prm,GAP,25,TELERES_N13,65.28003991309318,label-free control (position/length residualised)
+prmbench,rlhflow_prm,GAP,26,TELE_N13,65.1962056541864,label-free fusion
+prmbench,rlhflow_prm,GAP,27,CHAINP_N13,65.16234478377874,label-free fusion
+prmbench,rlhflow_prm,GAP,28,CHAIN_N13,65.11114483041518,label-free fusion
+prmbench,rlhflow_prm,GAP,29,PRMG_N13,65.10984852147746,label-free fusion
+prmbench,rlhflow_prm,GAP,30,MEAN_N13,65.01121944044925,label-free fusion
+prmbench,rlhflow_prm,GAP,31,PRMPOSLEN,64.20478291188041,label-free control (no telemetry or no PRM)
+prmbench,rlhflow_prm,GAP,32,HALF_S5,63.90594759630195,label-selected channels
+prmbench,rlhflow_prm,GAP,33,HALFP_S5,63.07695085781464,label-selected channels
+prmbench,rlhflow_prm,GAP,34,HALF_N16,62.63486238007353,fixed control
+prmbench,rlhflow_prm,GAP,35,PRMPOS,62.50726598364604,label-free control (no telemetry or no PRM)
+prmbench,rlhflow_prm,GAP,36,HALF_N13,62.447698731790034,fixed control
+prmbench,rlhflow_prm,GAP,37,HALFP_N16,61.611823421240885,fixed control
+prmbench,rlhflow_prm,GAP,38,HALFP_N13,61.49656187816623,fixed control
+prmbench,rlhflow_prm,GAP,39,PRM_Q80,59.38995351991002,trained by its authors (PRM)
+prmbench,rlhflow_prm,GAP,40,PRM_Q80_PROB,59.08268932342081,trained by its authors (PRM)
+prmbench,rlhflow_prm,GAP,41,LEN_ONLY,56.221099605130654,label-free control (no telemetry or no PRM)
+prmbench,rlhflow_prm,GAP,42,POS_ONLY,54.348109569271145,label-free control (no telemetry or no PRM)
+prmbench,rlhflow_prm,GAP,43,CHAINPERM_N16,53.612409074780075,label-free control (permuted telemetry)
+prmbench,rlhflow_prm,GAP,44,EQPERM_N16,53.5901595848699,label-free control (permuted telemetry)
+prmbench,rlhflow_prm,GAP,45,TELEPERM_N16,52.88505477508798,label-free control (permuted telemetry)
+prmbench,rlhflow_prm,GAP,46,CHAINPERM_N13,52.76778799259062,label-free control (permuted telemetry)
+prmbench,rlhflow_prm,GAP,47,EQPERM_N13,52.691732773758545,label-free control (permuted telemetry)
+prmbench,rlhflow_prm,GAP,48,TELEPERM_N13,51.9957231288714,label-free control (permuted telemetry)
+prmbench,rlhflow_prm,Q80,1,PRMG_S5,66.18484692462533,label-selected channels
+prmbench,rlhflow_prm,Q80,2,CHAIN_S5,65.9103042604404,label-selected channels
+prmbench,rlhflow_prm,Q80,3,CHAINP_S5,65.79759139599236,label-selected channels
+prmbench,rlhflow_prm,Q80,4,EQ_S5,65.74819949765664,label-selected channels
+prmbench,rlhflow_prm,Q80,5,EQP_S5,65.66786989014645,label-selected channels
+prmbench,rlhflow_prm,Q80,6,TELE_S5,65.63315382245199,label-selected channels
+prmbench,rlhflow_prm,Q80,7,MEAN_S5,65.37592638268363,label-selected channels
+prmbench,rlhflow_prm,Q80,8,PRMG_N16,64.33957763730123,label-free fusion
+prmbench,rlhflow_prm,Q80,9,TELE_N16,64.27641050495629,label-free fusion
+prmbench,rlhflow_prm,Q80,10,EQRES_N16,64.17861376370566,label-free control (position/length residualised)
+prmbench,rlhflow_prm,Q80,11,MEANRES_N16,63.998287098091964,label-free control (position/length residualised)
+prmbench,rlhflow_prm,Q80,12,TELERES_N16,63.99813676845976,label-free control (position/length residualised)
+prmbench,rlhflow_prm,Q80,13,EQRES_N13,63.93653931618963,label-free control (position/length residualised)
+prmbench,rlhflow_prm,Q80,14,CHAIN_N16,63.924181939275904,label-free fusion
+prmbench,rlhflow_prm,Q80,15,EQ_N16,63.85589223402059,label-free fusion
+prmbench,rlhflow_prm,Q80,16,CHAINP_N16,63.851909121987994,label-free fusion
+prmbench,rlhflow_prm,Q80,17,CHAINRES_N16,63.85122701817618,label-free control (position/length residualised)
+prmbench,rlhflow_prm,Q80,18,EQP_N16,63.83568084144042,label-free fusion
+prmbench,rlhflow_prm,Q80,19,MEAN_N16,63.70159139033101,label-free fusion
+prmbench,rlhflow_prm,Q80,20,MEANRES_N13,63.613201145013434,label-free control (position/length residualised)
+prmbench,rlhflow_prm,Q80,21,LSML_CONT,63.53309104519707,label-selected channels
+prmbench,rlhflow_prm,Q80,22,CHAINRES_N13,63.42820953741325,label-free control (position/length residualised)
+prmbench,rlhflow_prm,Q80,23,TELERES_N13,63.352637403758905,label-free control (position/length residualised)
+prmbench,rlhflow_prm,Q80,24,EQ_N13,63.16610349278729,label-free fusion
+prmbench,rlhflow_prm,Q80,25,CHAINP_N13,63.1382842186457,label-free fusion
+prmbench,rlhflow_prm,Q80,26,EQP_N13,63.12773352434152,label-free fusion
+prmbench,rlhflow_prm,Q80,27,PRMG_N13,63.11453407791775,label-free fusion
+prmbench,rlhflow_prm,Q80,28,TELE_N13,63.093233513285455,label-free fusion
+prmbench,rlhflow_prm,Q80,29,CHAIN_N13,63.06771587523487,label-free fusion
+prmbench,rlhflow_prm,Q80,30,MEAN_N13,62.969902278819255,label-free fusion
+prmbench,rlhflow_prm,Q80,31,HALF_S5,61.997041382867344,label-selected channels
+prmbench,rlhflow_prm,Q80,32,PRMPOSLEN,61.96058145019002,label-free control (no telemetry or no PRM)
+prmbench,rlhflow_prm,Q80,33,HALFP_S5,60.96098507180956,label-selected channels
+prmbench,rlhflow_prm,Q80,34,HALF_N16,60.463365091358945,fixed control
+prmbench,rlhflow_prm,Q80,35,HALF_N13,60.1564984254902,fixed control
+prmbench,rlhflow_prm,Q80,36,PRMPOS,59.98522176473997,label-free control (no telemetry or no PRM)
+prmbench,rlhflow_prm,Q80,37,HALFP_N16,59.7560936516256,fixed control
+prmbench,rlhflow_prm,Q80,38,HALFP_N13,59.60083542203714,fixed control
+prmbench,rlhflow_prm,Q80,39,PRM_Q80_PROB,56.54379068671975,trained by its authors (PRM)
+prmbench,rlhflow_prm,Q80,40,PRM_Q80,56.45965877330339,trained by its authors (PRM)
+prmbench,rlhflow_prm,Q80,41,LEN_ONLY,54.21039807554919,label-free control (no telemetry or no PRM)
+prmbench,rlhflow_prm,Q80,42,POS_ONLY,52.76404332381244,label-free control (no telemetry or no PRM)
+prmbench,rlhflow_prm,Q80,43,CHAINPERM_N16,51.57005456103227,label-free control (permuted telemetry)
+prmbench,rlhflow_prm,Q80,44,EQPERM_N16,51.53749999948589,label-free control (permuted telemetry)
+prmbench,rlhflow_prm,Q80,45,TELEPERM_N16,51.11597420737654,label-free control (permuted telemetry)
+prmbench,rlhflow_prm,Q80,46,CHAINPERM_N13,50.811640757275825,label-free control (permuted telemetry)
+prmbench,rlhflow_prm,Q80,47,EQPERM_N13,50.7737518860397,label-free control (permuted telemetry)
+prmbench,rlhflow_prm,Q80,48,TELEPERM_N13,50.12436527155886,label-free control (permuted telemetry)
+prmbench,math_shepherd,GAP,1,PRMG_S5,68.0641922256378,label-selected channels
+prmbench,math_shepherd,GAP,2,CHAINP_S5,67.57791597220053,label-selected channels
+prmbench,math_shepherd,GAP,3,CHAIN_S5,67.51082917399462,label-selected channels
+prmbench,math_shepherd,GAP,4,EQP_S5,67.29124617903743,label-selected channels
+prmbench,math_shepherd,GAP,5,TELE_S5,67.1739262807877,label-selected channels
+prmbench,math_shepherd,GAP,6,EQ_S5,67.0817751747154,label-selected channels
+prmbench,math_shepherd,GAP,7,CHAIN_N16,66.38827798138693,label-free fusion
+prmbench,math_shepherd,GAP,8,CHAINP_N16,66.37855680056673,label-free fusion
+prmbench,math_shepherd,GAP,9,MEAN_S5,66.05122639467601,label-selected channels
+prmbench,math_shepherd,GAP,10,HALF_S5,65.8710850184938,label-selected channels
+prmbench,math_shepherd,GAP,11,LSML_CONT,65.66008126805004,label-selected channels
+prmbench,math_shepherd,GAP,12,PRMG_N16,65.62116547077096,label-free fusion
+prmbench,math_shepherd,GAP,13,EQRES_N16,65.55349720503783,label-free control (position/length residualised)
+prmbench,math_shepherd,GAP,14,HALF_N13,65.21025521180567,fixed control
+prmbench,math_shepherd,GAP,15,HALFP_S5,65.15428090682902,label-selected channels
+prmbench,math_shepherd,GAP,16,EQ_N16,65.08098337199965,label-free fusion
+prmbench,math_shepherd,GAP,17,EQP_N16,65.065800011161,label-free fusion
+prmbench,math_shepherd,GAP,18,HALF_N16,65.04739320621115,fixed control
+prmbench,math_shepherd,GAP,19,TELE_N16,64.97210309270423,label-free fusion
+prmbench,math_shepherd,GAP,20,HALFP_N13,64.72146623607054,fixed control
+prmbench,math_shepherd,GAP,21,HALFP_N16,64.62125966219313,fixed control
+prmbench,math_shepherd,GAP,22,MEANRES_N16,64.5902161020279,label-free control (position/length residualised)
+prmbench,math_shepherd,GAP,23,EQ_N13,64.22731120717214,label-free fusion
+prmbench,math_shepherd,GAP,24,MEAN_N16,64.2239388070679,label-free fusion
+prmbench,math_shepherd,GAP,25,EQRES_N13,64.214533059397,label-free control (position/length residualised)
+prmbench,math_shepherd,GAP,26,EQP_N13,64.21426426335405,label-free fusion
+prmbench,math_shepherd,GAP,27,CHAINRES_N13,63.58431863188565,label-free control (position/length residualised)
+prmbench,math_shepherd,GAP,28,CHAINP_N13,63.46029914702389,label-free fusion
+prmbench,math_shepherd,GAP,29,MEANRES_N13,63.43406386101432,label-free control (position/length residualised)
+prmbench,math_shepherd,GAP,30,CHAIN_N13,63.404416611102064,label-free fusion
+prmbench,math_shepherd,GAP,31,PRMG_N13,63.354549409424656,label-free fusion
+prmbench,math_shepherd,GAP,32,MEAN_N13,63.15470421634559,label-free fusion
+prmbench,math_shepherd,GAP,33,TELE_N13,62.99402518626023,label-free fusion
+prmbench,math_shepherd,GAP,34,TELERES_N13,62.88306820540812,label-free control (position/length residualised)
+prmbench,math_shepherd,GAP,35,PRMPOSLEN,62.76508814250297,label-free control (no telemetry or no PRM)
+prmbench,math_shepherd,GAP,36,CHAINRES_N16,62.14571467287098,label-free control (position/length residualised)
+prmbench,math_shepherd,GAP,37,TELERES_N16,60.68215986314623,label-free control (position/length residualised)
+prmbench,math_shepherd,GAP,38,PRM_Q80,60.21108402794057,trained by its authors (PRM)
+prmbench,math_shepherd,GAP,39,PRMPOS,59.84810500784096,label-free control (no telemetry or no PRM)
+prmbench,math_shepherd,GAP,40,PRM_Q80_PROB,59.33402385197325,trained by its authors (PRM)
+prmbench,math_shepherd,GAP,41,LEN_ONLY,56.72945575053768,label-free control (no telemetry or no PRM)
+prmbench,math_shepherd,GAP,42,POS_ONLY,54.348109569271145,label-free control (no telemetry or no PRM)
+prmbench,math_shepherd,GAP,43,EQPERM_N16,54.21853043971985,label-free control (permuted telemetry)
+prmbench,math_shepherd,GAP,44,CHAINPERM_N16,54.11755102064829,label-free control (permuted telemetry)
+prmbench,math_shepherd,GAP,45,TELEPERM_N16,53.50397412414451,label-free control (permuted telemetry)
+prmbench,math_shepherd,GAP,46,EQPERM_N13,53.328129498148094,label-free control (permuted telemetry)
+prmbench,math_shepherd,GAP,47,CHAINPERM_N13,52.522012093395595,label-free control (permuted telemetry)
+prmbench,math_shepherd,GAP,48,TELEPERM_N13,52.09632651767178,label-free control (permuted telemetry)
+prmbench,math_shepherd,Q80,1,PRMG_S5,65.77109038177636,label-selected channels
+prmbench,math_shepherd,Q80,2,CHAINP_S5,65.47558117140346,label-selected channels
+prmbench,math_shepherd,Q80,3,CHAIN_S5,65.4179525849625,label-selected channels
+prmbench,math_shepherd,Q80,4,EQ_S5,65.26516160851725,label-selected channels
+prmbench,math_shepherd,Q80,5,EQP_S5,65.23977077488038,label-selected channels
+prmbench,math_shepherd,Q80,6,TELE_S5,64.95794205680785,label-selected channels
+prmbench,math_shepherd,Q80,7,CHAIN_N16,64.36811004433355,label-free fusion
+prmbench,math_shepherd,Q80,8,CHAINP_N16,64.33994331378882,label-free fusion
+prmbench,math_shepherd,Q80,9,MEAN_S5,64.10987931963327,label-selected channels
+prmbench,math_shepherd,Q80,10,LSML_CONT,63.68170661877187,label-selected channels
+prmbench,math_shepherd,Q80,11,PRMG_N16,63.52244120204516,label-free fusion
+prmbench,math_shepherd,Q80,12,HALF_S5,63.36505954707049,label-selected channels
+prmbench,math_shepherd,Q80,13,EQRES_N16,63.360652680015875,label-free control (position/length residualised)
+prmbench,math_shepherd,Q80,14,HALFP_S5,63.152909335909314,label-selected channels
+prmbench,math_shepherd,Q80,15,HALF_N13,63.096893313005545,fixed control
+prmbench,math_shepherd,Q80,16,EQP_N16,63.07776184619897,label-free fusion
+prmbench,math_shepherd,Q80,17,EQ_N16,63.05132937293254,label-free fusion
+prmbench,math_shepherd,Q80,18,TELE_N16,62.91221792973041,label-free fusion
+prmbench,math_shepherd,Q80,19,HALF_N16,62.81878404472803,fixed control
+prmbench,math_shepherd,Q80,20,HALFP_N16,62.786605168731846,fixed control
+prmbench,math_shepherd,Q80,21,HALFP_N13,62.76284484765539,fixed control
+prmbench,math_shepherd,Q80,22,MEANRES_N16,62.683767966461865,label-free control (position/length residualised)
+prmbench,math_shepherd,Q80,23,EQRES_N13,62.509820677291614,label-free control (position/length residualised)
+prmbench,math_shepherd,Q80,24,MEAN_N16,62.351743116132255,label-free fusion
+prmbench,math_shepherd,Q80,25,EQ_N13,62.060992245683444,label-free fusion
+prmbench,math_shepherd,Q80,26,EQP_N13,62.027259568475436,label-free fusion
+prmbench,math_shepherd,Q80,27,CHAINRES_N13,61.659242491916146,label-free control (position/length residualised)
+prmbench,math_shepherd,Q80,28,CHAIN_N13,61.55735200029733,label-free fusion
+prmbench,math_shepherd,Q80,29,CHAINP_N13,61.53274640623388,label-free fusion
+prmbench,math_shepherd,Q80,30,MEANRES_N13,61.4596790762049,label-free control (position/length residualised)
+prmbench,math_shepherd,Q80,31,PRMG_N13,61.35511576698942,label-free fusion
+prmbench,math_shepherd,Q80,32,TELERES_N13,61.08751914551487,label-free control (position/length residualised)
+prmbench,math_shepherd,Q80,33,MEAN_N13,60.94552819716396,label-free fusion
+prmbench,math_shepherd,Q80,34,TELE_N13,60.877093449404015,label-free fusion
+prmbench,math_shepherd,Q80,35,PRMPOSLEN,60.59099006686972,label-free control (no telemetry or no PRM)
+prmbench,math_shepherd,Q80,36,CHAINRES_N16,60.483205148142446,label-free control (position/length residualised)
+prmbench,math_shepherd,Q80,37,TELERES_N16,59.264928543487535,label-free control (position/length residualised)
+prmbench,math_shepherd,Q80,38,PRM_Q80_PROB,57.72814275760728,trained by its authors (PRM)
+prmbench,math_shepherd,Q80,39,PRM_Q80,57.70925166417644,trained by its authors (PRM)
+prmbench,math_shepherd,Q80,40,PRMPOS,56.69452672335491,label-free control (no telemetry or no PRM)
+prmbench,math_shepherd,Q80,41,LEN_ONLY,54.647326917999806,label-free control (no telemetry or no PRM)
+prmbench,math_shepherd,Q80,42,POS_ONLY,52.76404332381244,label-free control (no telemetry or no PRM)
+prmbench,math_shepherd,Q80,43,CHAINPERM_N16,52.275555302701335,label-free control (permuted telemetry)
+prmbench,math_shepherd,Q80,44,EQPERM_N16,52.15590872696618,label-free control (permuted telemetry)
+prmbench,math_shepherd,Q80,45,TELEPERM_N16,51.66994945597928,label-free control (permuted telemetry)
+prmbench,math_shepherd,Q80,46,EQPERM_N13,51.33489820971967,label-free control (permuted telemetry)
+prmbench,math_shepherd,Q80,47,CHAINPERM_N13,50.51851236781535,label-free control (permuted telemetry)
+prmbench,math_shepherd,Q80,48,TELEPERM_N13,50.297534432482514,label-free control (permuted telemetry)
+socratic,qwen_prm_7b,GAP,1,PRMPOS,70.90018212105429,label-free control (no telemetry or no PRM)
+socratic,qwen_prm_7b,GAP,2,PRMPROB,70.09754055174817,trained by its authors (PRM)
+socratic,qwen_prm_7b,GAP,3,PRM,69.48555898672657,trained by its authors (PRM)
+socratic,qwen_prm_7b,GAP,4,HALFP_N16,69.05008486918496,fixed control
+socratic,qwen_prm_7b,GAP,5,HALF_N16,68.88240801950457,fixed control
+socratic,qwen_prm_7b,GAP,6,HALFP_N13,68.50996099433712,fixed control
+socratic,qwen_prm_7b,GAP,7,HALF_N13,68.28123055239524,fixed control
+socratic,qwen_prm_7b,GAP,8,CHAINP_N16,67.31555545142282,label-free fusion
+socratic,qwen_prm_7b,GAP,9,CHAIN_N16,66.88888418060439,label-free fusion
+socratic,qwen_prm_7b,GAP,10,PRMG_N16,66.56623202468515,label-free fusion
+socratic,qwen_prm_7b,GAP,11,LSML_CONT,65.61031459060638,label-selected channels
+socratic,qwen_prm_7b,GAP,12,PRMG_N13,64.899182485078,label-free fusion
+socratic,qwen_prm_7b,GAP,13,EQP_N16,64.640083781257,label-free fusion
+socratic,qwen_prm_7b,GAP,14,TELE_N16,64.46516266665314,label-free fusion
+socratic,qwen_prm_7b,GAP,15,EQ_N16,64.29086417367145,label-free fusion
+socratic,qwen_prm_7b,GAP,16,CHAIN_N13,64.11167188868747,label-free fusion
+socratic,qwen_prm_7b,GAP,17,CHAINP_N13,64.04850221346065,label-free fusion
+socratic,qwen_prm_7b,GAP,18,MEAN_N16,63.371328465569036,label-free fusion
+socratic,qwen_prm_7b,GAP,19,EQP_N13,62.990753696639004,label-free fusion
+socratic,qwen_prm_7b,GAP,20,EQ_N13,62.70133195391507,label-free fusion
+socratic,qwen_prm_7b,GAP,21,TELE_N13,62.22475796995573,label-free fusion
+socratic,qwen_prm_7b,GAP,22,MEAN_N13,61.10242488253459,label-free fusion
+socratic,qwen_prm_7b,GAP,23,POS_ONLY,59.838418341861235,label-free control (no telemetry or no PRM)
+socratic,qwen_prm_7b,Q80,1,HALFP_N16,68.41044469308142,fixed control
+socratic,qwen_prm_7b,Q80,2,HALFP_N13,68.29398550300984,fixed control
+socratic,qwen_prm_7b,Q80,3,PRMPROB,67.69227968763995,trained by its authors (PRM)
+socratic,qwen_prm_7b,Q80,4,HALF_N16,67.3720169149431,fixed control
+socratic,qwen_prm_7b,Q80,5,PRM,67.36231198243712,trained by its authors (PRM)
+socratic,qwen_prm_7b,Q80,6,HALF_N13,66.62473711198372,fixed control
+socratic,qwen_prm_7b,Q80,7,CHAINP_N16,66.52768778692406,label-free fusion
+socratic,qwen_prm_7b,Q80,8,PRMPOS,65.88716224153033,label-free control (no telemetry or no PRM)
+socratic,qwen_prm_7b,Q80,9,CHAIN_N16,65.51837480630363,label-free fusion
+socratic,qwen_prm_7b,Q80,10,PRMG_N16,65.13988243857096,label-free fusion
+socratic,qwen_prm_7b,Q80,11,LSML_CONT,64.7031604758025,label-selected channels
+socratic,qwen_prm_7b,Q80,12,EQP_N16,63.684142562676094,label-free fusion
+socratic,qwen_prm_7b,Q80,13,EQ_N16,63.34446992496729,label-free fusion
+socratic,qwen_prm_7b,Q80,14,TELE_N16,63.29594526243747,label-free fusion
+socratic,qwen_prm_7b,Q80,15,PRMG_N13,63.2571255324136,label-free fusion
+socratic,qwen_prm_7b,Q80,16,CHAINP_N13,62.86892823217498,label-free fusion
+socratic,qwen_prm_7b,Q80,17,CHAIN_N13,62.73305917709144,label-free fusion
+socratic,qwen_prm_7b,Q80,18,MEAN_N16,62.373976674370724,label-free fusion
+socratic,qwen_prm_7b,Q80,19,EQP_N13,61.54905741136363,label-free fusion
+socratic,qwen_prm_7b,Q80,20,EQ_N13,60.85030227093409,label-free fusion
+socratic,qwen_prm_7b,Q80,21,TELE_N13,60.54944936324915,label-free fusion
+socratic,qwen_prm_7b,Q80,22,MEAN_N13,59.31692293499151,label-free fusion
+socratic,qwen_prm_7b,Q80,23,POS_ONLY,58.007130224406446,label-free control (no telemetry or no PRM)
+socratic,qwen_prm_72b,GAP,1,PRMPROB,71.72433051225886,trained by its authors (PRM)
+socratic,qwen_prm_72b,GAP,2,PRMPOS,70.52464187178384,label-free control (no telemetry or no PRM)
+socratic,qwen_prm_72b,GAP,3,HALFP_N16,69.17339721301825,fixed control
+socratic,qwen_prm_72b,GAP,4,HALFP_N13,68.73374981249735,fixed control
+socratic,qwen_prm_72b,GAP,5,PRM,68.16463587164003,trained by its authors (PRM)
+socratic,qwen_prm_72b,GAP,6,HALF_N16,66.79131093511398,fixed control
+socratic,qwen_prm_72b,GAP,7,HALF_N13,66.03297516381727,fixed control
+socratic,qwen_prm_72b,GAP,8,EQP_N16,62.329163530151256,label-free fusion
+socratic,qwen_prm_72b,GAP,9,EQ_N16,62.249507950687644,label-free fusion
+socratic,qwen_prm_72b,GAP,10,EQP_N13,61.329061551010774,label-free fusion
+socratic,qwen_prm_72b,GAP,11,EQ_N13,60.82270240668129,label-free fusion
+socratic,qwen_prm_72b,GAP,12,MEAN_N16,60.7432378983931,label-free fusion
+socratic,qwen_prm_72b,GAP,13,POS_ONLY,59.838418341861235,label-free control (no telemetry or no PRM)
+socratic,qwen_prm_72b,GAP,14,PRMG_N16,59.60133130427083,label-free fusion
+socratic,qwen_prm_72b,GAP,15,TELE_N16,58.654441092965094,label-free fusion
+socratic,qwen_prm_72b,GAP,16,MEAN_N13,58.520554520986266,label-free fusion
+socratic,qwen_prm_72b,GAP,17,LSML_CONT,58.00823772877488,label-selected channels
+socratic,qwen_prm_72b,GAP,18,CHAIN_N16,57.43478465494953,label-free fusion
+socratic,qwen_prm_72b,GAP,19,CHAINP_N16,57.3225639558939,label-free fusion
+socratic,qwen_prm_72b,GAP,20,PRMG_N13,56.05146338048102,label-free fusion
+socratic,qwen_prm_72b,GAP,21,TELE_N13,55.23027924290411,label-free fusion
+socratic,qwen_prm_72b,GAP,22,CHAINP_N13,50.19812845373587,label-free fusion
+socratic,qwen_prm_72b,GAP,23,CHAIN_N13,50.15203201013192,label-free fusion
+socratic,qwen_prm_72b,Q80,1,HALFP_N16,68.42985455809337,fixed control
+socratic,qwen_prm_72b,Q80,2,HALFP_N13,68.34251016553966,fixed control
+socratic,qwen_prm_72b,Q80,3,PRMPROB,67.35260704993115,trained by its authors (PRM)
+socratic,qwen_prm_72b,Q80,4,HALF_N16,67.24585279236554,fixed control
+socratic,qwen_prm_72b,Q80,5,HALF_N13,66.86736042463288,fixed control
+socratic,qwen_prm_72b,Q80,6,PRM,66.8576554921269,trained by its authors (PRM)
+socratic,qwen_prm_72b,Q80,7,PRMPOS,65.29516135866642,label-free control (no telemetry or no PRM)
+socratic,qwen_prm_72b,Q80,8,EQP_N16,61.85961525155452,label-free fusion
+socratic,qwen_prm_72b,Q80,9,EQ_N16,61.500532748833805,label-free fusion
+socratic,qwen_prm_72b,Q80,10,EQP_N13,60.53974443074319,label-free fusion
+socratic,qwen_prm_72b,Q80,11,EQ_N13,60.01567807542104,label-free fusion
+socratic,qwen_prm_72b,Q80,12,MEAN_N16,59.627480775182406,label-free fusion
+socratic,qwen_prm_72b,Q80,13,PRMG_N16,58.744331917139526,label-free fusion
+socratic,qwen_prm_72b,Q80,14,POS_ONLY,58.007130224406446,label-free control (no telemetry or no PRM)
+socratic,qwen_prm_72b,Q80,15,TELE_N16,57.71560907150716,label-free fusion
+socratic,qwen_prm_72b,Q80,16,MEAN_N13,57.5603301514117,label-free fusion
+socratic,qwen_prm_72b,Q80,17,LSML_CONT,57.48269069136397,label-selected channels
+socratic,qwen_prm_72b,Q80,18,CHAINP_N16,56.43455798071967,label-free fusion
+socratic,qwen_prm_72b,Q80,19,CHAIN_N16,56.4248530482137,label-free fusion
+socratic,qwen_prm_72b,Q80,20,PRMG_N13,54.92058850978901,label-free fusion
+socratic,qwen_prm_72b,Q80,21,TELE_N13,53.930685394180514,label-free fusion
+socratic,qwen_prm_72b,Q80,22,CHAINP_N13,49.89343347169874,label-free fusion
+socratic,qwen_prm_72b,Q80,23,CHAIN_N13,49.796384146639085,label-free fusion
+socratic,pure_prm,GAP,1,PRMPROB,70.58644475948822,trained by its authors (PRM)
+socratic,pure_prm,GAP,2,PRMPOS,70.2475435676643,label-free control (no telemetry or no PRM)
+socratic,pure_prm,GAP,3,HALF_N13,70.02001386351273,fixed control
+socratic,pure_prm,GAP,4,PRM,69.99333177656015,trained by its authors (PRM)
+socratic,pure_prm,GAP,5,HALFP_N13,69.8368147486697,fixed control
+socratic,pure_prm,GAP,6,HALF_N16,69.67015300517063,fixed control
+socratic,pure_prm,GAP,7,HALFP_N16,69.54669230647784,fixed control
+socratic,pure_prm,GAP,8,EQ_N13,65.41959958945345,label-free fusion
+socratic,pure_prm,GAP,9,EQP_N13,65.3802192388945,label-free fusion
+socratic,pure_prm,GAP,10,EQP_N16,65.09981065788433,label-free fusion
+socratic,pure_prm,GAP,11,EQ_N16,65.04548745315265,label-free fusion
+socratic,pure_prm,GAP,12,CHAIN_N16,64.99383771262428,label-free fusion
+socratic,pure_prm,GAP,13,PRMG_N16,64.80818082360086,label-free fusion
+socratic,pure_prm,GAP,14,CHAIN_N13,64.57507473277614,label-free fusion
+socratic,pure_prm,GAP,15,CHAINP_N16,64.50069988103539,label-free fusion
+socratic,pure_prm,GAP,16,PRMG_N13,63.988093992575855,label-free fusion
+socratic,pure_prm,GAP,17,TELE_N16,63.91820623611043,label-free fusion
+socratic,pure_prm,GAP,18,CHAINP_N13,63.917897990802295,label-free fusion
+socratic,pure_prm,GAP,19,MEAN_N16,63.603146991377955,label-free fusion
+socratic,pure_prm,GAP,20,TELE_N13,63.403020319547906,label-free fusion
+socratic,pure_prm,GAP,21,MEAN_N13,63.335394299611394,label-free fusion
+socratic,pure_prm,GAP,22,LSML_CONT,62.77780402666037,label-selected channels
+socratic,pure_prm,GAP,23,POS_ONLY,59.838418341861235,label-free control (no telemetry or no PRM)
+socratic,pure_prm,Q80,1,HALF_N13,67.76021421518172,fixed control
+socratic,pure_prm,Q80,2,HALF_N16,67.57582049756836,fixed control
+socratic,pure_prm,Q80,3,HALFP_N13,66.93529495217463,fixed control
+socratic,pure_prm,Q80,4,HALFP_N16,66.80913082959708,fixed control
+socratic,pure_prm,Q80,5,EQ_N16,64.8196196658741,label-free fusion
+socratic,pure_prm,Q80,6,EQP_N16,64.75168513833233,label-free fusion
+socratic,pure_prm,Q80,7,EQ_N13,64.55758648821302,label-free fusion
+socratic,pure_prm,Q80,8,EQP_N13,64.47024209565933,label-free fusion
+socratic,pure_prm,Q80,9,CHAIN_N16,64.47024209565933,label-free fusion
+socratic,pure_prm,Q80,10,PRMG_N16,64.4217174331295,label-free fusion
+socratic,pure_prm,Q80,11,CHAINP_N16,64.13056945795053,label-free fusion
+socratic,pure_prm,Q80,12,PRM,64.07233986291473,trained by its authors (PRM)
+socratic,pure_prm,Q80,13,TELE_N16,63.81030668525365,label-free fusion
+socratic,pure_prm,Q80,14,MEAN_N16,63.62591296764031,label-free fusion
+socratic,pure_prm,Q80,15,PRMPROB,63.49004391255677,trained by its authors (PRM)
+socratic,pure_prm,Q80,16,CHAIN_N13,63.44151925002696,label-free fusion
+socratic,pure_prm,Q80,17,PRMG_N13,63.35417485747327,label-free fusion
+socratic,pure_prm,Q80,18,CHAINP_N13,62.859223299669,label-free fusion
+socratic,pure_prm,Q80,19,TELE_N13,62.81069863713918,label-free fusion
+socratic,pure_prm,Q80,20,MEAN_N13,62.68453451456162,label-free fusion
+socratic,pure_prm,Q80,21,LSML_CONT,62.44191120191248,label-selected channels
+socratic,pure_prm,Q80,22,PRMPOS,59.860399155325574,label-free control (no telemetry or no PRM)
+socratic,pure_prm,Q80,23,POS_ONLY,58.007130224406446,label-free control (no telemetry or no PRM)
+socratic,rlhflow_prm,GAP,1,PRMPOS,60.68032393898633,label-free control (no telemetry or no PRM)
+socratic,rlhflow_prm,GAP,2,POS_ONLY,59.838418341861235,label-free control (no telemetry or no PRM)
+socratic,rlhflow_prm,GAP,3,EQP_N16,58.75377879670717,label-free fusion
+socratic,rlhflow_prm,GAP,4,EQ_N16,58.6248165005129,label-free fusion
+socratic,rlhflow_prm,GAP,5,MEAN_N16,58.56147665356928,label-free fusion
+socratic,rlhflow_prm,GAP,6,PRMG_N16,57.6609096439363,label-free fusion
+socratic,rlhflow_prm,GAP,7,TELE_N16,57.528505550158556,label-free fusion
+socratic,rlhflow_prm,GAP,8,MEAN_N13,57.507230462739265,label-free fusion
+socratic,rlhflow_prm,GAP,9,EQ_N13,57.325370443318135,label-free fusion
+socratic,rlhflow_prm,GAP,10,EQP_N13,57.17000739555183,label-free fusion
+socratic,rlhflow_prm,GAP,11,CHAIN_N16,57.05555233877545,label-free fusion
+socratic,rlhflow_prm,GAP,12,CHAINP_N16,56.87329799216635,label-free fusion
+socratic,rlhflow_prm,GAP,13,TELE_N13,56.161224021762514,label-free fusion
+socratic,rlhflow_prm,GAP,14,PRMG_N13,55.96303232153228,label-free fusion
+socratic,rlhflow_prm,GAP,15,CHAINP_N13,54.57082704170514,label-free fusion
+socratic,rlhflow_prm,GAP,16,CHAIN_N13,54.553512017044746,label-free fusion
+socratic,rlhflow_prm,GAP,17,HALF_N16,52.620596351577454,fixed control
+socratic,rlhflow_prm,GAP,18,HALFP_N16,52.0411490289539,fixed control
+socratic,rlhflow_prm,GAP,19,LSML_CONT,51.98704680296217,label-selected channels
+socratic,rlhflow_prm,GAP,20,HALF_N13,51.53694403081036,fixed control
+socratic,rlhflow_prm,GAP,21,HALFP_N13,51.266094652924956,fixed control
+socratic,rlhflow_prm,GAP,22,PRM,50.382501944480765,trained by its authors (PRM)
+socratic,rlhflow_prm,GAP,23,PRMPROB,50.08233219899214,trained by its authors (PRM)
+socratic,rlhflow_prm,Q80,1,EQP_N16,58.511413536996336,label-free fusion
+socratic,rlhflow_prm,Q80,2,EQ_N16,58.50170860449039,label-free fusion
+socratic,rlhflow_prm,Q80,3,POS_ONLY,58.007130224406446,label-free control (no telemetry or no PRM)
+socratic,rlhflow_prm,Q80,4,MEAN_N16,57.92911758663839,label-free fusion
+socratic,rlhflow_prm,Q80,5,PRMG_N16,57.5603301514117,label-free fusion
+socratic,rlhflow_prm,Q80,6,TELE_N16,57.191542716185005,label-free fusion
+socratic,rlhflow_prm,Q80,7,PRMPOS,57.18183778367902,label-free control (no telemetry or no PRM)
+socratic,rlhflow_prm,Q80,8,CHAIN_N16,56.96832926854778,label-free fusion
+socratic,rlhflow_prm,Q80,9,MEAN_N13,56.871279943488126,label-free fusion
+socratic,rlhflow_prm,Q80,10,EQ_N13,56.68688622587478,label-free fusion
+socratic,rlhflow_prm,Q80,11,EQP_N13,56.66747636086284,label-free fusion
+socratic,rlhflow_prm,Q80,12,CHAINP_N16,56.59954183332109,label-free fusion
+socratic,rlhflow_prm,Q80,13,TELE_N13,55.40583513508729,label-free fusion
+socratic,rlhflow_prm,Q80,14,PRMG_N13,55.347605540051504,label-free fusion
+socratic,rlhflow_prm,Q80,15,CHAIN_N13,54.512981344538446,label-free fusion
+socratic,rlhflow_prm,Q80,16,CHAINP_N13,53.9889149892163,label-free fusion
+socratic,rlhflow_prm,Q80,17,LSML_CONT,53.42602890387028,label-selected channels
+socratic,rlhflow_prm,Q80,18,HALF_N16,51.698550917808376,fixed control
+socratic,rlhflow_prm,Q80,19,HALFP_N16,51.42681280764133,fixed control
+socratic,rlhflow_prm,Q80,20,HALF_N13,50.49513928706861,fixed control
+socratic,rlhflow_prm,Q80,21,HALFP_N13,50.262220906925435,fixed control
+socratic,rlhflow_prm,Q80,22,PRMPROB,49.29172765632885,trained by its authors (PRM)
+socratic,rlhflow_prm,Q80,23,PRM,49.117038871221474,trained by its authors (PRM)
+socratic,math_shepherd,GAP,1,PRMPOS,67.53461006366422,label-free control (no telemetry or no PRM)
+socratic,math_shepherd,GAP,2,PRMPROB,65.51542242902222,trained by its authors (PRM)
+socratic,math_shepherd,GAP,3,PRM,65.04806570269346,trained by its authors (PRM)
+socratic,math_shepherd,GAP,4,HALFP_N16,64.59428479445486,fixed control
+socratic,math_shepherd,GAP,5,HALFP_N13,64.41581088755505,fixed control
+socratic,math_shepherd,GAP,6,HALF_N13,64.17335074248689,fixed control
+socratic,math_shepherd,GAP,7,HALF_N16,64.13387336974215,fixed control
+socratic,math_shepherd,GAP,8,POS_ONLY,59.838418341861235,label-free control (no telemetry or no PRM)
+socratic,math_shepherd,GAP,9,EQ_N16,58.04836044936542,label-free fusion
+socratic,math_shepherd,GAP,10,EQP_N16,58.045257702870146,label-free fusion
+socratic,math_shepherd,GAP,11,EQP_N13,57.53478312665394,label-free fusion
+socratic,math_shepherd,GAP,12,EQ_N13,57.453570819103575,label-free fusion
+socratic,math_shepherd,GAP,13,TELE_N16,56.68830726575986,label-free fusion
+socratic,math_shepherd,GAP,14,MEAN_N16,56.52691042986619,label-free fusion
+socratic,math_shepherd,GAP,15,MEAN_N13,55.58235993097112,label-free fusion
+socratic,math_shepherd,GAP,16,TELE_N13,55.47369388988122,label-free fusion
+socratic,math_shepherd,GAP,17,LSML_CONT,50.578712098763724,label-selected channels
+socratic,math_shepherd,GAP,18,CHAINP_N13,49.77667584992777,label-free fusion
+socratic,math_shepherd,GAP,19,CHAIN_N13,49.7744054240161,label-free fusion
+socratic,math_shepherd,GAP,20,PRMG_N13,49.703550477139494,label-free fusion
+socratic,math_shepherd,GAP,21,CHAINP_N16,49.43065259807105,label-free fusion
+socratic,math_shepherd,GAP,22,PRMG_N16,49.4280924678312,label-free fusion
+socratic,math_shepherd,GAP,23,CHAIN_N16,49.42755051098875,label-free fusion
+socratic,math_shepherd,Q80,1,HALFP_N16,62.42250133690055,fixed control
+socratic,math_shepherd,Q80,2,HALFP_N13,62.32545201184089,fixed control
+socratic,math_shepherd,Q80,3,HALF_N13,62.16046815923947,fixed control
+socratic,math_shepherd,Q80,4,HALF_N16,62.102238564203674,fixed control
+socratic,math_shepherd,Q80,5,PRM,59.53043145012275,trained by its authors (PRM)
+socratic,math_shepherd,Q80,6,PRMPROB,59.48190678759293,trained by its authors (PRM)
+socratic,math_shepherd,Q80,7,PRMPOS,59.47220185508696,label-free control (no telemetry or no PRM)
+socratic,math_shepherd,Q80,8,POS_ONLY,58.007130224406446,label-free control (no telemetry or no PRM)
+socratic,math_shepherd,Q80,9,EQP_N16,57.123608188643246,label-free fusion
+socratic,math_shepherd,Q80,10,EQ_N16,57.06537859360745,label-free fusion
+socratic,math_shepherd,Q80,11,EQP_N13,56.86157501098216,label-free fusion
+socratic,math_shepherd,Q80,12,EQ_N13,56.81305034845233,label-free fusion
+socratic,math_shepherd,Q80,13,TELE_N16,56.026950815469114,label-free fusion
+socratic,math_shepherd,Q80,14,MEAN_N16,55.87167189537365,label-free fusion
+socratic,math_shepherd,Q80,15,MEAN_N13,55.13409702492025,label-free fusion
+socratic,math_shepherd,Q80,16,TELE_N13,54.92058850978901,label-free fusion
+socratic,math_shepherd,Q80,17,LSML_CONT,50.86392672229532,label-selected channels
+socratic,math_shepherd,Q80,18,CHAINP_N13,50.42720475952686,label-free fusion
+socratic,math_shepherd,Q80,19,CHAIN_N13,50.4174998270209,label-free fusion
+socratic,math_shepherd,Q80,20,PRMG_N13,49.98077786425243,label-free fusion
+socratic,math_shepherd,Q80,21,CHAINP_N16,49.786679214133116,label-free fusion
+socratic,math_shepherd,Q80,22,CHAIN_N16,49.77697428162715,label-free fusion
+socratic,math_shepherd,Q80,23,PRMG_N16,49.51494110396607,label-free fusion
+hard2verify,qwen_prm_7b,GAP,1,POS_ONLY,55.774915899283016,label-free control (no telemetry or no PRM)
+hard2verify,qwen_prm_7b,GAP,2,PRMPOS,49.39566075423937,label-free control (no telemetry or no PRM)
+hard2verify,qwen_prm_7b,GAP,3,PRMG_N16,47.88959207327706,label-free fusion
+hard2verify,qwen_prm_7b,GAP,4,EQ_N13,47.56438896532963,label-free fusion
+hard2verify,qwen_prm_7b,GAP,5,TELE_N16,46.7082827206766,label-free fusion
+hard2verify,qwen_prm_7b,GAP,6,PRMG_N13,46.58395264869418,label-free fusion
+hard2verify,qwen_prm_7b,GAP,7,CHAIN_N13,46.062965960225036,label-free fusion
+hard2verify,qwen_prm_7b,GAP,8,PRM,45.81994303729991,trained by its authors (PRM)
+hard2verify,qwen_prm_7b,GAP,9,HALF_N16,45.812033132414584,fixed control
+hard2verify,qwen_prm_7b,GAP,10,EQP_N13,45.72646982080401,label-free fusion
+hard2verify,qwen_prm_7b,GAP,11,MEAN_N16,45.28543128418428,label-free fusion
+hard2verify,qwen_prm_7b,GAP,12,EQ_N16,44.89526571804527,label-free fusion
+hard2verify,qwen_prm_7b,GAP,13,CHAIN_N16,44.26973536704605,label-free fusion
+hard2verify,qwen_prm_7b,GAP,14,HALF_N13,44.19255553107641,fixed control
+hard2verify,qwen_prm_7b,GAP,15,TELE_N13,44.073957334370576,label-free fusion
+hard2verify,qwen_prm_7b,GAP,16,CHAINP_N16,43.85724860366524,label-free fusion
+hard2verify,qwen_prm_7b,GAP,17,EQP_N16,43.62857393137096,label-free fusion
+hard2verify,qwen_prm_7b,GAP,18,MEAN_N13,43.58302859338909,label-free fusion
+hard2verify,qwen_prm_7b,GAP,19,CHAINP_N13,42.844247475531674,label-free fusion
+hard2verify,qwen_prm_7b,GAP,20,LSML_CONT,41.80356158188505,label-selected channels
+hard2verify,qwen_prm_7b,GAP,21,HALFP_N16,41.382346467092226,fixed control
+hard2verify,qwen_prm_7b,GAP,22,HALFP_N13,40.93052499214083,fixed control
+hard2verify,qwen_prm_7b,GAP,23,PRMPROB,39.590323150273704,trained by its authors (PRM)
+hard2verify,qwen_prm_7b,Q80,1,POS_ONLY,48.71062051387769,label-free control (no telemetry or no PRM)
+hard2verify,qwen_prm_7b,Q80,2,PRMPOS,45.803492512666814,label-free control (no telemetry or no PRM)
+hard2verify,qwen_prm_7b,Q80,3,HALF_N16,40.14555424725788,fixed control
+hard2verify,qwen_prm_7b,Q80,4,HALF_N13,39.60124832067413,fixed control
+hard2verify,qwen_prm_7b,Q80,5,PRM,39.419242028330615,trained by its authors (PRM)
+hard2verify,qwen_prm_7b,Q80,6,PRMG_N13,39.419242028330615,label-free fusion
+hard2verify,qwen_prm_7b,Q80,7,EQP_N13,39.419242028330615,label-free fusion
+hard2verify,qwen_prm_7b,Q80,8,HALFP_N16,39.419242028330615,fixed control
+hard2verify,qwen_prm_7b,Q80,9,PRMPROB,39.23694705309393,trained by its authors (PRM)
+hard2verify,qwen_prm_7b,Q80,10,HALFP_N13,39.23694705309393,fixed control
+hard2verify,qwen_prm_7b,Q80,11,TELE_N16,39.23694705309393,label-free fusion
+hard2verify,qwen_prm_7b,Q80,12,CHAIN_N13,39.054361454533016,label-free fusion
+hard2verify,qwen_prm_7b,Q80,13,EQ_N13,38.87148327478718,label-free fusion
+hard2verify,qwen_prm_7b,Q80,14,CHAINP_N16,38.87148327478718,label-free fusion
+hard2verify,qwen_prm_7b,Q80,15,TELE_N13,38.50484125197028,label-free fusion
+hard2verify,qwen_prm_7b,Q80,16,CHAINP_N13,38.50484125197028,label-free fusion
+hard2verify,qwen_prm_7b,Q80,17,CHAIN_N16,38.50484125197028,label-free fusion
+hard2verify,qwen_prm_7b,Q80,18,MEAN_N13,38.32107340425109,label-free fusion
+hard2verify,qwen_prm_7b,Q80,19,PRMG_N16,38.13700496564497,label-free fusion
+hard2verify,qwen_prm_7b,Q80,20,MEAN_N16,37.952633888147275,label-free fusion
+hard2verify,qwen_prm_7b,Q80,21,EQ_N16,37.952633888147275,label-free fusion
+hard2verify,qwen_prm_7b,Q80,22,LSML_CONT,37.952633888147275,label-selected channels
+hard2verify,qwen_prm_7b,Q80,23,EQP_N16,37.76795810510614,label-free fusion
+hard2verify,qwen_prm_72b,GAP,1,POS_ONLY,55.774915899283016,label-free control (no telemetry or no PRM)
+hard2verify,qwen_prm_72b,GAP,2,PRMPOS,45.63039506017264,label-free control (no telemetry or no PRM)
+hard2verify,qwen_prm_72b,GAP,3,TELE_N16,45.36868321172529,label-free fusion
+hard2verify,qwen_prm_72b,GAP,4,PRMG_N13,45.139212695502366,label-free fusion
+hard2verify,qwen_prm_72b,GAP,5,PRMG_N16,44.84559365416465,label-free fusion
+hard2verify,qwen_prm_72b,GAP,6,CHAINP_N16,44.806937848441045,label-free fusion
+hard2verify,qwen_prm_72b,GAP,7,TELE_N13,44.241741528025734,label-free fusion
+hard2verify,qwen_prm_72b,GAP,8,EQP_N16,44.20040309142557,label-free fusion
+hard2verify,qwen_prm_72b,GAP,9,MEAN_N13,43.93461537414929,label-free fusion
+hard2verify,qwen_prm_72b,GAP,10,CHAIN_N13,43.44814820319435,label-free fusion
+hard2verify,qwen_prm_72b,GAP,11,EQ_N13,43.43321408289971,label-free fusion
+hard2verify,qwen_prm_72b,GAP,12,CHAIN_N16,43.36721396924681,label-free fusion
+hard2verify,qwen_prm_72b,GAP,13,EQ_N16,43.18656030486209,label-free fusion
+hard2verify,qwen_prm_72b,GAP,14,EQP_N13,42.83998581266972,label-free fusion
+hard2verify,qwen_prm_72b,GAP,15,MEAN_N16,42.72251308900524,label-free fusion
+hard2verify,qwen_prm_72b,GAP,16,CHAINP_N13,40.83783861683335,label-free fusion
+hard2verify,qwen_prm_72b,GAP,17,HALF_N16,40.60291768802171,fixed control
+hard2verify,qwen_prm_72b,GAP,18,LSML_CONT,40.483492693487285,label-selected channels
+hard2verify,qwen_prm_72b,GAP,19,HALFP_N16,38.847707541942064,fixed control
+hard2verify,qwen_prm_72b,GAP,20,HALF_N13,38.17437816851249,fixed control
+hard2verify,qwen_prm_72b,GAP,21,HALFP_N13,36.46651825431213,fixed control
+hard2verify,qwen_prm_72b,GAP,22,PRM,35.51592684475347,trained by its authors (PRM)
+hard2verify,qwen_prm_72b,GAP,23,PRMPROB,34.73679461818917,trained by its authors (PRM)
+hard2verify,qwen_prm_72b,Q80,1,POS_ONLY,48.71062051387769,label-free control (no telemetry or no PRM)
+hard2verify,qwen_prm_72b,Q80,2,PRMPOS,44.238053235095734,label-free control (no telemetry or no PRM)
+hard2verify,qwen_prm_72b,Q80,3,HALF_N16,38.32107340425109,fixed control
+hard2verify,qwen_prm_72b,Q80,4,LSML_CONT,38.13700496564497,label-selected channels
+hard2verify,qwen_prm_72b,Q80,5,PRMG_N16,37.952633888147275,label-free fusion
+hard2verify,qwen_prm_72b,Q80,6,CHAIN_N13,37.76795810510614,label-free fusion
+hard2verify,qwen_prm_72b,Q80,7,HALF_N13,37.76795810510614,fixed control
+hard2verify,qwen_prm_72b,Q80,8,CHAINP_N13,37.76795810510614,label-free fusion
+hard2verify,qwen_prm_72b,Q80,9,CHAIN_N16,37.76795810510614,label-free fusion
+hard2verify,qwen_prm_72b,Q80,10,HALFP_N16,37.58297553100991,fixed control
+hard2verify,qwen_prm_72b,Q80,11,CHAINP_N16,37.397684061271406,label-free fusion
+hard2verify,qwen_prm_72b,Q80,12,PRMG_N13,37.21208157200939,label-free fusion
+hard2verify,qwen_prm_72b,Q80,13,TELE_N13,37.026165919826916,label-free fusion
+hard2verify,qwen_prm_72b,Q80,14,PRMPROB,36.839934941586684,trained by its authors (PRM)
+hard2verify,qwen_prm_72b,Q80,15,HALFP_N13,36.839934941586684,fixed control
+hard2verify,qwen_prm_72b,Q80,16,PRM,36.65338645418327,trained by its authors (PRM)
+hard2verify,qwen_prm_72b,Q80,17,TELE_N16,36.65338645418327,label-free fusion
+hard2verify,qwen_prm_72b,Q80,18,EQP_N16,36.65338645418327,label-free fusion
+hard2verify,qwen_prm_72b,Q80,19,EQ_N13,36.46651825431213,label-free fusion
+hard2verify,qwen_prm_72b,Q80,20,MEAN_N13,36.09181380154497,label-free fusion
+hard2verify,qwen_prm_72b,Q80,21,EQP_N13,35.903973038920675,label-free fusion
+hard2verify,qwen_prm_72b,Q80,22,EQ_N16,35.903973038920675,label-free fusion
+hard2verify,qwen_prm_72b,Q80,23,MEAN_N16,34.95979175575308,label-free fusion
+hard2verify,pure_prm,GAP,1,PRMPOS,59.50245686710883,label-free control (no telemetry or no PRM)
+hard2verify,pure_prm,GAP,2,POS_ONLY,55.774915899283016,label-free control (no telemetry or no PRM)
+hard2verify,pure_prm,GAP,3,PRM,50.755229497514286,trained by its authors (PRM)
+hard2verify,pure_prm,GAP,4,PRMPROB,50.65147469684662,trained by its authors (PRM)
+hard2verify,pure_prm,GAP,5,HALF_N13,48.27801537731324,fixed control
+hard2verify,pure_prm,GAP,6,HALF_N16,47.690507191674975,fixed control
+hard2verify,pure_prm,GAP,7,HALFP_N13,47.61946386582536,fixed control
+hard2verify,pure_prm,GAP,8,HALFP_N16,46.45994444027329,fixed control
+hard2verify,pure_prm,GAP,9,EQP_N16,42.28445374402894,label-free fusion
+hard2verify,pure_prm,GAP,10,EQ_N13,42.24641322545018,label-free fusion
+hard2verify,pure_prm,GAP,11,MEAN_N13,41.59230284997194,label-free fusion
+hard2verify,pure_prm,GAP,12,EQP_N13,41.560442130647104,label-free fusion
+hard2verify,pure_prm,GAP,13,EQ_N16,41.43672321869321,label-free fusion
+hard2verify,pure_prm,GAP,14,CHAIN_N13,41.365721607721326,label-free fusion
+hard2verify,pure_prm,GAP,15,CHAINP_N13,41.18060915716637,label-free fusion
+hard2verify,pure_prm,GAP,16,PRMG_N13,40.893123539458045,label-free fusion
+hard2verify,pure_prm,GAP,17,CHAINP_N16,40.683644997198634,label-free fusion
+hard2verify,pure_prm,GAP,18,TELE_N13,40.57585484881685,label-free fusion
+hard2verify,pure_prm,GAP,19,CHAIN_N16,39.9629686776732,label-free fusion
+hard2verify,pure_prm,GAP,20,PRMG_N16,38.71130551816958,label-free fusion
+hard2verify,pure_prm,GAP,21,TELE_N16,38.19460707000314,label-free fusion
+hard2verify,pure_prm,GAP,22,MEAN_N16,37.27977498710274,label-free fusion
+hard2verify,pure_prm,GAP,23,LSML_CONT,32.99314055438756,label-selected channels
+hard2verify,pure_prm,Q80,1,POS_ONLY,48.71062051387769,label-free control (no telemetry or no PRM)
+hard2verify,pure_prm,Q80,2,PRMPOS,48.71062051387769,label-free control (no telemetry or no PRM)
+hard2verify,pure_prm,Q80,3,PRMPROB,44.76199245005064,trained by its authors (PRM)
+hard2verify,pure_prm,Q80,4,PRM,44.238053235095734,trained by its authors (PRM)
+hard2verify,pure_prm,Q80,5,HALF_N13,43.5360690907913,fixed control
+hard2verify,pure_prm,Q80,6,HALFP_N13,43.35995585248037,fixed control
+hard2verify,pure_prm,Q80,7,HALF_N16,42.65298644192011,fixed control
+hard2verify,pure_prm,Q80,8,HALFP_N16,42.65298644192011,fixed control
+hard2verify,pure_prm,Q80,9,LSML_CONT,38.32107340425109,label-selected channels
+hard2verify,pure_prm,Q80,10,EQP_N13,36.46651825431213,label-free fusion
+hard2verify,pure_prm,Q80,11,EQ_N13,36.279328118235505,label-free fusion
+hard2verify,pure_prm,Q80,12,CHAIN_N13,36.09181380154497,label-free fusion
+hard2verify,pure_prm,Q80,13,CHAINP_N13,35.903973038920675,label-free fusion
+hard2verify,pure_prm,Q80,14,PRMG_N13,35.527303008566456,label-free fusion
+hard2verify,pure_prm,Q80,15,TELE_N13,35.149299477023845,label-free fusion
+hard2verify,pure_prm,Q80,16,MEAN_N13,34.769943543576865,label-free fusion
+hard2verify,pure_prm,Q80,17,EQP_N16,34.38921594862189,label-free fusion
+hard2verify,pure_prm,Q80,18,CHAIN_N16,34.19833165921814,label-free fusion
+hard2verify,pure_prm,Q80,19,EQ_N16,34.19833165921814,label-free fusion
+hard2verify,pure_prm,Q80,20,CHAINP_N16,33.81550965405428,label-free fusion
+hard2verify,pure_prm,Q80,21,TELE_N16,33.62356688973564,label-free fusion
+hard2verify,pure_prm,Q80,22,PRMG_N16,33.62356688973564,label-free fusion
+hard2verify,pure_prm,Q80,23,MEAN_N16,33.04558074670167,label-free fusion
+hard2verify,rlhflow_prm,GAP,1,POS_ONLY,55.774915899283016,label-free control (no telemetry or no PRM)
+hard2verify,rlhflow_prm,GAP,2,MEAN_N13,40.48456352096845,label-free fusion
+hard2verify,rlhflow_prm,GAP,3,TELE_N13,40.12209696964649,label-free fusion
+hard2verify,rlhflow_prm,GAP,4,EQP_N13,39.0692167834139,label-free fusion
+hard2verify,rlhflow_prm,GAP,5,PRMG_N13,38.91231787857595,label-free fusion
+hard2verify,rlhflow_prm,GAP,6,EQ_N13,37.69881863546587,label-free fusion
+hard2verify,rlhflow_prm,GAP,7,CHAINP_N13,37.447691363164836,label-free fusion
+hard2verify,rlhflow_prm,GAP,8,MEAN_N16,35.91305340896114,label-free fusion
+hard2verify,rlhflow_prm,GAP,9,PRMG_N16,35.38812494424408,label-free fusion
+hard2verify,rlhflow_prm,GAP,10,EQP_N16,35.378160789205126,label-free fusion
+hard2verify,rlhflow_prm,GAP,11,TELE_N16,35.35817449023935,label-free fusion
+hard2verify,rlhflow_prm,GAP,12,CHAIN_N13,34.90717462216878,label-free fusion
+hard2verify,rlhflow_prm,GAP,13,CHAINP_N16,34.69065431996881,label-free fusion
+hard2verify,rlhflow_prm,GAP,14,PRMPOS,34.641492653138926,label-free control (no telemetry or no PRM)
+hard2verify,rlhflow_prm,GAP,15,EQ_N16,33.658572120308364,label-free fusion
+hard2verify,rlhflow_prm,GAP,16,CHAIN_N16,33.059862066576905,label-free fusion
+hard2verify,rlhflow_prm,GAP,17,LSML_CONT,21.59053802765585,label-selected channels
+hard2verify,rlhflow_prm,GAP,18,HALF_N16,16.897861364421065,fixed control
+hard2verify,rlhflow_prm,GAP,19,HALF_N13,14.572798686395613,fixed control
+hard2verify,rlhflow_prm,GAP,20,HALFP_N16,9.626185402781655,fixed control
+hard2verify,rlhflow_prm,GAP,21,HALFP_N13,8.586817132598103,fixed control
+hard2verify,rlhflow_prm,GAP,22,PRMPROB,5.10983278393368,trained by its authors (PRM)
+hard2verify,rlhflow_prm,GAP,23,PRM,4.833002328793363,trained by its authors (PRM)
+hard2verify,rlhflow_prm,Q80,1,POS_ONLY,48.71062051387769,label-free control (no telemetry or no PRM)
+hard2verify,rlhflow_prm,Q80,2,MEAN_N13,37.026165919826916,label-free fusion
+hard2verify,rlhflow_prm,Q80,3,TELE_N13,36.279328118235505,label-free fusion
+hard2verify,rlhflow_prm,Q80,4,CHAINP_N13,34.769943543576865,label-free fusion
+hard2verify,rlhflow_prm,Q80,5,TELE_N16,34.769943543576865,label-free fusion
+hard2verify,rlhflow_prm,Q80,6,MEAN_N16,34.769943543576865,label-free fusion
+hard2verify,rlhflow_prm,Q80,7,EQ_N13,34.19833165921814,label-free fusion
+hard2verify,rlhflow_prm,Q80,8,EQP_N13,34.19833165921814,label-free fusion
+hard2verify,rlhflow_prm,Q80,9,PRMG_N13,33.81550965405428,label-free fusion
+hard2verify,rlhflow_prm,Q80,10,CHAINP_N16,33.81550965405428,label-free fusion
+hard2verify,rlhflow_prm,Q80,11,PRMG_N16,33.62356688973564,label-free fusion
+hard2verify,rlhflow_prm,Q80,12,EQ_N16,32.8521907143263,label-free fusion
+hard2verify,rlhflow_prm,Q80,13,PRMPOS,32.658432275622815,label-free control (no telemetry or no PRM)
+hard2verify,rlhflow_prm,Q80,14,EQP_N16,32.658432275622815,label-free fusion
+hard2verify,rlhflow_prm,Q80,15,CHAIN_N16,32.07491952004683,label-free fusion
+hard2verify,rlhflow_prm,Q80,16,CHAIN_N13,30.699981171923696,label-free fusion
+hard2verify,rlhflow_prm,Q80,17,LSML_CONT,18.66969575361008,label-selected channels
+hard2verify,rlhflow_prm,Q80,18,HALFP_N16,17.987296021901756,fixed control
+hard2verify,rlhflow_prm,Q80,19,HALFP_N13,17.758540009358914,fixed control
+hard2verify,rlhflow_prm,Q80,20,HALF_N16,17.068323628190328,fixed control
+hard2verify,rlhflow_prm,Q80,21,HALF_N13,16.604830388180513,fixed control
+hard2verify,rlhflow_prm,Q80,22,PRMPROB,14.484537746985229,trained by its authors (PRM)
+hard2verify,rlhflow_prm,Q80,23,PRM,13.764658807596417,trained by its authors (PRM)
+hard2verify,math_shepherd,GAP,1,POS_ONLY,55.774915899283016,label-free control (no telemetry or no PRM)
+hard2verify,math_shepherd,GAP,2,PRMPOS,52.025550862445634,label-free control (no telemetry or no PRM)
+hard2verify,math_shepherd,GAP,3,PRMG_N13,44.69495120577462,label-free fusion
+hard2verify,math_shepherd,GAP,4,EQP_N13,44.26973536704605,label-free fusion
+hard2verify,math_shepherd,GAP,5,EQ_N13,44.136634882881346,label-free fusion
+hard2verify,math_shepherd,GAP,6,CHAINP_N13,44.12887202047061,label-free fusion
+hard2verify,math_shepherd,GAP,7,CHAIN_N13,43.70521776240426,label-free fusion
+hard2verify,math_shepherd,GAP,8,EQP_N16,43.2939218917492,label-free fusion
+hard2verify,math_shepherd,GAP,9,TELE_N13,43.10779603429512,label-free fusion
+hard2verify,math_shepherd,GAP,10,EQ_N16,42.943265406255406,label-free fusion
+hard2verify,math_shepherd,GAP,11,MEAN_N13,42.909363251957984,label-free fusion
+hard2verify,math_shepherd,GAP,12,PRMG_N16,42.71090640982066,label-free fusion
+hard2verify,math_shepherd,GAP,13,CHAIN_N16,41.77371789299113,label-free fusion
+hard2verify,math_shepherd,GAP,14,CHAINP_N16,41.49663503204477,label-free fusion
+hard2verify,math_shepherd,GAP,15,TELE_N16,41.30587339563391,label-free fusion
+hard2verify,math_shepherd,GAP,16,MEAN_N16,40.65226940676367,label-free fusion
+hard2verify,math_shepherd,GAP,17,PRM,40.12209696964649,trained by its authors (PRM)
+hard2verify,math_shepherd,GAP,18,HALFP_N13,40.040237318059575,fixed control
+hard2verify,math_shepherd,GAP,19,HALF_N16,39.988295626108446,fixed control
+hard2verify,math_shepherd,GAP,20,HALF_N13,39.5656663298036,fixed control
+hard2verify,math_shepherd,GAP,21,HALFP_N16,39.255825842689,fixed control
+hard2verify,math_shepherd,GAP,22,PRMPROB,38.83573342961492,trained by its authors (PRM)
+hard2verify,math_shepherd,GAP,23,LSML_CONT,38.73191188988312,label-selected channels
+hard2verify,math_shepherd,Q80,1,POS_ONLY,48.71062051387769,label-free control (no telemetry or no PRM)
+hard2verify,math_shepherd,Q80,2,PRMPOS,44.76199245005064,label-free control (no telemetry or no PRM)
+hard2verify,math_shepherd,Q80,3,CHAINP_N13,38.68831053836994,label-free fusion
+hard2verify,math_shepherd,Q80,4,CHAIN_N13,38.50484125197028,label-free fusion
+hard2verify,math_shepherd,Q80,5,TELE_N13,38.32107340425109,label-free fusion
+hard2verify,math_shepherd,Q80,6,PRMG_N13,38.13700496564497,label-free fusion
+hard2verify,math_shepherd,Q80,7,MEAN_N13,37.58297553100991,label-free fusion
+hard2verify,math_shepherd,Q80,8,EQ_N13,37.58297553100991,label-free fusion
+hard2verify,math_shepherd,Q80,9,EQP_N13,37.58297553100991,label-free fusion
+hard2verify,math_shepherd,Q80,10,HALFP_N13,37.397684061271406,fixed control
+hard2verify,math_shepherd,Q80,11,HALF_N16,37.21208157200939,fixed control
+hard2verify,math_shepherd,Q80,12,HALFP_N16,37.21208157200939,fixed control
+hard2verify,math_shepherd,Q80,13,LSML_CONT,37.21208157200939,label-selected channels
+hard2verify,math_shepherd,Q80,14,HALF_N13,36.65338645418327,fixed control
+hard2verify,math_shepherd,Q80,15,PRMG_N16,36.65338645418327,label-free fusion
+hard2verify,math_shepherd,Q80,16,MEAN_N16,36.46651825431213,label-free fusion
+hard2verify,math_shepherd,Q80,17,EQ_N16,36.46651825431213,label-free fusion
+hard2verify,math_shepherd,Q80,18,EQP_N16,36.279328118235505,label-free fusion
+hard2verify,math_shepherd,Q80,19,TELE_N16,36.09181380154497,label-free fusion
+hard2verify,math_shepherd,Q80,20,CHAIN_N16,36.09181380154497,label-free fusion
+hard2verify,math_shepherd,Q80,21,CHAINP_N16,36.09181380154497,label-free fusion
+hard2verify,math_shepherd,Q80,22,PRMPROB,34.579752421764525,trained by its authors (PRM)
+hard2verify,math_shepherd,Q80,23,PRM,34.00709706510872,trained by its authors (PRM)

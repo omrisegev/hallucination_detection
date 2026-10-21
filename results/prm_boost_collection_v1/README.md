@@ -130,6 +130,8 @@ AUROC .8042 instead of .7999. `crop_metrics.py`'s `sorted(d)` sorts **integer** 
 | `PRMBENCH_CATEGORIES.csv` | 9 categories + S/S/S: PRM (GAP, better scale), CHAIN_N16/N13 (GAP), PRM native |
 | `PRM_WEIGHT_SHARE.csv` | PRM weight share in 60 CHAIN/PRMG fits (least-squares weights on [z(PRM), channels], R² ≥ .99), shipped vs sign-abs, with corr(fit, TELE) |
 | `STATUS_META.json` | N per cell, the PRM reference scale chosen per cell, anchor flips |
+
+**Cross-check.** The tables were computed twice: once without caches, once with per-arm caches. The six output CSVs are byte-identical. `STATUS_MAIN.csv` was then regenerated (`collection_status.py main_only`) after a row-copy fix. In the external "PRM same rule" rows, the native row shares the arm name `PRM`; contrasts were not affected.
 | `PAGE_RULE_DATA.json` | ablation-page data under GAP (3 benchmarks) and Q80 (Hard2Verify) |
 
 **Headline numbers.**
@@ -266,7 +268,8 @@ python build_data.py && python build_page.py
   status.
 
 ## 9. Open points
-- **Drive upload status:** see `aircc/logs/upload_drive.log` (updated when the upload finishes).
+- **Drive upload: done.** One transient upload error was retried and succeeded. `rclone check` passed for the
+  PRMBench export. Log: `aircc/logs/upload_drive.log`.
 - **Section 3 of the plan is optional and was not run:**
   - the Step 467 bank study on thinkfix_mask1;
   - the Math-Shepherd N14/S6 bank-sweep cells.

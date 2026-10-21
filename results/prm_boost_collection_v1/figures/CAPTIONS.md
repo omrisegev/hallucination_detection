@@ -27,3 +27,11 @@ Data: `figures/data/crop_fig5_by_length.csv`.
 ### crop_fig8_by_first_error.png
 PRMBench CROP protocol, alpha .05, test traces with an error; share whose kept prefix contains an error, by relative position of the first error (thirds). Direct PRM trained; CHAIN label-free; LSML_CONT label-selected; LR supervised.
 Data: `figures/data/crop_fig8_by_first_error.csv`.
+
+### status_official_by_prm_gap.png
+Official metric per benchmark and PRM under the label-free GAP count rule (PRM native rule hatched). PRMBench: 6,211 non-control answers; Socratic: 2,995 answers; Hard2Verify: 177 answers every PRM can read. PRM same rule = the PRM answer-z score with the same GAP rule, on the better of logit(1-reward) / (1-reward) (chosen after scoring; favours the PRM). Access: PRM trained by its authors; TELE/CHAIN label-free fusion; LSML_CONT label-selected channels. Development data, already inspected.
+Data: `figures/data/status_official_by_prm_gap.csv`.
+
+### status_contrasts_gap.png
+Paired bootstrap contrasts (2,000 draws; PRMBench by source group, external sets by answer), official metric points. PRM reference = PRM answer-z with GAP on the better scale (post hoc). All rules label-free.
+Data: `figures/data/status_contrasts_gap.csv`.
