@@ -39,3 +39,7 @@ Data: `figures/data/status_contrasts_gap.csv`.
 ### crop_controls_c6_kept_vs_alpha.png
 PRMBench, CROP Table 6 protocol on the exact Hub-order first-5,000 subset (4,995 scored traces; C1), 10 seeds, test split. Prefix kept vs alpha on two grids (C2): train-quantile 201 and fixed {0,.01,..,1} after a train min-max map. Every proxy's lambda is calibrated with labels (CROP access). Direct PRM: trained PRM. LRs: supervised. CHAIN_N16 / LSML_CONT: label-free fusion (LSML_CONT channels label-selected); dashed = inductive fit on the 60% training traces (C4).
 Data: `figures/data/crop_controls_c6_kept_vs_alpha.csv`.
+
+### crop_controls_c6_kept_vs_alpha.png
+PRMBench, CROP Table 6 protocol on the exact Hub-order first-5,000 subset (4,995 scored traces; C1), 10 seeds, test split. Prefix kept vs alpha on two grids (C2): train-quantile 201 and fixed {0,.01,..,1} after a train min-max map. Every proxy's lambda is calibrated with labels (CROP access). Direct PRM: trained PRM. LRs: supervised. CHAIN_N16 / LSML_CONT: label-free fusion (LSML_CONT channels label-selected); dashed = inductive fit on the 60% training traces (C4).
+Data: `figures/data/crop_controls_c6_kept_vs_alpha.csv`.

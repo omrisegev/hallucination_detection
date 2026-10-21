@@ -247,7 +247,10 @@ def main():
         for i, s in zip(sub, sl):
             es = text[i]['error_steps'] if (sname == 'C1' and i in text) else S['meta'][pos[i]]['error_steps']
             e0 = {max(int(e) - 1, 0) for e in es}; labels.append(np.array([t in e0 for t in range(s.stop - s.start)]))
-        has_err = np.array([l.any() for l in labels]); nst_s = np.array([s.stop - s.start for s in sl])
+        # split stratification = "error_steps non-empty" (crop_metrics.py / CROP), NOT "an in-range step is labelled":
+        # traces whose only error indices are out of range differ (crop_controls_v2 used l.any() and failed parity)
+        has_err = np.array([len(text[i]['error_steps'] if (sname == 'C1' and i in text) else S['meta'][pos[i]]['error_steps']) > 0 for i in sub])
+        nst_s = np.array([s.stop - s.start for s in sl])
         par[f'{sname}_subset'] = dict(n_traces=len(sub), n_steps=int(nst_s.sum()), error_rate=float(sum(l.sum() for l in labels) / nst_s.sum()))
         allrows = np.concatenate([np.arange(s.start, s.stop) for s in sl])
         risk1 = 1 - E['reward']
