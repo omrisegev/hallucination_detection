@@ -26,9 +26,16 @@ Two compatibility modes:
     not trained together with these hidden states. The manifest records how lm_head compares with
     Qwen2.5-Math-7B-Instruct's.
 
---mode instruct (reference): Qwen/Qwen2.5-Math-7B-Instruct as a causal LM. Prompt = the same
-    system prompt (Qwen2.5-Math CoT, = PRM_SYSTEM_PROMPT) + question; chain = steps joined by
-    "\\n\\n" with spectral_utils.prmbench.build_chain/step_token_spans, exactly as the Qwen3 cells.
+--mode instruct (reference): a standalone causal LM, as released, on the same rows. Default model
+    Qwen/Qwen2.5-Math-7B-Instruct. Chain = steps joined by "\\n\\n" with
+    spectral_utils.prmbench.build_chain/step_token_spans, exactly as the Qwen3 cells. --prompt-style:
+      qwen_cot_chat (default, historical): chat template, system = Qwen2.5-Math CoT (= PRM_SYSTEM_PROMPT),
+                    user = question. Unchanged code path for the Qwen-7B reference (job 282803).
+      chat:         chat template, no system message, user = question (Llama-3.1-8B-Instruct).
+      plain:        no template: BOS + question + "\\n\\n" (base models without a chat template, Mistral-7B).
+    Standalone base models of the PRMs (plan docs/experiments/PRM_STANDALONE_TELEMETRY_2026-10-22.md):
+    Qwen2.5-Math-72B-Instruct (qwen_cot_chat), Qwen2.5-Math-7B (qwen_cot_chat), Llama-3.1-8B-Instruct (chat),
+    Mistral-7B-v0.1 (plain).
 
 Nothing is masked here; the mask1 rule (drop forced token 0) is applied downstream like the Qwen3 cells.
 
@@ -213,26 +220,62 @@ def run_prm(cfg, meta, out_path):
     return True, head_check, worst_reward_gap
 
 
+PROMPT_STYLES = ("qwen_cot_chat", "chat", "plain")
+
+
+def standalone_prompt_ids(tok, style, question):
+    """Prompt token ids for --mode instruct. qwen_cot_chat keeps the historical call exactly."""
+    if style == "qwen_cot_chat":
+        prompt = tok.apply_chat_template([{"role": "system", "content": PRM_SYSTEM_PROMPT},
+                                          {"role": "user", "content": question}],
+                                         tokenize=False, add_generation_prompt=True)
+        return tok(prompt).input_ids
+    if style == "chat":
+        if not getattr(tok, "chat_template", None):
+            raise ValueError("prompt style 'chat' needs a tokenizer with a chat template")
+        prompt = tok.apply_chat_template([{"role": "user", "content": question}], tokenize=False,
+                                         add_generation_prompt=True)
+        ids = tok(prompt, add_special_tokens=False).input_ids     # the template already carries BOS
+    elif style == "plain":
+        ids = tok(question + "\n\n").input_ids                   # tokenizer adds its BOS
+    else:
+        raise ValueError(f"unknown prompt style {style}")
+    if tok.bos_token_id is not None and (ids[:1] != [tok.bos_token_id] or ids[1:2] == [tok.bos_token_id]):
+        raise ValueError(f"prompt style {style}: expected exactly one leading BOS, got {ids[:3]}")
+    return ids
+
+
+def fill_empty_spans(spans):
+    """An empty step can map to no token (SentencePiece/Mistral). Write it as an empty span at the previous end, as the
+    PRM path does, so the bank builder fills it. Qwen and Llama tokenizers never return None (smoke test, 2026-10-22)."""
+    out, hi = [], 0
+    for sp in spans:
+        sp = (hi, hi) if sp is None else tuple(sp)
+        out.append(sp); hi = sp[1]
+    return out
+
+
 def run_instruct(cfg, meta, out_path):
     from transformers import AutoModelForCausalLM, AutoTokenizer
     tok = AutoTokenizer.from_pretrained(cfg.model)
-    mdl = AutoModelForCausalLM.from_pretrained(cfg.model, torch_dtype=torch.bfloat16, device_map={"": 0},
+    device_map = {"": 0} if torch.cuda.is_available() else None   # CPU only for the local smoke test
+    mdl = AutoModelForCausalLM.from_pretrained(cfg.model, torch_dtype=torch.bfloat16, device_map=device_map,
                                                attn_implementation="sdpa").eval()
+    cfg.model_revision = getattr(mdl.config, "_commit_hash", None)
     items = []
     cache = load_cache(out_path)
     for i, row in enumerate(meta):
         text, char_spans = build_chain(row["steps"])
         gen_ids, spans = step_token_spans(tok, text, char_spans)
         diag = assert_alignment(gen_ids, spans, row["steps"], strict=False)
-        prompt = tok.apply_chat_template([{"role": "system", "content": PRM_SYSTEM_PROMPT},
-                                          {"role": "user", "content": row["question"]}],
-                                         tokenize=False, add_generation_prompt=True)
-        n_input = len(tok(prompt).input_ids) + len(gen_ids)
+        spans = fill_empty_spans(spans)
+        prompt_ids = standalone_prompt_ids(tok, cfg.prompt_style, row["question"])
+        n_input = len(prompt_ids) + len(gen_ids)
         if n_input > mdl.config.max_position_embeddings:
             cache[i] = row_record(row, {'failure': 'context_overflow', 'n_input_tokens': n_input,
                                        'context_limit': mdl.config.max_position_embeddings})
             continue
-        items.append({"idx": i, "prompt_ids": tok(prompt).input_ids, "gen_ids": gen_ids,
+        items.append({"idx": i, "prompt_ids": prompt_ids, "gen_ids": gen_ids,
                       "step_token_spans": spans, "align_diag": diag, "row": row})
     save_cache_atomic(cache, out_path)
     todo = [it for it in items if it["idx"] not in cache]; n_done = 0
@@ -267,6 +310,8 @@ def main():
     ap.add_argument("--checkpoint-every", type=int, default=200)
     ap.add_argument("--meta-pkl", default=None, help="take PRMBench rows from this telemetry pkl (no datasets import)")
     ap.add_argument("--verify-rows", type=int, default=20)
+    ap.add_argument("--prompt-style", choices=PROMPT_STYLES, default="qwen_cot_chat",
+                    help="--mode instruct only: prompt for the standalone model (see the module docstring)")
     ap.add_argument("--answers", default=None, help="external label-free answers.json (Socratic, Hard2Verify); "
                     "output is external_telemetry.pkl")
     cfg = ap.parse_args()
@@ -277,6 +322,8 @@ def main():
     cfg.model = cfg.model or (ADAPTERS[cfg.adapter].model_id if cfg.mode == "prm" else INSTRUCT_ID)
     if cfg.mode == 'instruct' and cfg.adapter != 'qwen_prm':
         ap.error('--adapter applies only to --mode prm')
+    if cfg.mode == 'prm' and cfg.prompt_style != 'qwen_cot_chat':
+        ap.error('--prompt-style applies only to --mode instruct')
     signal.signal(signal.SIGTERM, _on_sigterm)
     os.makedirs(cfg.out, exist_ok=True)
     if cfg.answers and cfg.meta_pkl:
@@ -295,16 +342,17 @@ def main():
     out_path = os.path.join(cfg.out, "external_telemetry.pkl" if cfg.answers else "prmbench_telemetry.pkl"); t0 = time.time(); extra = {}
     identity_path = os.path.join(cfg.out, 'run_identity.json')
     identity = {'adapter': cfg.adapter, 'mode': cfg.mode, 'model': cfg.model,
+                **({'prompt_style': cfg.prompt_style} if cfg.mode == 'instruct' and cfg.prompt_style != 'qwen_cot_chat' else {}),
                 'logprob_top_k': cfg.logprob_top_k, 'row_ids': [str(r['idx']) for r in meta],
                 'questions_steps': [(r['question'], r['steps']) for r in meta]}
     identity = json.loads(json.dumps(identity))
     if os.path.exists(identity_path):
         with open(identity_path) as f: previous = json.load(f)
         n_previous = len(previous['row_ids'])
-        fixed = ('adapter', 'mode', 'model', 'logprob_top_k')
+        fixed = ('adapter', 'mode', 'model', 'logprob_top_k', 'prompt_style')
         same_prefix = (previous['row_ids'] == identity['row_ids'][:n_previous] and
                        previous['questions_steps'] == identity['questions_steps'][:n_previous])
-        if not same_prefix or any(previous[k] != identity[k] for k in fixed):
+        if not same_prefix or any(previous.get(k) != identity.get(k) for k in fixed):
             raise ValueError('resume identity differs: model, adapter, rows, text, or top-k')
     elif os.path.exists(out_path):
         legacy = load_cache(out_path)
@@ -338,8 +386,11 @@ def main():
     ent = np.concatenate([np.asarray(e["token_entropies"]) for e in good]) if good else np.array([])
     manifest = {"driver": "run_prmbench_prm_telemetry.py", "mode": cfg.mode, "model": cfg.model,
                 "dataset_diagnostics": diag, "n_rows": len(cache), "logprob_top_k": cfg.logprob_top_k,
-                "system_prompt": (OFFICIAL_QWEN_SYSTEM_PROMPT if cfg.adapter == 'qwen_prm_72b' else PRM_SYSTEM_PROMPT)
+                "system_prompt": None if cfg.mode == 'instruct' and cfg.prompt_style != 'qwen_cot_chat' else
+                                 (OFFICIAL_QWEN_SYSTEM_PROMPT if cfg.adapter == 'qwen_prm_72b' and cfg.mode == 'prm' else PRM_SYSTEM_PROMPT)
                                  if cfg.mode == 'instruct' or cfg.adapter.startswith('qwen_prm') else None,
+                **({"prompt_style": cfg.prompt_style, "model_revision": getattr(cfg, 'model_revision', None)}
+                   if cfg.mode == 'instruct' else {}),
                 "n_boundary_whitespace": int(sum(e.get('n_boundary_whitespace', 0) for e in good)),
                 "token_surprisal_median": float(np.median(surpr)) if len(surpr) else None, "token_surprisal_mean": float(surpr.mean()) if len(surpr) else None,
                 "token_entropy15_median": float(np.median(ent)) if len(ent) else None,
