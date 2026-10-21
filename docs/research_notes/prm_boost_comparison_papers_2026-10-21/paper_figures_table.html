@@ -1,0 +1,198 @@
+<title>Comparison Papers Reproducibility</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one dense reference table per paper, filter chips on top, RTL */
+:root{
+  --bg:#f6f7f9; --surface:#ffffff; --fg:#1b1f27; --muted:#5d6574; --line:#dde1e8;
+  --accent:#2b5bd7;
+  --yes-bg:#e3f4ea; --yes-fg:#17663a;
+  --done-bg:#e3ecfb; --done-fg:#1f4fae;
+  --part-bg:#fdf1d8; --part-fg:#87570a;
+  --no-bg:#fbe5e5; --no-fg:#9b2424;
+  --f-body:"Heebo","Segoe UI",Arial,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12151b; --surface:#1a1e26; --fg:#e7eaf0; --muted:#9aa3b2; --line:#2c323d; --accent:#7ea2ff;
+  --yes-bg:#163a26; --yes-fg:#8fe0b0; --done-bg:#1b2a4a; --done-fg:#9dbcff;
+  --part-bg:#3d2f12; --part-fg:#f2c56b; --no-bg:#431c1c; --no-fg:#f5a3a3; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12151b; --surface:#1a1e26; --fg:#e7eaf0; --muted:#9aa3b2; --line:#2c323d; --accent:#7ea2ff;
+  --yes-bg:#163a26; --yes-fg:#8fe0b0; --done-bg:#1b2a4a; --done-fg:#9dbcff;
+  --part-bg:#3d2f12; --part-fg:#f2c56b; --no-bg:#431c1c; --no-fg:#f5a3a3; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 48px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:28px}
+h1{font-size:1.6rem;font-weight:800;margin:0;text-wrap:balance}
+h2{font-size:1.2rem;font-weight:700;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:4px 0 0;max-width:75ch}
+.legend,.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.8rem;font-weight:600;white-space:nowrap}
+.yes{background:var(--yes-bg);color:var(--yes-fg)} .done{background:var(--done-bg);color:var(--done-fg)}
+.part{background:var(--part-bg);color:var(--part-fg)} .no{background:var(--no-bg);color:var(--no-fg)}
+.filters button{font:inherit;font-size:.85rem;border:1px solid var(--line);background:var(--surface);color:var(--fg);
+  padding:4px 12px;border-radius:999px;cursor:pointer}
+.filters button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);font-weight:700}
+.filters button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+section{display:grid;gap:10px}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px 20px;font-size:.88rem;color:var(--muted)}
+.meta b{color:var(--fg);font-weight:600}
+.verdict{font-size:.9rem;margin:0}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:.88rem}
+th,td{padding:8px 10px;text-align:right;vertical-align:top;border-bottom:1px solid var(--line)}
+th{font-size:.75rem;letter-spacing:.04em;color:var(--muted);font-weight:600;background:var(--bg)}
+tr:last-child td{border-bottom:0}
+td.item{font-family:var(--f-mono);font-size:.82rem;white-space:nowrap;font-weight:500}
+td.num{font-variant-numeric:tabular-nums}
+tr.top td.item::after{content:" ★";color:var(--accent)}
+.ltr{direction:ltr;unicode-bidi:isolate}
+.overview table{min-width:820px}
+footer{color:var(--muted);font-size:.82rem;max-width:90ch}
+</style>
+
+<div class="wrap" dir="rtl">
+<header>
+  <h1>מאמרי ההשוואה ל-PRM boosting: מה הם מציגים ומה אנחנו יכולים לשחזר</h1>
+  <p class="sub">לכל מאמר: כל טבלה וגרף, על איזה benchmark, באיזה metric, והאם אפשר לייצר אותו מהנתונים שכבר יש לנו (PRMBench ו-ProcessBench עם 5 PRMs + telemetry, Socratic, Hard2Verify) בלי generation או אימון חדש. ★ = מומלץ לייצר קודם.</p>
+</header>
+
+<div class="legend">
+  <span class="pill yes">אפשר עכשיו</span>
+  <span class="pill done">כבר עשינו</span>
+  <span class="pill part">חלקית / אנלוגי</span>
+  <span class="pill no">אי אפשר</span>
+</div>
+
+<section class="overview">
+  <h2>סיכום לפי מאמר</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>מאמר</th><th>Benchmarks</th><th>Metrics</th><th>PRM / מודלים</th><th>Labels</th><th>כמה פריטים אפשר לשחזר</th></tr></thead>
+    <tbody>
+      <tr><td><b>PRISM</b> <span class="ltr">2606.09078</span></td><td>PRMBench, ProcessBench; BoN: MATH-500, AIME24, LiveCodeBench; GRPO: 6 math sets</td><td>PRMScore, FPR/FNR/TPR/TNR/Prec, ProcessBench F1, accuracy</td><td>Qwen-PRM-7B (ראשי), ReasonEval, ThinkPRM, GenPRM</td><td>אימון על PRM800K</td><td>7 מתוך 19</td></tr>
+      <tr><td><b>CROP</b> <span class="ltr">2605.30085</span></td><td>CRV (Arithmetic, GSM8K), ProcessBench, PRMBench, Math-Shepherd, PRM800K</td><td>pooled step AUROC, kept prefix %, risk %, boundary deviation, repair accuracy</td><td>Qwen-PRM-7B קפוא + Llama-3.1-8B trace features</td><td>LR + calibration עם labels</td><td>10 מתוך 16</td></tr>
+      <tr><td><b>SLIDER</b> <span class="ltr">2610.00571</span></td><td>PRMBench (redundancy בלבד), GSM8K, AIME2025, synthetic</td><td>redundancy accuracy, Step-RRI, Spearman ρ</td><td>QwQ-32B, R1-Distill-32B, GPT-4.1</td><td>threshold עם labels</td><td>1 מתוך 6</td></tr>
+      <tr><td><b>Optimal Aggregation</b> <span class="ltr">2510.13918</span></td><td>MATH, MATH500 בלבד (Best-of-N)</td><td>accuracy של התשובה שנבחרה, compute savings, MAE</td><td>5 LLMs × 7 PRMs</td><td>calibration set עם labels</td><td>0 מתוך 6</td></tr>
+      <tr><td><b>uPRM</b> <span class="ltr">2605.10158</span></td><td>ProcessBench; TTS/RL: MATH-500, Minerva, Olympiad</td><td>Err / Corr / F1</td><td>Qwen2.5-14B</td><td>ללא labels</td><td>1 מתוך 4</td></tr>
+      <tr><td><b>ScalePRM</b> <span class="ltr">2512.03244</span></td><td>ProcessBench; RL: 6 math sets</td><td>F1, pass@1</td><td>Qwen2.5-14B, verifier Qwen3-32B</td><td>pseudo-labels</td><td>1 מתוך 2</td></tr>
+      <tr><td><b>FUSE / Weaver</b></td><td>GPQA Diamond, HLE, IMO Shortlist</td><td>ברמת תשובה</td><td>LLM judges + RMs</td><td>ללא labels</td><td>0 (related work)</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<div class="filters" role="group" aria-label="סינון">
+  <button type="button" id="f-all" data-f="all" aria-pressed="true">הכול</button>
+  <button type="button" id="f-yes" data-f="yes" aria-pressed="false">אפשר עכשיו</button>
+  <button type="button" id="f-done" data-f="done" aria-pressed="false">כבר עשינו</button>
+  <button type="button" id="f-part" data-f="part" aria-pressed="false">חלקית</button>
+  <button type="button" id="f-no" data-f="no" aria-pressed="false">אי אפשר</button>
+</div>
+
+<section>
+  <h2>PRISM <span class="ltr">(arXiv 2606.09078)</span></h2>
+  <p class="verdict">אותו PRM ואותו metric, וה-baseline שלהם משוחזר אצלנו. הכי חשוב: Fig 5b.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>פריט</th><th>מה מוצג</th><th>Benchmark</th><th>Metric</th><th>אפשר?</th><th>מה אצלנו / הערה</th></tr></thead>
+    <tbody>
+      <tr data-s="yes"><td class="item">Table 1</td><td>השוואת PRMs: Qwen-7B 95.4/30.7/65.5, ThinkPRM 64.3, GPT-4o 66.8</td><td>PRMBench</td><td>Pos-Acc, Neg-Acc, PRMScore</td><td><span class="pill yes">אפשר עכשיו</span></td><td>להוסיף שורות לכל 5 ה-PRMs ולכל fused arm</td></tr>
+      <tr data-s="done"><td class="item">Table 2</td><td>ablation: baseline מול PRISM (FPR 69.3→47.1)</td><td>PRMBench</td><td>FPR, FNR, Prec, TPR, TNR, PRMScore</td><td><span class="pill done">כבר עשינו</span></td><td>ל-PRM-7B ב-PRISM_RESULTS.json; אפשר להרחיב ל-5 PRMs</td></tr>
+      <tr data-s="no"><td class="item">Table 3</td><td>GRPO עם PRISM כ-reward</td><td>AIME, AMC, GSM8K, MATH-500…</td><td>accuracy</td><td><span class="pill no">אי אפשר</span></td><td>דורש אימון RL</td></tr>
+      <tr data-s="yes"><td class="item">Table 4</td><td>מספר false positives (9,109 ב-baseline)</td><td>PRMBench</td><td>FP count</td><td><span class="pill yes">אפשר עכשיו</span></td><td>טריוויאלי</td></tr>
+      <tr data-s="no"><td class="item">Table 5, 8–10</td><td>curriculum bins, ReasonEval</td><td>PRMBench</td><td>PRMScore, FPR, FNR</td><td><span class="pill no">אי אפשר</span></td><td>תלוי באימון שלהם</td></tr>
+      <tr data-s="yes"><td class="item">Table 6</td><td>ProcessBench לכל subset</td><td>ProcessBench</td><td>TPR / TNR / F1</td><td><span class="pill yes">אפשר עכשיו</span></td><td>הנתונים קיימים (job 289297). ה-baseline משוחזר. אבל אנחנו מפסידים: 72.94 → 67.23</td></tr>
+      <tr data-s="done"><td class="item">Table 7</td><td>9 קטגוריות + Simplicity / Soundness / Sensitivity</td><td>PRMBench</td><td>PRMScore לקטגוריה</td><td><span class="pill done">כבר עשינו</span></td><td>טבלת S/S/S בנקודות הדיבור, שקופית 7</td></tr>
+      <tr data-s="part"><td class="item">Fig 2</td><td>label skew ב-PRM800K</td><td>PRM800K</td><td>% חיוביים</td><td><span class="pill part">חלקית</span></td><td>אפשר אותו גרף על PRMBench, אבל אין בזה ערך להשוואה</td></tr>
+      <tr data-s="no"><td class="item">Fig 3</td><td>סימולציה: BoN תחת FP/FN</td><td>תאורטי</td><td>accuracy</td><td><span class="pill no">אי אפשר</span></td><td>דורש BoN</td></tr>
+      <tr data-s="yes"><td class="item">Fig 4</td><td>pairwise accuracy לפי score margin</td><td>PRMBench</td><td>accuracy</td><td><span class="pill yes">אפשר עכשיו</span></td><td>גרסה within-answer: זוגות של צעד שגוי ותקין באותה תשובה</td></tr>
+      <tr data-s="no"><td class="item">Fig 5a</td><td>FPR ו-precision לאורך curriculum</td><td>PRMBench</td><td>FPR, Prec</td><td><span class="pill no">אי אפשר</span></td><td>אימון</td></tr>
+      <tr class="top" data-s="yes"><td class="item">Fig 5b</td><td>עקומת FPR מול FNR לאורך thresholds, PRISM מול baseline</td><td>PRMBench</td><td>FPR, FNR</td><td><span class="pill yes">אפשר עכשיו</span></td><td>עקומות של PRM ושל CHAIN + הנקודה של PRISM. עונה על "האם זה רק threshold"</td></tr>
+      <tr data-s="no"><td class="item">Fig 6, 8, 9</td><td>Best-of-N ו-guided beam search</td><td>MATH-500, AIME24, LCB</td><td>accuracy</td><td><span class="pill no">אי אפשר</span></td><td>דורש generation</td></tr>
+      <tr data-s="yes"><td class="item">Fig 7</td><td>התפלגות reward על צעדים שגויים</td><td>PRMBench</td><td>histogram</td><td><span class="pill yes">אפשר עכשיו</span></td><td>PRM מול fused score על error steps</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2>CROP <span class="ltr">(arXiv 2605.30085)</span></h2>
+  <p class="verdict">הרעיון הכי קרוב אלינו (PRM + telemetry), אבל עם labels. רוב הגרפים ניתנים לשחזור על PRMBench ו-ProcessBench.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>פריט</th><th>מה מוצג</th><th>Benchmark</th><th>Metric</th><th>אפשר?</th><th>מה אצלנו / הערה</th></tr></thead>
+    <tbody>
+      <tr data-s="done"><td class="item">Table 6 · PRMBench</td><td>5 proxies: Token/format 0.775/16.2, Trace 0.781/15.9, PRM 0.801/4.8, Trace+PRM 0.834/21.8</td><td>PRMBench (5,000)</td><td>pooled AUROC, kept %, risk %</td><td><span class="pill done">כבר עשינו</span></td><td class="num">CHAIN_N16 0.794 / 23.3%, LSML_CONT 0.802 / 25.1%</td></tr>
+      <tr class="top" data-s="yes"><td class="item">Table 6 · ProcessBench</td><td>PRM 0.880/46.7, Trace+PRM 0.894/42.4, Token/format 0.706/10.6</td><td>ProcessBench (3,400)</td><td>pooled AUROC, kept %, risk %</td><td><span class="pill yes">אפשר עכשיו</span></td><td>הציונים קיימים. ה-target שלהם הוא 6.6% ושלנו 8.6%. צפוי שנפסיד (CHAIN 0.801 מול PRM 0.883)</td></tr>
+      <tr data-s="no"><td class="item">Table 6 · אחרים</td><td>CRV Arithmetic/GSM8K, Math-Shepherd, PRM800K</td><td>4 datasets</td><td>אותו דבר</td><td><span class="pill no">אי אפשר</span></td><td>אין לנו telemetry על ה-datasets האלה</td></tr>
+      <tr data-s="yes"><td class="item">Table 1, 7, 8</td><td>CROP מול whole-trace abstention, boundary deviation, רגישות ל-α</td><td>CRV (אצלנו: PRMBench/PB)</td><td>kept, overshoot, deviation</td><td><span class="pill yes">אפשר עכשיו</span></td><td>חישוב מהציונים בלבד</td></tr>
+      <tr data-s="no"><td class="item">Table 2, 3, 10</td><td>repair: LLM ממשיך מה-prefix</td><td>CRV</td><td>repair accuracy</td><td><span class="pill no">אי אפשר</span></td><td>דורש generation</td></tr>
+      <tr data-s="part"><td class="item">Table 16</td><td>artifact-matched, label-shuffle, order controls</td><td>CRV</td><td>kept %</td><td><span class="pill part">חלקית</span></td><td>יש לנו אנלוגים: null/permutation ו-residualization על position/length</td></tr>
+      <tr data-s="yes"><td class="item">Table 17</td><td>cross-domain: calibrate על אחד, test על אחר</td><td>Arithmetic ↔ GSM8K</td><td>risk %</td><td><span class="pill yes">אפשר עכשיו</span></td><td>PRMBench → ProcessBench או Socratic</td></tr>
+      <tr data-s="yes"><td class="item">Fig 1</td><td>CDF של מיקום השגיאה הראשונה</td><td>6 datasets</td><td>CDF</td><td><span class="pill yes">אפשר עכשיו</span></td><td>labels בלבד</td></tr>
+      <tr data-s="yes"><td class="item">Fig 3</td><td>kept prefix מול α</td><td>כל ה-datasets</td><td>kept %</td><td><span class="pill yes">אפשר עכשיו</span></td><td>crop_metrics.py עם sweep על α</td></tr>
+      <tr class="top" data-s="yes"><td class="item">Fig 4</td><td>scatter: AUROC מול kept %, נקודה לכל proxy</td><td>כל ה-datasets</td><td>AUROC, kept %</td><td><span class="pill yes">אפשר עכשיו</span></td><td>מראה ישירות את ה-trade-off שלנו: AUROC נמוך יותר, prefix ארוך יותר</td></tr>
+      <tr data-s="yes"><td class="item">Fig 5</td><td>risk ו-retention לפי אורך trace</td><td>pooled</td><td>risk, kept</td><td><span class="pill yes">אפשר עכשיו</span></td><td></td></tr>
+      <tr data-s="part"><td class="item">Fig 6</td><td>risk לפי רמת קושי</td><td>Arithmetic</td><td>risk</td><td><span class="pill part">חלקית</span></td><td>ב-PRMBench אין רמת קושי; ב-ProcessBench אפשר לפי subset</td></tr>
+      <tr data-s="part"><td class="item">Fig 7</td><td>risk ו-retention לכל dataset</td><td>6 datasets</td><td>risk, kept</td><td><span class="pill part">חלקית</span></td><td>רק PRMBench ו-ProcessBench</td></tr>
+      <tr data-s="yes"><td class="item">Fig 8</td><td>contamination לפי מיקום השגיאה הראשונה</td><td>pooled</td><td>risk, kept</td><td><span class="pill yes">אפשר עכשיו</span></td><td></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2>SLIDER <span class="ltr">(arXiv 2610.00571)</span></h2>
+  <p class="verdict">רק פריט אחד בר השוואה. מאמר משני.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>פריט</th><th>מה מוצג</th><th>Benchmark</th><th>Metric</th><th>אפשר?</th><th>מה אצלנו / הערה</th></tr></thead>
+    <tbody>
+      <tr data-s="done"><td class="item">Fig 7</td><td>redundancy detection: Step-RRI 61.91, cosine ~51.6, InfoGain ~48.4</td><td>PRMBench redundancy (~750)</td><td>step accuracy</td><td><span class="pill done">כבר עשינו</span></td><td class="num">קריאה משוערת: CHAIN_N16 72.8–74.3. ההגדרה של accuracy לא ידועה</td></tr>
+      <tr data-s="no"><td class="item">Table 1, Fig 8</td><td>Trajectory-RRI מול אורך reasoning</td><td>GSM8K, AIME2025</td><td>Spearman ρ</td><td><span class="pill no">אי אפשר</span></td><td>תלוי ב-PID שלהם</td></tr>
+      <tr data-s="no"><td class="item">Fig 5, 6, 10, 11</td><td>פירוקי PID לבעיות בודדות</td><td>synthetic, GSM8K</td><td>PID components</td><td><span class="pill no">אי אפשר</span></td><td>לא רלוונטי לנו</td></tr>
+      <tr data-s="no"><td class="item">Table 2</td><td>רגישות למספר clusters</td><td>GSM8K</td><td>PID</td><td><span class="pill no">אי אפשר</span></td><td></td></tr>
+      <tr data-s="no"><td class="item">Fig 9, Table 3</td><td>fine-tuning על נתונים עם RRI שונה</td><td>GSM8K</td><td>efficiency, accuracy</td><td><span class="pill no">אי אפשר</span></td><td>אימון</td></tr>
+      <tr data-s="no"><td class="item">Fig 1–4</td><td>איורים של השיטה</td><td>—</td><td>—</td><td><span class="pill no">אי אפשר</span></td><td>אין נתונים</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2>Optimal Aggregation <span class="ltr">(arXiv 2510.13918)</span></h2>
+  <p class="verdict">רק MATH ו-MATH500 עם Best-of-N. אין PRMBench ואין ProcessBench. רלוונטי למסגור בלבד. ב-v1 ב-arXiv הממוצע של Logit WV עם Qwen-PRM-7B הוא 62.1, וב-README שלנו כתוב 63.3. צריך לבדוק איזו גרסה צוטטה.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>פריט</th><th>מה מוצג</th><th>Benchmark</th><th>Metric</th><th>אפשר?</th><th>מה אצלנו / הערה</th></tr></thead>
+    <tbody>
+      <tr data-s="no"><td class="item">Table 1</td><td>BoN, MV, Vanilla/KDE/Linear/Logit WV × 5 LLMs × PRMs</td><td>MATH (32 דגימות)</td><td>accuracy</td><td><span class="pill no">אי אפשר</span></td><td>דורש N דגימות לכל שאלה עם תשובות מדורגות</td></tr>
+      <tr data-s="no"><td class="item">Table 2</td><td>אותו דבר</td><td>MATH500 (112 דגימות)</td><td>accuracy</td><td><span class="pill no">אי אפשר</span></td><td></td></tr>
+      <tr data-s="part"><td class="item">Fig 1</td><td>התפלגות ציוני PRM + משקלים אופטימליים w*(p)</td><td>MATH</td><td>density, weight</td><td><span class="pill part">חלקית</span></td><td>התפלגויות כן; המשקלים מוגדרים לבחירת תשובה</td></tr>
+      <tr data-s="no"><td class="item">Fig 2</td><td>accuracy מול N, compute savings</td><td>MATH, MATH500</td><td>accuracy</td><td><span class="pill no">אי אפשר</span></td><td></td></tr>
+      <tr data-s="no"><td class="item">Fig 3</td><td>grid של offset b; accuracy מול גודל ה-calibration set</td><td>MATH</td><td>accuracy</td><td><span class="pill no">אי אפשר</span></td><td></td></tr>
+      <tr data-s="no"><td class="item">Fig 4</td><td>משקל לכל שאלה; MAE של אמינות LLM</td><td>MATH</td><td>MAE</td><td><span class="pill no">אי אפשר</span></td><td></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2>uPRM <span class="ltr">(2605.10158)</span> ו-ScalePRM <span class="ltr">(2512.03244)</span></h2>
+  <p class="verdict">PRMs שאומנו בלי labels. בעלי ProcessBench בלבד. ה-PRM-7B שלנו לבד כבר ב-72.9, כי אומן עם labels, כך שההשוואה לא הוגנת.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>פריט</th><th>מה מוצג</th><th>Benchmark</th><th>Metric</th><th>אפשר?</th><th>מה אצלנו / הערה</th></tr></thead>
+    <tbody>
+      <tr data-s="yes"><td class="item">uPRM Table 1 / D1</td><td class="num">LLM-judge → uPRM: GSM8K 49.8→58.3, MATH 42.8→52.6, Olymp 29.4→42.7, Omni 26.6→39.8</td><td>ProcessBench</td><td>Err / Corr / F1</td><td><span class="pill yes">אפשר עכשיו</span></td><td>להציב את השורות שלנו לידם</td></tr>
+      <tr data-s="no"><td class="item">uPRM Fig 1, Tab 2–3</td><td>TTS, Best-of-8, RL</td><td>MATH-500, Minerva, Olymp</td><td>accuracy</td><td><span class="pill no">אי אפשר</span></td><td></td></tr>
+      <tr data-s="no"><td class="item">uPRM Fig D1–D6</td><td>reward hacking, אורך, KL באימון</td><td>RL</td><td>reward, KL</td><td><span class="pill no">אי אפשר</span></td><td></td></tr>
+      <tr data-s="yes"><td class="item">ScalePRM Fig 2</td><td>avg F1 לפי מקור ה-labels (step-consistency 67.5)</td><td>ProcessBench</td><td>avg F1</td><td><span class="pill yes">אפשר עכשיו</span></td><td>להציב את המספרים שלנו לידם</td></tr>
+      <tr data-s="no"><td class="item">ScalePRM Table 1</td><td>RL עם PRM-CoT</td><td>6 math sets</td><td>pass@1</td><td><span class="pill no">אי אפשר</span></td><td></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<footer>מקורות: המאמרים ב-arXiv (נקראו אוטומטית ב-21.10.2026, לא קריאה ידנית מלאה), ו-results/prmbench_paper_metric_parity_v1 ו-results/prm_boost_processbench_v1 בענף claude/integration-2026-10-17. כל מספרי PRMBench שלנו הם development data. לא הורץ שום ניסוי חדש.</footer>
+</div>
+
+<script>
+document.querySelectorAll('.filters button').forEach(function(b){
+  b.addEventListener('click',function(){
+    var f=b.dataset.f;
+    document.querySelectorAll('.filters button').forEach(function(x){x.setAttribute('aria-pressed',String(x===b));});
+    document.querySelectorAll('tr[data-s]').forEach(function(r){r.hidden=(f!=='all'&&r.dataset.s!==f);});
+  });
+});
+</script>
