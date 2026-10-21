@@ -63,7 +63,7 @@ footer { margin-top: 48px; font-size: .82rem; color: var(--ink-3); display: flex
 <header>
   <div class="eyebrow">Competitor positioning · 21 October 2026 · development data</div>
   <h1>PRM Boosting against the closest methods</h1>
-  <p class="lede">Two recent papers define our position: PRISM (retrains the same PRM) and CROP (fuses a PRM with telemetry, with supervision). Against both, label-free PRM boosting matches or exceeds their published numbers on PRMBench. Neither paper reports a label-free step-level fusion of a PRM with telemetry. As far as we have searched, we are the only one.</p>
+  <p class="lede">Two recent papers define our position: PRISM (retrains the same PRM) and CROP (fuses a PRM with telemetry, with supervision). Against both, label-free PRM boosting matches or exceeds their headline PRMBench numbers: PRISM's PRMScore and error rates, and CROP's share of each trace kept. CROP's pooled AUROC stays higher (.834 vs .792). Neither paper reports a label-free step-level fusion of a PRM with telemetry. As far as we have searched, we are the only one.</p>
 </header>
 
 <section id="map">
@@ -76,10 +76,10 @@ footer { margin-top: 48px; font-size: .82rem; color: var(--ink-3); display: flex
     <tbody>
       <tr class="ours"><td><b>PRM boosting (ours)</b></td><td>PRM step score + 16 telemetry channels from the same forward pass, fused by L-SML; GAP flag count</td><td><span class="acc a-free">label-free</span></td><td>PRMBench (PRMScore, 9 categories, within-AUC), Socratic, Hard2Verify</td><td>—</td></tr>
       <tr><td><b>PRISM</b> (arXiv 2606.09078)</td><td>Re-trains Qwen2.5-Math-PRM-7B on pairwise step comparisons from PRM800K to cut false positives</td><td><span class="acc a-train">retrained</span></td><td>PRMBench PRMScore, FPR/TPR/TNR, categories; ProcessBench; Best-of-N</td><td>Same PRM, same metric. Their baseline matches ours to 0.01 (65.5 vs 65.49)</td></tr>
-      <tr><td><b>CROP</b> (arXiv 2605.30085, EMNLP 2026 Oral)</td><td>Conformal certificate on the longest clean prefix. Its best risk proxy, "Trace+PRM", is an LR over the PRM, Llama-3.1-8B trace features and surface cues</td><td><span class="acc a-sup">supervised LR</span> <span class="acc a-label">calibrated λ</span></td><td>PRMBench first 5,000 traces: pooled step AUROC, prefix kept at risk ≤ α; five other datasets</td><td>Closest idea. We ran their protocol on our scores</td></tr>
+      <tr><td><b>CROP</b> (arXiv 2605.30085, EMNLP 2026 Oral)</td><td>Conformal certificate on the longest clean prefix. Its strongest PRMBench proxy, "Trace+PRM", is an ℓ2 logistic regression trained on 60% of the traces, over the PRM score, Llama-3.1-8B teacher-forced trace features, hidden-state scalars and text metadata</td><td><span class="acc a-sup">supervised LR</span> <span class="acc a-label">calibrated λ</span></td><td>PRMBench first 5,000 traces: pooled step AUROC, prefix kept at risk ≤ α; five other datasets</td><td>Closest idea. We ran their protocol on our scores</td></tr>
       <tr><td>Trained PRMs, LLM critics</td><td>Qwen-72B PRM, PathFinder, R-PRM, ActPRM; Gemini-2-thinking, o1-mini, GPT-4o, o3-mini</td><td><span class="acc a-train">trained</span> / prompted</td><td>PRMBench and Socratic leaderboards</td><td>Table to table (same metric)</td></tr>
       <tr><td>ARES (arXiv 2507.12948, EMNLP 2025)</td><td>Training-free entailment scoring with many LLM calls per step</td><td>training-free, <span class="acc a-label">CV threshold</span></td><td>PRMBench Macro-F1 (subset size not stated)</td><td>Approximate; their own appendix has the plain PRM at .749 vs ARES .736</td></tr>
-      <tr><td>SLIDER (arXiv 2610.00571)</td><td>Information decomposition for redundant steps; 50 GPT-4o-mini calls per problem</td><td><span class="acc a-label">learned threshold</span></td><td>PRMBench redundancy class only, "accuracy" 61.91 (protocol unclear)</td><td>Approximate</td></tr>
+      <tr><td>SLIDER (arXiv 2610.00571)</td><td>Information decomposition for redundant steps; up to 50 GPT-4o-mini calls per problem</td><td><span class="acc a-label">learned threshold</span></td><td>PRMBench redundancy class only, "accuracy" 61.91 (protocol unclear)</td><td>Approximate</td></tr>
       <tr><td>FUSE, Weaver, ScalePRM, uPRM, Optimal Aggregation</td><td>Label-free or weakly supervised verifier ensembling and PRM training</td><td>mixed</td><td>Response-level selection, or ProcessBench only</td><td>Framing only: none reports step-level PRMBench</td></tr>
     </tbody>
   </table>
@@ -105,7 +105,7 @@ footer { margin-top: 48px; font-size: .82rem; color: var(--ink-3); display: flex
   </table>
   </div>
   <ul class="tight">
-    <li><b>Where the gain comes from.</b> With one global threshold, the fused score and the PRM trace almost the same curve, so moving the PRM's threshold alone reaches PRISM's point. The improvement appears when the fused score is cut per answer at its largest gap. The PRM cut the same way stays close to its own curve (PRMScore 68.01).</li>
+    <li><b>Where the gain comes from.</b> With one global threshold, the fused score and the PRM trace almost the same curve, so moving the PRM's threshold alone, chosen with labels, comes close to PRISM's point (FPR 47.7 vs 47.1 at the same TPR). The improvement appears when the fused score is cut per answer at its largest gap. The PRM cut the same way stays close to its own curve (PRMScore 68.01).</li>
     <li><b>On the other PRMs</b>, at matched TPR, the fused score is ahead even under a global threshold: PURE FPR 49.8 vs 52.2, RLHFlow 57.8 vs 77.1, Math-Shepherd 57.3 vs 81.3. On Qwen-72B it is slightly behind (45.9 vs 45.3).</li>
     <li><b>The claim we can make:</b> without retraining and without labels, the same PRM plus telemetry reaches and passes PRISM's reported point. PRISM's checkpoint is not public, so we cannot boost it.</li>
   </ul>
@@ -113,31 +113,32 @@ footer { margin-top: 48px; font-size: .82rem; color: var(--ink-3); display: flex
 
 <section id="crop">
   <h2>CROP: the same idea, done with labels</h2>
-  <p>CROP's Trace+PRM proxy is the closest prior work: a step-level fusion of a PRM with model telemetry. Theirs is a logistic regression trained on step labels from 60% of the traces. We ran their full protocol on our scores: the first 5,000 PRMBench traces, their splits and seeds, risk ≤ 5%. We also added controls they do not have.</p>
+  <p>CROP's Trace+PRM proxy is the closest prior work: a step-level fusion of a PRM with model telemetry. Theirs is a logistic regression trained on step labels from 60% of the traces. We reproduced their protocol on our scores: the first 5,000 PRMBench traces (4,995 scored), their splits, seeds 2806–2815, risk ≤ 5%. CROP searches a fixed grid of 101 thresholds. We report that grid and a finer quantile grid, which keeps a little more for every proxy. We also added controls they do not have.</p>
   <div class="panel chart" id="ch-crop"></div>
   <div class="panel scroll">
   <table>
-    <thead><tr><th>Risk proxy (Qwen2.5-Math-PRM-7B)</th><th>Access</th><th class="n">Prefix kept</th><th class="n">Risk</th><th class="n">Pooled AUROC</th></tr></thead>
+    <thead><tr><th>Risk proxy (Qwen2.5-Math-PRM-7B)</th><th>Access</th><th class="n">Prefix kept (CROP grid / quantile)</th><th class="n">Risk</th><th class="n">Pooled AUROC</th></tr></thead>
     <tbody>
       <tr><td>Direct PRM (CROP's grid / quantile grid)</td><td><span class="acc a-train">PRM</span></td><td class="n">4.9 / 17.3%</td><td class="n">0.6 / 3.9%</td><td class="n">.801</td></tr>
-      <tr><td>Format and position cues, LR</td><td><span class="acc a-sup">supervised</span></td><td class="n">16.7%</td><td class="n">4.9%</td><td class="n">.778</td></tr>
-      <tr><td>CROP Trace+PRM (published)</td><td><span class="acc a-sup">supervised</span></td><td class="n">21.8%</td><td class="n">5.0%</td><td class="n">.834</td></tr>
-      <tr><td>Format and position cues + PRM, LR (our control)</td><td><span class="acc a-sup">supervised</span></td><td class="n">21.7%</td><td class="n">4.7%</td><td class="n">.831</td></tr>
-      <tr class="ours"><td><b>PRM boosting, fitted on the training traces only</b></td><td><span class="acc a-free">label-free</span></td><td class="n">23.2%</td><td class="n">5.0%</td><td class="n">.792</td></tr>
-      <tr class="ours"><td>PRM boosting, fitted on all traces</td><td><span class="acc a-free">label-free</span></td><td class="n">23.3%</td><td class="n">4.8%</td><td class="n">.795</td></tr>
-      <tr><td>Our telemetry + PRM, LR (supervised analog)</td><td><span class="acc a-sup">supervised</span></td><td class="n">25.1%</td><td class="n">4.6%</td><td class="n">.829</td></tr>
+      <tr><td>Format and position cues, LR</td><td><span class="acc a-sup">supervised</span></td><td class="n">16.3 / 16.7%</td><td class="n">4.8 / 4.9%</td><td class="n">.778</td></tr>
+      <tr><td>CROP Trace+PRM (published, CROP grid)</td><td><span class="acc a-sup">supervised</span></td><td class="n">21.8%</td><td class="n">5.0%</td><td class="n">.834</td></tr>
+      <tr><td>Format and position cues + PRM, LR (our control)</td><td><span class="acc a-sup">supervised</span></td><td class="n">21.2 / 21.7%</td><td class="n">4.5 / 4.7%</td><td class="n">.831</td></tr>
+      <tr class="ours"><td><b>PRM boosting, fitted on the training traces only</b></td><td><span class="acc a-free">label-free</span></td><td class="n">22.3 / 23.2%</td><td class="n">4.7 / 5.0%</td><td class="n">.792</td></tr>
+      <tr class="ours"><td>PRM boosting, fitted on all traces</td><td><span class="acc a-free">label-free</span></td><td class="n">21.9 / 23.3%</td><td class="n">4.4 / 4.8%</td><td class="n">.795</td></tr>
+      <tr><td>Our 13-channel telemetry + PRM, LR (supervised analog)</td><td><span class="acc a-sup">supervised</span></td><td class="n">24.9 / 25.1%</td><td class="n">4.5 / 4.6%</td><td class="n">.829</td></tr>
+      <tr><td>Our 16-channel telemetry + PRM, LR (supervised analog)</td><td><span class="acc a-sup">supervised</span></td><td class="n">25.2 / 25.4%</td><td class="n">4.5 / 4.6%</td><td class="n">.833</td></tr>
     </tbody>
   </table>
   </div>
   <ul class="tight">
-    <li><b>CROP's gain over the PRM comes from surface cues.</b> Format and position features plus the PRM reproduce their Trace+PRM row (21.7% vs 21.8%, AUROC .831 vs .834), without any Llama features. On PRMBench their model-derived features add nothing measurable.</li>
-    <li><b>On Qwen-7B, the PRM CROP used, label-free PRM boosting keeps more of each trace than their supervised proxy</b> (23.2% vs 21.8%) at the same risk, with our fusion fitted only on the training traces. On CROP's own fixed threshold grid the margin shrinks to a tie (21.9%).</li>
-    <li><b>On the other PRMs the picture is mixed.</b> Against the supervised format/position + PRM LR, PRM boosting is ahead on Qwen-72B (22.0% vs 21.3%) and behind on PURE (20.7 vs 22.1), RLHFlow (16.3 vs 17.8) and Math-Shepherd (17.3 vs 18.6).</li>
-    <li><b>Our telemetry is the better input.</b> A supervised LR on it keeps 25.1%. The label-free fusion recovers 82–93% of that on the Qwen and PURE PRMs.</li>
+    <li><b>Most of CROP's gain over the PRM may come from surface cues.</b> Our format and position features plus the PRM, with no Llama features, come within 0.6 points of their Trace+PRM on their grid (21.2% vs 21.8%; AUROC .831 vs .834). Our format/position LR alone also matches their token/format row (16.3% vs 16.2%). This is an inference from our reconstruction: we did not ablate CROP's own features.</li>
+    <li><b>On Qwen-7B, the PRM CROP used, label-free PRM boosting keeps slightly more of each trace than their supervised proxy</b> at the same risk, with our fusion fitted only on the training traces: 22.3% vs 21.8% on CROP's grid, 23.2% on the quantile grid. The margin is small. Fitted on all traces, it is 21.9% on CROP's grid.</li>
+    <li><b>On the other PRMs the picture is mixed.</b> Against the supervised format/position + PRM LR (quantile grid, training-trace fit), PRM boosting is ahead on Qwen-72B (22.3% vs 21.3%) and behind on PURE (20.7 vs 22.1), RLHFlow (16.4 vs 17.8) and Math-Shepherd (17.4 vs 18.6). The order is the same on CROP's grid. The plain Qwen-72B PRM finds no threshold that meets 5% on any of the 10 seeds (risk 7.4%).</li>
+    <li><b>Our telemetry is the better input.</b> A supervised LR on it keeps 25.1–25.4% (quantile grid, 13 or 16 channels). The label-free fusion recovers 81–92% of that on the Qwen and PURE PRMs.</li>
     <li><b>Where CROP is stronger.</b>
       <ul>
-        <li>Its pooled AUROC is higher. Our scores are standardized within each answer, which hurts pooling across answers.</li>
-        <li>It offers a guarantee. When we calibrate on PRMBench and test on Socratic, our fused score breaks it: 6.7% risk at a 5% target.</li>
+        <li>Its pooled AUROC is higher (.834 vs .792). Our scores are standardized within each answer, a likely reason, since pooled AUROC compares steps across answers.</li>
+        <li>It offers a guarantee within one domain, and ours does not survive a domain shift. Calibrated on PRMBench and tested on Socratic at a 5% target, PRM boosting reaches 6.7% risk on Qwen-7B and 8.2–25.9% on the other four PRMs, while each plain PRM stays at or below 5%. CROP's own cross-domain diagnostic also breaks (14.8% risk from arithmetic to GSM8K), so both need recalibration under shift.</li>
       </ul>
     </li>
   </ul>
@@ -150,14 +151,14 @@ footer { margin-top: 48px; font-size: .82rem; color: var(--ink-3); display: flex
     <div class="panel scroll"><h3>Socratic-PRMBench, official metric</h3><table><tbody id="t-soc"></tbody></table>
       <p class="note" style="margin-top:8px">On Socratic, PRM boosting loses to its own PRM for 4 of 5 PRMs (see the status report). Prompted critics lead this benchmark.</p></div>
   </div>
-  <p class="note">The PRMBench leaderboard rows come from each paper. Ours use the same official evaluator, but our rows use the GAP flag rule, while the leaderboard PRMs use their native thresholds. Under GAP the plain Qwen-72B PRM already reaches 69.5, so part of the gap to the leaderboard is the rule. The fair comparison is PRM boosting against its own PRM under the same rule: +1.6 to +6.9 points.</p>
+  <p class="note">The PRMBench leaderboard rows come from each paper. Ours use a port of the official evaluator, and our rows use the GAP flag rule, while the leaderboard PRMs use their native thresholds. Under GAP the plain Qwen-72B PRM already reaches 69.5, so part of the gap to the leaderboard is the rule. The fair comparison is PRM boosting against its own PRM under the same rule: +1.6 to +6.9 points.</p>
 </section>
 
 <section id="secondary">
   <h2>Secondary comparisons</h2>
   <ul class="tight">
-    <li><b>ARES</b> (Macro-F1, threshold chosen by 5-fold CV on labels; full PRMBench, approximate). On Qwen-7B the PRM and PRM boosting tie: 68.17 vs 68.10. PRM boosting is ahead on the weaker PRMs (RLHFlow 64.13 vs 55.79, Math-Shepherd 64.34 vs 53.33). ARES's own appendix puts the plain PRM at .749 against ARES's .736, within one fold SD.</li>
-    <li><b>SLIDER</b> (redundancy class only; its protocol is unclear). With GAP, PRM boosting reaches 71.2 balanced accuracy, against 54.7 for the PRM under the same rule and SLIDER's reported 61.9. With a label-tuned threshold the PRM is higher on the Qwen PRMs.</li>
+    <li><b>ARES</b> (Macro-F1, threshold chosen by 5-fold CV on labels; full PRMBench, approximate). On Qwen-7B the PRM and PRM boosting tie: 68.17 vs 68.10. PRM boosting is ahead on the weaker PRMs (RLHFlow 64.13 vs 55.79, Math-Shepherd 64.34 vs 53.33). ARES's own appendix puts the plain PRM at .749 against ARES's .736, a difference within one standard deviation by ARES's own report.</li>
+    <li><b>SLIDER</b> (redundancy class only; its protocol is unclear). On Qwen-7B with GAP, PRM boosting reaches 71.2 balanced accuracy, against 54.7 for the PRM under the same rule and SLIDER's reported 61.9. With a label-tuned threshold, the PRM has the higher plain accuracy (78.8 vs 74.1), both below the 86.8 of always predicting "correct". PRM boosting keeps the higher balanced accuracy (74.3 vs 54.5).</li>
     <li><b>Hard2Verify.</b> GAP always flags a step, so it cannot score "no error" answers. Error-localization F1 (VerifySteer's metric) needs a rule that can abstain.</li>
   </ul>
 </section>
@@ -168,12 +169,13 @@ footer { margin-top: 48px; font-size: .82rem; color: var(--ink-3); display: flex
     <div class="panel"><h3>Supported</h3><ul class="tight">
       <li>On PRMBench, label-free fusion improves every one of 5 PRMs under the same rule (+1.6 to +6.9 PRMScore).</li>
       <li>Without retraining, the result reaches and passes PRISM's reported operating point.</li>
-      <li>On CROP's setting (Qwen-7B), without labels, it keeps more of each trace than their supervised Trace+PRM; and CROP's own gain over the PRM is explained by surface cues.</li>
+      <li>On CROP's setting (Qwen-7B), without labels, it keeps slightly more of each trace than their supervised Trace+PRM (22.3% vs 21.8% on their grid). A format/position + PRM LR comes close to their row, which suggests that much of their gain over the PRM is available from surface cues.</li>
       <li>Step-level label-free fusion of a PRM with telemetry is, as far as we searched, new.</li>
     </ul></div>
     <div class="panel"><h3>Not supported</h3><ul class="tight">
       <li>Beating supervised fusion: an LR on our own telemetry is better.</li>
       <li>General transfer: on Socratic and Hard2Verify the fused score helps weak PRMs and hurts strong ones.</li>
+      <li>A higher pooled AUROC than CROP (.792 vs .834).</li>
       <li>A guarantee: our score is not calibrated across benchmarks.</li>
       <li>Untouched confirmation: all PRMBench results are development data.</li>
     </ul></div>
@@ -215,9 +217,9 @@ const PTS = [
   document.getElementById('ch-prism').innerHTML = s;
 })();
 const CROPROWS = [
-  ['Direct PRM (quantile grid)', 17.3, 'var(--prm)'], ['Format/position LR', 16.7, 'var(--ref)'],
-  ['CROP Trace+PRM (published)', 21.8, 'var(--comp)'], ['Format/position + PRM LR', 21.7, 'var(--tele)'],
-  ['PRM boosting, train-only fit', 23.2, 'var(--boost)'], ['Telemetry + PRM LR (supervised)', 25.1, 'var(--tele)']
+  ['Direct PRM', 4.9, 'var(--prm)'], ['Format/position LR', 16.3, 'var(--ref)'],
+  ['CROP Trace+PRM (published)', 21.8, 'var(--comp)'], ['Format/position + PRM LR', 21.2, 'var(--tele)'],
+  ['PRM boosting, train-only fit', 22.3, 'var(--boost)'], ['16-ch telemetry + PRM LR', 25.2, 'var(--tele)']
 ];
 (function () {
   const W = 760, L = 230, R = 50, T = 8, rowH = 30, H = T + CROPROWS.length * rowH + 40, hi = 28;
@@ -227,11 +229,11 @@ const CROPROWS = [
   CROPROWS.forEach((r, i) => { const y = T + i * rowH + 5;
     s += `<text x="${L - 10}" y="${y + 14}" text-anchor="end">${r[0]}</text><rect x="${x(0)}" y="${y}" width="${x(r[1]) - x(0)}" height="${rowH - 12}" fill="${r[2]}" rx="2"/>`;
     s += `<text x="${x(r[1]) + 6}" y="${y + 14}" style="font-family:var(--f-mono);font-size:11px">${r[1].toFixed(1)}</text>`; });
-  s += `<text x="${(L + W - R) / 2}" y="${H - 2}" text-anchor="middle" style="font-size:11px;fill:var(--ink-3)">Share of each trace certified clean at risk ≤ 5% (Qwen-PRM-7B, CROP protocol, 10 seeds)</text></svg>`;
+  s += `<text x="${(L + W - R) / 2}" y="${H - 2}" text-anchor="middle" style="font-size:11px;fill:var(--ink-3)">Share of each trace certified clean at risk ≤ 5% (Qwen-PRM-7B, CROP protocol and threshold grid, 10 seeds)</text></svg>`;
   document.getElementById('ch-crop').innerHTML = s;
 })();
 const PBROWS = [['Human (450 instances)', 83.8, 'human'], ['Qwen-72B + PRM boosting (GAP)', 71.09, 'ours'], ['Qwen-7B + PRM boosting (GAP)', 70.40, 'ours'],
-  ['Qwen-72B PRM alone, GAP rule', 69.50, 'rule'], ['Gemini-2.0-thinking (critic)', 68.8, ''], ['o1-mini (critic, 394 samples)', 68.8, ''],
+  ['Qwen-72B PRM alone, GAP rule', 69.49, 'rule'], ['Gemini-2.0-thinking (critic)', 68.8, ''], ['o1-mini (critic, 394 samples)', 68.8, ''],
   ['Qwen2.5-Math-PRM-72B', 68.2, ''], ['PRISM (retrained 7B)', 68.0, ''], ['PathFinder-PRM-7B', 67.7, ''], ['GPT-4o (critic)', 66.8, ''],
   ['R-PRM-7B-DPO', 66.8, ''], ['ActPRM-X', 66.7, ''], ['Qwen2.5-Math-PRM-7B', 65.5, '']];
 const SOCROWS = [['o3-mini (critic)', 75.7, ''], ['QwQ-32B (critic)', 73.8, ''], ['Gemini-2.5-Pro (critic)', 73.5, ''], ['DeepSeek-R1 (critic)', 73.0, ''],

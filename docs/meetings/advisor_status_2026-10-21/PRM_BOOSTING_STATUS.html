@@ -73,11 +73,11 @@ footer { margin-top: 48px; font-size: .82rem; color: var(--ink-3); display: flex
   <div class="eyebrow">Status report · 21 October 2026 · development data</div>
   <h1>PRM Boosting: where we stand</h1>
   <p class="lede">We fuse a process reward model's step score with telemetry from the same forward pass, without labels.
-  On PRMBench this beats the PRM on all five PRMs we tested. On two external benchmarks it helps weak PRMs and hurts strong ones, and we now understand why.</p>
+  On PRMBench, under the same flag rule, this beats the PRM on all five PRMs we tested. On two external benchmarks it helps weak PRMs and hurts strong ones, and we now understand why.</p>
   <div class="keys">
-    <div class="panel key"><b>PRMBench: a consistent gain</b><p>Against the same PRM under the same decision rule, PRMScore rises by +1.6 to +6.9 points on all 5 PRMs. Every 95% interval is above zero. Within-answer AUC rises by +0.037 to +0.113.</p></div>
-    <div class="panel key"><b>External sets: conditional</b><p>On Socratic-PRMBench and Hard2Verify the fused score helps the weak PRMs (RLHFlow) and loses to the strong ones (Qwen-7B, PURE).</p></div>
-    <div class="panel key"><b>The reason</b><p>Label-free weights are estimated from correlations between views. A strong PRM that correlates weakly with weak telemetry gets only 3–21% of the weight, so the fusion cannot tell that it is the best view.</p></div>
+    <div class="panel key"><b>PRMBench: a consistent gain</b><p>Against the same PRM under the same decision rule, PRMScore rises by +1.6 to +6.9 points on all 5 PRMs, with every 95% interval above zero. Within-answer AUC, which needs no decision rule, rises by +0.037 to +0.112.</p></div>
+    <div class="panel key"><b>External sets: conditional</b><p>On Socratic-PRMBench and Hard2Verify the fused score helps the weak PRMs (RLHFlow) and loses to the strong ones (PURE on both; Qwen-7B on Socratic).</p></div>
+    <div class="panel key"><b>The reason</b><p>Label-free weights are estimated from correlations between views. A strong PRM that correlates weakly with weak telemetry gets only 4–21% of the weight, so the fusion cannot tell that it is the best view.</p></div>
   </div>
 </header>
 
@@ -92,7 +92,7 @@ footer { margin-top: 48px; font-size: .82rem; color: var(--ink-3); display: flex
     <div class="arrow">→</div>
     <div class="step"><b>Flag count</b>GAP: flag the steps above the largest gap in the answer's sorted scores (at most half the steps).</div>
   </div>
-  <p class="note">The fusion uses no labels. The PRMs themselves were trained with labels by their authors, and the boosted score inherits that. GAP replaced a fixed "flag the top 20%" rule (Q80) on 21 October. Q80 is shown where useful as the historical rule.</p>
+  <p class="note">The fusion uses no labels. The PRMs themselves were trained with labels by their authors, and the boosted score inherits that. GAP replaced a fixed "flag the top 20%" rule (Q80) on 21 October. GAP uses no labels, but its cap (at most half the steps) was set knowing that PRMBench has about two errors per answer, and it does not beat a constant "flag 2 steps" (−0.35 [−0.72, +0.00] for PRM boosting on Qwen-7B). Q80 is shown where useful as the historical rule.</p>
   <div class="panel scroll">
   <table>
     <thead><tr><th>Name in the tables</th><th>What it is</th></tr></thead>
@@ -109,7 +109,7 @@ footer { margin-top: 48px; font-size: .82rem; color: var(--ink-3); display: flex
 
 <section id="prmbench">
   <h2>PRMBench: PRM boosting against the PRM, 5 PRMs</h2>
-  <p class="note">Official PRMScore on 6,211 answers that contain at least one error (6,969 in total). Both arms use GAP. 95% paired bootstrap over source groups, 2,000 draws.</p>
+  <p class="note">Official PRMScore on the 6,211 non-control answers (6,969 in total; 6,035 of the 6,211 contain an error). Both arms use GAP. 95% paired bootstrap over source groups, 2,000 draws.</p>
   <div class="panel chart" id="ch-prmbench"></div>
   <div class="legend"><span><span class="dot" style="background:var(--ref)"></span>PRM native threshold</span><span><span class="dot" style="background:var(--prm)"></span>PRM, same rule (GAP)</span><span><span class="dot" style="background:var(--boost)"></span>PRM boosting (CHAIN_N16, GAP)</span></div>
   <div class="panel scroll">
@@ -122,7 +122,7 @@ footer { margin-top: 48px; font-size: .82rem; color: var(--ink-3); display: flex
 
 <section id="decomp">
   <h2>Where the PRMBench gain comes from</h2>
-  <p>Three separate effects add up. The new flag rule (GAP) adds about +2 points to every arm, so we compare arms under the same rule. Under that rule, adding the telemetry at equal weight gives most of the gain on the weak PRMs. Learning the weights with L-SML adds a smaller but consistent part on all five.</p>
+  <p>Three effects add up. First, the flag rule: GAP adds +2.0 to +2.3 points to PRM boosting but only +0.5 to +2.9 to the PRM alone (+0.7 on Qwen-7B, +0.5 on Qwen-72B). The advantage over the PRM therefore depends on the rule. Under the old Q80 rule, boosting is level with the PRM on Qwen-72B (−0.14 [−0.72, +0.45]) and ahead on the other four. Under the same GAP rule, adding the telemetry at equal weight gives most of the gain on the weak PRMs. Learning the weights with L-SML adds a positive part on all five, and on Qwen-72B it is the whole gain.</p>
   <div class="panel chart" id="ch-decomp"></div>
   <div class="legend"><span><span class="dot" style="background:var(--tele)"></span>Add telemetry at equal weight (EQ − PRM)</span><span><span class="dot" style="background:var(--boost)"></span>L-SML weights instead of equal (CHAIN − EQ)</span></div>
   <div class="panel scroll">
@@ -133,9 +133,9 @@ footer { margin-top: 48px; font-size: .82rem; color: var(--ink-3); display: flex
   </div>
   <h3>Is it just step position or length?</h3>
   <ul class="tight">
-    <li>Position alone gives within-answer AUC 0.662, and step length alone 0.619. Both are far below the PRMs (0.66–0.80) and the fused scores (0.78–0.84).</li>
+    <li>Position alone gives within-answer AUC 0.662, and step length alone 0.619. That is below the fused scores (0.77–0.84) but not below every PRM: position alone ties RLHFlow's PRM (0.662). A plain average of the PRM with position and length reaches 0.743–0.808.</li>
     <li>After removing position and length from every channel, PRM boosting still beats the PRM on within-AUC for all 5 PRMs: 0.817 / 0.827 / 0.788 / 0.765 / 0.712 against 0.801 / 0.795 / 0.763 / 0.662 / 0.684.</li>
-    <li>On the three strong PRMs this costs 0.016–0.027. On Math-Shepherd it costs 0.066, so its digit-channel gain is mostly position and length.</li>
+    <li>On the three strong PRMs this costs 0.016–0.027. On Math-Shepherd it costs 0.066 and falls below the PRM + position + length average (0.712 vs 0.743), so its digit-channel gain is mostly position and length. These controls remove position and length from the telemetry channels only, not from the PRM.</li>
     <li>Moving the telemetry to a different answer with the same number of steps destroys the gain.</li>
   </ul>
   <h3>Which error types (Qwen-7B, GAP)</h3>
@@ -145,7 +145,7 @@ footer { margin-top: 48px; font-size: .82rem; color: var(--ink-3); display: flex
     <tbody id="t-cat"></tbody>
   </table>
   </div>
-  <p class="note">The gain is concentrated in redundancy and circular logic (PRMBench's "Simplicity" group). Multi-solution answers drop because GAP always flags at least one step, and those answers have no errors.</p>
+  <p class="note">The gain is concentrated in redundancy and circular logic (PRMBench's "Simplicity" group). Multi-solution answers contain no errors, so every flag there is a false positive. Both arms always flag at least one step there, and PRM boosting loses 5.8 points on them.</p>
 </section>
 
 <section id="external">
@@ -154,10 +154,10 @@ footer { margin-top: 48px; font-size: .82rem; color: var(--ink-3); display: flex
   <div class="panel chart" id="ch-ext"></div>
   <div class="legend"><span><span class="dot" style="background:var(--boost)"></span>PRMBench</span><span><span class="dot" style="background:var(--tele)"></span>Socratic</span><span><span class="dot" style="background:var(--prm)"></span>Hard2Verify</span></div>
   <ul class="tight">
-    <li><b>The pattern is the same on both sets.</b> The fused score helps the weak PRMs (RLHFlow +6.7 on Socratic, +28.0 on Hard2Verify; Qwen-72B +7.9 on Hard2Verify). It loses to the strong ones (Qwen-7B −3.2 and PURE −5.6 on Socratic; PURE −10.8 on Hard2Verify).</li>
-    <li><b>Two of the Socratic losses are a bug, not the method.</b> Qwen-72B (−14.3) and Math-Shepherd (−16.1) are inverted scores, explained below. A sign-safe variant removes all five inverted fits.</li>
-    <li><b>GAP still helps on Socratic</b>: +1.37 / +1.01 / +0.52 / +0.09 / −0.35 over Q80 for PRM boosting.</li>
-    <li><b>ProcessBench</b> is outside our focus. The pre-registered run failed (1 of 5 PRMs).</li>
+    <li><b>The pattern is the same on both sets.</b> The fused score helps the weak PRMs (RLHFlow +6.7 on Socratic, +28.0 on Hard2Verify; Qwen-72B +7.9 on Hard2Verify). It loses to the strong ones: Qwen-7B −3.2 and PURE −5.6 on Socratic, PURE −10.8 on Hard2Verify. Qwen-7B on Hard2Verify is −1.6, within noise.</li>
+    <li><b>The two largest Socratic losses have different causes.</b> Math-Shepherd (−16.1) is an inverted score, explained below. A sign-safe variant lifts its within-AUC from 0.427 to 0.601, still below the PRM's 0.718. Qwen-72B (−14.3) is not inverted in the 16-channel bank: the PRM gets only 4% of the weight. Its 13-channel fit is inverted.</li>
+    <li><b>GAP over Q80 on Socratic</b>, for PRM boosting: +1.37 / +1.01 / +0.52 / +0.09 / −0.35. It helps on 3 of 5 PRMs and is negative for Math-Shepherd.</li>
+    <li><b>ProcessBench</b> is outside our focus. The pre-registered run failed: 1 of 5 PRMs (job 289297; <code>results/prm_boost_processbench_v1/README.md</code> on branch <code>claude/integration-2026-10-17</code>).</li>
   </ul>
 </section>
 
@@ -165,7 +165,7 @@ footer { margin-top: 48px; font-size: .82rem; color: var(--ink-3); display: flex
   <h2>What we learned about the fusion</h2>
   <div class="panel">
     <h3>1. The PRM is under-weighted when the telemetry is weak</h3>
-    <p class="note" style="margin-top:6px">L-SML estimates each view's weight from its covariance with the other views, so a view that correlates weakly with the rest is read as weak. On PRMBench the telemetry is strong, and the PRM gets 13–24% of the weight. On Socratic the telemetry is weak, and the PRM gets 3–21%, even though it is the best view. No weighting rule fixes this. We tested signed, absolute and non-negative rank-one weights, and three placements of the PRM in the fusion: in every case the PRM got 0–21%.</p>
+    <p class="note" style="margin-top:6px">L-SML estimates each view's weight from its covariance with the other views, so a view that correlates weakly with the rest is read as weak. On PRMBench the telemetry is strong, and the PRM gets 13–24% of the weight. On Socratic the telemetry is weak. The strong PRMs, which are the best view there, get only 4–21% of the weight. None of the weighting rules we tested fixes this: signed, absolute and non-negative rank-one weights, with the PRM in three different places in the fusion. In every case the PRM got 0–21%.</p>
   </div>
   <div class="panel">
     <h3>2. A sign rule inverted five external fits</h3>
@@ -174,7 +174,7 @@ footer { margin-top: 48px; font-size: .82rem; color: var(--ink-3); display: flex
   <div class="panel">
     <h3>3. Smaller results</h3>
     <ul class="tight" style="margin-top:6px">
-      <li>Telemetry alone, without a PRM, on the corrected Qwen3 template: the plain mean equals or beats L-SML on 7 of 10 channel banks, N16 included (within-AUC 0.7811 vs 0.7792).</li>
+      <li>Telemetry from a separate model (Qwen3-8B, corrected template), without a PRM: the plain mean equals or beats L-SML on 7 of 10 channel banks, N16 included (within-AUC 0.7811 vs 0.7792). With each PRM's own backbone telemetry, still without the PRM score, the opposite holds: L-SML beats the plain mean on all 5 PRMs (+0.6 to +1.6 PRMScore).</li>
       <li>The SML weight estimator shrinks weights toward equal. An unbiased rank-one fit does worse on our banks, so the shrinkage acts as useful regularization.</li>
       <li>The flag count still matters. With the true error count (a label-using ceiling), PRM boosting would reach 75.4 on Qwen-7B, against 70.4 with GAP and 70.8 with a constant "flag 2", which reflects PRMBench's construction of about two errors per answer.</li>
     </ul>
@@ -185,10 +185,10 @@ footer { margin-top: 48px; font-size: .82rem; color: var(--ink-3); display: flex
   <h2>Limits of these numbers</h2>
   <ul class="tight">
     <li><b>Development data.</b> PRMBench has been inspected many times, and so have the external sets. Nothing here is an untouched confirmation.</li>
-    <li><b>Label access.</b> The fusion is label-free, but the PRMs were trained with labels. A supervised logistic regression on the same inputs is still better: on CROP's protocol it keeps 25.1% of each trace against 23.3% for PRM boosting.</li>
+    <li><b>Label access.</b> The fusion is label-free, but the PRMs were trained with labels. A supervised logistic regression on the same inputs is still better: on CROP's protocol (quantile grid) it keeps 25.1–25.4% of each trace against 23.2–23.3% for PRM boosting.</li>
     <li><b>The PRM reference</b> uses whichever of its two scales scores better, chosen after scoring. This favours the PRM.</li>
     <li><b>GAP never flags zero steps.</b> It cannot say "no error". This is harmless on PRMBench (97% of the scored answers contain an error) but matters on sets with many clean answers.</li>
-    <li><b>Where labels touched the inputs.</b> One reference arm (LSML_CONT, 3 channels) was chosen with labels and is shown only as a reference. The 16-channel bank was not chosen per result. Math-Shepherd numbers use the corrected digit channels (fixed 19 October).</li>
+    <li><b>Where labels touched the choices.</b> The 16-channel bank (N16) was kept because it was the best bank on development labels. The GAP cap was set knowing PRMBench's error structure. Math-Shepherd numbers use the corrected digit channels (fixed 19 October).</li>
   </ul>
 </section>
 
@@ -210,7 +210,7 @@ footer { margin-top: 48px; font-size: .82rem; color: var(--ink-3); display: flex
 const PRMS = ['Qwen-7B', 'Qwen-72B', 'PURE', 'RLHFlow', 'Math-Shepherd'];
 const PB = {
   native: [65.49, 68.18, 65.31, 54.43, 47.02],
-  prm: [68.01, 69.50, 66.24, 59.39, 60.21],
+  prm: [68.01, 69.49, 66.24, 59.39, 60.21],
   chain: [70.40, 71.09, 69.51, 66.25, 66.39],
   d: [[2.39, 1.90, 2.90], [1.60, 1.06, 2.12], [3.27, 2.74, 3.80], [6.86, 6.26, 7.46], [6.18, 5.45, 6.96]],
   aucP: [0.801, 0.795, 0.763, 0.662, 0.684], aucC: [0.838, 0.843, 0.816, 0.775, 0.778]

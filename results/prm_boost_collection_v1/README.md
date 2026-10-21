@@ -26,8 +26,9 @@ competitor positioning). Plan: `docs/experiments/PRM_BOOSTING_COLLECTION_PLAN_20
    - Math-Shepherd +6.18.
    GAP adds about +2 PRMScore over Q80 for every arm.
 3. **Socratic.** CHAIN_N16 loses to the PRM under the same rule for 4 of 5 PRMs. The exception is RLHFlow,
-   +6.67 [+5.79, +7.61]. Qwen-72B −14.29 and Math-Shepherd −16.09 are inversions caused by the anchor flip
-   (5 of 20 Socratic fits, see section 4).
+   +6.67 [+5.79, +7.61]. Math-Shepherd −16.09 is an inversion caused by the anchor flip (5 of 20 Socratic fits,
+   see section 4). Qwen-72B −14.29 is not: its CHAIN_N16 fit is not flipped (corr(fit, TELE) +0.98) and the PRM
+   gets 4% of the weight. Only its CHAIN_N13 fit is inverted. (Corrected 2026-10-21 by the Mac review.)
 4. **Hard2Verify (177 answers).**
    - CHAIN_N16 helps the weak PRMs: RLHFlow +27.95, Qwen-72B +7.85.
    - It hurts PURE: −10.79 [−17.18, −4.62].
