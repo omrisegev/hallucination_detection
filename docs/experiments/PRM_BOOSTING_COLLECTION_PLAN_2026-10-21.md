@@ -217,6 +217,57 @@ data behind every figure.
 - **Table 8:** α sensitivity.
 - **Table 17-style cross-domain check:** calibrate on PRMBench, test on Socratic. This replaces ProcessBench.
 
+**CROP controls (added 2026-10-21, after a full read of the paper: `papers/digests/crop-conformal-clean-prefix.md`,
+`papers/extracted/crop-conformal-clean-prefix.md`).**
+CROP's Trace+PRM is already a step-level fusion of a PRM with likelihood, entropy and energy features on PRMBench.
+It is supervised: an ℓ2 LR trained on step labels from the 60% split (p.21). So our comparison must show that the
+gain comes from the label-free fusion, not from better inputs or from the grid. Run every control below on the
+PRMBench Table 6 protocol for all 5 PRMs, with the same seeds and splits as Table 6.
+- **C1, exact subset.**
+  - Take the first 5,000 rows of `hitsmy/PRMBench_Preview` in dataset order, **including the 5 duplicate rows CROP
+    keeps**. Our earlier loader dropped them (`results/prmbench_paper_metric_parity_v1/README.md` §2).
+  - Report the step count (CROP: 67,445) and the error rate (15.9%).
+- **C2, both grids for every proxy.** Use CROP's fixed grid {0, 0.01, …, 1}, after mapping each score to [0, 1] by a
+  label-free monotone rule fixed in advance and identical for all proxies (state it). Also use the train-split
+  quantile-201 grid.
+  - Report both for every row, including Direct PRM and Trace+PRM-analog.
+  - This answers whether our kept-% lead is a grid effect: Direct PRM keeps 4.8% on the fixed grid but 17.2% on the
+    quantile grid.
+- **C3, format/position + PRM LR (supervised).** CROP has no such row, so its Trace+PRM gain over the PRM is
+  unattributed.
+  - Build CROP's token/format features from the step and problem text, as listed on p.20:
+    - per-step counts of characters, words, digits, letters, "=", operators, newlines, colons, parentheses and angle
+      brackets;
+    - normalized position, step index and total step count.
+  - Fit the same pipeline as theirs: median impute, StandardScaler on training steps, ℓ2 LogisticRegression with
+    C = 1, L-BFGS, max_iter 500 and balanced class weights, trained on the 60% split. Fit it on (format/position)
+    alone and on (format/position + PRM).
+  - Also fit the same pipeline on (our N13/N16 channels + PRM). This is the supervised analog that is already
+    planned.
+- **C4, inductive fit of our fusion (label-free).**
+  - Today our L-SML is fitted transductively on all steps, test traces included. For each seed, fit L-SML (TELE, and
+    CHAIN with the PRM) on the 60% training traces only, unlabeled. Freeze the group assignment, the within-group
+    weights, the cross weights and the sign. Apply them to the calibration and test traces.
+  - Answer-z is per answer, so it needs no fitting.
+  - Parity check: the inductive fit on 100% of the traces must reproduce the transductive scores exactly.
+  - Report the inductive and transductive rows next to each other.
+- **C5, label shuffle and order shuffle** (CROP Table 16 definitions, p.38):
+  - Label control: break the label-to-trace association during proxy fitting. For the supervised LRs, permute the
+    training traces' label vectors among traces of equal step count. For our label-free fusion, keep the fit and
+    instead shuffle the calibration labels the same way. That makes the certificate meaningless, so risk should
+    rise above α and show the guarantee is not vacuous.
+  - Order control: permute step order within each trace before scoring and prefix construction. Give each proxy
+    the permuted steps. Note that position features then carry no information.
+  - Report AUROC, kept and risk for each.
+- **C6, α sweep** for every proxy and both grids, with α in {0.01, 0.025, 0.05, 0.075, 0.10, 0.15, 0.20}.
+  - Report kept, risk, and the empty-prefix rate (CROP returns an empty prefix when no λ is feasible).
+  - Mark the points where 1/(n+1) > α makes certification impossible.
+- **C7, boundary deviation** (CROP Table 1): report |M − O|/T, split into over-withholding and unsafe overshoot, for
+  Direct PRM, the Trace+PRM analog, CHAIN_N16 and LSML_CONT.
+- **Not authorized here (needs new inference):** reproducing CROP's Llama-3.1-8B-Instruct trace features and
+  hidden-state trajectory scalars, then running L-SML on *their* features + PRM against their LR on the same inputs.
+  That is the cleanest test of the fusion step. Note it as a follow-up that needs a GPU decision from Omri.
+
 **SLIDER** (arXiv 2610.00571; secondary)
 - Extend `slider_metrics.py` to 5 PRMs: redundancy-class detection accuracy under the three readings already
   defined there, plus GAP.
