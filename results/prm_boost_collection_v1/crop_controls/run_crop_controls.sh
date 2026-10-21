@@ -13,17 +13,17 @@ S=/shared/cycle2_tau_averbuch_prj/omrisegev1; R=$S/results; O=$R/prm_boost_gen_v
 set +u; . $S/pyenv_native_312_20261011/activate.sh; set -u
 EXP=$O/ablation5_export_v1
 JL=$S/hf_cache/hub/datasets--hitsmy--PRMBench_Preview/snapshots/5cc7683d0ae5797f84d7aeac0607966f277c39e1/prmbench_preview.jsonl
-OUT=${OUT:-$R/prm_boost_collection_v1/crop_controls_v1}
-test ! -e $OUT || { echo "refusing: $OUT exists"; exit 2; }
-mkdir -p $OUT; cd $S/eval_mirror_prm_gen_v1
+BASE=${OUT:-$R/prm_boost_collection_v1/crop_controls_v1}
+cd $S/eval_mirror_prm_gen_v1
 PRMS=${PRMS:-"qwen_prm_7b qwen_prm_72b pure_prm rlhflow_prm math_shepherd"}
 for a in $PRMS; do
+  OUT=$BASE/$a; test ! -e $OUT || { echo "refusing: $OUT exists"; exit 2; }; mkdir -p $OUT
   case $a in
     qwen_prm_7b) F=$R/prm_boost_v1/bank_prm/FEATURES.npz; T=$R/prm_boost_v1/full_prm/prmbench_telemetry.pkl;;
     math_shepherd) F=$O/bank_math_shepherd_digitfix/FEATURES.npz; T=$O/full_math_shepherd/prmbench_telemetry.pkl;;
     *) F=$O/bank_$a/FEATURES.npz; T=$O/full_$a/prmbench_telemetry.pkl;;
   esac
   python3 -B $J/crop_controls.py $a $F $T $EXP $JL $OUT
+  md5sum $OUT/* > $OUT/MD5.txt
 done
-md5sum $OUT/* > $OUT/MD5.txt
 echo CROP_CONTROLS_DONE

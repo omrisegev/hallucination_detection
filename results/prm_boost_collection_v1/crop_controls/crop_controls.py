@@ -127,24 +127,30 @@ def first_err(y):
     f = np.flatnonzero(y); return int(f[0]) if len(f) else None
 
 
-def crop_lambda(sc, labels, cal, grid, alpha):
-    losses = np.zeros((len(grid), len(cal)))
-    for k, i in enumerate(cal):
-        fe = first_err(labels[i])
-        if fe is None: continue
-        losses[:, k] = grid >= np.max(sc[i][:fe + 1])
-    risk = (1 + losses.sum(1)) / (len(cal) + 1)
+class Prep:
+    """Per-trace running max of the scores (padded with +inf), first-error index and length, for a set of traces.
+    Exactly CROP's rules, vectorized: prefix length M = first index with score > lambda (= #running-max values <= lambda);
+    a calibration trace is contaminated at lambda iff lambda >= running max up to its first error; a test prefix is
+    contaminated iff M > first-error index."""
+    def __init__(self, sc, labels, idx):
+        idx = np.asarray(idx); n = np.array([len(sc[i]) for i in idx]); W = int(n.max()) if len(n) else 1
+        R = np.full((len(idx), W), np.inf)
+        for r, i in enumerate(idx): R[r, :n[r]] = np.maximum.accumulate(np.asarray(sc[i], float))
+        fe = np.array([first_err(labels[i]) if first_err(labels[i]) is not None else -1 for i in idx])
+        self.R, self.n, self.fe = R, n, fe
+
+
+def crop_lambda(P, grid, alpha):
+    has = P.fe >= 0
+    need = P.R[np.flatnonzero(has), P.fe[has]]
+    risk = (1 + (grid[:, None] >= need[None, :]).sum(1)) / (len(P.fe) + 1)
     ok = np.flatnonzero(risk <= alpha)
     return (grid[ok[np.argmax(grid[ok])]] if len(ok) else grid.min()), bool(len(ok))
 
 
-def crop_eval(sc, labels, test, lam):
-    r = dict(M=[], T=[], cont=[], O=[])
-    for i in test:
-        hit = np.flatnonzero(sc[i] > lam); m = int(hit[0]) if len(hit) else len(sc[i]); t = len(sc[i])
-        fe = first_err(labels[i]); O = t if fe is None else fe
-        r['M'].append(m); r['T'].append(t); r['cont'].append(bool(m > 0 and labels[i][:m].any())); r['O'].append(O)
-    M_, T_, O_ = (np.array(r[k], float) for k in ('M', 'T', 'O')); c = np.array(r['cont'])
+def crop_eval(P, lam):
+    M_ = (P.R <= lam).sum(1).astype(float); T_ = P.n.astype(float)
+    O_ = np.where(P.fe >= 0, P.fe, P.n).astype(float); c = (P.fe >= 0) & (M_ > P.fe)
     return dict(kept=100 * float(np.mean(M_ / np.maximum(T_, 1))), risk=100 * float(c.mean()), empty=100 * float(np.mean(M_ == 0)),
                 bdev=100 * float(np.mean(np.abs(M_ - O_) / T_)), over_withhold=100 * float(np.mean(np.maximum(O_ - M_, 0) / T_)),
                 overshoot=100 * float(np.mean(np.maximum(M_ - O_, 0) / T_)))
@@ -264,10 +270,10 @@ def main():
             for nm, (v, raw_ok) in cand.items():
                 au = roc_auc_score(yte, np.concatenate([v[sl[k]] for k in te]))
                 for gname, (vv, grid) in grids(v, rows_tr, raw_ok).items():
-                    sc = [vv[s] for s in sl]
+                    sc = [vv[s] for s in sl]; Pc, Pt = Prep(sc, labels, ca), Prep(sc, labels, te)
                     for al in ALPHAS:
-                        lam, feas = crop_lambda(sc, labels, ca, grid, al)
-                        r = crop_eval(sc, labels, te, lam)
+                        lam, feas = crop_lambda(Pc, grid, al)
+                        r = crop_eval(Pt, lam)
                         rows_out.append(dict(prm=tag, subset=sname, control='none', proxy=nm, grid=gname, alpha=al, seed=seed, auroc=au,
                                              lam=float(lam), feasible=feas, impossible=bool(1 / (len(ca) + 1) > al), **r))
                     if sname == 'C1' and gname != 'fixed101_raw':
@@ -285,7 +291,7 @@ def main():
                             pc = permute_equal_length(nst_s, ca, rng); lab_cal = list(labels)
                             for a_, b_ in zip(ca, pc): lab_cal[a_] = labels[b_]
                             sc2, grid2, au2 = sc, grid, au
-                        lam, feas = crop_lambda(sc2, lab_cal, ca, grid2, .05); r = crop_eval(sc2, labels, te, lam)
+                        lam, feas = crop_lambda(Prep(sc2, lab_cal, ca), grid2, .05); r = crop_eval(Prep(sc2, labels, te), lam)
                         rows_out.append(dict(prm=tag, subset=sname, control='C5 label shuffle', proxy=nm, grid=gname, alpha=.05, seed=seed,
                                              auroc=au2, lam=float(lam), feasible=feas, impossible=False, **r))
             if sname == 'C1':                                   # C5 order shuffle: permute steps within each trace
@@ -317,7 +323,7 @@ def main():
                     for gname, (vv, grid) in grids(vp, rows_tr_p, raw_ok).items():
                         if gname == 'fixed101_raw': continue
                         sc = [vv[s] for s in sl]
-                        lam, feas = crop_lambda(sc, lab_p, ca, grid, .05); r = crop_eval(sc, lab_p, te, lam)
+                        lam, feas = crop_lambda(Prep(sc, lab_p, ca), grid, .05); r = crop_eval(Prep(sc, lab_p, te), lam)
                         rows_out.append(dict(prm=tag, subset=sname, control='C5 order shuffle', proxy=nm, grid=gname, alpha=.05, seed=seed,
                                              auroc=au, lam=float(lam), feasible=feas, impossible=False, **r))
             print(tag, sname, 'seed', seed, f'{time.time() - t0:.0f}s', flush=True)
