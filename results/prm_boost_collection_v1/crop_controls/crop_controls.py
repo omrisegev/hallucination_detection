@@ -211,10 +211,11 @@ def main():
     text = {}
     for r, k in zip(raw, raw_keys):
         if k is not None: text[k] = r
-    meta_order = [m['idx'] for m in S['meta']]
     subsets = {}
-    nonc = [i for i in meta_order if not i.startswith('correct_')]
-    subsets['approx'] = nonc[:N_TRACES]                   # earlier package (meta order = Hub order, controls removed)
+    # earlier package: first 5,000 non-control loader rows in HUB order (= deduplicated jsonl order = prmbench_meta.json
+    # order). NOT the FEATURES row order (crop_controls_v1 used that by mistake and failed parity).
+    nonc = [k for k in raw_keys if k is not None]
+    subsets['approx'] = nonc[:N_TRACES]
     c1_raw = raw[:N_TRACES]; c1_keys = raw_keys[:N_TRACES]
     subsets['C1'] = [k for k in c1_keys if k is not None]
     c1_info = dict(n_raw_rows=len(c1_raw), n_steps_raw=int(sum(len(r['modified_process']) for r in c1_raw)),
