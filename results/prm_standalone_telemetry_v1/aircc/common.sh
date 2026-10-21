@@ -14,7 +14,7 @@ declare -A SA_MODEL=( [qwen_prm_7b]=Qwen/Qwen2.5-Math-7B-Instruct [qwen_prm_72b]
 declare -A SA_STYLE=( [qwen_prm_7b]=qwen_cot_chat [qwen_prm_72b]=qwen_cot_chat [pure_prm]=qwen_cot_chat
                       [rlhflow_prm]=chat [math_shepherd]=plain )
 declare -A SA_MAXTOK=( [qwen_prm_7b]=16384 [qwen_prm_72b]=8192 [pure_prm]=16384 [rlhflow_prm]=16384 [math_shepherd]=16384 )
-declare -A SA_WALL=( [qwen_prm_7b]=02:00:00 [qwen_prm_72b]=06:00:00 [pure_prm]=02:00:00 [rlhflow_prm]=02:00:00 [math_shepherd]=02:00:00 )
+declare -A SA_WALL=( [qwen_prm_7b]=04:00:00 [qwen_prm_72b]=06:00:00 [pure_prm]=04:00:00 [rlhflow_prm]=04:00:00 [math_shepherd]=04:00:00 )
 # The PRM's own backbone run: its rows (ids, question, steps, order) feed --meta-pkl, its rewards feed ablation5.
 declare -A PRM_PKL=( [qwen_prm_7b]=$R/prm_boost_v1/full_prm/prmbench_telemetry.pkl
                      [qwen_prm_72b]=$O/full_qwen_prm_72b/prmbench_telemetry.pkl [pure_prm]=$O/full_pure_prm/prmbench_telemetry.pkl

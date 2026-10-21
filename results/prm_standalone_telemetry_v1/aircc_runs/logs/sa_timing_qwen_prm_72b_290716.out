@@ -1,0 +1,62 @@
+pyxis: importing docker image: nvcr.io/nvidia/pytorch:25.01-py3
+pyxis: imported docker image: nvcr.io/nvidia/pytorch:25.01-py3
+[sbatch] job 290716 on gpu-node-08.aircc.local in /shared/cycle2_tau_averbuch_prj/omrisegev1/code_standalone_v1, args: --mode instruct --model Qwen/Qwen2.5-Math-72B-Instruct --prompt-style qwen_cot_chat --meta-pkl /shared/cycle2_tau_averbuch_prj/omrisegev1/results/prm_boost_gen_v1/full_qwen_prm_72b/prmbench_telemetry.pkl --max-batch-tokens 8192 --out /shared/cycle2_tau_averbuch_prj/omrisegev1/results/prm_standalone_telemetry_v1/timing_qwen_prm_72b --n-samples 12
+DEPRECATION: Loading egg at /usr/local/lib/python3.12/dist-packages/opt_einsum-3.4.0-py3.12.egg is deprecated. pip 25.1 will enforce this behaviour change. A possible replacement is to use pip for package installation. Discussion can be found at https://github.com/pypa/pip/issues/12330
+DEPRECATION: Loading egg at /usr/local/lib/python3.12/dist-packages/nvfuser-0.2.23a0+6627725-py3.12-linux-x86_64.egg is deprecated. pip 25.1 will enforce this behaviour change. A possible replacement is to use pip for package installation. Discussion can be found at https://github.com/pypa/pip/issues/12330
+DEPRECATION: Loading egg at /usr/local/lib/python3.12/dist-packages/looseversion-1.3.0-py3.12.egg is deprecated. pip 25.1 will enforce this behaviour change. A possible replacement is to use pip for package installation. Discussion can be found at https://github.com/pypa/pip/issues/12330
+DEPRECATION: Loading egg at /usr/local/lib/python3.12/dist-packages/lightning_utilities-0.12.0.dev0-py3.12.egg is deprecated. pip 25.1 will enforce this behaviour change. A possible replacement is to use pip for package installation. Discussion can be found at https://github.com/pypa/pip/issues/12330
+DEPRECATION: Loading egg at /usr/local/lib/python3.12/dist-packages/lightning_thunder-0.2.0.dev0-py3.12.egg is deprecated. pip 25.1 will enforce this behaviour change. A possible replacement is to use pip for package installation. Discussion can be found at https://github.com/pypa/pip/issues/12330
+DEPRECATION: Loading egg at /usr/local/lib/python3.12/dist-packages/dill-0.3.9-py3.12.egg is deprecated. pip 25.1 will enforce this behaviour change. A possible replacement is to use pip for package installation. Discussion can be found at https://github.com/pypa/pip/issues/12330
+  WARNING: The scripts transformers and transformers-cli are installed in '/tmp/pyuserbase_290716/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+  WARNING: The script tqdm is installed in '/tmp/pyuserbase_290716/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+  WARNING: The script idna is installed in '/tmp/pyuserbase_290716/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+  WARNING: The scripts hf, huggingface-cli and tiny-agents are installed in '/tmp/pyuserbase_290716/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+  WARNING: The script httpx is installed in '/tmp/pyuserbase_290716/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+  WARNING: The script datasets-cli is installed in '/tmp/pyuserbase_290716/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+  WARNING: The script normalizer is installed in '/tmp/pyuserbase_290716/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+  WARNING: The scripts accelerate, accelerate-config, accelerate-estimate-memory, accelerate-launch and accelerate-merge-weights are installed in '/tmp/pyuserbase_290716/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+
+[notice] A new release of pip is available: 24.3.1 -> 26.2.2
+[notice] To update, run: python -m pip install --upgrade pip
+[prm-tel] mode=instruct model=Qwen/Qwen2.5-Math-72B-Instruct rows=12
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards:   0%|          | 0/37 [00:00<?, ?it/s]Loading checkpoint shards:   3%|▎         | 1/37 [00:01<01:01,  1.71s/it]Loading checkpoint shards:   5%|▌         | 2/37 [00:03<01:09,  1.98s/it]Loading checkpoint shards:   8%|▊         | 3/37 [00:05<01:07,  1.99s/it]Loading checkpoint shards:  11%|█         | 4/37 [00:07<01:03,  1.94s/it]Loading checkpoint shards:  14%|█▎        | 5/37 [00:09<01:01,  1.91s/it]Loading checkpoint shards:  16%|█▌        | 6/37 [00:11<00:58,  1.88s/it]Loading checkpoint shards:  19%|█▉        | 7/37 [00:13<00:54,  1.82s/it]Loading checkpoint shards:  22%|██▏       | 8/37 [00:14<00:52,  1.80s/it]Loading checkpoint shards:  24%|██▍       | 9/37 [00:16<00:50,  1.79s/it]Loading checkpoint shards:  27%|██▋       | 10/37 [00:18<00:49,  1.82s/it]Loading checkpoint shards:  30%|██▉       | 11/37 [00:20<00:48,  1.86s/it]Loading checkpoint shards:  32%|███▏      | 12/37 [00:22<00:44,  1.79s/it]Loading checkpoint shards:  35%|███▌      | 13/37 [00:23<00:43,  1.80s/it]Loading checkpoint shards:  38%|███▊      | 14/37 [00:26<00:44,  1.94s/it]Loading checkpoint shards:  41%|████      | 15/37 [00:28<00:44,  2.03s/it]Loading checkpoint shards:  43%|████▎     | 16/37 [00:30<00:44,  2.10s/it]Loading checkpoint shards:  46%|████▌     | 17/37 [00:32<00:42,  2.12s/it]Loading checkpoint shards:  49%|████▊     | 18/37 [00:35<00:40,  2.15s/it]Loading checkpoint shards:  51%|█████▏    | 19/37 [00:36<00:36,  2.04s/it]Loading checkpoint shards:  54%|█████▍    | 20/37 [00:38<00:35,  2.07s/it]Loading checkpoint shards:  57%|█████▋    | 21/37 [00:41<00:34,  2.13s/it]Loading checkpoint shards:  59%|█████▉    | 22/37 [00:43<00:32,  2.14s/it]Loading checkpoint shards:  62%|██████▏   | 23/37 [00:45<00:30,  2.15s/it]Loading checkpoint shards:  65%|██████▍   | 24/37 [00:47<00:28,  2.16s/it]Loading checkpoint shards:  68%|██████▊   | 25/37 [00:49<00:25,  2.15s/it]Loading checkpoint shards:  70%|███████   | 26/37 [00:52<00:23,  2.15s/it]Loading checkpoint shards:  73%|███████▎  | 27/37 [00:54<00:21,  2.13s/it]Loading checkpoint shards:  76%|███████▌  | 28/37 [00:56<00:19,  2.15s/it]Loading checkpoint shards:  78%|███████▊  | 29/37 [00:58<00:17,  2.16s/it]Loading checkpoint shards:  81%|████████  | 30/37 [01:00<00:15,  2.15s/it]Loading checkpoint shards:  84%|████████▍ | 31/37 [01:02<00:12,  2.14s/it]Loading checkpoint shards:  86%|████████▋ | 32/37 [01:04<00:10,  2.11s/it]Loading checkpoint shards:  89%|████████▉ | 33/37 [01:06<00:08,  2.02s/it]Loading checkpoint shards:  92%|█████████▏| 34/37 [01:08<00:05,  1.96s/it]Loading checkpoint shards:  95%|█████████▍| 35/37 [01:10<00:03,  1.88s/it]Loading checkpoint shards:  97%|█████████▋| 36/37 [01:11<00:01,  1.86s/it]Loading checkpoint shards: 100%|██████████| 37/37 [01:13<00:00,  1.82s/it]Loading checkpoint shards: 100%|██████████| 37/37 [01:13<00:00,  1.99s/it]
+{
+  "driver": "run_prmbench_prm_telemetry.py",
+  "mode": "instruct",
+  "model": "Qwen/Qwen2.5-Math-72B-Instruct",
+  "dataset_diagnostics": {
+    "meta_source": "/shared/cycle2_tau_averbuch_prj/omrisegev1/results/prm_boost_gen_v1/full_qwen_prm_72b/prmbench_telemetry.pkl",
+    "n_rows": 12
+  },
+  "n_rows": 12,
+  "logprob_top_k": 50,
+  "system_prompt": "Please reason step by step, and put your final answer within \\boxed{}.",
+  "prompt_style": "qwen_cot_chat",
+  "model_revision": "8fcf92b1eac8eca48c3d49778ad3dd1b394c9a17",
+  "n_boundary_whitespace": 0,
+  "token_surprisal_median": 0.31350715458393097,
+  "token_surprisal_mean": 1.0881828069117052,
+  "token_entropy15_median": 0.6836726069450378,
+  "n_step_text_mismatch": 0,
+  "n_rows_step_text_mismatch": 0,
+  "max_input_tokens": 1553,
+  "n_rows_over_4096_tokens": 0,
+  "status": "COMPLETE",
+  "n_failed_rows": 0,
+  "n_successful_rows": 12,
+  "failed_rows": {},
+  "n_rows_context_overflow": 0,
+  "elapsed_sec": 77.54166460037231,
+  "job_id": "290716",
+  "written_utc": "2026-10-21T22:28:19+00:00"
+}
+COMPLETE -> /shared/cycle2_tau_averbuch_prj/omrisegev1/results/prm_standalone_telemetry_v1/timing_qwen_prm_72b
