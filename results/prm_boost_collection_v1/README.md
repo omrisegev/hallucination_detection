@@ -253,7 +253,11 @@ python build_data.py && python build_page.py
 ```
 
 ## 8. Scores
-- **Git copy.** `scores/` holds a float32 copy of the key arms, 27.4 MB (under the 40 MB limit). It covers
+- **Git copy (correction 2026-10-21, Mac review).** The npz files below were NOT committed: `.gitignore` excluded
+  `results/**/*.npz`, so only `scores/MANIFEST.json` reached git. An exception for `results/prm_boost_collection_v1/scores/`
+  now exists. Re-add the files from the PC that has them (`git add -f` is no longer needed) and push. Until then they
+  are on Drive.
+- `scores/` is meant to hold a float32 copy of the key arms, 27.4 MB (under the 40 MB limit). It covers
   PRMBench / Socratic / Hard2Verify × 5 PRMs. Each file has ids/uids, offsets, the non-empty mask, position,
   log_step_tokens, source_group and native decisions, and no labels. The arms are PRM logit, PRM prob, TELE / MEAN /
   EQ / HALF / PRMG / CHAIN_N16, CHAIN_N13, LSML_CONT, CHAIN_N16 sign-abs, POS_ONLY and LEN_ONLY.
