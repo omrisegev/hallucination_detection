@@ -103,7 +103,11 @@ footer { margin-top: 40px; font-size: .82rem; color: var(--ink-3); display: flex
 <div class="controls" role="toolbar" aria-label="בחירת תצוגה">
   <div><span class="ctl-label">בנצ'מרק</span><span class="seg" id="c-bench">
     <button type="button" id="b-prmbench" data-v="prmbench" aria-pressed="true">PRMBench</button>
-    <button type="button" id="b-socratic" data-v="socratic" aria-pressed="false">Socratic</button></span></div>
+    <button type="button" id="b-socratic" data-v="socratic" aria-pressed="false">Socratic</button>
+    <button type="button" id="b-hard2verify" data-v="hard2verify" aria-pressed="false">Hard2Verify</button></span></div>
+  <div><span class="ctl-label">כלל סימון</span><span class="seg" id="c-rule">
+    <button type="button" id="r-GAP" data-v="GAP" aria-pressed="true">GAP</button>
+    <button type="button" id="r-Q80" data-v="Q80" aria-pressed="false">Q80 (היסטורי)</button></span></div>
   <div><span class="ctl-label">בנק</span><span class="seg" id="c-bank">
     <button type="button" id="k-N16" data-v="N16" aria-pressed="true">N16</button>
     <button type="button" id="k-N13" data-v="N13" aria-pressed="false">N13 (בלי digits)</button></span></div>
@@ -112,7 +116,7 @@ footer { margin-top: 40px; font-size: .82rem; color: var(--ink-3); display: flex
     <button type="button" id="m-score" data-v="score" aria-pressed="false">PRMScore</button></span></div>
 </div>
 
-<div class="banner" id="soc-banner" hidden style="margin-top:14px">Socratic הוא הבדיקה החיצונית. כלל ההצלחה שנקבע לו מראש נכשל, ולכן Hard2Verify לא הורץ. PRMBench הוא נתוני הפיתוח.</div>
+<div class="banner" id="soc-banner" hidden style="margin-top:14px">Socratic ו-Hard2Verify הם הבדיקות החיצוניות. כלל ההצלחה שנקבע מראש ל-Socratic נכשל. Hard2Verify הורץ (AIRCC 288968; איסוף מחדש 290479), על 177 התשובות שכל ה-PRMs יכולים לקרוא, והמדד שלו הוא step Balanced F1. PRMBench הוא נתוני הפיתוח.</div>
 
 <section id="arms-def">
   <div class="sec-head"><h2>חמש השיטות</h2></div>
@@ -122,13 +126,13 @@ footer { margin-top: 40px; font-size: .82rem; color: var(--ink-3); display: flex
     <tbody>
       <tr><td class="num">1</td><td><span class="chip fill" style="color:var(--tele)"></span>L-SML על הטלמטריה</td><td>L-SML על ערוצי הבנק, בלי PRM. הקבוצות נקבעות ב-spectral clustering, SML רץ בתוך כל קבוצה ואז על פני הקבוצות</td><td><code>TELE_&lt;bank&gt;</code></td></tr>
       <tr><td class="num">2</td><td><span class="chip" style="color:var(--tele)"></span>ממוצע הטלמטריה</td><td>ממוצע פשוט של אותם ערוצים אחרי answer-z. אין שלב כיוון נפרד: כל ערוץ שמור מראש בכיוון "גבוה = מסוכן" (למשל margin נשמר עם סימן מינוס), והכיוון לא נלמד מ-labels או מהנתונים</td><td><code>MEAN_&lt;bank&gt;</code></td></tr>
-      <tr><td class="num">3</td><td><span class="chip fill" style="color:var(--prm)"></span>PRM לבד</td><td>ציון ה-PRM, עם אותו כלל סימון Q80 של כל השיטות (ציון 1−reward). ב-within-AUC הכלל לא משנה דבר. ה-PRM עם הסף שלו (reward &lt; 0.5) מוצג בבקרות</td><td><code>PRM_Q80_PROB</code></td></tr>
+      <tr><td class="num">3</td><td><span class="chip fill" style="color:var(--prm)"></span>PRM לבד</td><td>ציון ה-PRM, עם אותו כלל סימון של כל השיטות (GAP או Q80, על ציון 1−reward). ב-within-AUC הכלל לא משנה דבר. ה-PRM עם הסף שלו (reward &lt; 0.5) מוצג בבקרות</td><td><code>PRM_Q80_PROB</code></td></tr>
       <tr><td class="num">4</td><td><span class="chip fill" style="color:var(--boost)"></span>L-SML: PRM + טלמטריה</td><td>z(PRM) כ-view נפרד, יחד עם ציוני הקבוצות של הטלמטריה מה-backbone של אותו PRM, ואז SML על פני כולם. המשקלות נאמדים בלי labels</td><td><code>CHAIN_&lt;bank&gt;</code></td></tr>
       <tr><td class="num">5</td><td><span class="chip" style="color:var(--boost)"></span>ממוצע: PRM + טלמטריה</td><td>ממוצע שווה של z(PRM) ושל כל K ערוצי הטלמטריה. ה-PRM מקבל משקל 1/(K+1), כמו כל ערוץ</td><td><code>EQ_&lt;bank&gt;</code></td></tr>
     </tbody>
   </table>
   </div>
-  <p class="note">בנקים: N16 הוא 16 ערוצים label-free, כולל 3 ערוצי digits. N13 הוא אותו בנק בלי ה-digits. מדדים: within-AUC (דירוג הצעדים בתוך כל תשובה, לא תלוי בסף), ו-PRMScore הרשמי עם כלל Q80 (מסמנים את ה-20% העליונים של ציוני answer-z). PRMBench: ‏6,969 תשובות, ו-PRMScore מחושב על 6,211 תשובות שאינן נכונות לגמרי. Socratic: ‏2,995 תשובות. CI מזווג של 95% מופיע ב-tooltip של כל השוואה. ב-PRMBench הוא מחושב לפי source group, וב-Socratic לפי תשובה.</p>
+  <p class="note">בנקים: N16 הוא 16 ערוצים label-free, כולל 3 ערוצי digits. N13 הוא אותו בנק בלי ה-digits. מדדים: within-AUC (דירוג הצעדים בתוך כל תשובה, לא תלוי בסף), והמדד הרשמי (PRMScore; ב-Hard2Verify ‏step Balanced F1) עם כלל הסימון שנבחר: GAP (ברירת המחדל מאז 2026-10-21: בכל תשובה מסמנים את k הצעדים שלפני הפער הגדול ביותר בציוני answer-z) או Q80 ההיסטורי (מסמנים את ה-20% העליונים של ציוני answer-z). PRMBench: ‏6,969 תשובות, ו-PRMScore מחושב על 6,211 תשובות שאינן נכונות לגמרי. Socratic: ‏2,995 תשובות. Hard2Verify: ‏177 תשובות. CI מזווג של 95% מופיע ב-tooltip של כל השוואה. ב-PRMBench הוא מחושב לפי source group, וב-Socratic לפי תשובה.</p>
 </section>
 
 <section id="overview">
@@ -164,15 +168,16 @@ footer { margin-top: 40px; font-size: .82rem; color: var(--ink-3); display: flex
 </section>
 
 <footer>
-  <div>נבנה מ-<code>results/prm_boost_ablation5_v1/page/build_data.py</code> ו-<code>build_page.py</code>, על הענף <code>claude/prm-boosting</code>. מקורות: <code>ABL5_RESULTS_&lt;prm&gt;.csv</code>, <code>ABL5_BOOTSTRAP_&lt;prm&gt;.csv</code> (AIRCC jobs 288711, 288712, 288716 ו-288786; ל-Math-Shepherd: <code>digitfix_v1/</code>, job 288932), ו-<code>socratic/RESULTS_socratic.csv</code>.</div>
+  <div>נבנה מ-<code>results/prm_boost_ablation5_v1/page/build_data.py</code> ו-<code>build_page.py</code>, על הענף <code>claude/prm-boosting</code>. מקורות: <code>ABL5_RESULTS_&lt;prm&gt;.csv</code>, <code>ABL5_BOOTSTRAP_&lt;prm&gt;.csv</code> (AIRCC jobs 288711, 288712, 288716 ו-288786; ל-Math-Shepherd: <code>digitfix_v1/</code>, job 288932), ו-<code>socratic/RESULTS_socratic.csv</code>. כלל GAP ו-Hard2Verify: <code>results/prm_boost_collection_v1/page_rule_data.py</code> (AIRCC jobs 290477, 290478, 290479).</div>
 </footer>
 </div>
 <div class="tip" id="tip" hidden></div>
 
 <script>
 const DATA = __DATA__;
-const S = { bench: 'prmbench', bank: 'N16', metric: 'auc' };
-const OK = { bench: ['prmbench', 'socratic'], bank: ['N16', 'N13'], metric: ['auc', 'score'] };
+const S = { bench: 'prmbench', bank: 'N16', metric: 'auc', rule: 'GAP' };
+const OK = { bench: ['prmbench', 'socratic', 'hard2verify'], bank: ['N16', 'N13'], metric: ['auc', 'score'], rule: ['GAP', 'Q80'] };
+const BD = () => (DATA.rules ? DATA.rules[S.rule] : DATA.bench)[S.bench];
 try { const s = JSON.parse(localStorage.getItem('abl5c') || '{}'); for (const k in OK) if (OK[k].includes(s[k])) S[k] = s[k]; } catch (e) {}
 
 const SHORT = { qwen_prm_7b: 'Qwen-7B', qwen_prm_72b: 'Qwen-72B', pure_prm: 'PURE', rlhflow_prm: 'RLHFlow', math_shepherd: 'Math-Shepherd' };
@@ -187,14 +192,14 @@ const M = {
 };
 const ORDER = ['TELE', 'MEAN', 'PRM', 'CHAIN', 'EQ'];
 
-const arms = p => DATA.bench[S.bench][p].arms;
+const arms = p => BD()[p].arms;
 const val = (p, a) => { const e = arms(p)[a]; return e ? e[S.metric] : null; };
 const mval = (p, id) => val(p, M[id].arm(S.bank));
 const isAuc = () => S.metric === 'auc';
-const unit = () => isAuc() ? 'within-AUC' : 'PRMScore';
+const unit = () => isAuc() ? 'within-AUC' : (S.bench === 'hard2verify' ? 'Balanced F1' : 'PRMScore') + ' (' + S.rule + ')';
 const fmt = v => v == null ? '–' : v.toFixed(isAuc() ? 3 : 2);
 const sgn = v => (v > 0 ? '+' : v < 0 ? '−' : '±') + fmt(Math.abs(v));
-const benchName = () => S.bench === 'prmbench' ? 'PRMBench' : 'Socratic';
+const benchName = () => ({ prmbench: 'PRMBench', socratic: 'Socratic', hard2verify: 'Hard2Verify' })[S.bench];
 const ctx = () => `${benchName()}, בנק ${S.bank}, ${unit()}`;
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
 const dot = (cx, cy, r, c, fill) => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill ? COL[c] : 'var(--panel)'}" stroke="${COL[c]}" stroke-width="2"/>`;
@@ -251,7 +256,7 @@ const CMP = [
   { a: 'CHAIN', b: 'EQ', q: 'L-SML מול ממוצע, עם PRM', pair: 'CHAIN-EQ' },
 ];
 function pairCI(p, c) {
-  if (c.pair) { const x = DATA.bench[S.bench][p].pairs[c.pair + '_' + S.bank]; return x && x[isAuc() ? 'da' : 'd']; }
+  if (c.pair) { const x = BD()[p].pairs[c.pair + '_' + S.bank]; return x && x[isAuc() ? 'da' : 'd']; }
   return c.ci(p, arms(p));
 }
 function stats(ds) {
@@ -293,7 +298,7 @@ function steps() {
   const b = S.bank; const A = {
     title: 'החל מה-PRM לבד',
     rows: [
-      ...(isAuc() ? [] : [{ l: 'כלל הסימון Q80 במקום הסף של ה-PRM', from: () => 'PRM_native', to: () => 'PRM_Q80_PROB' }]),
+      ...(isAuc() ? [] : [{ l: `כלל הסימון ${S.rule} במקום הסף של ה-PRM`, from: () => 'PRM_native', to: () => 'PRM_Q80_PROB' }]),
       { l: 'הוספת הטלמטריה, משקל שווה לכל ערוץ (3 → 5)', from: () => 'PRM_Q80_PROB', to: () => 'EQ_' + b },
       { l: 'משקול L-SML במקום משקל שווה (5 → 4)', from: () => 'EQ_' + b, to: () => 'CHAIN_' + b },
       { l: isAuc() ? 'סך הכל: 4 פחות 3' : 'סך הכל: 4 פחות ה-PRM עם הסף שלו', from: () => isAuc() ? 'PRM_Q80_PROB' : 'PRM_native', to: () => 'CHAIN_' + b, total: true },
@@ -352,7 +357,7 @@ function renderAggregate() {
 function ctlGroups() {
   const b = S.bank;
   return [
-    { g: 'כלל הסימון של ה-PRM', rows: [['PRM_native', 'PRM עם הסף שלו (reward < 0.5)', 'prm', true], ['PRM_Q80', 'PRM, כלל Q80 על logit(1−reward)', 'prm', false], ['PRM_Q80_PROB', 'PRM, כלל Q80 על 1−reward (שיטה 3)', 'prm', false]] },
+    { g: 'כלל הסימון של ה-PRM', rows: [['PRM_native', 'PRM עם הסף שלו (reward < 0.5)', 'prm', true], ['PRM_Q80', `PRM, כלל ${S.rule} על logit(1−reward)`, 'prm', false], ['PRM_Q80_PROB', `PRM, כלל ${S.rule} על 1−reward (שיטה 3)`, 'prm', false]] },
     { g: '½·PRM + ½·ממוצע: משקל קבוע שנבחר ידנית', rows: [['HALF_' + b, '½·z(PRM) + ½·ממוצע הטלמטריה', 'boost', false], ['HALFP_' + b, 'אותו דבר, PRM בסקאלת הסתברות', 'boost', false]] },
     { g: 'PRM בסקאלת הסתברות, z(1−reward) במקום logit', rows: [['CHAINP_' + b, 'L-SML: PRM + טלמטריה', 'boost', true], ['EQP_' + b, 'ממוצע: PRM + טלמטריה', 'boost', false]] },
     { g: 'גרסת L-SML אחרת', rows: [['PRMG_' + b, 'L-SML: PRM כקבוצה + הערוצים עצמם (PRMG)', 'boost', true]] },
@@ -401,13 +406,14 @@ function renderControls() {
 }
 
 function sync() {
-  for (const [id, key] of [['c-bench', 'bench'], ['c-bank', 'bank'], ['c-metric', 'metric']])
+  for (const [id, key] of [['c-bench', 'bench'], ['c-rule', 'rule'], ['c-bank', 'bank'], ['c-metric', 'metric']])
     document.querySelectorAll(`#${id} button`).forEach(b => b.setAttribute('aria-pressed', b.dataset.v === S[key]));
   try { localStorage.setItem('abl5c', JSON.stringify(S)); } catch (e) {}
-  document.getElementById('soc-banner').hidden = S.bench !== 'socratic';
+  document.getElementById('soc-banner').hidden = S.bench === 'prmbench';
+  document.getElementById('m-score').textContent = S.bench === 'hard2verify' ? 'Balanced F1' : 'PRMScore';
   renderOverview(); renderCompare(); renderAggregate(); renderControls();
 }
-for (const [id, key] of [['c-bench', 'bench'], ['c-bank', 'bank'], ['c-metric', 'metric']])
+for (const [id, key] of [['c-bench', 'bench'], ['c-rule', 'rule'], ['c-bank', 'bank'], ['c-metric', 'metric']])
   document.querySelectorAll(`#${id} button`).forEach(b => b.addEventListener('click', () => { S[key] = b.dataset.v; sync(); }));
 sync();
 </script>

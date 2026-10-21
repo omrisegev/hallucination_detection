@@ -118,6 +118,15 @@ for bench, fn in (('prmbench', prmbench), ('socratic', socratic)):
         arms, pairs = fn(p)
         fill_fair_auc(arms)
         out['bench'][bench][p] = {'arms': arms, 'pairs': pairs}
+# GAP (default since 2026-10-21) and Hard2Verify come from the collection evaluator
+# (results/prm_boost_collection_v1/page_rule_data.py); Q80 PRMBench/Socratic stay as above (frozen ablation5 files).
+PRD = R / 'prm_boost_collection_v1/tables/PAGE_RULE_DATA.json'
+if PRD.exists():
+    G = json.loads(PRD.read_text())
+    out['rules'] = {'GAP': G['GAP'], 'Q80': dict(out['bench'], hard2verify=G['Q80']['hard2verify'])}
+    for rule in out['rules'].values():
+        for bench in rule.values():
+            for cell in bench.values(): fill_fair_auc(cell['arms'])
 (H / 'data.json').write_text(json.dumps(out, indent=1))
 for b in out['bench']:
     for p in PRMS:

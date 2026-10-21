@@ -6,4 +6,7 @@ SS=$M/results/sml_weight_estimator_v1/socratic_sign
 J=$R/prm_boost_collection_v1          # job scripts, logs, parity reports
 PRMS_PB="qwen_prm_72b pure_prm rlhflow_prm"
 export ABL5_EXPORT_SCORES=1
+# Bare python3 on the cpu nodes has no numpy (job 290474 failed on import); earlier CPU jobs (288319, 288932) sourced this env.
+set +u; . $S/pyenv_native_312_20261011/activate.sh; set -u
+python3 -c 'import numpy, scipy, sklearn; print("PYENV", numpy.__version__, scipy.__version__)'
 cd $M
