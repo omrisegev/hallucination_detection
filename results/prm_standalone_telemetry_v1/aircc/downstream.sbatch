@@ -17,7 +17,7 @@ source /shared/cycle2_tau_averbuch_prj/omrisegev1/results/prm_standalone_telemet
 set +u; . $S/pyenv_native_312_20261011/activate.sh; set -u
 python3 -c 'import numpy, scipy, sklearn; print("PYENV", numpy.__version__, scipy.__version__)'
 K=$W/code                                   # build_bank.py, digit_token_ids.py, common.sh, parity_npz.py (HANDOFF step 2)
-BASE=$R/thinkfix_rescore_v1/source_bank_thinkfix_mask1/FEATURES.npz; MASK=$S/code_thinkfix_rescore_v1
+BASE=$R/thinkfix_rescore_v1/source_bank_thinkfix_mask1/FEATURES.npz; MASK=$S/code_prm_boost_v1/mask_fixed
 E=$W/abl5; test ! -e $E || { echo "refusing: $E exists"; exit 2; }
 export ABL5_EXPORT_SCORES=1 DIGIT_TOKEN_IDS_PY=$K/digit_token_ids.py
 
