@@ -1,0 +1,31 @@
+Qwen/Qwen2.5-Math-7B True qwen2 None 4096
+Qwen/Qwen2.5-Math-7B-Instruct True qwen2 None 4096
+Qwen/Qwen2.5-Math-72B-Instruct True qwen2 None 4096
+meta-llama/Llama-3.1-8B-Instruct True llama {'factor': 8.0, 'low_freq_factor': 1.0, 'high_freq_factor': 4.0, 'original_max_position_embeddings': 8192, 'rope_type': 'llama3'} 131072
+mistralai/Mistral-7B-v0.1 False mistral None 32768
+== qwen_prm_7b Qwen--Qwen2.5-Math-7B-Instruct/snapshots/ef9926d75ab1d54532f style=qwen_cot_chat chat_template=True bos=None
+  row confidence_confidence_prm_test_p1_0: prompt 74 + chain 128 tokens, 6 spans for 6 steps, ok=True
+  row confidence_confidence_prm_test_p1_2: prompt 49 + chain 101 tokens, 6 spans for 6 steps, ok=True
+  row confidence_confidence_prm_test_p1_3: prompt 41 + chain 82 tokens, 3 spans for 3 steps, ok=True
+  prompt: '<|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{}.<|im_end|>\n<|im_start|>user\nWhat is $\\sqrt{53}$ in simplest radical form?<|im_end|>\n<|im_start|>assistant\n'
+== qwen_prm_72b Qwen--Qwen2.5-Math-72B-Instruct/snapshots/8fcf92b1eac8eca48c style=qwen_cot_chat chat_template=True bos=None
+  row confidence_confidence_prm_test_p1_0: prompt 74 + chain 128 tokens, 6 spans for 6 steps, ok=True
+  row confidence_confidence_prm_test_p1_2: prompt 49 + chain 101 tokens, 6 spans for 6 steps, ok=True
+  row confidence_confidence_prm_test_p1_3: prompt 41 + chain 82 tokens, 3 spans for 3 steps, ok=True
+  prompt: '<|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{}.<|im_end|>\n<|im_start|>user\nWhat is $\\sqrt{53}$ in simplest radical form?<|im_end|>\n<|im_start|>assistant\n'
+== pure_prm Qwen--Qwen2.5-Math-7B/snapshots/b101308fe89651ea5ce025f25317 style=qwen_cot_chat chat_template=True bos=None
+  row confidence_confidence_prm_test_p1_0: prompt 74 + chain 128 tokens, 6 spans for 6 steps, ok=True
+  row confidence_confidence_prm_test_p1_2: prompt 49 + chain 101 tokens, 6 spans for 6 steps, ok=True
+  row confidence_confidence_prm_test_p1_3: prompt 41 + chain 82 tokens, 3 spans for 3 steps, ok=True
+  prompt: '<|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{}.<|im_end|>\n<|im_start|>user\nWhat is $\\sqrt{53}$ in simplest radical form?<|im_end|>\n<|im_start|>assistant\n'
+== rlhflow_prm meta-llama--Llama-3.1-8B-Instruct/snapshots/0e9e39f249a16976 style=chat chat_template=True bos=128000
+  row confidence_confidence_prm_test_p1_0: prompt 79 + chain 121 tokens, 6 spans for 6 steps, ok=True
+  row confidence_confidence_prm_test_p1_2: prompt 54 + chain 98 tokens, 6 spans for 6 steps, ok=True
+  row confidence_confidence_prm_test_p1_3: prompt 47 + chain 72 tokens, 3 spans for 3 steps, ok=True
+  prompt: '<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nCutting Knowledge Date: December 2023\nToday Date: 26 Jul 2024\n\n<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nWhat is $\\sqrt{53}$ in simplest radical form?<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n'
+== math_shepherd mistralai--Mistral-7B-v0.1/snapshots/27d67f1b5f57dc0953326b2 style=plain chat_template=False bos=1
+  row confidence_confidence_prm_test_p1_0: prompt 56 + chain 142 tokens, 6 spans for 6 steps, ok=True
+  row confidence_confidence_prm_test_p1_2: prompt 25 + chain 111 tokens, 6 spans for 6 steps, ok=True
+  row confidence_confidence_prm_test_p1_3: prompt 17 + chain 86 tokens, 3 spans for 3 steps, ok=True
+  prompt: '<s> What is $\\sqrt{53}$ in simplest radical form?\n\n'
+TOKENIZER_SMOKE PASS
