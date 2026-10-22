@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Assistant:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: one reading column; the companion of PRM_BOOSTING_STATUS.html, same tokens.
-   PRM = orange, PRM boosting = green, competitors = ink/grey, supervised rows = blue. */
+   PRM = orange, L-SML (ours, PRM + telemetry) = green, competitors = ink/grey, supervised rows = blue. */
 :root {
   --bg: #f7f8f6; --panel: #ffffff; --ink: #14171a; --ink-2: #4b5157; --ink-3: #767c82;
   --rule: #dfe3e0; --grid: #eceeec; --accent: #1f5f8b;
@@ -63,7 +63,7 @@ footer { margin-top: 48px; font-size: .82rem; color: var(--ink-3); display: flex
 <header>
   <div class="eyebrow">Competitor positioning · 21 October 2026 · development data</div>
   <h1>PRM Boosting against the closest methods</h1>
-  <p class="lede">Two recent papers define our position: PRISM (retrains the same PRM) and CROP (fuses a PRM with telemetry, with supervision). Against both, label-free PRM boosting matches or exceeds their headline PRMBench numbers: PRISM's PRMScore and error rates, and CROP's share of each trace kept. CROP's pooled AUROC stays higher (.834 vs .792). Neither paper reports a label-free step-level fusion of a PRM with telemetry. As far as we have searched, we are the only one.</p>
+  <p class="lede">Two recent papers define our position: PRISM (retrains the same PRM) and CROP (fuses a PRM with telemetry, with supervision). Against both, our label-free L-SML fusion of the PRM with telemetry matches or exceeds their headline PRMBench numbers: PRISM's PRMScore and error rates, and CROP's share of each trace kept. CROP's pooled AUROC stays higher (.834 vs .792). Neither paper reports a label-free step-level fusion of a PRM with telemetry. As far as we have searched, we are the only one.</p>
 </header>
 
 <section id="map">
@@ -74,7 +74,7 @@ footer { margin-top: 48px; font-size: .82rem; color: var(--ink-3); display: flex
   <table>
     <thead><tr><th>Method</th><th>What it does</th><th>Access</th><th>Benchmarks and metrics</th><th>Comparable to us</th></tr></thead>
     <tbody>
-      <tr class="ours"><td><b>PRM boosting (ours)</b></td><td>PRM step score + 16 telemetry channels from the same forward pass, fused by L-SML; GAP flag count</td><td><span class="acc a-free">label-free</span></td><td>PRMBench (PRMScore, 9 categories, within-AUC), Socratic, Hard2Verify</td><td>—</td></tr>
+      <tr class="ours"><td><b>L-SML (ours)</b></td><td>PRM boosting without labels: PRM step score + 16 telemetry channels from the same forward pass, fused by L-SML; GAP flag count</td><td><span class="acc a-free">label-free</span></td><td>PRMBench (PRMScore, 9 categories, within-AUC), Socratic, Hard2Verify</td><td>—</td></tr>
       <tr><td><b>PRISM</b> (arXiv 2606.09078)</td><td>Re-trains Qwen2.5-Math-PRM-7B on pairwise step comparisons from PRM800K to cut false positives</td><td><span class="acc a-train">retrained</span></td><td>PRMBench PRMScore, FPR/TPR/TNR, categories; ProcessBench; Best-of-N</td><td>Same PRM, same metric. Their baseline matches ours to 0.01 (65.5 vs 65.49)</td></tr>
       <tr><td><b>CROP</b> (arXiv 2605.30085, EMNLP 2026 Oral)</td><td>Conformal certificate on the longest clean prefix. Its strongest PRMBench proxy, "Trace+PRM", is an ℓ2 logistic regression trained on 60% of the traces, over the PRM score, Llama-3.1-8B teacher-forced trace features, hidden-state scalars and text metadata</td><td><span class="acc a-sup">supervised LR</span> <span class="acc a-label">calibrated λ</span></td><td>PRMBench first 5,000 traces: pooled step AUROC, prefix kept at risk ≤ α; five other datasets</td><td>Closest idea. We ran their protocol on our scores</td></tr>
       <tr><td>Trained PRMs, LLM critics</td><td>Qwen-72B PRM, PathFinder, R-PRM, ActPRM; Gemini-2-thinking, o1-mini, GPT-4o, o3-mini</td><td><span class="acc a-train">trained</span> / prompted</td><td>PRMBench and Socratic leaderboards</td><td>Table to table (same metric)</td></tr>
@@ -90,7 +90,7 @@ footer { margin-top: 48px; font-size: .82rem; color: var(--ink-3); display: flex
   <h2>PRISM: matched without retraining</h2>
   <p>PRISM retrains the PRM and reports TPR 87.3 / FPR 47.1 / PRMScore 68.0 on PRMBench. Our label-free fusion of the unchanged PRM with the GAP rule lands at TPR 88.6 / FPR 45.1 / PRMScore 70.4. That point is better on both rates, so no threshold choice is needed to compare them.</p>
   <div class="panel chart" id="ch-prism"></div>
-  <div class="legend"><span><span class="dot" style="background:var(--prm)"></span>Qwen-PRM-7B, global threshold sweep</span><span><span class="dot" style="background:var(--boost)"></span>PRM boosting, global threshold sweep</span><span><span class="dot" style="background:var(--comp)"></span>PRISM (published)</span></div>
+  <div class="legend"><span><span class="dot" style="background:var(--prm)"></span>Qwen-PRM-7B, global threshold sweep</span><span><span class="dot" style="background:var(--boost)"></span>L-SML (PRM + telemetry), global threshold sweep</span><span><span class="dot" style="background:var(--comp)"></span>PRISM (published)</span></div>
   <div class="panel scroll">
   <table>
     <thead><tr><th>Operating point (Qwen2.5-Math-PRM-7B, PRMBench)</th><th>Access</th><th class="n">TPR</th><th class="n">FPR</th><th class="n">PRMScore</th></tr></thead>
@@ -98,9 +98,9 @@ footer { margin-top: 48px; font-size: .82rem; color: var(--ink-3); display: flex
       <tr><td>PRM, native threshold</td><td><span class="acc a-train">PRM</span></td><td class="n">95.40</td><td class="n">69.42</td><td class="n">65.49</td></tr>
       <tr><td>PRISM (retrained PRM, published)</td><td><span class="acc a-train">retrained</span></td><td class="n">87.30</td><td class="n">47.13</td><td class="n">68.00</td></tr>
       <tr><td>PRM, global threshold moved to TPR 87.3</td><td><span class="acc a-label">label-chosen</span></td><td class="n">87.31</td><td class="n">47.70</td><td class="n">68.26</td></tr>
-      <tr><td>PRM boosting, global threshold at TPR 87.3</td><td><span class="acc a-label">label-chosen</span></td><td class="n">87.28</td><td class="n">47.78</td><td class="n">68.20</td></tr>
+      <tr><td>L-SML, global threshold at TPR 87.3</td><td><span class="acc a-label">label-chosen</span></td><td class="n">87.28</td><td class="n">47.78</td><td class="n">68.20</td></tr>
       <tr><td>PRM, GAP rule</td><td><span class="acc a-free">label-free rule</span></td><td class="n">92.14</td><td class="n">58.45</td><td class="n">68.01</td></tr>
-      <tr class="ours"><td><b>PRM boosting, GAP rule</b></td><td><span class="acc a-free">label-free</span></td><td class="n">88.57</td><td class="n">45.06</td><td class="n">70.40</td></tr>
+      <tr class="ours"><td><b>L-SML, GAP rule</b></td><td><span class="acc a-free">label-free</span></td><td class="n">88.57</td><td class="n">45.06</td><td class="n">70.40</td></tr>
     </tbody>
   </table>
   </div>
@@ -123,8 +123,8 @@ footer { margin-top: 48px; font-size: .82rem; color: var(--ink-3); display: flex
       <tr><td>Format and position cues, LR</td><td><span class="acc a-sup">supervised</span></td><td class="n">16.3 / 16.7%</td><td class="n">4.8 / 4.9%</td><td class="n">.778</td></tr>
       <tr><td>CROP Trace+PRM (published, CROP grid)</td><td><span class="acc a-sup">supervised</span></td><td class="n">21.8%</td><td class="n">5.0%</td><td class="n">.834</td></tr>
       <tr><td>Format and position cues + PRM, LR (our control)</td><td><span class="acc a-sup">supervised</span></td><td class="n">21.2 / 21.7%</td><td class="n">4.5 / 4.7%</td><td class="n">.831</td></tr>
-      <tr class="ours"><td><b>PRM boosting, fitted on the training traces only</b></td><td><span class="acc a-free">label-free</span></td><td class="n">22.3 / 23.2%</td><td class="n">4.7 / 5.0%</td><td class="n">.792</td></tr>
-      <tr class="ours"><td>PRM boosting, fitted on all traces</td><td><span class="acc a-free">label-free</span></td><td class="n">21.9 / 23.3%</td><td class="n">4.4 / 4.8%</td><td class="n">.795</td></tr>
+      <tr class="ours"><td><b>L-SML, fitted on the training traces only</b></td><td><span class="acc a-free">label-free</span></td><td class="n">22.3 / 23.2%</td><td class="n">4.7 / 5.0%</td><td class="n">.792</td></tr>
+      <tr class="ours"><td>L-SML, fitted on all traces</td><td><span class="acc a-free">label-free</span></td><td class="n">21.9 / 23.3%</td><td class="n">4.4 / 4.8%</td><td class="n">.795</td></tr>
       <tr><td>Our 13-channel telemetry + PRM, LR (supervised analog)</td><td><span class="acc a-sup">supervised</span></td><td class="n">24.9 / 25.1%</td><td class="n">4.5 / 4.6%</td><td class="n">.829</td></tr>
       <tr><td>Our 16-channel telemetry + PRM, LR (supervised analog)</td><td><span class="acc a-sup">supervised</span></td><td class="n">25.2 / 25.4%</td><td class="n">4.5 / 4.6%</td><td class="n">.833</td></tr>
     </tbody>
@@ -132,13 +132,13 @@ footer { margin-top: 48px; font-size: .82rem; color: var(--ink-3); display: flex
   </div>
   <ul class="tight">
     <li><b>Most of CROP's gain over the PRM may come from surface cues.</b> Our format and position features plus the PRM, with no Llama features, come within 0.6 points of their Trace+PRM on their grid (21.2% vs 21.8%; AUROC .831 vs .834). Our format/position LR alone also matches their token/format row (16.3% vs 16.2%). This is an inference from our reconstruction: we did not ablate CROP's own features.</li>
-    <li><b>On Qwen-7B, the PRM CROP used, label-free PRM boosting keeps slightly more of each trace than their supervised proxy</b> at the same risk, with our fusion fitted only on the training traces: 22.3% vs 21.8% on CROP's grid, 23.2% on the quantile grid. The margin is small. Fitted on all traces, it is 21.9% on CROP's grid.</li>
-    <li><b>On the other PRMs the picture is mixed.</b> Against the supervised format/position + PRM LR (quantile grid, training-trace fit), PRM boosting is ahead on Qwen-72B (22.3% vs 21.3%) and behind on PURE (20.7 vs 22.1), RLHFlow (16.4 vs 17.8) and Math-Shepherd (17.4 vs 18.6). The order is the same on CROP's grid. The plain Qwen-72B PRM finds no threshold that meets 5% on any of the 10 seeds (risk 7.4%).</li>
+    <li><b>On Qwen-7B, the PRM CROP used, label-free L-SML keeps slightly more of each trace than their supervised proxy</b> at the same risk, with our fusion fitted only on the training traces: 22.3% vs 21.8% on CROP's grid, 23.2% on the quantile grid. The margin is small. Fitted on all traces, it is 21.9% on CROP's grid.</li>
+    <li><b>On the other PRMs the picture is mixed.</b> Against the supervised format/position + PRM LR (quantile grid, training-trace fit), L-SML is ahead on Qwen-72B (22.3% vs 21.3%) and behind on PURE (20.7 vs 22.1), RLHFlow (16.4 vs 17.8) and Math-Shepherd (17.4 vs 18.6). The order is the same on CROP's grid. The plain Qwen-72B PRM finds no threshold that meets 5% on any of the 10 seeds (risk 7.4%).</li>
     <li><b>Our telemetry is the better input.</b> A supervised LR on it keeps 25.1–25.4% (quantile grid, 13 or 16 channels). The label-free fusion recovers 81–92% of that on the Qwen and PURE PRMs.</li>
     <li><b>Where CROP is stronger.</b>
       <ul>
         <li>Its pooled AUROC is higher (.834 vs .792). Our scores are standardized within each answer, a likely reason, since pooled AUROC compares steps across answers.</li>
-        <li>It offers a guarantee within one domain, and ours does not survive a domain shift. Calibrated on PRMBench and tested on Socratic at a 5% target, PRM boosting reaches 6.7% risk on Qwen-7B and 8.2–25.9% on the other four PRMs, while each plain PRM stays at or below 5%. CROP's own cross-domain diagnostic also breaks (14.8% risk from arithmetic to GSM8K), so both need recalibration under shift.</li>
+        <li>It offers a guarantee within one domain, and ours does not survive a domain shift. Calibrated on PRMBench and tested on Socratic at a 5% target, L-SML reaches 6.7% risk on Qwen-7B and 8.2–25.9% on the other four PRMs, while each plain PRM stays at or below 5%. CROP's own cross-domain diagnostic also breaks (14.8% risk from arithmetic to GSM8K), so both need recalibration under shift.</li>
       </ul>
     </li>
   </ul>
@@ -149,16 +149,16 @@ footer { margin-top: 48px; font-size: .82rem; color: var(--ink-3); display: flex
   <div class="two">
     <div class="panel scroll"><h3>PRMBench, PRMScore</h3><table><tbody id="t-pb"></tbody></table></div>
     <div class="panel scroll"><h3>Socratic-PRMBench, official metric</h3><table><tbody id="t-soc"></tbody></table>
-      <p class="note" style="margin-top:8px">On Socratic, PRM boosting loses to its own PRM for 4 of 5 PRMs (see the status report). Prompted critics lead this benchmark.</p></div>
+      <p class="note" style="margin-top:8px">On Socratic, L-SML loses to its own PRM for 4 of 5 PRMs (see the status report). Prompted critics lead this benchmark.</p></div>
   </div>
-  <p class="note">The PRMBench leaderboard rows come from each paper. Ours use a port of the official evaluator, and our rows use the GAP flag rule, while the leaderboard PRMs use their native thresholds. Under GAP the plain Qwen-72B PRM already reaches 69.5, so part of the gap to the leaderboard is the rule. The fair comparison is PRM boosting against its own PRM under the same rule: +1.6 to +6.9 points.</p>
+  <p class="note">The PRMBench leaderboard rows come from each paper. Ours use a port of the official evaluator, and our rows use the GAP flag rule, while the leaderboard PRMs use their native thresholds. Under GAP the plain Qwen-72B PRM already reaches 69.5, so part of the gap to the leaderboard is the rule. The fair comparison is L-SML against its own PRM under the same rule: +1.6 to +6.9 points.</p>
 </section>
 
 <section id="secondary">
   <h2>Secondary comparisons</h2>
   <ul class="tight">
-    <li><b>ARES</b> (Macro-F1, threshold chosen by 5-fold CV on labels; full PRMBench, approximate). On Qwen-7B the PRM and PRM boosting tie: 68.17 vs 68.10. PRM boosting is ahead on the weaker PRMs (RLHFlow 64.13 vs 55.79, Math-Shepherd 64.34 vs 53.33). ARES's own appendix puts the plain PRM at .749 against ARES's .736, a difference within one standard deviation by ARES's own report.</li>
-    <li><b>SLIDER</b> (redundancy class only; its protocol is unclear). On Qwen-7B with GAP, PRM boosting reaches 71.2 balanced accuracy, against 54.7 for the PRM under the same rule and SLIDER's reported 61.9. With a label-tuned threshold, the PRM has the higher plain accuracy (78.8 vs 74.1), both below the 86.8 of always predicting "correct". PRM boosting keeps the higher balanced accuracy (74.3 vs 54.5).</li>
+    <li><b>ARES</b> (Macro-F1, threshold chosen by 5-fold CV on labels; full PRMBench, approximate). On Qwen-7B the PRM and L-SML tie: 68.17 vs 68.10. L-SML is ahead on the weaker PRMs (RLHFlow 64.13 vs 55.79, Math-Shepherd 64.34 vs 53.33). ARES's own appendix puts the plain PRM at .749 against ARES's .736, a difference within one standard deviation by ARES's own report.</li>
+    <li><b>SLIDER</b> (redundancy class only; its protocol is unclear). On Qwen-7B with GAP, L-SML reaches 71.2 balanced accuracy, against 54.7 for the PRM under the same rule and SLIDER's reported 61.9. With a label-tuned threshold, the PRM has the higher plain accuracy (78.8 vs 74.1), both below the 86.8 of always predicting "correct". L-SML keeps the higher balanced accuracy (74.3 vs 54.5).</li>
     <li><b>Hard2Verify.</b> GAP always flags a step, so it cannot score "no error" answers. Error-localization F1 (VerifySteer's metric) needs a rule that can abstain.</li>
   </ul>
 </section>
@@ -200,7 +200,7 @@ const PTS = [
   { l: 'PRISM', fpr: 47.13, tpr: 87.30, c: 'var(--comp)', r: 7, dx: 12, dy: 18 },
   { l: 'PRM native', fpr: 69.42, tpr: 95.40, c: 'var(--prm)', r: 5, hollow: true, dx: -12, dy: -8, end: true },
   { l: 'PRM + GAP', fpr: 58.45, tpr: 92.14, c: 'var(--prm)', r: 6, dx: -12, dy: -8, end: true },
-  { l: 'PRM boosting + GAP', fpr: 45.06, tpr: 88.57, c: 'var(--boost)', r: 7, dx: -12, dy: -8, end: true }
+  { l: 'L-SML + GAP', fpr: 45.06, tpr: 88.57, c: 'var(--boost)', r: 7, dx: -12, dy: -8, end: true }
 ];
 (function () {
   const W = 760, L = 56, R = 24, T = 18, H = 380, x0 = 30, x1 = 74, y0 = 78, y1 = 97;
@@ -219,7 +219,7 @@ const PTS = [
 const CROPROWS = [
   ['Direct PRM', 4.9, 'var(--prm)'], ['Format/position LR', 16.3, 'var(--ref)'],
   ['CROP Trace+PRM (published)', 21.8, 'var(--comp)'], ['Format/position + PRM LR', 21.2, 'var(--tele)'],
-  ['PRM boosting, train-only fit', 22.3, 'var(--boost)'], ['16-ch telemetry + PRM LR', 25.2, 'var(--tele)']
+  ['L-SML, train-only fit', 22.3, 'var(--boost)'], ['16-ch telemetry + PRM LR', 25.2, 'var(--tele)']
 ];
 (function () {
   const W = 760, L = 230, R = 50, T = 8, rowH = 30, H = T + CROPROWS.length * rowH + 40, hi = 28;
@@ -232,12 +232,12 @@ const CROPROWS = [
   s += `<text x="${(L + W - R) / 2}" y="${H - 2}" text-anchor="middle" style="font-size:11px;fill:var(--ink-3)">Share of each trace certified clean at risk ≤ 5% (Qwen-PRM-7B, CROP protocol and threshold grid, 10 seeds)</text></svg>`;
   document.getElementById('ch-crop').innerHTML = s;
 })();
-const PBROWS = [['Human (450 instances)', 83.8, 'human'], ['Qwen-72B + PRM boosting (GAP)', 71.09, 'ours'], ['Qwen-7B + PRM boosting (GAP)', 70.40, 'ours'],
+const PBROWS = [['Human (450 instances)', 83.8, 'human'], ['Qwen-72B PRM + L-SML (GAP)', 71.09, 'ours'], ['Qwen-7B PRM + L-SML (GAP)', 70.40, 'ours'],
   ['Qwen-72B PRM alone, GAP rule', 69.49, 'rule'], ['Gemini-2.0-thinking (critic)', 68.8, ''], ['o1-mini (critic, 394 samples)', 68.8, ''],
   ['Qwen2.5-Math-PRM-72B', 68.2, ''], ['PRISM (retrained 7B)', 68.0, ''], ['PathFinder-PRM-7B', 67.7, ''], ['GPT-4o (critic)', 66.8, ''],
   ['R-PRM-7B-DPO', 66.8, ''], ['ActPRM-X', 66.7, ''], ['Qwen2.5-Math-PRM-7B', 65.5, '']];
 const SOCROWS = [['o3-mini (critic)', 75.7, ''], ['QwQ-32B (critic)', 73.8, ''], ['Gemini-2.5-Pro (critic)', 73.5, ''], ['DeepSeek-R1 (critic)', 73.0, ''],
-  ['GPT-4o (critic)', 70.8, ''], ['Qwen-PRM-7B alone, GAP rule (ours)', 70.10, 'rule'], ['Qwen-PRM-7B (best PRM, published)', 68.0, ''], ['Qwen-7B + PRM boosting (GAP)', 66.89, 'ours']];
+  ['GPT-4o (critic)', 70.8, ''], ['Qwen-PRM-7B alone, GAP rule (ours)', 70.10, 'rule'], ['Qwen-PRM-7B (best PRM, published)', 68.0, ''], ['Qwen-7B PRM + L-SML (GAP)', 66.89, 'ours']];
 const row = r => `<tr${r[2] === 'ours' ? ' class="ours"' : ''}><td>${r[2] === 'ours' ? '<b>' + r[0] + '</b>' : r[0]}</td><td class="n">${r[1].toFixed(r[1] % 1 ? (String(r[1]).split('.')[1].length > 1 ? 2 : 1) : 1)}</td></tr>`;
 document.getElementById('t-pb').innerHTML = PBROWS.map(row).join('');
 document.getElementById('t-soc').innerHTML = SOCROWS.map(row).join('');
