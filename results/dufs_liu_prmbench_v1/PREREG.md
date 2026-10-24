@@ -166,6 +166,50 @@ Questions and rules (one PRM, so "3 of 5" becomes the single paired CI):
 - D56 (more channels): the N56 - N16 difference of each arm, reported with its paired CI; the question is whether the
   label-free arms lose and the label arms gain, as in Step 464.
 
+## Amendment 2 (2026-10-25, written before any score of these arms): the PRM defines the IU-PCR subspace
+
+Request (Omri, 2026-10-25): "Test one label-free variant where the PRM defines the IU-PCR subspace, pre-registered
+the same way, against CHAIN_N16 on the 5 PRMs."
+
+The subspace is `U = orthonormal basis of span{e_PRM, (0, c)}`, with `c_j = Cov(zp, x_j)` over all steps on the
+z-scored X17. In words: the PRM's own axis, plus the telemetry direction that agrees most with the PRM (the first
+partial-least-squares direction of the telemetry, with the PRM as the response). No label enters.
+
+Arms (PRM-backbone N16, the same 5 PRMs, inputs and evaluator as above):
+- **`PPLIU_PRM16` (primary).** Registered DUFS-LIU with only its two-component subspace replaced by `U`:
+  `w = U [U^T (C + 0.1 R_bar) U]^-1 U^T rho_hat`. It keeps IU-PCR's own `rho_hat` and the registered DUFS graph of
+  X17 (the graph of DUFSLIU_PRM16), with `R_bar` trace-matched inside `U`. Anchored to `zp`.
+- **`PPREF_PRM16` (secondary diagnostic; it does not enter the verdict).** The same plane and graph, with the PRM as
+  the reference rater of the additive model (`a_PRM = 0`): `rho_j = Cov(x_j, zp)` for every channel, and
+  `rho_PRM = Var(Y)`, estimated by the PRM's squared multiple correlation with the 16 channels (the classic
+  communality lower bound).
+
+Label-free facts computed before writing this (scratch computation on the unlabeled matrices, no label read):
+- IU-PCR's estimate of `Var(Y)` (`g2_hat`) is 0.175 / 0.217 / 0.176 / 0.181 / 0.249 (Qwen-7B, Qwen-72B, PURE,
+  RLHFlow, Math-Shepherd). It is capped at 0.25 by `IU_FIT_DEFAULTS` (scale_ratio 0.25).
+- The PRM's agreement with the telemetry alone implies a reliability of at least
+  `R^2(zp ~ PRM-aligned telemetry composite)` = 0.327 / 0.279 / 0.254 / 0.236 / 0.112. So on 4 of 5 PRMs the IU
+  model trusts the PRM less than that agreement allows. IU-PCR's `rho_hat` ranks the PRM 11th to 17th of 17 views.
+- With IU-PCR's `rho_hat`, the PRM's weight in this plane is negative on 5 of 5 PRMs: -0.024 / -0.057 / -0.024 /
+  -0.025 / -0.051 (at lambda 0).
+- With the PRM as reference (the secondary arm), the PRM weight is positive on 5 of 5 (+0.044 / +0.080 / +0.062 /
+  +0.120 / +0.195; share 0.05-0.28), and the score correlates 0.88-1.00 with the PRM-aligned telemetry composite.
+
+Pre-registered predictions:
+- the primary arm cannot replace CHAIN_N16 (rule A) and does not beat DUFSLIU_PRM16;
+- the secondary arm behaves like the PRM-aligned telemetry composite.
+
+Rules:
+- **Replacement:** rule A, with the same margins, for `PPLIU_PRM16 - CHAIN_N16`.
+- **"The PRM subspace helps DUFS-LIU":** `PPLIU_PRM16 - DUFSLIU_PRM16` within-AUC CI > 0 on at least 3 of 5 PRMs.
+- The secondary arm is reported with the same contrasts, without a verdict.
+
+Implementation and parity:
+- `liu_external_target` gains an optional `subspace`, unit-tested: the top-2 eigenvectors reproduce the default
+  solve.
+- The DUFS graph is rebuilt with the registered seeds through the split call. It must reproduce the saved
+  DUFSLIU_PRM16 scores of all 5 PRMs (max |diff| < 1e-8) before any new score is read.
+
 ## Caveats fixed in advance
 
 - PRMBench is development data; a pass is development evidence, not confirmation.
