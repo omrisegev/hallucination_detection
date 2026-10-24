@@ -101,7 +101,7 @@ footer a { color: var(--accent); }
       <tr class="new"><td><b>BR2-PRM</b> (ACL 2026, PRMBench-V paper)</td><td>Supervised naive Bayes over one multimodal judge's nine per-error-type scores, called Dawid-Skene style but fitted by counting labels; picks the best of N answers</td><td><span class="acc a-sup">supervised</span></td><td>PRMBench-V (multimodal); Best-of-N on MMK12</td><td>Different task and modality. Analogue only</td></tr>
       <tr><td>Trained PRMs, LLM critics</td><td>Qwen-72B PRM, PathFinder, R-PRM, ActPRM; Gemini-2-thinking, o1-mini, GPT-4o, o3-mini</td><td><span class="acc a-train">trained</span> / prompted</td><td>PRMBench and Socratic leaderboards</td><td>Table to table (same metric)</td></tr>
       <tr><td>ARES (arXiv 2507.12948, EMNLP 2025)</td><td>Training-free entailment scoring with many LLM calls per step</td><td>training-free, <span class="acc a-label">CV threshold</span></td><td>PRMBench Macro-F1 (subset size not stated)</td><td>Their metric on our scores (section below). Approximate: their PRMBench subset is not stated</td></tr>
-      <tr><td>SLIDER (arXiv 2610.00571)</td><td>Information decomposition for redundant steps; up to 50 GPT-4o-mini calls per problem</td><td><span class="acc a-label">learned threshold</span></td><td>PRMBench redundancy class only, "accuracy" 61.91 (not defined)</td><td>Their Figure 7 procedure on our scores (section below), under two readings of the metric</td></tr>
+      <tr><td>SLIDER (arXiv 2610.00571)</td><td>Information decomposition for redundant steps; up to 50 GPT-4o-mini calls per problem</td><td><span class="acc a-label">learned threshold</span></td><td>PRMBench redundancy class only, "accuracy" 61.91 (not defined)</td><td>Their Figure 7 procedure on our scores, with their cosine baseline reproduced as a bridge (section below)</td></tr>
       <tr><td>Weaver, Ising aggregation, ScalePRM, uPRM, Optimal Aggregation</td><td>Weakly supervised or label-free verifier and judge aggregation, and PRM training without labels</td><td>mixed</td><td>Response-level selection, binary judge votes, or ProcessBench only</td><td>Framing only: none reports step-level PRMBench</td></tr>
     </tbody>
   </table>
@@ -273,9 +273,15 @@ footer a { color: var(--accent); }
 
 <section id="slider">
   <h2>SLIDER: their Figure 7 on our scores</h2>
-  <p>SLIDER's only PRMBench result is Figure 7: on the redundancy class, a linear classifier trained on a labelled held-out set sets each method's threshold, and "accuracy" is reported (Step-RRI 61.9, cosine similarity 51.6, InfoGain 48.4). The paper does not define the accuracy, the split sizes, the class balance or how step 1 is handled. We ran the same procedure on our scores (758 problems, 13.2% of steps redundant) and report both readings of the metric.</p>
+  <p>SLIDER's only PRMBench result is Figure 7: on the redundancy class, a linear classifier trained on a labelled held-out set sets each method's threshold, and "accuracy" is reported (Step-RRI 61.9, cosine similarity 51.6, InfoGain 48.4). The paper does not define the accuracy, the split sizes, the class balance or how step 1 is handled. We ran the same procedure on our scores (758 problems, 13.2% of steps redundant, 10 random 50/50 splits by problem) and reproduced their cosine-similarity baseline to find out which accuracy they report.</p>
   <div class="panel chart" id="ch-slider"></div>
-  <div class="legend"><span><span class="dot" style="background:var(--comp)"></span>SLIDER Fig. 7 (accuracy, not defined)</span><span><span class="dot" style="background:var(--prm)"></span>PRM alone</span><span><span class="dot" style="background:var(--tele)"></span>Backbone telemetry only, L-SML</span><span><span class="dot" style="background:var(--boost)"></span>PRM + telemetry, L-SML</span></div>
+  <div class="legend"><span><span class="dot" style="background:var(--comp)"></span>SLIDER Fig. 7 (published)</span><span><span class="dot" style="background:var(--ref)"></span>Their cosine baseline, reproduced on our split</span><span><span class="dot" style="background:var(--prm)"></span>PRM alone</span><span><span class="dot" style="background:var(--tele)"></span>Backbone telemetry only, L-SML</span><span><span class="dot" style="background:var(--boost)"></span>PRM + telemetry, L-SML</span></div>
+  <div class="panel scroll">
+  <table>
+    <thead><tr><th>Accuracy, class-balanced threshold (their metric)</th><th class="n">Qwen-7B</th><th class="n">Qwen-72B</th><th class="n">PURE</th><th class="n">RLHFlow</th><th class="n">Math-Shepherd</th></tr></thead>
+    <tbody id="t-slider-acc"></tbody>
+  </table>
+  </div>
   <div class="panel scroll">
   <table>
     <thead><tr><th>Balanced accuracy, redundancy class</th><th class="n">Qwen-7B</th><th class="n">Qwen-72B</th><th class="n">PURE</th><th class="n">RLHFlow</th><th class="n">Math-Shepherd</th></tr></thead>
@@ -283,11 +289,12 @@ footer a { color: var(--accent); }
   </table>
   </div>
   <ul class="tight">
-    <li><b>Plain accuracy cannot be their metric on all steps.</b> Always answering "not redundant" scores 86.8%. Under plain accuracy with their threshold procedure, every score we tried lands at 86.6–89.0%, including the PRM. A 61.9 on that scale would be below the trivial classifier, so their number is most likely balanced accuracy or computed on a balanced test set. That is our inference; the paper does not say.</li>
-    <li><b>Under the balanced reading, our fusion (label-free weights) is well above Step-RRI.</b> On Qwen-7B: PRM + telemetry L-SML 74.3 and telemetry alone 75.7 with a label-trained threshold, and 71.2 with our label-free GAP rule, against 61.9. Across the five PRMs, L-SML reaches 67.6–76.1 with the label-trained threshold.</li>
+    <li><b>The bridge identifies their metric.</b> Their cosine-similarity baseline (all-MiniLM-L6-v2, current step against the preceding steps, App. D.2), run on our split with a class-balanced linear-classifier threshold, scores 51.9 ± 0.9 accuracy against their 51.6. Its balanced accuracy is 55.4, and with an unweighted classifier it collapses to the trivial 86.8 ("never redundant"). So their number is most likely plain accuracy with a class-balanced threshold.</li>
+    <li><b>Under their metric, every score of ours is above Step-RRI.</b> On Qwen-7B: L-SML 74.1, telemetry alone 76.2, against Step-RRI's 61.9. The plain PRM scores even higher, 78.8, because it flags few steps and plain accuracy rewards the majority class.</li>
+    <li><b>Balanced accuracy separates the methods better.</b> There L-SML reaches 74.3 and telemetry alone 75.7, against 54.5–60.4 for the PRM and 55.4 for the cosine baseline. With our label-free GAP rule, L-SML reaches 71.2.</li>
     <li><b>The PRMs themselves are near chance on redundancy</b> (49.2–65.8 balanced accuracy), which matches their weakness on PRMBench's Simplicity group.</li>
     <li><b>Cost.</b> Step-RRI needs about 50 GPT-4o-mini calls and about 38 seconds per problem; our score needs no extra call.</li>
-    <li><b>To make the bridge exact:</b> rerun their cosine-similarity baseline (MiniLM embeddings, CPU only) under our split. If it lands near their 51.6 in balanced accuracy, the reading is confirmed. Not done yet; asking the authors for their protocol is the alternative.</li>
+    <li><b>Remaining differences:</b> their split sizes and step-1 handling are not stated, and InfoGain was not reproduced (it needs QwQ-32B). The bridge is one baseline, within one standard deviation of theirs.</li>
   </ul>
   <p class="note"><b>Hard2Verify.</b> GAP always flags a step, so it cannot score "no error" answers. Error-localization F1 (VerifySteer's metric) needs a rule that can abstain.</p>
 </section>
@@ -300,7 +307,7 @@ footer a { color: var(--accent); }
       <li>Without retraining or labels, the same PRM reaches PRISM's PRMScore. The flag rule supplies that level; fusion adds 2.4 points under the same rule.</li>
       <li>On CROP's setting (Qwen-7B), label-free fusion matches their supervised Trace+PRM (22.3% vs 21.8% kept, inside the seed spread). A format/position + PRM LR comes close to their row, which suggests that much of their gain over the PRM is available from surface cues.</li>
       <li>Under ARES's protocol (Macro-F1, CV threshold), L-SML ties the PRM on the two Qwen PRMs and beats it on the other three (+1.2 to +11.0). In ARES's own table, ARES does not beat the PRM it wraps.</li>
-      <li>On PRMBench's redundancy class, under a balanced-accuracy reading of SLIDER's procedure, L-SML reaches 67.6–76.1 with their label-trained threshold and 66.3–73.7 with our label-free GAP rule, against Step-RRI's reported 61.9, with no extra LLM calls. The reading of their metric is an inference.</li>
+      <li>On PRMBench's redundancy class, under SLIDER's own metric (identified by reproducing their cosine baseline: 51.9 vs their 51.6), L-SML scores 74.1 against Step-RRI's 61.9 on Qwen-7B, with no extra LLM calls. The plain PRM is higher on that metric (78.8) but near chance in balanced accuracy (54.5–60.4, against 74.3 for L-SML).</li>
       <li>Step-level label-free fusion of a PRM with its own telemetry is, as far as we searched, new. The estimator family (FUSE, CARE) is not.</li>
     </ul></div>
     <div class="panel"><h3>Not supported</h3><ul class="tight">
@@ -318,8 +325,7 @@ footer a { color: var(--accent); }
     <li>Baselines reviewers will ask for, all on CPU from existing scores: FUSE at the step level, CARE on our channel banks, and a BR2-style naive Bayes / Dawid-Skene EM analogue.</li>
     <li>Mind the Gap's entropy-drop signal, as a 17th channel and alone on PRMBench.</li>
     <li>Report PRMScore next to a constant-k reference, so the GAP rule's prior is visible.</li>
-    <li>SLIDER bridge: their cosine-similarity baseline under our split, to confirm which accuracy they report.</li>
-    <li>The cleanest test of the fusion step against CROP: run our label-free fusion on CROP's own Llama-3.1-8B features. This needs new GPU inference.</li>
+        <li>The cleanest test of the fusion step against CROP: run our label-free fusion on CROP's own Llama-3.1-8B features. This needs new GPU inference.</li>
     <li>Five of CROP's 5,000 traces (duplicates) have no scores. We report 4,995.</li>
     <li>Optimal Aggregation would need Best-of-N generation. Weaver has no step-level results to compare against.</li>
   </ul>
@@ -378,6 +384,7 @@ const SOCROWS = [['o3-mini (critic)', 75.7, ''], ['QwQ-32B (critic)', 73.8, ''],
   ['GPT-4o (critic)', 70.8, ''], ['Qwen-PRM-7B alone, GAP rule (ours)', 70.10, 'rule'], ['Qwen-PRM-7B (best PRM, published)', 68.0, ''], ['Qwen-7B PRM + L-SML (GAP)', 66.89, 'ours']];
 const ARES = { prm: [68.17, 69.23, 66.24, 55.79, 53.33], tele: [67.18, 67.58, 66.56, 64.51, 63.12], lsml: [68.10, 69.08, 67.47, 64.13, 64.34],
   sd: [[0.96, 1.28, 1.15], [1.21, 1.06, 1.11], [0.93, 1.29, 1.47], [0.85, 0.84, 1.19], [1.46, 0.94, 1.03]] };
+const SLIDACC = { prm: [78.8, 82.9, 75.1, 54.6, 45.6], tele: [76.2, 75.6, 76.4, 72.3, 70.7], lsml: [74.1, 75.9, 75.2, 66.7, 72.1] };
 const SLID = { prm: [60.4, 65.8, 62.1, 52.7, 49.2], tele: [75.7, 75.9, 75.6, 72.1, 70.8], lsml: [74.3, 76.1, 74.5, 67.6, 71.7],
   gapPrm: [54.7, 58.7, 53.3, 49.6, 56.5], gapLsml: [71.2, 73.7, 71.7, 66.3, 70.0] };
 const NAMES = ['Qwen-7B', 'Qwen-72B', 'PURE', 'RLHFlow', 'Math-Shepherd'];
@@ -400,18 +407,21 @@ document.getElementById('t-ares').innerHTML = [['PRM alone', 'prm', 0], ['Backbo
   .map(r => `<tr${r[1] === 'lsml' ? ' class="ours"' : ''}><td>${r[0]}</td>${ARES[r[1]].map((v, i) => `<td class="n">${v.toFixed(2)} <span style="color:var(--ink-3)">±${ARES.sd[i][r[2]].toFixed(2)}</span></td>`).join('')}</tr>`).join('') +
   `<tr><td colspan="6" class="note">± is the standard deviation over the 5 folds. ARES's own rows (different subset): PRM alone .749 vs ARES with the same PRM .736 (Table A7); ARES .640 / .636 with GPT-4o-mini / Qwen3-4B (Table 1).</td></tr>`;
 (function () {
-  const rows = [['InfoGain (SLIDER Fig. 7)', 48.4, 'var(--comp)'], ['Cosine similarity (SLIDER Fig. 7)', 51.6, 'var(--comp)'], ['Step-RRI (SLIDER Fig. 7)', 61.9, 'var(--comp)'],
-    ['PRM alone', 60.4, 'var(--prm)'], ['Backbone telemetry only, L-SML', 75.7, 'var(--tele)'], ['PRM + telemetry, L-SML', 74.3, 'var(--boost)'], ['PRM + telemetry, L-SML, label-free GAP rule', 71.2, 'var(--boost)']];
-  const W = 760, L = 300, R = 50, T = 8, rowH = 28, H = T + rows.length * rowH + 40, lo = 40, hi = 80;
+  const rows = [['InfoGain (SLIDER Fig. 7)', 48.4, 'var(--comp)'], ['Cosine similarity (SLIDER Fig. 7)', 51.6, 'var(--comp)'], ['Cosine similarity, reproduced on our split', 51.9, 'var(--ref)'],
+    ['Step-RRI (SLIDER Fig. 7)', 61.9, 'var(--comp)'], ['PRM alone', 78.8, 'var(--prm)'], ['Backbone telemetry only, L-SML', 76.2, 'var(--tele)'], ['PRM + telemetry, L-SML', 74.1, 'var(--boost)']];
+  const W = 760, L = 300, R = 50, T = 8, rowH = 28, H = T + rows.length * rowH + 40, lo = 40, hi = 90;
   const x = v => L + (v - lo) / (hi - lo) * (W - L - R);
   let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Redundancy detection on PRMBench">`;
   for (let t = lo; t <= hi; t += 10) s += `<line class="gl" x1="${x(t)}" x2="${x(t)}" y1="${T}" y2="${H - 34}"/><text x="${x(t)}" y="${H - 18}" text-anchor="middle">${t}</text>`;
   rows.forEach((r, i) => { const y = T + i * rowH + 4;
-    s += `<text x="${L - 10}" y="${y + 13}" text-anchor="end">${r[0]}</text><rect x="${x(lo)}" y="${y}" width="${x(r[1]) - x(lo)}" height="${rowH - 10}" fill="${r[2]}" rx="2"${i === 6 ? ' fill-opacity=".55"' : ''}/>`;
+    s += `<text x="${L - 10}" y="${y + 13}" text-anchor="end">${r[0]}</text><rect x="${x(lo)}" y="${y}" width="${x(r[1]) - x(lo)}" height="${rowH - 10}" fill="${r[2]}" rx="2"/>`;
     s += `<text x="${x(r[1]) + 6}" y="${y + 13}" style="font-family:var(--f-mono);font-size:11px">${r[1].toFixed(1)}</text>`; });
-  s += `<text x="${(L + W - R) / 2}" y="${H - 2}" text-anchor="middle" style="font-size:11px;fill:var(--ink-3)">PRMBench redundancy class, Qwen-PRM-7B. Ours: balanced accuracy, threshold from a linear classifier on held-out labels unless stated</text></svg>`;
+  s += `<text x="${(L + W - R) / 2}" y="${H - 2}" text-anchor="middle" style="font-size:11px;fill:var(--ink-3)">Redundancy class, Qwen-PRM-7B: accuracy, class-balanced threshold (SLIDER's metric)</text></svg>`;
   document.getElementById('ch-slider').innerHTML = s;
 })();
+document.getElementById('t-slider-acc').innerHTML = [['PRM alone (better of its two scales)', 'prm'], ['Backbone telemetry only, L-SML', 'tele'], ['PRM + telemetry, L-SML (ours)', 'lsml']]
+  .map(r => `<tr${r[1] === 'lsml' ? ' class="ours"' : ''}><td>${r[0]}</td>${SLIDACC[r[1]].map(v => `<td class="n">${v.toFixed(1)}</td>`).join('')}</tr>`).join('') +
+  `<tr><td colspan="6" class="note">SLIDER's own scores (no PRM): Step-RRI 61.9, cosine 51.6, InfoGain 48.4 (Fig. 7). Their cosine baseline on our split: 51.9 ± 0.9. Always "not redundant": 86.8.</td></tr>`;
 document.getElementById('t-slider').innerHTML = [['PRM alone (better of its two scales)', 'prm'], ['Backbone telemetry only, L-SML', 'tele'], ['PRM + telemetry, L-SML (ours)', 'lsml'], ['PRM alone, label-free GAP rule', 'gapPrm'], ['PRM + telemetry, L-SML, label-free GAP rule', 'gapLsml']]
   .map(r => `<tr${r[1] === 'lsml' ? ' class="ours"' : ''}><td>${r[0]}</td>${SLID[r[1]].map(v => `<td class="n">${v.toFixed(1)}</td>`).join('')}</tr>`).join('') +
   `<tr><td colspan="6" class="note">Unless the row says GAP, the threshold comes from a class-balanced linear classifier fitted on held-out labels, as in SLIDER's procedure. SLIDER reports Step-RRI 61.9 for its own setup.</td></tr>`;
