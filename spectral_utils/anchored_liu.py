@@ -103,13 +103,14 @@ def covariance_target(F, target, *, indices=None):
     return (X - X.mean(axis=1, keepdims=True)) @ (y - y.mean()) / len(indices)
 
 
-def liu_external_target(F, rho, *, graph, lambda_=REGISTERED_LAMBDA):
+def liu_external_target(F, rho, *, graph, lambda_=REGISTERED_LAMBDA, subspace=None):
     """Two-component Laplacian IU-PCR solve with an external ``rho``.
 
     Same algebra as :func:`laplacian_iu_path`:
     ``w = U [U^T (C + lambda R_bar) U]^-1 U^T rho`` with ``R_bar`` trace-matched
     to ``C`` inside ``U``.  ``lambda_ = 0`` gives the plain PCR solve (no
-    Laplacian).
+    Laplacian).  ``U`` is the top-2 eigenvectors of ``C`` unless ``subspace``
+    (features x k, full column rank) is given; it is orthonormalized first.
     """
     F = np.asarray(F, dtype=float)
     rho = np.asarray(rho, dtype=float)
@@ -124,8 +125,13 @@ def liu_external_target(F, rho, *, graph, lambda_=REGISTERED_LAMBDA):
     Z = F.T
     R = np.asarray(Z.T @ (L @ Z) / n, dtype=float)
     R = 0.5 * (R + R.T)
-    evals, U = eigh(C, subset_by_index=[m - 2, m - 1])
-    U = U[:, np.argsort(evals)[::-1]]
+    if subspace is None:
+        evals, U = eigh(C, subset_by_index=[m - 2, m - 1])
+        U = U[:, np.argsort(evals)[::-1]]
+    else:
+        U, r = np.linalg.qr(np.asarray(subspace, dtype=float))
+        if U.shape[0] != m or np.min(np.abs(np.diag(r))) < 1e-10:
+            raise ValueError("subspace must be a full-column-rank matrix with one row per feature")
     Cp = 0.5 * (U.T @ C @ U + (U.T @ C @ U).T)
     Rp = 0.5 * (U.T @ R @ U + (U.T @ R @ U).T)
     trace_r = float(np.trace(Rp))

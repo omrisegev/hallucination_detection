@@ -85,6 +85,40 @@ Label arms are cross-fitted (5 source-group folds; 5 calibration draws for 64 an
 | PA-LIU / TA-LIU (512) / RHO-LIU (all labels), PRM + telemetry | .791 / 67.67-68.25 | .768 / 66.20-66.22 |
 | logistic regression (512 answers), PRM + telemetry | .834 / 69.74 | .844 / 70.76 |
 
+## Amendment 2 (2026-10-25): the PRM defines the IU-PCR subspace
+
+The test: replace DUFS-LIU's two-component subspace with the plane spanned by the PRM's own axis and the telemetry
+direction that agrees most with the PRM. Everything else stays registered. Pre-registered in commit `f401c57a`, with
+label-free predictions, before any score. Outputs are in `plane/`; the code is `run_prm_plane.py`.
+
+1. **Primary (the PRM plane, IU-PCR's own target): it cannot replace CHAIN, and it is worse than plain DUFS-LIU.**
+   - Against CHAIN_N16: within-AUC -0.011 to -0.027 and PRMScore -0.97 to -1.24. Every CI is below zero on 5/5 PRMs.
+   - Against DUFS-LIU: lower on 4/5 PRMs (-0.004 to -0.014), higher only on Math-Shepherd (+0.017). The rule
+     "the PRM subspace helps DUFS-LIU" is not met (1/5).
+   - As predicted from the unlabeled matrices, the PRM's weight in this plane is negative on 5/5 PRMs (-0.014 to
+     -0.038, `plane/scores/FIT_*.json`).
+   - The reason: on 4 of 5 PRMs, IU-PCR's own estimate of Var(Y) (0.18-0.22) is below the 0.24-0.33 that the PRM's
+     agreement with the telemetry already implies. So the moment model explains the PRM away.
+2. **Secondary (the same plane, with the PRM as the reference rater for the target).**
+   - Against plain DUFS-LIU: better on 3/5 PRMs (+0.002 to +0.041).
+   - Against CHAIN: still below on 4/5 (within-AUC -0.006 to -0.021). Above only on Math-Shepherd: +0.013 within-AUC
+     [+0.009, +0.017], with PRMScore +0.18 [-0.27, +0.62].
+   - It beats the PRM alone on 5/5 (+0.016 to +0.107).
+
+**What it adds.** Letting the PRM define the subspace is not enough. The quantity that decides the result is how much
+the fusion trusts the PRM relative to the telemetry. The clean label-free moments (each channel's covariance with
+the PRM) do not identify that trust. IU-PCR's estimate comes from the telemetry-telemetry covariances, which carry the
+telemetry's shared nuisance, so it under-trusts the PRM. The squared multiple correlation used in the secondary arm
+is only a lower bound. L-SML's group model lands closer, and a few labeled answers pin it down.
+
+| arm (within-answer AUC / GAP PRMScore) | Qwen-7B | Qwen-72B | PURE | RLHFlow | Math-Shepherd |
+|---|---|---|---|---|---|
+| PRM alone (better scale) | .801 / 68.01 | .795 / 69.49 | .763 / 66.24 | .662 / 59.39 | .684 / 60.21 |
+| CHAIN_N16 (continuous L-SML) | **.838 / 70.40** | **.843 / 71.09** | **.816 / 69.51** | **.775 / 66.25** | .778 / 66.39 |
+| DUFS-LIU, PRM + N16 | .821 / 69.66 | .825 / 69.34 | .797 / 68.64 | .762 / 65.47 | .750 / 65.06 |
+| PRM plane, IU-PCR target (primary) | .812 / 69.20 | .821 / 69.92 | .790 / 68.27 | .748 / 65.29 | .767 / 65.40 |
+| PRM plane, PRM-referenced target | .817 / 69.50 | .837 / 70.79 | .799 / 68.71 | .755 / 65.28 | **.791 / 66.56** |
+
 ## Design in one paragraph
 
 DUFS-LIU fuses channels in two steps that can each follow a nuisance instead of the error: the DUFS gates choose the
@@ -104,6 +138,7 @@ DUFS-LIU and plain IU-PCR). Logistic regression on the same calibration labels i
 | `run.py` | PRM-backbone N16 (5 PRMs): `parity`, `fit <prm>`, `evaluate`, `talius_parity` |
 | `evaluate_dufs.py` | metrics, bootstrap contrasts, manifold diagnostics, verdicts for `run.py` |
 | `run_n56.py`, `evaluate_n56.py` | amendment 1: Qwen3-8B telemetry, banks N16 and N56, Qwen2.5-Math-PRM-7B |
+| `run_prm_plane.py`, `plane/` | amendment 2: the PRM defines the IU-PCR subspace (fit, graph parity, evaluation, verdict) |
 | `PARITY.csv`, `n56/PARITY.csv`, `TALIU_SPLIT_PARITY.json` | parity gates (all pass) |
 | `RESULTS.csv`, `CONTRASTS.csv`, `DIAGNOSTICS.csv`, `GATES.csv`, `WEIGHTS.csv`, `SUBSPACE_POSTHOC.csv`, `VERDICT.json` | PRM-backbone N16 outputs |
 | `n56/RESULTS.csv`, `n56/CONTRASTS.csv`, `n56/DIAGNOSTICS.csv`, `n56/SUBSPACE_POSTHOC.csv`, `n56/VERDICT.json` | amendment 1 outputs |
@@ -111,7 +146,7 @@ DUFS-LIU and plain IU-PCR). Logistic regression on the same calibration labels i
 
 Helpers: `spectral_utils/anchored_liu.py` (external-target LIU solve, registered DUFS-LIU, split call) and
 `spectral_utils/bank_rebuild.py` (nested-bank rebuild and the CHAIN construction, ports with parity gates). Tests:
-`tests/test_anchored_liu.py` (8 pass).
+`tests/test_anchored_liu.py` (9 pass).
 
 ## Reproduce
 
@@ -126,6 +161,7 @@ $PY results/dufs_liu_prmbench_v1/run.py evaluate
 cd results/dufs_liu_prmbench_v1 && $PY run_n56.py parity
 for b in N16 N56; do for s in tele prm; do $PY run_n56.py fit $b $s; done; done
 $PY run_n56.py evaluate
+$PY run_prm_plane.py fit all && $PY run_prm_plane.py evaluate
 ```
 
 Implementation note. The canonical `laplacian_iu_path` computes an ARPACK algebraic-connectivity diagnostic on every

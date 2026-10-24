@@ -53,6 +53,23 @@ class ExternalTargetSolve(unittest.TestCase):
         self.assertAlmostEqual(diag['weight_cosine_vs_iu'], ref.diagnostics['weight_cosine_vs_iu'], places=10)
         self.assertEqual(diag['n_components'], ref.diagnostics['n_components'])
 
+    def test_subspace_argument(self):
+        from scipy.linalg import eigh
+        F, y = _features(seed=19)
+        graph = self_tuning_knn_graph(F.T, k=7)
+        rho = covariance_target(F, y)
+        C = F @ F.T / F.shape[1]; ev, V = eigh(C)
+        top2 = V[:, np.argsort(ev)[::-1][:2]]
+        np.testing.assert_allclose(liu_external_target(F, rho, graph=graph, lambda_=0.1, subspace=top2).w,
+                                   liu_external_target(F, rho, graph=graph, lambda_=0.1).w, atol=1e-10)
+        B = np.zeros((F.shape[0], 2)); B[0, 0] = 1.; B[1:, 1] = C[1:, 0]          # PRM axis + aligned direction
+        w0 = liu_external_target(F, rho, graph=graph, lambda_=0.0, subspace=B).w
+        U, _ = np.linalg.qr(B)
+        np.testing.assert_allclose(w0, U @ np.linalg.solve(U.T @ C @ U, U.T @ rho), atol=1e-12)
+        # inside this plane the non-PRM weights are proportional to each feature's covariance with feature 0
+        np.testing.assert_allclose(w0[1:] / np.linalg.norm(w0[1:]), C[1:, 0] / np.linalg.norm(C[1:, 0]) * np.sign(w0[1] / C[1, 0]),
+                                   atol=1e-8)
+
     def test_covariance_target_reads_only_indices(self):
         F, y = _features(seed=7)
         idx = np.arange(0, 400, 3)

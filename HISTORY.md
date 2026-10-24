@@ -10726,6 +10726,32 @@ only on synthetic data, where plain logistic regression used the same labels far
 
 ---
 
+### Step 471 [DUFS-LIU PRMBench, PRM subspace] — The PRM defines the IU-PCR subspace: still no replacement for continuous L-SML, because IU-PCR under-trusts the PRM (2026-10-25)
+
+**What**: Omri asked (2026-10-25) for one label-free variant in which the PRM defines the IU-PCR subspace, tested
+against CHAIN_N16 on the 5 PRMs. Pre-registered as amendment 2 in commit `f401c57a`, with label-free predictions
+written before any score.
+- Primary arm: registered DUFS-LIU with its two-component subspace replaced by the PRM axis plus the telemetry
+  direction that agrees most with the PRM. It keeps IU-PCR's `rho_hat` and the registered DUFS graph.
+- Secondary arm: the same plane, with the PRM as the reference rater for the target.
+- The rebuilt DUFS graph reproduces the saved DUFS-LIU scores with difference 0.0 on 5/5 PRMs.
+**Why**: Step 470 found that DUFS-LIU's two leading components hold only 5-40% of the PRM channel.
+**Result**:
+- **Primary: cannot replace CHAIN.** Within-AUC -0.011 to -0.027 and PRMScore -0.97 to -1.24, every CI below 0 on
+  5/5 PRMs.
+  - It is worse than plain DUFS-LIU on 4/5 PRMs. The rule "the PRM subspace helps" is not met (1/5).
+  - As predicted from the unlabeled matrices, the PRM weight is negative on 5/5. IU-PCR's estimate of Var(Y)
+    (0.18-0.22) is below the 0.24-0.33 that the PRM's agreement with telemetry already implies, on 4/5 PRMs.
+- **Secondary.** It beats DUFS-LIU on 3/5 PRMs and the PRM alone on 5/5. It is still below CHAIN on 4/5
+  (-0.006 to -0.021) and above it only on Math-Shepherd (+0.013 [+0.009, +0.017]; PRMScore CI includes 0).
+- **Reading.** The undecided quantity is how much to trust the PRM against the telemetry. The clean label-free
+  moments do not identify it, and IU-PCR's telemetry-dominated estimate under-trusts the PRM. Development data.
+**Files**: `results/dufs_liu_prmbench_v1/run_prm_plane.py`, `results/dufs_liu_prmbench_v1/plane/`, README amendment-2
+section, and `spectral_utils/anchored_liu.py` (`liu_external_target(..., subspace=)`). `tests/test_anchored_liu.py`
+has 9 passing tests.
+
+---
+
 ### Step 291 [prm-voters] — PRMBench step voters pilot execution and gate verification on AIRCC
 
 **What**: Executed and verified the PRMBench step voter pilots (N=30, 35 meta rows) on the `aircc` compute cluster (`power-gpu`, `owner_940`, NVIDIA B200 GPU).

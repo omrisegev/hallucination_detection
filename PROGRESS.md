@@ -9,8 +9,13 @@
 - Labels or PRM pseudo-labels in its graph or its target move it by at most 0.012 within-AUC. Logistic regression on
   the same labels gains far more.
 - With 56 channels (Qwen3-8B) it falls below the PRM alone, while CHAIN holds.
-- Open: Omri decides whether the DUFS-LIU line continues for PRMBench. A label-free variant in which the PRM defines
-  the subspace was not tested.
+- Step 471 tested a variant in which the PRM defines the subspace (amendment 2). It still loses to CHAIN on 5/5 PRMs
+  and to plain DUFS-LIU on 4/5. With IU-PCR's own target, the PRM gets a negative weight, because IU-PCR under-trusts
+  the PRM relative to the telemetry.
+- With the PRM also as the reference for the target, it beats DUFS-LIU on 3/5. It is still below CHAIN on 4/5 and
+  above it only on Math-Shepherd.
+- Open: Omri decides whether the DUFS-LIU line continues for PRMBench. The deciding quantity (how much to trust the
+  PRM against the telemetry) is not identified by the clean label-free moments.
 
 ## 2026-10-21: pre-thinkfix weight-estimator analyses removed, Step 468 (Claude)
 
