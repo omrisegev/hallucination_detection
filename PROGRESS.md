@@ -1,3 +1,15 @@
+## 2026-10-25: CHAIN statistical hygiene (refit bootstrap, partition stability, split-half), pass, Step 474 (Claude)
+
+- **Refitting CHAIN in every bootstrap draw does not change any PRMBench conclusion.**
+  - The CHAIN − PRM within-AUC CIs stay above 0 in 5/5 PRMs.
+  - The CIs widen by at most ×1.39 (Qwen-7B).
+- **The telemetry partition is stable on PRMBench:** median ARI 1.00 in 5/5 PRMs, modal-K share ≥ .85.
+  - It is unstable on Hard2Verify, 177 answers: Qwen-72B ARI .56.
+- **The inductive fit equals the transductive fit:** fitting on half the source groups and scoring the other half
+  changes within-AUC by at most ±.0005.
+- **Still open from W12:** an untouched holdout for the design choices.
+- Source: `results/prm_boost_math_rigor_v1/stage7/HYGIENE_RESULTS.json`, `HYGIENE_VERDICT.json`.
+
 ## 2026-10-25: 2-D (S, length) certified clean region, partial, Step 473 (Claude)
 
 - **A length-stratified certified τ keeps the guarantee for 5/5 PRMs** and makes the official pool non-inferior for 5/5.

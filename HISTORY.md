@@ -10866,6 +10866,44 @@ answer length. This is the simple baseline before a learned region (CoCoNet).
 
 ---
 
+### Step 474 [PRM math rigor] — Test CHAIN's statistical hygiene: refit bootstrap, partition stability, split-half (pass) (2026-10-25)
+
+**What**: Pre-registered three checks (`51ac479c`) and ran them on all 15 cells, without changing the method.
+- **W11, refit bootstrap.** 200 source-group draws. Each draw refits the whole of CHAIN_N16 (partition, weights,
+  sign), and the result is compared with the fixed-score bootstrap on the same draws.
+- **W7, partition stability.** The ARI of each refit's telemetry partition with the full-data partition, and K.
+- **W12, split-half.** Fit on half A of the source groups (stage 4 splits, 10 seeds), freeze, apply to half B, and
+  compare with the transductive CHAIN on B.
+
+Parity of the frozen fit/apply code with the exported CHAIN was 2.1e-7.
+
+**Why**: Omri asked to close the hygiene points of the math review (W7, W11, W12).
+
+**Result** (`results/prm_boost_math_rigor_v1/stage7/`): **verdict pass.** PRMBench meets all three endpoints in 5/5
+PRMs.
+- **Refit bootstrap.**
+  - The refit CI keeps the sign of every PRMBench Δ(CHAIN − PRM): within-AUC +.037 to +.113, all CIs above 0.
+  - The CI-width ratio, refit over fixed, is .99–1.39. The widest is Qwen-7B: [.029, .041] against [.033, .041].
+  - The official GAP Δ CIs are almost unchanged.
+- **Partition stability.**
+  - Median ARI is 1.00 in 5/5 PRMBench PRMs, and the modal-K share is .85–1.00.
+  - Qwen-7B and Qwen-72B repartition in a minority of draws (ARI q10 .61 and .78).
+- **Split-half.**
+  - Inductive minus transductive on B: within-AUC −.0002 to +.0005 (median over seeds), PRMScore −0.07 to +0.06.
+  - The advantage over the PRM is unchanged.
+- **Socratic.** Every cell passes, so its losses to the PRM are real and not fit noise. For example Qwen-72B:
+  Δ −.20, refit CI [−.225, −.190].
+- **Hard2Verify, 177 answers.** The CIs and split-half hold, but the partition is unstable for Qwen-72B (ARI .56,
+  modal K 3 vs 5, share .47) and PURE (modal-K share .73).
+- **Limits.** All of this is development data. The refit covers the fit, not the earlier design choices (bank N16,
+  GAP), so the forking-paths part of W12 still needs an untouched holdout.
+
+**Files changed**:
+- `results/prm_boost_math_rigor_v1/stage7_hygiene.py`, `stage7/`, `HYGIENE_PREREG.json`
+- `docs/research_notes/math_rigor_2026-10-24/HYGIENE_PREREG.md`, `GAPS_STATUS_HE.md`
+
+---
+
 ### Step 291 [prm-voters] — PRMBench step voters pilot execution and gate verification on AIRCC
 
 **What**: Executed and verified the PRMBench step voter pilots (N=30, 35 meta rows) on the `aircc` compute cluster (`power-gpu`, `owner_940`, NVIDIA B200 GPU).

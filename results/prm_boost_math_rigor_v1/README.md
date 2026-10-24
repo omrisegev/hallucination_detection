@@ -51,6 +51,7 @@ python results/prm_boost_math_rigor_v1/synthetic/select_gate_level.py results/pr
 python results/prm_boost_math_rigor_v1/stage1_diagnostics.py results/prm_boost_math_rigor_v1/stage1
 python results/prm_boost_math_rigor_v1/stage2_gate.py results/prm_boost_math_rigor_v1/stage2
 python results/prm_boost_math_rigor_v1/posthoc_gate_diagnostics.py results/prm_boost_math_rigor_v1/stage2
+python results/prm_boost_math_rigor_v1/stage7_hygiene.py results/prm_boost_math_rigor_v1/stage7   # Step 474, ~25 min
 ```
 The scripts import `spectral_utils` without its package `__init__` (no torch needed), through
 `tests/lever_imports.py`.
