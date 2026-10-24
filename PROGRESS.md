@@ -14,8 +14,9 @@
   the PRM relative to the telemetry.
 - With the PRM also as the reference for the target, it beats DUFS-LIU on 3/5. It is still below CHAIN on 4/5 and
   above it only on Math-Shepherd.
-- Open: Omri decides whether the DUFS-LIU line continues for PRMBench. The deciding quantity (how much to trust the
-  PRM against the telemetry) is not identified by the clean label-free moments.
+- **Decision (Omri, 2026-10-25): the DUFS-LIU line for PRMBench is closed. CHAIN (continuous L-SML) stays the
+  fusion.** The deciding quantity (how much to trust the PRM against the telemetry) is not identified by the clean
+  label-free moments. Reopen only with a new way to identify it (`Research_Directions.md`, 2026-10-25 section).
 
 ## 2026-10-21: pre-thinkfix weight-estimator analyses removed, Step 468 (Claude)
 

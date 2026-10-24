@@ -10746,6 +10746,7 @@ written before any score.
   (-0.006 to -0.021) and above it only on Math-Shepherd (+0.013 [+0.009, +0.017]; PRMScore CI includes 0).
 - **Reading.** The undecided quantity is how much to trust the PRM against the telemetry. The clean label-free
   moments do not identify it, and IU-PCR's telemetry-dominated estimate under-trusts the PRM. Development data.
+**Decision**: Omri, 2026-10-25: the DUFS-LIU line for PRMBench is closed. CHAIN (continuous L-SML) stays the fusion. Reopen only with a new way to identify the PRM trust.
 **Files**: `results/dufs_liu_prmbench_v1/run_prm_plane.py`, `results/dufs_liu_prmbench_v1/plane/`, README amendment-2
 section, and `spectral_utils/anchored_liu.py` (`liu_external_target(..., subspace=)`). `tests/test_anchored_liu.py`
 has 9 passing tests.

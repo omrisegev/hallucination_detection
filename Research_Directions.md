@@ -60,7 +60,8 @@ Skywork PRM n+1 reward protocol; ReasonEval head validation; own-backbone agent-
 LR-gap (Step 464, Omri 2026-10-17); telemetry-only method search on PRMBench (readout, tail, family,
 gate, bank-extension, within-group contrast families); Joint L-SML as a new arm (Omri 2026-10-01);
 Jev as a direction (literature only; at most an optional voter); ProcessBench as a primary target
-(secondary panel since 2026-10-08); REWIND as a locator (Step 463).
+(secondary panel since 2026-10-08); REWIND as a locator (Step 463); DUFS-LIU-PCR as the PRMBench fusion
+(Steps 470-471, Omri 2026-10-25: CHAIN / continuous L-SML stays the fusion).
 
 ### Standing decisions that still apply
 - Plain averaging is not acceptable as the final fusion step (Omri 2026-10-01); DS filter + plain average
@@ -77,6 +78,28 @@ Jev as a direction (literature only; at most an optional voter); ProcessBench as
 - Step 464 is used twice (LR-gap closed; tensor MoM). Cite it with its bracket tag.
 
 ---
+
+## 2026-10-25: DUFS-LIU-PCR for PRMBench localization CLOSED (Steps 470-471)
+
+**Status: Closed — Omri, 2026-10-25. CHAIN (continuous L-SML over the PRM and the bank) stays the fusion.**
+
+Pre-registered tests on 5 PRMs x PRM-backbone N16, plus Qwen3-8B N16/N56. Evidence:
+`results/dufs_liu_prmbench_v1/README.md`, HISTORY Steps 470-471.
+- **DUFS-LIU-PCR loses to CHAIN_N16 on 5/5 PRMs:** within-AUC -0.013 to -0.028, PRMScore -0.74 to -1.75. On these
+  steps it is the same model as IU-PCR.
+- **Calibrating its graph or its target does not close the gap.**
+  - Labels in the graph or target move it by at most 0.012 within-AUC.
+  - The PRM's own pseudo-labels move it by at most 0.003.
+  - Logistic regression on the same labels does far better: 512 labeled answers beat CHAIN by +0.9 to +2.0
+    PRMScore.
+- **With 56 channels it falls below the PRM alone.**
+- **Letting the PRM define the subspace (amendment 2) also fails.** It loses to CHAIN on 5/5 PRMs, and the PRM gets
+  a negative weight.
+
+The mechanism, for any later IU-based proposal: IU-PCR fuses inside the top-variance subspace of the channels. Its
+moment model takes its trust in the PRM from the telemetry-telemetry covariances, which carry the telemetry's shared
+nuisance, so it under-trusts the PRM. The clean label-free moments (each channel's covariance with the PRM) do not
+identify that trust. Reopen only with a new way to identify it.
 
 ## 2026-10-17: LR-gap direction CLOSED (Step 464 [LR-gap closed])
 
