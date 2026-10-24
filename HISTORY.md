@@ -9309,7 +9309,7 @@ annotation/raw-ID leak, invariant inputs under metadata flips, unchanged
 source observations and consistent groups. All 14 checked runtime/test
 files match afae64a exactly; no gate or threshold change. Same ten length
 exclusions, zero truncation. No AIRCC/GPU/Drive action or benchmark
-scoring. Review delivery: [results/agent_step_telemetry_v1/cpu_rerun_v2_20261013/README.md](results/agent_step_telemetry_v1/cpu_rerun_v2_20261013/README.md).
+scoring. Review delivery: [results/agent_step_telemetry_v1/cpu_rerun_v2_20261013/README.md](results/agent_step_telemetry_v1/cpu_rerun_v2_20261013/README.md).
 
 ---
 
@@ -9325,7 +9325,7 @@ AIRCC, preserving the historical Qwen-7B path and existing result artifacts.
 head, metric and lifecycle tests pass (final command/count in VALIDATION.json).
 Skywork is explicitly blocked per user pending its n+1 reward protocol; optional
 ReasonEval is blocked. GPU T1 and real new-model gates remain pending. No merge,
-GPU/cluster job, model-weight download or channel/threshold re-selection.
+GPU/cluster job, model-weight download or channel/threshold re-selection.
 
 ---
 
@@ -9388,7 +9388,7 @@ Deliveries:
 [N16](results/agent_step_telemetry_v1_n16_2026-10-16/README.md),
 [fair protocols](results/agent_step_telemetry_v1_n16_2026-10-16/fair_protocols/README.md).
 Derived `FEATURES_*/SCORES_*.npz` (~19 MB) are kept out of Git.
-Caveat: only the first token of each concatenated trace was masked.
+Caveat: only the first token of each concatenated trace was masked.
 
 ---
 
@@ -9430,7 +9430,7 @@ Caveat: only the first token of each concatenated trace was masked.
   - Judge+length / judge+position controls were not run.
   - The own-backbone TPRM test needs GPU telemetry from each competitor's backbone.
 
-Delivery: [results/agent_step_telemetry_v1_competitor_fusion_pilot_2026-10-17/README.md](results/agent_step_telemetry_v1_competitor_fusion_pilot_2026-10-17/README.md).
+Delivery: [results/agent_step_telemetry_v1_competitor_fusion_pilot_2026-10-17/README.md](results/agent_step_telemetry_v1_competitor_fusion_pilot_2026-10-17/README.md).
 
 ---
 
@@ -10668,6 +10668,74 @@ Drive preservation is verified: 21 archives, 8,253 source files, 4,521,223,525 o
 **What**: Removed the two Step 467 analyses that ran on the old Qwen3 template, the one with the missing empty think block: `results/sml_weight_estimator_v1/processbench_banks/` (nested-bank weight-estimator study, ProcessBench + PRMBench) and `answer_local/` (answer-local SML bank/step-size study), plus their scratch banks. The old-template numbers in that README and in the `fusion_utils` docstrings (`rank1_offdiag_fit`, `sml_fuse_rank1`, `sml_fuse_signed`) are replaced by the corrected-template PRMBench result of collection section 3a (job 290578).
 **Why**: Omri, 2026-10-21: pre-thinkfix results are an error and must not be used for analysis. Scope approved explicitly: only this work. Historical records (this log, LESSONS, audits) and the raw telemetry in `dataset_cache/` stay.
 **Result**: On the corrected template, the unbiased rank-one fit is below the shipped L-SML on 7 of 10 PRMBench banks (N16 .7792 -> .7704) and puts up to .88 of the weight on one group (N53). |v| weights help clearly only on N40 (+.027) and N43 (+.014). The plain oriented mean matches or beats shipped L-SML on 7 of 10 banks, N16 included (.7811 vs .7792). ProcessBench was not re-run (out of focus). The answer-local question is open on the corrected template. The removed files remain in git history (last present in commit b5c5c203).
+
+---
+
+### Step 469 [PRM math rigor] — Answer the math peer review: audit the history, write the latent-class framing, and test a pre-registered label-free gate (negative) (2026-10-24)
+
+**What**:
+- Checked the 12 weaknesses of the math peer review (branch `claude/prm-boost-math-peer-review-2026-10-24`, `docs/research_notes/math_peer_review_2026-10-24/`) against the project history, and verified its math.
+- Wrote a framing note that treats PRM boosting as latent-class identification: answer fixed effects, observed position/length, a latent telemetry nuisance, and block noise. It has six propositions, including a closed form of the shipped SML weights and an improvement condition.
+- Mapped both advisors' publications to the weaknesses.
+- Reproduced the shipped numbers from the Drive exports.
+- Chose a label-free gate estimator and an interval level on synthetic data only, and pre-registered the gate (commit `6b7162f5`).
+- Ran label-using diagnostics and the gate on the 15 in-focus cells.
+
+Branch `claude/prm-boost-math-rigor-2026-10-24`, worktree `.claude/worktrees/prm-math-rigor-2026-10-24`.
+
+**Why**: Omri, 2026-10-24, asked for five things:
+- keep the PRMBench gains, but give the method a mathematical framing instead of a collection of heuristics;
+- examine the review's gaps independently;
+- hold the work to the competitors' standard (FUSE, CARE, Ising, CROP);
+- check what the history already tested;
+- ask what the advisors' work offers.
+
+The review's first task was an improvement condition with a label-free gate tested on the cells.
+
+**Result**:
+- **History audit** (`docs/research_notes/math_rigor_2026-10-24/HISTORY_AUDIT.md`).
+  - No weakness is new, and none is fully closed. W5 (telemetry-only), W9 (mechanism) and W10 (negative) were
+    already answered. W3 and W8 were never tested as experiments.
+  - One mechanism underlies W1–W5 and W8:
+    - the PRM's cross-stage share × (K+1) has median 1.03 over 24 bank-sweep cells;
+    - the PRM is never the top cross loading (20/20 fits);
+    - on PRMBench, CHAIN_N16 ≈ ½PRM + ½mean for the three strong PRMs (.8377/.8373, .8428/.8424, .8156/.8128).
+  - With labels, "telemetry-alone within-AUC ≥ PRM" predicts the sign of CHAIN − PRM in 15/15 cells.
+- **Corrections to the review.**
+  - Answer centering keeps the one-factor structure. Synthetic check: cos with Δ is 1.000 centered vs .639 raw.
+  - The review's u/(1−u²) on unanchored loadings fails in a Socratic-like simulation: .672 vs .856 for the PRM.
+  - In the review's own Gaussian toy, the shipped SML is below the PRM under CI (.845 vs .856).
+- **Stage 0 parity** (`results/prm_boost_math_rigor_v1/stage0/`).
+  - 90/90 STATUS_MAIN rows (within-AUC and GAP PRMScore) are exact.
+  - CHAIN_N16 refits from the exported channels within 2.1e-7 in 15/15 cells.
+  - The PERM reconstruction is within 9.1e-8.
+- **Stage 1, label-using diagnostics** (`stage1/`).
+  - The Gaussian plug-in of the improvement condition predicts the CHAIN − PRM sign in 13/15 cells. Predicted
+    and actual differences correlate at .979.
+  - Label-using Fisher weights on CHAIN's views gain −.003 to +.022 over CHAIN on PRMBench, and +.004 to +.036
+    over the PRM on Socratic for the four non-RLHFlow PRMs.
+  - The anchor assumption fails. Within-class |corr| between the residualized PRM and the group scores is
+    .13–.35; the within-class share of the off-diagonal covariance is .82–1.00.
+- **Stage 2, pre-registered gate** (`stage2/`).
+  - The cumulant-anchored gate abstained in 15/15 cells: primary 4/10, against 6/10 for always-fuse. Verdict: fail.
+  - The third-order signs fit the model in 21/44 views (17/44 without SD scaling, post hoc).
+  - The review's rank-one gate chose fuse in 15/15 cells (6/10).
+  - The PERM control gave "not fuse" in 5/5, which is uninformative here.
+- **Advisors** (`ADVISOR_TOOLS.md`).
+  - Laufer-Goldshtein's Pareto Testing gives a certified fuse-or-PRM gate and addresses forking paths, given a
+    labeled calibration split.
+  - Lindenbaum's block CCA gives Fisher-type weights that do not depend on K.
+  - Two Gemini notes misattribute papers to the advisors (see LESSONS).
+- **Process.** The internal plan-review agent never returned and was stopped. A theory-note abstain rule (negative
+  anchored covariance) was not implemented in `gate_decision`. This made no difference, and it is recorded in the
+  negative result.
+- Negative result recorded: `results/prm_boost_math_rigor_v1/NEGATIVE_RESULT.md`
+
+**Files changed**:
+- `docs/research_notes/math_rigor_2026-10-24/` — HISTORY_AUDIT, FRAMING_THEORY, FRAMING_SUMMARY_HE, ADVISOR_TOOLS, GATE_PREREG
+- `spectral_utils/fusion_theory.py`, `tests/test_fusion_theory.py` — theory helpers and 9 synthetic tests (all pass)
+- `results/prm_boost_math_rigor_v1/` — parity, synthetic selection, Stage 1–2, post hoc diagnostics, README, NEGATIVE_RESULT
+- `LESSONS.md` — three entries: misattributed advisor notes, the external-metric scale, and a pre-registered rule vs its code
 
 ---
 

@@ -1,3 +1,24 @@
+## 2026-10-24: math peer review answered; label-free gate negative, Step 469 (Claude)
+
+**START HERE:** `docs/research_notes/math_rigor_2026-10-24/FRAMING_SUMMARY_HE.md`, then `results/prm_boost_math_rigor_v1/README.md`. Branch `claude/prm-boost-math-rigor-2026-10-24` (worktree `.claude/worktrees/prm-math-rigor-2026-10-24`), not merged into `claude/prm-boosting`.
+
+- **The review's 12 weaknesses are all partly known** (`HISTORY_AUDIT.md`).
+  - One mechanism explains most of them: without labels the method cannot tell how good the PRM is relative to the telemetry.
+  - So the PRM's cross-stage share is about 1/(K+1): median share × (K+1) = 1.03.
+- **With labels, the improvement condition explains the record.**
+  - "Telemetry-alone ≥ PRM" predicts the CHAIN − PRM sign in 15/15 cells. The Gaussian plug-in predicts it in 13/15 (r = .979).
+  - On PRMBench, CHAIN is within −.003 to +.022 of the label-using linear optimum, so the PRMBench gain stands.
+- **The pre-registered label-free anchored gate failed.** It abstained in 15/15 cells: 4/10, against 6/10 for always-fuse.
+  - Cause: the PRM and its own-backbone telemetry share within-class noise (|r| .13–.35), which breaks the anchor assumption.
+  - Write-up: `results/prm_boost_math_rigor_v1/NEGATIVE_RESULT.md`.
+- **Stage 0: the collection reproduces exactly on the Mac.** 90/90 rows; CHAIN refits within 2.1e-7.
+  - Local venv: `~/.venvs/hd_math_rigor`.
+  - Data: `COLLECTION_DATA=/Users/osegev/Desktop/hd_collection_data`, copied from Drive with rclone.
+- **Open, Omri's call:**
+  1. Test the anchor with the standalone base-model telemetry on PRMBench (independent noise, `results/prm_standalone_telemetry_v1`).
+  2. The calibrated track: Pareto Testing over the design grid with a labeled calibration split (`ADVISOR_TOOLS.md`).
+  3. Report CHAIN together with the improvement condition as the explanatory result.
+
 ## 2026-10-21: pre-thinkfix weight-estimator analyses removed, Step 468 (Claude)
 
 - `results/sml_weight_estimator_v1/processbench_banks/` and `answer_local/` ran on the old Qwen3 template and were removed (Omri). The 2026-10-20 entry below cites their numbers; do not use them.

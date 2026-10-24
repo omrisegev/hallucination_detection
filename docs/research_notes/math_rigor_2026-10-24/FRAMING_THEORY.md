@@ -286,7 +286,10 @@ want.
 | PRM share ≈ 1/(K+1) under similar group loadings | median 1.03 over 24 cells (observed) |
 | u/(1−u²) on unanchored loadings fails under telemetry nuisance | in-model only; reference arm planned |
 | Centering, not scaling, is what identifies the error factor | in-model only; data test planned (Stage 4) |
-| A label-free anchored gate predicts the 15 signs, abstaining on small sets | **to be tested** (`GATE_PREREG.md`, Stage 2) |
+| P2's formula, with labels plugged in, predicts CHAIN − PRM | **13/15 signs; correlation .979 between predicted and actual differences** (`results/prm_boost_math_rigor_v1/stage1/STAGE1_SUMMARY.json`). Both misses are Hard2Verify (one within +.002) |
+| A perfect fuse-or-PRM choice captures most of the linear headroom | With labels, Fisher weights on CHAIN's views gain only −.003 to +.022 over CHAIN on PRMBench, and +.004 to +.036 over the PRM on Socratic for the four non-RLHFlow PRMs (`stage1/STAGE1_DIAGNOSTICS.csv`). The problem is mainly *when* to fuse |
+| P5's anchor condition holds on real views | **No.** Mean within-class \|corr\| of the residualized PRM with the group scores is .13–.35, against 0 in the model. Within-class covariance is .82–1.00 of the off-diagonal norm (`stage1/STAGE1_DIAGNOSTICS.csv`) |
+| A label-free anchored gate predicts the 15 signs (pre-registered) | **Failed** (`results/prm_boost_math_rigor_v1/NEGATIVE_RESULT.md`): it abstained in 15/15 cells; primary 4/10 against 6/10 for always-fuse. The third-order sign pattern holds in only 21/44 views. This closes the implementation; the condition stays valid |
 
 ## 6. Relation to the literature
 
