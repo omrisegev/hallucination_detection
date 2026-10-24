@@ -1,3 +1,11 @@
+## 2026-10-25: 2-D (S, length) certified clean region, partial, Step 473 (Claude)
+
+- **A length-stratified certified τ keeps the guarantee for 5/5 PRMs** and makes the official pool non-inferior for 5/5.
+- **It still gains only for the Qwen PRMs:** +0.50 and +0.48.
+- **Hard2Verify still calls nothing clean.** The cause is a probability-level shift between benchmarks, not length.
+- **Lead:** the per-step score S/n gained in 3/5 PRMs (secondary row). It needs a new pre-registration on fresh data.
+- Source: `results/prm_boost_math_rigor_v1/NEGATIVE_RESULT_REGION2D.md`.
+
 ## 2026-10-25: normalization of the PRM view inside CHAIN, Step 472 (Claude)
 
 - **Removing centering (global z) hurts:** 8/10 cells, within-AUC −.001 to −.016.

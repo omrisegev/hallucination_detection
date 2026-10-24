@@ -10839,6 +10839,33 @@ matters and per-answer scaling is second-order).
 
 ---
 
+### Step 473 [PRM math rigor] — Test a 2-D (S, length) certified clean region, calibrated track (partial) (2026-10-25)
+
+**What**: Pre-registered (`f57b4931`) and ran a length-stratified version of the Step 471 rule: one τ per answer-
+length tercile, each certified by Learn-then-Test (α = .05, δ = .10). A per-step score S/n was declared as a
+secondary variant. Splits, seeds, endpoints and the Hard2Verify transfer are as in Step 471. Access level:
+calibrated.
+
+**Why**: Omri asked about the 2-D experiment. The 1-D rule failed to transfer, apparently because S grows with
+answer length. This is the simple baseline before a learned region (CoCoNet).
+
+**Result** (`results/prm_boost_math_rigor_v1/stage6/`):
+- **The guarantee held for 5/5 PRMs.**
+- **All-answer gain:** only the Qwen PRMs, +0.50 [+0.31, +0.70] and +0.48 [+0.32, +0.66].
+- **Official non-inferiority:** now 5/5 PRMs, up from 4/5 for the 1-D rule.
+- **Verdict: partial.**
+- **Hard2Verify:** still about nothing called clean. The cause is a probability-level shift between benchmarks,
+  not length.
+- **Secondary S/n:** 3/5 gains (PURE +0.22 [+0.02, +0.44]) and non-inferior 4/5. It would have passed as primary.
+  It is recorded as a lead, not a result.
+- Negative result recorded: results/prm_boost_math_rigor_v1/NEGATIVE_RESULT_REGION2D.md
+
+**Files changed**:
+- `results/prm_boost_math_rigor_v1/stage6_clean_region_2d.py`, `stage6/`, `CLEAN_REGION_2D_PREREG.json`, `NEGATIVE_RESULT_REGION2D.md`
+- `docs/research_notes/math_rigor_2026-10-24/CLEAN_REGION_2D_PREREG.md`
+
+---
+
 ### Step 291 [prm-voters] — PRMBench step voters pilot execution and gate verification on AIRCC
 
 **What**: Executed and verified the PRMBench step voter pilots (N=30, 35 meta rows) on the `aircc` compute cluster (`power-gpu`, `owner_940`, NVIDIA B200 GPU).
