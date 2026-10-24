@@ -125,6 +125,47 @@ C. **PRM pseudo-label** (primary `PALIU_PRM16`; primary metric within-AUC):
 - The external-rho LIU solve with IU-PCR's own `rho_hat` reproduces `laplacian_iu_path` weights (unit test).
 - `pseudo_anchor_laplacian_fit` / `target_anchored_laplacian_fit` are called unchanged.
 
+## Amendment 1 (2026-10-24, written before any 56-channel score exists): the 56-channel bank
+
+Omri asked the same day to test the method with more than 16 channels, "maybe the 56". Scope chosen by Omri: the
+local Qwen3-8B telemetry, where the supervised gap is largest (thinkfix_mask1 within-AUC: N56 continuous L-SML
+.7705, IU-PCR .7640, versus N16 .7792 / .7805; supervised LR about .82 on N56, Step 464). N56 on the five PRM
+backbones is not built here (it needs their FEATURES files from AIRCC).
+
+Inputs and construction:
+- `results/advisor_completion_2026-10-11/inputs/features_thinkfix_mask1.npz` of the main checkout (sha256 recorded
+  in the outputs), cell `prmbench_qwen3_8b` (6,969 answers), joined to the PRMBench evaluator by row id.
+- Banks N16 and N56 from `results/thinkfix_rescore_v1/thinkfix_mask1/nested_banks/BANKS.json`, built exactly as
+  `monday_external_panel_v1/score.py:build_bank` (answer standardization; the three digit channels standardized
+  over their active steps). These banks are not sign-oriented per channel.
+- PRM for the fused arms: Qwen2.5-Math-PRM-7B, `zp` = answer-z of `score__PRM_Q80` from `ABL5_SCORES_qwen_prm_7b`.
+
+Parity gates (before any new 56-channel number is read):
+- Canonical `fit_iu` and continuous L-SML on the rebuilt banks reproduce the published thinkfix_mask1
+  `cont_baselines/ABSOLUTE.csv` within-AUC of IU_PCR and LSML_CONT on N16 and N56 (|diff| < 1e-9).
+- The re-implemented CHAIN construction (ablation5: TELE L-SML virtual classifiers, answer-z, cross L-SML with the
+  PRM as its own group, anchored to `zp`) reproduces the exported CHAIN_N16 of the PRM-backbone Qwen-7B cell
+  (max |diff| < 1e-6).
+
+Orientation: for every IU-family arm in this amendment, each channel is first oriented without labels by the sign of
+its pooled correlation with the line's level score (mean answer-z of q15_H1, q15_VE1, logprob_margin, true_tail50,
+energy_level), the orientation of ALL_EQ_ORIENTED. The canonical unoriented IU_PCR is kept as the parity row.
+
+Arms, for B in {N16, N56}, same recipes as above:
+- telemetry only: `IU_B` (oriented), `DUFSLIU_B`, `LSML_B` (continuous L-SML, published recipe), `EQ_B` (oriented
+  equal mean, control); labels: `TALIU_B`, `RHOLIU_B`, `RHOPCR_B`, `LR_B` at k = 64, 512, FULL.
+- PRM + telemetry: `IU_PRM_B`, `DUFSLIU_PRM_B`, `CHAIN_B` (L-SML reference), `EQ_PRM_B` (control); PRM pseudo-label:
+  `PALIU_PRM_B`, `PRHOLIU_PRM_B`; labels: `TALIU_PRM_B`, `RHOLIU_PRM_B`, `RHOPCR_PRM_B`, `LR_PRM_B` at k = 64, 512, FULL.
+
+Questions and rules (one PRM, so "3 of 5" becomes the single paired CI):
+- A56: `DUFSLIU_PRM_N56 - CHAIN_N56` and `DUFSLIU_N56 - LSML_N56`, with rule A's margins (PRMScore lower bound
+  > -0.5 and within-AUC lower bound > -0.005 = can replace).
+- B56: `TALIU@512 - DUFSLIU` CI > 0 = labels help; `TALIU@512 - LR@512` lower bound > -0.005 = efficient; for both
+  settings at N56. RHOLIU secondary.
+- C56: `PALIU_PRM_N56 - DUFSLIU_PRM_N56` within-AUC CI > 0 = pseudo-label helps.
+- D56 (more channels): the N56 - N16 difference of each arm, reported with its paired CI; the question is whether the
+  label-free arms lose and the label arms gain, as in Step 464.
+
 ## Caveats fixed in advance
 
 - PRMBench is development data; a pass is development evidence, not confirmation.
