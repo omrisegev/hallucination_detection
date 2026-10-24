@@ -10775,6 +10775,42 @@ this fits the per-answer error count (including 0), and whether a two-step "clea
 
 ---
 
+### Step 471 [PRM math rigor] — Implement and test a risk-controlled clean-answer threshold, calibrated track (partial) (2026-10-25)
+
+**What**: Implemented Learn-then-Test with Hoeffding–Bentkus p-values and fixed-sequence testing
+(`spectral_utils/risk_control.py`, 3 tests including a coverage check). The pre-registration was committed before
+the run (`ca070f05`). Rule:
+- the answer score is S = Σ(1 − r);
+- τ is certified on 50% of the PRMBench source groups so that the false-clean rate is ≤ α (δ = .10);
+- answers with S < τ get no flags, and the rest get GAP on CHAIN_N16.
+
+The test ran over 10 seeds on the other half, with a Hard2Verify transfer of the seed-0 τ. Access level:
+calibrated (labels on the calibration split).
+
+**Why**: Omri, after the label-free two-step rule failed (Step 470): design and run the calibrated track that
+Laufer-Goldshtein's risk-control tools allow.
+
+**Result**:
+- **The guarantee held for 5/5 PRMs.** The realized test false-clean rate is ≤ .05 in ≥ 9/10 seeds, and .024–.041
+  at seed 0.
+- **Usefulness: Qwen only.** On all PRMBench test answers including controls, the gain over GAP is +0.43
+  [+0.26, +0.62] for Qwen-7B and +0.52 [+0.33, +0.71] for Qwen-72B. The other three are −0.35 to −0.06.
+  Clean-recall is .34 for Qwen against .10–.16 for the others, matching the design's break-even of about .3.
+- **Official non-control pool:** −0.02 to −0.59; 4/5 PRMs are within the −0.5 margin.
+- **At α = .02**, Qwen-7B also gains on the official pool: +0.12 [+0.01, +0.24]. This is a secondary row, not the
+  verdict.
+- **Hard2Verify transfer:** almost no answer is called clean, because S grows with answer length, so the deltas
+  are about 0.
+- **Verdict: partial** (`stage4/CALIBRATED_VERDICT.json`).
+- Negative result recorded: results/prm_boost_math_rigor_v1/NEGATIVE_RESULT_CALIBRATED.md
+
+**Files changed**:
+- `spectral_utils/risk_control.py`, `tests/test_risk_control.py` — the risk-control helper and its tests
+- `results/prm_boost_math_rigor_v1/stage4_calibrated_clean.py`, `stage4/`, `CALIBRATED_CLEAN_PREREG.json`, `NEGATIVE_RESULT_CALIBRATED.md`
+- `docs/research_notes/math_rigor_2026-10-24/CALIBRATED_CLEAN_THRESHOLD_DESIGN.md`, `CALIBRATED_CLEAN_PREREG.md`
+
+---
+
 ### Step 291 [prm-voters] — PRMBench step voters pilot execution and gate verification on AIRCC
 
 **What**: Executed and verified the PRMBench step voter pilots (N=30, 35 meta rows) on the `aircc` compute cluster (`power-gpu`, `owner_940`, NVIDIA B200 GPU).

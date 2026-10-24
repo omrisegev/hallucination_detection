@@ -1,3 +1,14 @@
+## 2026-10-25: calibrated clean-answer threshold, partial, Step 471 (Claude)
+
+**START HERE:** `results/prm_boost_math_rigor_v1/NEGATIVE_RESULT_CALIBRATED.md`.
+
+- **The risk-controlled τ keeps its guarantee for 5/5 PRMs:** false-clean ≤ 5% in at least 9/10 seeds.
+- **It helps only the Qwen PRMs** on all PRMBench answers including controls: +0.43 and +0.52, both CIs above 0. The other three lose a little.
+- **On the official pool** the result is −0.02 to −0.59.
+- **The PRMBench τ does not transfer to Hard2Verify,** because the score grows with answer length.
+- **Verdict:** partial. This is a calibrated track, with labels on the calibration split.
+- **Open:** a length-comparable, better-separating answer score, for example raw-level telemetry from an AIRCC export.
+
 ## 2026-10-24: PRM as anchor and as error counter; two-step count rule negative, Step 470 (Claude)
 
 **START HERE:** `results/prm_boost_math_rigor_v1/NEGATIVE_RESULT_TWO_STEP.md`, then `stage1b/` and `stage1c/` in the same directory.
