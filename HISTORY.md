@@ -10671,6 +10671,61 @@ Drive preservation is verified: 21 archives, 8,253 source files, 4,521,223,525 o
 
 ---
 
+### Step 470 [DUFS-LIU PRMBench] — DUFS-LIU-PCR on PRMBench localization: it cannot replace continuous L-SML, labels and PRM pseudo-labels barely move it, and the bottleneck is its two-component subspace (2026-10-24/25)
+
+**What**: Omri asked four questions on 2026-10-24:
+- does a label-using calibration show better whether DUFS-LIU-PCR is on a nuisance manifold or on the hallucination
+  manifold;
+- can DUFS-LIU-PCR replace continuous L-SML for PRMBench localization;
+- can the PRM's own pseudo-labels overcome its problems;
+- does the answer change with 56 channels.
+
+The study was pre-registered in commit `cbbb140f`, with an amendment for N56 in `83141318`. It ran CPU-only on the
+stage-1 exports: 5 PRMs × PRM-backbone N16, and Qwen3-8B telemetry N16/N56 with the Qwen-7B PRM.
+
+Arms:
+- registered DUFS-LIU and plain IU-PCR;
+- TA-LIU (labels set the graph gates) and RHO-LIU (labels set the fusion target). Both are cross-fitted by source
+  group at 64, 512 and all training answers;
+- PA-LIU and PRHO-LIU: the PRM's own GAP flags placed in the same two spots;
+- logistic regression on the same labels, as the attribution control.
+
+Parity:
+- the evaluator reproduces 50/50 published numbers exactly;
+- the rebuilt Qwen3-8B banks reproduce the published IU-PCR and L-SML within-AUC to 1e-16;
+- the CHAIN port is within 2.1e-7;
+- the split LIU calls reproduce the canonical scores with difference 0.0.
+**Why**: the documented DUFS-LIU failure is a smooth nuisance manifold. TA-LIU, the label-using fix, had been run
+only on synthetic data, where plain logistic regression used the same labels far better.
+**Result**:
+- **Replacement: no.** DUFS-LIU over PRM + N16 loses to CHAIN_N16 on 5/5 PRMs: within-AUC −0.013 to −0.028, GAP
+  PRMScore −0.74 to −1.75, every CI below 0. Here it equals IU-PCR (weight cosine 0.9998–1.0000).
+- **Mechanism.** The two leading components hold about half the channel variance, but only 5–40% of the PRM channel
+  and 49–80% of the supervised error score. The PRM's weight share is 2–7%, against 13–24% in CHAIN. Every gate
+  (DUFS, labels, PRM) leaves the weights at cosine ≥ 0.997 with IU-PCR.
+- **Labels.**
+  - TA-LIU passes the pre-registered "helps" rule on 3/5 PRMs, but the change is −0.0005 to +0.0016 within-AUC and
+    does not depend on the label budget.
+  - RHO-LIU gains +0.002 to +0.012 on 3/5.
+  - Both are 0.022–0.057 below logistic regression on the same labels (efficient on 0/5).
+  - Logistic regression with 512 labeled answers beats CHAIN by +0.9 to +2.0 PRMScore, part of it through PRMBench's
+    position prior.
+- **PRM pseudo-labels.** PA-LIU moves −0.0004 to +0.0030: the rule passes on 3/5, but the effect is negligible.
+  PRHO-LIU is mixed, from +0.002 to −0.016.
+- **N56 (Qwen3-8B).**
+  - DUFS-LIU drops −0.016 on telemetry alone and −0.024 with the PRM, relative to N16.
+  - Logistic regression gains +0.010 to +0.020; CHAIN moves +0.001.
+  - DUFS-LIU + PRM falls below the PRM alone (−0.034 within-AUC, −1.80 PRMScore).
+  - The subspace holds 40% of the supervised score (64% at N16).
+- Development data; not confirmation.
+**Files**:
+- `results/dufs_liu_prmbench_v1/`: README, PREREG, `run.py`, `run_n56.py`, `evaluate_dufs.py`, `evaluate_n56.py`,
+  and the CSV/JSON outputs. Score NPZs stay outside git; their hashes are in `VERDICT.json`.
+- `spectral_utils/anchored_liu.py` and `spectral_utils/bank_rebuild.py`.
+- `tests/test_anchored_liu.py` (8 pass).
+
+---
+
 ### Step 291 [prm-voters] — PRMBench step voters pilot execution and gate verification on AIRCC
 
 **What**: Executed and verified the PRMBench step voter pilots (N=30, 35 meta rows) on the `aircc` compute cluster (`power-gpu`, `owner_940`, NVIDIA B200 GPU).

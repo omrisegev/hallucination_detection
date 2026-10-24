@@ -1,3 +1,17 @@
+## 2026-10-25: DUFS-LIU-PCR on PRMBench, Step 470 (Claude)
+
+**START HERE:** HISTORY Step 470 [DUFS-LIU PRMBench], `results/dufs_liu_prmbench_v1/README.md`.
+
+- DUFS-LIU-PCR cannot replace continuous L-SML on PRMBench. It is below CHAIN_N16 on 5/5 PRMs: within-AUC −0.013 to
+  −0.028, PRMScore −0.74 to −1.75. Here it is the same model as IU-PCR.
+- Its fusion is confined to the two leading principal components, which hold only 5–40% of the PRM channel and
+  49–80% of the supervised error direction.
+- Labels or PRM pseudo-labels in its graph or its target move it by at most 0.012 within-AUC. Logistic regression on
+  the same labels gains far more.
+- With 56 channels (Qwen3-8B) it falls below the PRM alone, while CHAIN holds.
+- Open: Omri decides whether the DUFS-LIU line continues for PRMBench. A label-free variant in which the PRM defines
+  the subspace was not tested.
+
 ## 2026-10-21: pre-thinkfix weight-estimator analyses removed, Step 468 (Claude)
 
 - `results/sml_weight_estimator_v1/processbench_banks/` and `answer_local/` ran on the old Qwen3 template and were removed (Omri). The 2026-10-20 entry below cites their numbers; do not use them.

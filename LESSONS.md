@@ -734,3 +734,9 @@ What happened: PRM boosting passes risk-oriented views to lsml_continuous, which
 Why: the docstring's contract was not checked against the caller's inputs, and the two sign rules (majority vote, then anchor flip) were never tested together.
 Rule: with pre-oriented views, a negative SML weight is a model-violation flag, not an orientation. Record it, and do not let an anchor flip turn it into an inverted view.
 Enforced by: prose (fusion_utils.sml_fuse_signed docstring; results/sml_weight_estimator_v1/). Not yet a code guard.
+
+## 2026-10-25 — laplacian_iu_path runs an ARPACK diagnostic on every call
+What happened: repeated TA-LIU fits on PRMBench (94,203-step graphs) stalled for over 15 minutes per call on one PRM cell. `sample` showed ARPACK `dsaupd` inside `laplacian_upcr.graph_diagnostics`, which computes the algebraic connectivity whenever the graph is connected.
+Why: the diagnostic runs inside every `laplacian_iu_path` call, and the smallest-eigenvalue search can converge very slowly on a large kNN graph. On the other four cells the same calls finished, so one cell's run time did not predict the next cell's.
+Rule: for repeated LIU fits on graphs with about 10^5 nodes, use `anchored_liu.split_liu_weights` / `liu_external_target` (identical weights, tested) and keep the canonical call for single fits. Time one canonical call before launching a loop.
+Enforced by: code (`spectral_utils/anchored_liu.py`, `tests/test_anchored_liu.py`) and prose.
