@@ -1,0 +1,20 @@
+{
+ "id": "prm-boost-anchored-gate-v1",
+ "date": "2026-10-24",
+ "doc": "docs/research_notes/math_rigor_2026-10-24/GATE_PREREG.md",
+ "method": "cumulant",
+ "anchor": 0,
+ "B": 200,
+ "level": 0.9,
+ "seed": 20261024,
+ "covariates": "relative position (cubic basis) on every benchmark; plus log step tokens on PRMBench",
+ "truth": "sign of within-AUC(CHAIN_N16) - within-AUC(PRM); Hard2Verify on the 177-answer common set",
+ "primary_cells": "prmbench and socratic x 5 PRMs",
+ "primary_threshold": 9,
+ "partial_threshold": 7,
+ "perm_threshold": 4,
+ "selection_evidence": {
+  "estimator": "results/prm_boost_math_rigor_v1/synthetic/run_v1/SUMMARY.json (_selection.chosen = cumulant)",
+  "level": "results/prm_boost_math_rigor_v1/synthetic/run_v1/LEVEL_SUMMARY.json (_selection.chosen = 0.9)"
+ }
+}
