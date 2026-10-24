@@ -10811,6 +10811,34 @@ Laufer-Goldshtein's risk-control tools allow.
 
 ---
 
+### Step 472 [PRM math rigor] — Test the PRM view's normalization inside CHAIN: answer-z vs centering-only vs global-z (2026-10-25)
+
+**What**: Inside CHAIN_N16's cross stage, only the PRM view was changed:
+- answer-z (shipped);
+- centering within the answer, then one global sd;
+- global z (the answer level kept).
+
+The telemetry stays as exported. The test covers PRMBench and Socratic × 5 PRMs and uses the collection's paired
+bootstrap against the shipped arm. This is a development comparison, not a pre-registered candidate.
+
+**Why**: Omri asked whether per-answer z-scoring hurts us (review W6; FRAMING_THEORY P1 predicts that centering
+matters and per-answer scaling is second-order).
+
+**Result** (`results/prm_boost_math_rigor_v1/stage5/PRM_NORMALIZATION.csv`):
+- **Global z (no centering) is worse in 8/10 cells for within-AUC** (−.001 to −.016, CIs below 0). The one clear
+  gain is RLHFlow on PRMBench (+.007, PRMScore +0.66).
+- **Centering-only vs answer-z.**
+  - PRMBench: within-AUC ≥ 0 in 5/5 (+.0006 to +.0048; 3 CIs above 0). GAP PRMScore +0.08 to +0.31 (2 CIs above 0).
+  - Socratic: mixed. Qwen-72B is −.0075 in AUC and −0.50 in PRMScore; RLHFlow is +0.25 in PRMScore.
+- **The PRM cross share barely moves under any variant.** So normalization is not why the PRM is under-weighted.
+- **Conclusion.** P1 holds: centering is needed, and per-answer scaling is a small effect (≤ .005 AUC). No change
+  to the incumbent; centering-only is a candidate for a later pre-registration.
+
+**Files changed**:
+- `results/prm_boost_math_rigor_v1/stage5_prm_normalization.py`, `stage5/PRM_NORMALIZATION.csv`
+
+---
+
 ### Step 291 [prm-voters] — PRMBench step voters pilot execution and gate verification on AIRCC
 
 **What**: Executed and verified the PRMBench step voter pilots (N=30, 35 meta rows) on the `aircc` compute cluster (`power-gpu`, `owner_940`, NVIDIA B200 GPU).

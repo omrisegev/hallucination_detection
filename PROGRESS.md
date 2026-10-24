@@ -1,3 +1,10 @@
+## 2026-10-25: normalization of the PRM view inside CHAIN, Step 472 (Claude)
+
+- **Removing centering (global z) hurts:** 8/10 cells, within-AUC −.001 to −.016.
+- **Removing only the per-answer scaling (centering-only) is ≥ 0 on PRMBench 5/5,** but small: ≤ .005 AUC, up to +0.31 PRMScore. It is mixed on Socratic (Qwen-72B −0.50).
+- **The PRM's cross share does not change**, so normalization is not the cause of the under-weighting.
+- **No change to the incumbent.** Source: `results/prm_boost_math_rigor_v1/stage5/PRM_NORMALIZATION.csv`.
+
 ## 2026-10-25: calibrated clean-answer threshold, partial, Step 471 (Claude)
 
 **START HERE:** `results/prm_boost_math_rigor_v1/NEGATIVE_RESULT_CALIBRATED.md`.
