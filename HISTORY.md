@@ -9309,7 +9309,7 @@ annotation/raw-ID leak, invariant inputs under metadata flips, unchanged
 source observations and consistent groups. All 14 checked runtime/test
 files match afae64a exactly; no gate or threshold change. Same ten length
 exclusions, zero truncation. No AIRCC/GPU/Drive action or benchmark
-scoring. Review delivery: [results/agent_step_telemetry_v1/cpu_rerun_v2_20261013/README.md](results/agent_step_telemetry_v1/cpu_rerun_v2_20261013/README.md).
+scoring. Review delivery: [results/agent_step_telemetry_v1/cpu_rerun_v2_20261013/README.md](results/agent_step_telemetry_v1/cpu_rerun_v2_20261013/README.md).
 
 ---
 
@@ -9388,7 +9388,7 @@ Deliveries:
 [N16](results/agent_step_telemetry_v1_n16_2026-10-16/README.md),
 [fair protocols](results/agent_step_telemetry_v1_n16_2026-10-16/fair_protocols/README.md).
 Derived `FEATURES_*/SCORES_*.npz` (~19 MB) are kept out of Git.
-Caveat: only the first token of each concatenated trace was masked.
+Caveat: only the first token of each concatenated trace was masked.
 
 ---
 
@@ -9430,7 +9430,7 @@ Caveat: only the first token of each concatenated trace was masked.
   - Judge+length / judge+position controls were not run.
   - The own-backbone TPRM test needs GPU telemetry from each competitor's backbone.
 
-Delivery: [results/agent_step_telemetry_v1_competitor_fusion_pilot_2026-10-17/README.md](results/agent_step_telemetry_v1_competitor_fusion_pilot_2026-10-17/README.md).
+Delivery: [results/agent_step_telemetry_v1_competitor_fusion_pilot_2026-10-17/README.md](results/agent_step_telemetry_v1_competitor_fusion_pilot_2026-10-17/README.md).
 
 ---
 
@@ -10736,6 +10736,42 @@ The review's first task was an improvement condition with a label-free gate test
 - `spectral_utils/fusion_theory.py`, `tests/test_fusion_theory.py` — theory helpers and 9 synthetic tests (all pass)
 - `results/prm_boost_math_rigor_v1/` — parity, synthetic selection, Stage 1–2, post hoc diagnostics, README, NEGATIVE_RESULT
 - `LESSONS.md` — three entries: misattributed advisor notes, the external-metric scale, and a pre-registered rule vs its code
+
+---
+
+### Step 470 [PRM math rigor] — Test the PRM as anchor and as error counter, then a pre-registered two-step count rule (negative) (2026-10-24)
+
+**What**: Three follow-ups to Step 469, all requested by Omri, on the same parity-checked exports:
+- **Stage 1b** (label-using): can the PRM's probability serve as a calibrated anchor? Each telemetry group score
+  was regressed on 1 − r.
+- **Stage 1c** (label-using): does Σ(1 − r) carry the per-answer error count?
+- **Stage 3, pre-registered** (commit `88b05f0b`): a two-step count rule. An answer is "clean" iff the PRM's native
+  rule flags none of its steps; otherwise its steps are flagged by GAP on CHAIN_N16.
+
+**Why**: After the anchored gate failed (Step 469), Omri asked whether the PRM itself should be the anchor, how
+this fits the per-answer error count (including 0), and whether a two-step "clean or not, then how many" rule helps.
+
+**Result**:
+- **Stage 1b** (`stage1b/PRM_ANCHOR_DIAGNOSTICS.csv`).
+  - Slopes on 1 − r rank the telemetry groups like their true separations: median Spearman .90, signs 50/66.
+  - The slopes are inflated ×1.2–2.3 on PRMBench and Socratic.
+  - PRM calibration is poor: median ECE .147; Math-Shepherd's mean probability is .48 against a true rate of .14.
+  - So the PRM works as an anchor for weighting *within* the telemetry, but not for the PRM-vs-telemetry share.
+- **Stage 1c** (`stage1c/PRM_COUNT.csv`).
+  - Σ(1 − r) separates clean from erroneous answers: AUC .82/.84 for the Qwen PRMs on PRMBench.
+  - It predicts the exact count weakly: Spearman .15–.53.
+  - Constant k=2 has a lower count error on PRMBench (0.99 vs 1.14–4.97).
+  - On Socratic and Hard2Verify the Qwen PRMs undercount by 1–2 errors per answer.
+- **Stage 3, the pre-registered verdict is fail** (`stage3/TWO_STEP_VERDICT.json`).
+  - On the PRMBench official pool, two-step minus GAP is −2.50 to −5.60, with every CI below 0.
+  - On all PRMBench answers including controls it is −0.76 to −4.35.
+  - On Hard2Verify it is below 0 on 5/5 PRMs (−0.12 to −33.1).
+  - Cause: the native rule calls 23–39% of erroneous PRMBench answers clean, and up to 83% on Hard2Verify.
+- Negative result recorded: results/prm_boost_math_rigor_v1/NEGATIVE_RESULT_TWO_STEP.md
+
+**Files changed**:
+- `results/prm_boost_math_rigor_v1/` — stage1b, stage1c and stage3 scripts and outputs; `TWO_STEP_PREREG.json`; `NEGATIVE_RESULT_TWO_STEP.md`
+- `docs/research_notes/math_rigor_2026-10-24/TWO_STEP_COUNT_PREREG.md` — the pre-registration
 
 ---
 

@@ -1,3 +1,12 @@
+## 2026-10-24: PRM as anchor and as error counter; two-step count rule negative, Step 470 (Claude)
+
+**START HERE:** `results/prm_boost_math_rigor_v1/NEGATIVE_RESULT_TWO_STEP.md`, then `stage1b/` and `stage1c/` in the same directory.
+
+- **The PRM's probability is a good anchor for ranking the telemetry groups:** median Spearman .90. It is not calibrated enough to set the PRM-vs-telemetry share: median ECE .147, Math-Shepherd .48 against a true rate of .14.
+- **Σ(1 − r) tells clean from erroneous answers** (AUC .82–.84, Qwen PRMs, PRMBench), but counts errors poorly (Spearman .15–.53). Constant k=2 has a lower count error on PRMBench.
+- **The pre-registered two-step rule failed:** the native "clean" decision, then GAP. It is worse than GAP everywhere: PRMBench official −2.5 to −5.6, Hard2Verify 5/5 below 0. The native rule calls 23–39% of erroneous answers clean.
+- **Open:** a "clean" decision with a low false-clean rate. That needs raw-level telemetry (an AIRCC export), or a threshold calibrated with labels (risk control).
+
 ## 2026-10-24: math peer review answered; label-free gate negative, Step 469 (Claude)
 
 **START HERE:** `docs/research_notes/math_rigor_2026-10-24/FRAMING_SUMMARY_HE.md`, then `results/prm_boost_math_rigor_v1/README.md`. Branch `claude/prm-boost-math-rigor-2026-10-24` (worktree `.claude/worktrees/prm-math-rigor-2026-10-24`), not merged into `claude/prm-boosting`.
