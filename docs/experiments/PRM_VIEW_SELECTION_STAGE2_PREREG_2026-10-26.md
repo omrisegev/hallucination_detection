@@ -93,3 +93,13 @@ answers. This is in-sample development; held-out evidence comes from the cross-c
 ## Not in scope
 
 GPU; new inference; any change to stage-1 or frozen results; stage 1b.
+
+## Pre-run checks (2026-10-26)
+
+- **Light caches.** Built with `stage2.py cache`; they reproduce the full cell on 3 subsets × 10 cells.
+  - The diagnostic count of channels anti-correlated with the 16-channel mean is 0 in 8 cells, and 1 in Socratic
+    Qwen-72B and in Socratic RLHFlow.
+- **Vectorized GAP and metric.** Identical to the evaluator loops on 610/610 fused and mean flag sets, with a PRMScore
+  difference of 0 (`results/prm_view_selection_v1/stage2/PARITY.json`).
+- **The `ds_em_votes(anchor=None)` majority switch** was added without changing stage 1: a stage-1 replay is identical.
+- **Timing.** 0.366 s per subset across all 10 cells; about 6.6 core-hours.

@@ -51,9 +51,11 @@ def sml_weights_nonneg(R):
     return np.clip(v, 0, None), n_neg
 
 
-def ds_em_votes(B, anchor: int = 0, iters: int = 500, tol: float = 1e-9, eps: float = 1e-6):
+def ds_em_votes(B, anchor=0, iters: int = 500, tol: float = 1e-9, eps: float = 1e-6):
     """Two-coin Dawid-Skene EM on +-1 votes B (n x m), on compressed patterns. Label switching resolved by the anchor
-    (psi + eta > 1). Returns dict(psi, eta, prevalence, w) with ML log-odds weights w clipped at 0."""
+    (psi + eta > 1), or with anchor=None by the majority rule (flip if fewer than half the views have psi + eta > 1;
+    Parisi et al. 2014 assumption iii; stage 2). Returns dict(psi, eta, prevalence, w) with ML log-odds weights w
+    clipped at 0."""
     B = np.asarray(B) > 0; n, m = B.shape
     code = B.astype(np.int64) @ (1 << np.arange(m, dtype=np.int64))
     u, cnt = np.unique(code, return_counts=True)
@@ -70,7 +72,8 @@ def ds_em_votes(B, anchor: int = 0, iters: int = 500, tol: float = 1e-9, eps: fl
         q = 1 / (1 + np.exp(a0 - a1))
         if abs(ll - ll_old) < tol: break
         ll_old = ll
-    if psi[anchor] + eta[anchor] < 1:
+    flip = (psi[anchor] + eta[anchor] < 1) if anchor is not None else (np.sum(psi + eta > 1) < m / 2)
+    if flip:
         psi, eta, p = 1 - eta, 1 - psi, 1 - p
     w = np.log(psi * eta / ((1 - psi) * (1 - eta)))
     return dict(psi=psi, eta=eta, prevalence=float(p), w_raw=w, w=np.clip(w, 0, None), iters=it + 1,
