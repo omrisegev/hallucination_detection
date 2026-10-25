@@ -10936,6 +10936,37 @@ is to K (W8).
 
 ---
 
+### Step 476 [PRM math rigor] — Test AUTO-F (AUTO partition, block-CCA/Fisher weights) and an LDA vs QDA diagnostic (negative) (2026-10-25)
+
+**What**: Pre-registered (`1dba7eb7`) and ran AUTO-F on 15 cells, with forced K = 2..8.
+- **AUTO-F.** AUTO's label-free partition of [z(PRM), N16], answer-z. Each group's composite comes from block-vs-rest
+  CCA. Cross weights are one-factor FA Fisher weights (λ/ψ, non-negative).
+- **Comparison.** AUTO and CHAIN.
+- **Diagnostic, with labels.** LDA against QDA, 5-fold source-group CV.
+
+**Why**: Omri prefers AUTO to CHAIN, because it has no hand-picked prior. The question was whether Fisher/CCA weights
+fix AUTO's absorbed PRM (Step 475). The Ising aggregation paper (arXiv 2601.22336) motivated the quadratic diagnostic.
+
+**Result** (`results/prm_boost_math_rigor_v1/stage9/`): **fail.**
+- **AUTO-F is below AUTO in 5/5 PRMBench PRMs** (−.031 to −.069), and below CHAIN in 5/5 (−.046 to −.102; PRMScore
+  −3.2 to −7.0).
+- **The PRM's share stays near 0** (.001–.07) at every K.
+- **Reading.** Without the PRM as anchor, CCA and FA lock onto the dominant cross-view factor, which is the shared
+  telemetry nuisance (stage 1: 82–100% of the covariance is within-class). CHAIN's own-group PRM is therefore the
+  identifying anchor, not merely an independence assumption.
+- **QDA does not beat LDA:** QDA − LDA ≥ .01 in 0/5, and QDA < LDA in 14/15 cells. This matches the PRM boosting
+  session's independent diagnostic (`results/telemetry_class_correlation_v1`, not committed here). The class-dependent
+  direction is not supported.
+- **Supervised linear headroom over CHAIN:** LDA +.007 to +.031.
+- **Hard2Verify, reported only:** AUTO-F beats CHAIN in 4/5, on small n.
+- Negative result recorded: results/prm_boost_math_rigor_v1/NEGATIVE_RESULT_AUTO_F.md
+
+**Files changed**:
+- `results/prm_boost_math_rigor_v1/stage9_auto_f.py`, `stage9/`, `AUTO_F_PREREG.json`, `NEGATIVE_RESULT_AUTO_F.md`
+- `docs/research_notes/math_rigor_2026-10-24/AUTO_F_PREREG.md`, `GAPS_STATUS_HE.md`
+
+---
+
 ### Step 291 [prm-voters] — PRMBench step voters pilot execution and gate verification on AIRCC
 
 **What**: Executed and verified the PRMBench step voter pilots (N=30, 35 meta rows) on the `aircc` compute cluster (`power-gpu`, `owner_940`, NVIDIA B200 GPU).

@@ -1,3 +1,12 @@
+## 2026-10-25: AUTO-F (AUTO partition + block-CCA/Fisher weights), fail, Step 476 (Claude)
+
+- **AUTO-F is below AUTO (−.031 to −.069) and below CHAIN (−.046 to −.102) in 5/5 PRMBench PRMs.**
+  - Without the PRM as anchor, CCA and FA follow the shared telemetry nuisance.
+  - So CHAIN's own-group PRM acts as the identifying anchor. Keep CHAIN.
+- **QDA does not beat LDA (0/5),** so there is no class-dependent (Ising) direction. The supervised linear headroom
+  over CHAIN is +.007 to +.031.
+- Source: `results/prm_boost_math_rigor_v1/stage9/`, `NEGATIVE_RESULT_AUTO_F.md`.
+
 ## 2026-10-25: AUTO vs CHAIN under GAP, and CHAIN under forced K, Step 475 (Claude)
 
 - **CHAIN beats AUTO in 5/5 PRMBench PRMs:** within-AUC −.010 to −.033 for AUTO, all CIs below 0. AUTO absorbs the
