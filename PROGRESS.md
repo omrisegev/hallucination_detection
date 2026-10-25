@@ -1,3 +1,12 @@
+## 2026-10-25: AUTO vs CHAIN under GAP, and CHAIN under forced K, Step 475 (Claude)
+
+- **CHAIN beats AUTO in 5/5 PRMBench PRMs:** within-AUC −.010 to −.033 for AUTO, all CIs below 0. AUTO absorbs the
+  PRM in 15/15 cells, and its PRM share is .005–.07. Keep CHAIN. AUTO is a sensitivity row.
+- **The PRM's share falls with K exactly as P3 predicts:** Spearman −1.00 in 5/5.
+- **The automatic K misses the best forced K by more than 0.5 PRMScore in 2/5 PRMs** (Qwen-72B −0.68, MS −1.09).
+  K is a hidden knob on the PRM's share. Next: a K-invariant estimate of the share.
+- Source: `results/prm_boost_math_rigor_v1/stage8/`, `NEGATIVE_RESULT_FORCEDK.md`.
+
 ## 2026-10-25: CHAIN statistical hygiene (refit bootstrap, partition stability, split-half), pass, Step 474 (Claude)
 
 - **Refitting CHAIN in every bootstrap draw does not change any PRMBench conclusion.**

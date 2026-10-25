@@ -10904,6 +10904,38 @@ PRMs.
 
 ---
 
+### Step 475 [PRM math rigor] — Compare AUTO with CHAIN under GAP, and CHAIN under forced K = 2..8 (W7, W8; B2 negative) (2026-10-25)
+
+**What**: Pre-registered (`fa72e7ec`) and ran two comparisons on all 15 cells, all label-free.
+- **(A)** AUTO_N16 against CHAIN_N16, both read out with GAP, with a paired source-group bootstrap of 2000 draws.
+  AUTO is free L-SML grouping over [z(PRM), N16].
+- **(B)** CHAIN with the telemetry partition forced to K = 2..8, recording the PRM's share and the GAP PRMScore.
+
+**Why**: Omri asked whether AUTO would resolve the review's A7 contradiction (W7), and how sensitive the PRM share
+is to K (W8).
+
+**Result** (`results/prm_boost_math_rigor_v1/stage8/`):
+- **(A) CHAIN preferred.**
+  - In 5/5 PRMBench PRMs, AUTO − CHAIN within-AUC is −.010 to −.033, every CI below 0.
+  - The PRMScore Δ is −0.33 to −1.61, significant in 4/5.
+  - AUTO absorbs the PRM in 15/15 cells. Its least-squares PRM share is .005–.07, against .13–.24 for CHAIN.
+  - On Socratic, AUTO is better where the PRM is weakly used anyway (Qwen-72B +.048) and worse elsewhere.
+- **(B1) met.** The PRM's cross-stage share falls with K: Spearman −1.00 in 5/5 PRMBench PRMs, and share × (K+1)
+  is .93–1.37 in four of them. This confirms P3.
+- **(B2) not met, 3/5.** The automatic K is within 0.5 of the best forced K (label-chosen) for Qwen-7B, PURE and
+  RLHFlow. It is not for Qwen-72B (−0.68) or MS (−1.09; K = 2 gives 67.48 against 66.39).
+- **Socratic.** K = 2 sharply improves the PRMs that CHAIN fails on. For example, Qwen-72B: .732 at K = 2 against
+  .613 at the automatic K. A smaller K means a larger PRM share, which is consistent with P2.
+- **Conclusion.** K is a hidden knob on the PRM's share. The fix belongs in a K-invariant estimate of that share, not
+  in a K selector.
+- Negative result recorded: results/prm_boost_math_rigor_v1/NEGATIVE_RESULT_FORCEDK.md
+
+**Files changed**:
+- `results/prm_boost_math_rigor_v1/stage8_auto_forced_k.py`, `stage8/`, `AUTO_FORCEDK_PREREG.json`, `NEGATIVE_RESULT_FORCEDK.md`
+- `docs/research_notes/math_rigor_2026-10-24/AUTO_FORCEDK_PREREG.md`, `GAPS_STATUS_HE.md`
+
+---
+
 ### Step 291 [prm-voters] — PRMBench step voters pilot execution and gate verification on AIRCC
 
 **What**: Executed and verified the PRMBench step voter pilots (N=30, 35 meta rows) on the `aircc` compute cluster (`power-gpu`, `owner_940`, NVIDIA B200 GPU).
