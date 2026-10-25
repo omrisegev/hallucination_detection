@@ -123,3 +123,19 @@ Helpers go in `spectral_utils/binary_view_estimation.py`, with synthetic-recover
   separate approval);
 - any GPU job;
 - any change to frozen results.
+
+## Amendment 1, before the first real-data run (2026-10-25)
+
+`fusion_theory.anchored_loadings(method='fa')` failed the synthetic recovery test.
+- **Test case.** A clean two-factor case: 6 views, n = 80,000, known u and λ, λ_anchor = 0.
+- **What happened.** Its alternating fit diverged (one nuisance loading reached about −2×10⁵), and the function
+  abstained with "a loading exceeds its view variance".
+
+Part C therefore uses a new fit, `binary_view_estimation.anchored_two_factor`:
+- the same model and the same anchor constraint;
+- unweighted least squares on the off-diagonal entries;
+- Levenberg-Marquardt with 8 starts.
+
+It recovers u, λ and ψ within .03 on the same synthetic case (`tests/test_binary_view_estimation.py`, 5/5 pass).
+Nothing else changes. The divergence in the existing helper is reported to the PRM math rigor session; it is not
+fixed here.
