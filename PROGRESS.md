@@ -1,3 +1,11 @@
+## 2026-10-25: view selection stage 0 (descriptive), Step 478 (Claude)
+
+- **From PRMBench to Socratic the PRM improves and the telemetry degrades:** median within-AUC falls in 5/5 PRMs.
+- **The label-free estimators over-trust telemetry.** On Socratic they rank the channels wrongly for RLHFlow and
+  Math-Shepherd.
+- **Stage 1 must anchor selection on the PRM and test on held-out data.**
+- Source: `results/prm_view_selection_v1/stage0/README.md`.
+
 ## 2026-10-25: class-conditional telemetry correlation (Ising check), Step 477 (Claude)
 
 - **Error and correct steps have different channel correlations on 5/5 PRMBench PRMs** (p = .001; survives position

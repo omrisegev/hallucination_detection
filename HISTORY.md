@@ -11005,6 +11005,52 @@ linear rule. Omri asked whether this explains L-SML's ceiling.
 
 ---
 
+### Step 478 [PRM boosting, view selection] — Stage 0: telemetry accuracy falls from PRMBench to Socratic while the PRM's rises; label-free CI estimators over-trust telemetry (2026-10-25)
+
+**What**: A pre-registered descriptive stage (104a3bfc, amendments 1–2) before any view selection.
+- **Views.** 17 (PRM + N16), answer-z, oriented by the PRM.
+- **Data.** PRMBench and Socratic, 5 PRMs.
+- **Computed per view:**
+  - GAP binarization;
+  - label-free accuracy, by two methods (spectral Parisi/Jaffe, and two-coin Dawid-Skene);
+  - CI diagnostics: rank-one misfit by block, and the FUSE triplet residual.
+- **Two-factor model:** error + nuisance, with λ_PRM = 0. It uses a new fit, because
+  `fusion_theory.anchored_loadings(method='fa')` diverges on a clean synthetic case (amendment 1; reported to the math
+  rigor session).
+- **Labels** are used only in the VALIDATION columns.
+
+**Why**: Omri proposed replacing the fixed 16 channels with a small, principled set that complements the PRM. Stage 0
+checks whether the label-free machinery can see which channels help, on PRMBench and on Socratic.
+
+**Result** (`results/prm_view_selection_v1/stage0/README.md`; independent recomputation matched):
+- **The PRM improves on Socratic and the telemetry degrades.**
+  - The PRM's within-AUC rises from PRMBench to Socratic in 4/5 PRMs (.801→.824 on Qwen-7B).
+  - The telemetry median falls in 5/5 (.724→.673 on Qwen-7B; .631→.498 on Math-Shepherd).
+  - On Socratic, 1–6 channels per PRM are below chance.
+- **The label-free estimates rank views like the truth on PRMBench, but not on Socratic.**
+  - DS ρ: .61–.96 on PRMBench; −.79 and −.52 on Socratic for RLHFlow and Math-Shepherd.
+  - They over-trust telemetry: estimated minus true balanced accuracy is +.04 to +.15, against about 0 for the PRM.
+- **The CI model fails in a different place on each benchmark.**
+  - On PRMBench, rank-one misfit sits in telemetry–telemetry pairs.
+  - On Socratic, for 4/5 PRMs, PRM–telemetry misfit exceeds telemetry–telemetry. The latent class follows the
+    telemetry consensus, and the PRM becomes the outlier.
+- **The two-factor ratio I_all/I_PRM is void:** it is not an information gain (the anchor only fixes the rotation,
+  and the channels include near-duplicates).
+- **Descriptive fusion of the 17 GAP votes:** above the PRM on PRMBench (+0.6 to +5.6) but below CHAIN; below the PRM
+  on Socratic in 5/5.
+- **Sensitivity:** answer-z orientation and including the control answers change no verdict.
+- **Implication for stage 1:** a label-free criterion fitted on the target benchmark does not keep harmful channels
+  out. Selection must be anchored on agreement with the PRM beyond the telemetry consensus, and tested on held-out
+  data.
+
+**Files changed**:
+- `docs/experiments/PRM_VIEW_SELECTION_STAGE0_PREREG_2026-10-25.md`
+- `spectral_utils/binary_view_estimation.py`
+- `tests/test_binary_view_estimation.py`
+- `results/prm_view_selection_v1/stage0/`
+
+---
+
 ### Step 291 [prm-voters] — PRMBench step voters pilot execution and gate verification on AIRCC
 
 **What**: Executed and verified the PRMBench step voter pilots (N=30, 35 meta rows) on the `aircc` compute cluster (`power-gpu`, `owner_940`, NVIDIA B200 GPU).
