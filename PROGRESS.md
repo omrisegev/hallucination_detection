@@ -1,3 +1,89 @@
+## 2026-10-25: AUTO-F (AUTO partition + block-CCA/Fisher weights), fail, Step 476 (Claude)
+
+- **AUTO-F is below AUTO (−.031 to −.069) and below CHAIN (−.046 to −.102) in 5/5 PRMBench PRMs.**
+  - Without the PRM as anchor, CCA and FA follow the shared telemetry nuisance.
+  - So CHAIN's own-group PRM acts as the identifying anchor. Keep CHAIN.
+- **QDA does not beat LDA (0/5),** so there is no class-dependent (Ising) direction. The supervised linear headroom
+  over CHAIN is +.007 to +.031.
+- Source: `results/prm_boost_math_rigor_v1/stage9/`, `NEGATIVE_RESULT_AUTO_F.md`.
+
+## 2026-10-25: AUTO vs CHAIN under GAP, and CHAIN under forced K, Step 475 (Claude)
+
+- **CHAIN beats AUTO in 5/5 PRMBench PRMs:** within-AUC −.010 to −.033 for AUTO, all CIs below 0. AUTO absorbs the
+  PRM in 15/15 cells, and its PRM share is .005–.07. Keep CHAIN. AUTO is a sensitivity row.
+- **The PRM's share falls with K exactly as P3 predicts:** Spearman −1.00 in 5/5.
+- **The automatic K misses the best forced K by more than 0.5 PRMScore in 2/5 PRMs** (Qwen-72B −0.68, MS −1.09).
+  K is a hidden knob on the PRM's share. Next: a K-invariant estimate of the share.
+- Source: `results/prm_boost_math_rigor_v1/stage8/`, `NEGATIVE_RESULT_FORCEDK.md`.
+
+## 2026-10-25: CHAIN statistical hygiene (refit bootstrap, partition stability, split-half), pass, Step 474 (Claude)
+
+- **Refitting CHAIN in every bootstrap draw does not change any PRMBench conclusion.**
+  - The CHAIN − PRM within-AUC CIs stay above 0 in 5/5 PRMs.
+  - The CIs widen by at most ×1.39 (Qwen-7B).
+- **The telemetry partition is stable on PRMBench:** median ARI 1.00 in 5/5 PRMs, modal-K share ≥ .85.
+  - It is unstable on Hard2Verify, 177 answers: Qwen-72B ARI .56.
+- **The inductive fit equals the transductive fit:** fitting on half the source groups and scoring the other half
+  changes within-AUC by at most ±.0005.
+- **Still open from W12:** an untouched holdout for the design choices.
+- Source: `results/prm_boost_math_rigor_v1/stage7/HYGIENE_RESULTS.json`, `HYGIENE_VERDICT.json`.
+
+## 2026-10-25: 2-D (S, length) certified clean region, partial, Step 473 (Claude)
+
+- **A length-stratified certified τ keeps the guarantee for 5/5 PRMs** and makes the official pool non-inferior for 5/5.
+- **It still gains only for the Qwen PRMs:** +0.50 and +0.48.
+- **Hard2Verify still calls nothing clean.** The cause is a probability-level shift between benchmarks, not length.
+- **Lead:** the per-step score S/n gained in 3/5 PRMs (secondary row). It needs a new pre-registration on fresh data.
+- Source: `results/prm_boost_math_rigor_v1/NEGATIVE_RESULT_REGION2D.md`.
+
+## 2026-10-25: normalization of the PRM view inside CHAIN, Step 472 (Claude)
+
+- **Removing centering (global z) hurts:** 8/10 cells, within-AUC −.001 to −.016.
+- **Removing only the per-answer scaling (centering-only) is ≥ 0 on PRMBench 5/5,** but small: ≤ .005 AUC, up to +0.31 PRMScore. It is mixed on Socratic (Qwen-72B −0.50).
+- **The PRM's cross share does not change**, so normalization is not the cause of the under-weighting.
+- **No change to the incumbent.** Source: `results/prm_boost_math_rigor_v1/stage5/PRM_NORMALIZATION.csv`.
+
+## 2026-10-25: calibrated clean-answer threshold, partial, Step 471 (Claude)
+
+**START HERE:** `results/prm_boost_math_rigor_v1/NEGATIVE_RESULT_CALIBRATED.md`.
+
+- **The risk-controlled τ keeps its guarantee for 5/5 PRMs:** false-clean ≤ 5% in at least 9/10 seeds.
+- **It helps only the Qwen PRMs** on all PRMBench answers including controls: +0.43 and +0.52, both CIs above 0. The other three lose a little.
+- **On the official pool** the result is −0.02 to −0.59.
+- **The PRMBench τ does not transfer to Hard2Verify,** because the score grows with answer length.
+- **Verdict:** partial. This is a calibrated track, with labels on the calibration split.
+- **Open:** a length-comparable, better-separating answer score, for example raw-level telemetry from an AIRCC export.
+
+## 2026-10-24: PRM as anchor and as error counter; two-step count rule negative, Step 470 (Claude)
+
+**START HERE:** `results/prm_boost_math_rigor_v1/NEGATIVE_RESULT_TWO_STEP.md`, then `stage1b/` and `stage1c/` in the same directory.
+
+- **The PRM's probability is a good anchor for ranking the telemetry groups:** median Spearman .90. It is not calibrated enough to set the PRM-vs-telemetry share: median ECE .147, Math-Shepherd .48 against a true rate of .14.
+- **Σ(1 − r) tells clean from erroneous answers** (AUC .82–.84, Qwen PRMs, PRMBench), but counts errors poorly (Spearman .15–.53). Constant k=2 has a lower count error on PRMBench.
+- **The pre-registered two-step rule failed:** the native "clean" decision, then GAP. It is worse than GAP everywhere: PRMBench official −2.5 to −5.6, Hard2Verify 5/5 below 0. The native rule calls 23–39% of erroneous answers clean.
+- **Open:** a "clean" decision with a low false-clean rate. That needs raw-level telemetry (an AIRCC export), or a threshold calibrated with labels (risk control).
+
+## 2026-10-24: math peer review answered; label-free gate negative, Step 469 (Claude)
+
+**START HERE:** `docs/research_notes/math_rigor_2026-10-24/FRAMING_SUMMARY_HE.md`, then `results/prm_boost_math_rigor_v1/README.md`. Branch `claude/prm-boost-math-rigor-2026-10-24` (worktree `.claude/worktrees/prm-math-rigor-2026-10-24`), not merged into `claude/prm-boosting`.
+
+- **The review's 12 weaknesses are all partly known** (`HISTORY_AUDIT.md`).
+  - One mechanism explains most of them: without labels the method cannot tell how good the PRM is relative to the telemetry.
+  - So the PRM's cross-stage share is about 1/(K+1): median share × (K+1) = 1.03.
+- **With labels, the improvement condition explains the record.**
+  - "Telemetry-alone ≥ PRM" predicts the CHAIN − PRM sign in 15/15 cells. The Gaussian plug-in predicts it in 13/15 (r = .979).
+  - On PRMBench, CHAIN is within −.003 to +.022 of the label-using linear optimum, so the PRMBench gain stands.
+- **The pre-registered label-free anchored gate failed.** It abstained in 15/15 cells: 4/10, against 6/10 for always-fuse.
+  - Cause: the PRM and its own-backbone telemetry share within-class noise (|r| .13–.35), which breaks the anchor assumption.
+  - Write-up: `results/prm_boost_math_rigor_v1/NEGATIVE_RESULT.md`.
+- **Stage 0: the collection reproduces exactly on the Mac.** 90/90 rows; CHAIN refits within 2.1e-7.
+  - Local venv: `~/.venvs/hd_math_rigor`.
+  - Data: `COLLECTION_DATA=/Users/osegev/Desktop/hd_collection_data`, copied from Drive with rclone.
+- **Open, Omri's call:**
+  1. Test the anchor with the standalone base-model telemetry on PRMBench (independent noise, `results/prm_standalone_telemetry_v1`).
+  2. The calibrated track: Pareto Testing over the design grid with a labeled calibration split (`ADVISOR_TOOLS.md`).
+  3. Report CHAIN together with the improvement condition as the explanatory result.
+
 ## 2026-10-21: pre-thinkfix weight-estimator analyses removed, Step 468 (Claude)
 
 - `results/sml_weight_estimator_v1/processbench_banks/` and `answer_local/` ran on the old Qwen3 template and were removed (Omri). The 2026-10-20 entry below cites their numbers; do not use them.

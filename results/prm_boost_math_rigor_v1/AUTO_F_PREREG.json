@@ -1,0 +1,19 @@
+{
+ "id": "prm-boost-auto-f-v1",
+ "track": "label-free fitting for every arm; LDA/QDA diagnostic uses labels and is not a method",
+ "date": "2026-10-25",
+ "doc": "docs/research_notes/math_rigor_2026-10-24/AUTO_F_PREREG.md",
+ "cells_primary": "prmbench x 5 PRMs",
+ "cells_reported": "socratic x 5, hard2verify x 5 (177-answer common set)",
+ "ridge": 0.001,
+ "psi_floor": 0.01,
+ "forced_K": [2, 3, 4, 5, 6, 7, 8],
+ "bootstrap": "evaluate_collection.boot_weights (2000 draws)",
+ "e_min_prms": 4,
+ "e2_auc_margin": -0.005,
+ "e2_official_margin": -0.5,
+ "cv_folds": 5,
+ "qda_reg": 0.01,
+ "diag_qda_gain": 0.01,
+ "diag_min_prms": 3
+}

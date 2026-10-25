@@ -9309,7 +9309,7 @@ annotation/raw-ID leak, invariant inputs under metadata flips, unchanged
 source observations and consistent groups. All 14 checked runtime/test
 files match afae64a exactly; no gate or threshold change. Same ten length
 exclusions, zero truncation. No AIRCC/GPU/Drive action or benchmark
-scoring. Review delivery: [results/agent_step_telemetry_v1/cpu_rerun_v2_20261013/README.md](results/agent_step_telemetry_v1/cpu_rerun_v2_20261013/README.md).
+scoring. Review delivery: [results/agent_step_telemetry_v1/cpu_rerun_v2_20261013/README.md](results/agent_step_telemetry_v1/cpu_rerun_v2_20261013/README.md).
 
 ---
 
@@ -9325,7 +9325,7 @@ AIRCC, preserving the historical Qwen-7B path and existing result artifacts.
 head, metric and lifecycle tests pass (final command/count in VALIDATION.json).
 Skywork is explicitly blocked per user pending its n+1 reward protocol; optional
 ReasonEval is blocked. GPU T1 and real new-model gates remain pending. No merge,
-GPU/cluster job, model-weight download or channel/threshold re-selection.
+GPU/cluster job, model-weight download or channel/threshold re-selection.
 
 ---
 
@@ -9388,7 +9388,7 @@ Deliveries:
 [N16](results/agent_step_telemetry_v1_n16_2026-10-16/README.md),
 [fair protocols](results/agent_step_telemetry_v1_n16_2026-10-16/fair_protocols/README.md).
 Derived `FEATURES_*/SCORES_*.npz` (~19 MB) are kept out of Git.
-Caveat: only the first token of each concatenated trace was masked.
+Caveat: only the first token of each concatenated trace was masked.
 
 ---
 
@@ -9430,7 +9430,7 @@ Caveat: only the first token of each concatenated trace was masked.
   - Judge+length / judge+position controls were not run.
   - The own-backbone TPRM test needs GPU telemetry from each competitor's backbone.
 
-Delivery: [results/agent_step_telemetry_v1_competitor_fusion_pilot_2026-10-17/README.md](results/agent_step_telemetry_v1_competitor_fusion_pilot_2026-10-17/README.md).
+Delivery: [results/agent_step_telemetry_v1_competitor_fusion_pilot_2026-10-17/README.md](results/agent_step_telemetry_v1_competitor_fusion_pilot_2026-10-17/README.md).
 
 ---
 
@@ -10668,6 +10668,302 @@ Drive preservation is verified: 21 archives, 8,253 source files, 4,521,223,525 o
 **What**: Removed the two Step 467 analyses that ran on the old Qwen3 template, the one with the missing empty think block: `results/sml_weight_estimator_v1/processbench_banks/` (nested-bank weight-estimator study, ProcessBench + PRMBench) and `answer_local/` (answer-local SML bank/step-size study), plus their scratch banks. The old-template numbers in that README and in the `fusion_utils` docstrings (`rank1_offdiag_fit`, `sml_fuse_rank1`, `sml_fuse_signed`) are replaced by the corrected-template PRMBench result of collection section 3a (job 290578).
 **Why**: Omri, 2026-10-21: pre-thinkfix results are an error and must not be used for analysis. Scope approved explicitly: only this work. Historical records (this log, LESSONS, audits) and the raw telemetry in `dataset_cache/` stay.
 **Result**: On the corrected template, the unbiased rank-one fit is below the shipped L-SML on 7 of 10 PRMBench banks (N16 .7792 -> .7704) and puts up to .88 of the weight on one group (N53). |v| weights help clearly only on N40 (+.027) and N43 (+.014). The plain oriented mean matches or beats shipped L-SML on 7 of 10 banks, N16 included (.7811 vs .7792). ProcessBench was not re-run (out of focus). The answer-local question is open on the corrected template. The removed files remain in git history (last present in commit b5c5c203).
+
+---
+
+### Step 469 [PRM math rigor] — Answer the math peer review: audit the history, write the latent-class framing, and test a pre-registered label-free gate (negative) (2026-10-24)
+
+**What**:
+- Checked the 12 weaknesses of the math peer review (branch `claude/prm-boost-math-peer-review-2026-10-24`, `docs/research_notes/math_peer_review_2026-10-24/`) against the project history, and verified its math.
+- Wrote a framing note that treats PRM boosting as latent-class identification: answer fixed effects, observed position/length, a latent telemetry nuisance, and block noise. It has six propositions, including a closed form of the shipped SML weights and an improvement condition.
+- Mapped both advisors' publications to the weaknesses.
+- Reproduced the shipped numbers from the Drive exports.
+- Chose a label-free gate estimator and an interval level on synthetic data only, and pre-registered the gate (commit `6b7162f5`).
+- Ran label-using diagnostics and the gate on the 15 in-focus cells.
+
+Branch `claude/prm-boost-math-rigor-2026-10-24`, worktree `.claude/worktrees/prm-math-rigor-2026-10-24`.
+
+**Why**: Omri, 2026-10-24, asked for five things:
+- keep the PRMBench gains, but give the method a mathematical framing instead of a collection of heuristics;
+- examine the review's gaps independently;
+- hold the work to the competitors' standard (FUSE, CARE, Ising, CROP);
+- check what the history already tested;
+- ask what the advisors' work offers.
+
+The review's first task was an improvement condition with a label-free gate tested on the cells.
+
+**Result**:
+- **History audit** (`docs/research_notes/math_rigor_2026-10-24/HISTORY_AUDIT.md`).
+  - No weakness is new, and none is fully closed. W5 (telemetry-only), W9 (mechanism) and W10 (negative) were
+    already answered. W3 and W8 were never tested as experiments.
+  - One mechanism underlies W1–W5 and W8:
+    - the PRM's cross-stage share × (K+1) has median 1.03 over 24 bank-sweep cells;
+    - the PRM is never the top cross loading (20/20 fits);
+    - on PRMBench, CHAIN_N16 ≈ ½PRM + ½mean for the three strong PRMs (.8377/.8373, .8428/.8424, .8156/.8128).
+  - With labels, "telemetry-alone within-AUC ≥ PRM" predicts the sign of CHAIN − PRM in 15/15 cells.
+- **Corrections to the review.**
+  - Answer centering keeps the one-factor structure. Synthetic check: cos with Δ is 1.000 centered vs .639 raw.
+  - The review's u/(1−u²) on unanchored loadings fails in a Socratic-like simulation: .672 vs .856 for the PRM.
+  - In the review's own Gaussian toy, the shipped SML is below the PRM under CI (.845 vs .856).
+- **Stage 0 parity** (`results/prm_boost_math_rigor_v1/stage0/`).
+  - 90/90 STATUS_MAIN rows (within-AUC and GAP PRMScore) are exact.
+  - CHAIN_N16 refits from the exported channels within 2.1e-7 in 15/15 cells.
+  - The PERM reconstruction is within 9.1e-8.
+- **Stage 1, label-using diagnostics** (`stage1/`).
+  - The Gaussian plug-in of the improvement condition predicts the CHAIN − PRM sign in 13/15 cells. Predicted
+    and actual differences correlate at .979.
+  - Label-using Fisher weights on CHAIN's views gain −.003 to +.022 over CHAIN on PRMBench, and +.004 to +.036
+    over the PRM on Socratic for the four non-RLHFlow PRMs.
+  - The anchor assumption fails. Within-class |corr| between the residualized PRM and the group scores is
+    .13–.35; the within-class share of the off-diagonal covariance is .82–1.00.
+- **Stage 2, pre-registered gate** (`stage2/`).
+  - The cumulant-anchored gate abstained in 15/15 cells: primary 4/10, against 6/10 for always-fuse. Verdict: fail.
+  - The third-order signs fit the model in 21/44 views (17/44 without SD scaling, post hoc).
+  - The review's rank-one gate chose fuse in 15/15 cells (6/10).
+  - The PERM control gave "not fuse" in 5/5, which is uninformative here.
+- **Advisors** (`ADVISOR_TOOLS.md`).
+  - Laufer-Goldshtein's Pareto Testing gives a certified fuse-or-PRM gate and addresses forking paths, given a
+    labeled calibration split.
+  - Lindenbaum's block CCA gives Fisher-type weights that do not depend on K.
+  - Two Gemini notes misattribute papers to the advisors (see LESSONS).
+- **Process.** The internal plan-review agent never returned and was stopped. A theory-note abstain rule (negative
+  anchored covariance) was not implemented in `gate_decision`. This made no difference, and it is recorded in the
+  negative result.
+- Negative result recorded: `results/prm_boost_math_rigor_v1/NEGATIVE_RESULT.md`
+
+**Files changed**:
+- `docs/research_notes/math_rigor_2026-10-24/` — HISTORY_AUDIT, FRAMING_THEORY, FRAMING_SUMMARY_HE, ADVISOR_TOOLS, GATE_PREREG
+- `spectral_utils/fusion_theory.py`, `tests/test_fusion_theory.py` — theory helpers and 9 synthetic tests (all pass)
+- `results/prm_boost_math_rigor_v1/` — parity, synthetic selection, Stage 1–2, post hoc diagnostics, README, NEGATIVE_RESULT
+- `LESSONS.md` — three entries: misattributed advisor notes, the external-metric scale, and a pre-registered rule vs its code
+
+---
+
+### Step 470 [PRM math rigor] — Test the PRM as anchor and as error counter, then a pre-registered two-step count rule (negative) (2026-10-24)
+
+**What**: Three follow-ups to Step 469, all requested by Omri, on the same parity-checked exports:
+- **Stage 1b** (label-using): can the PRM's probability serve as a calibrated anchor? Each telemetry group score
+  was regressed on 1 − r.
+- **Stage 1c** (label-using): does Σ(1 − r) carry the per-answer error count?
+- **Stage 3, pre-registered** (commit `88b05f0b`): a two-step count rule. An answer is "clean" iff the PRM's native
+  rule flags none of its steps; otherwise its steps are flagged by GAP on CHAIN_N16.
+
+**Why**: After the anchored gate failed (Step 469), Omri asked whether the PRM itself should be the anchor, how
+this fits the per-answer error count (including 0), and whether a two-step "clean or not, then how many" rule helps.
+
+**Result**:
+- **Stage 1b** (`stage1b/PRM_ANCHOR_DIAGNOSTICS.csv`).
+  - Slopes on 1 − r rank the telemetry groups like their true separations: median Spearman .90, signs 50/66.
+  - The slopes are inflated ×1.2–2.3 on PRMBench and Socratic.
+  - PRM calibration is poor: median ECE .147; Math-Shepherd's mean probability is .48 against a true rate of .14.
+  - So the PRM works as an anchor for weighting *within* the telemetry, but not for the PRM-vs-telemetry share.
+- **Stage 1c** (`stage1c/PRM_COUNT.csv`).
+  - Σ(1 − r) separates clean from erroneous answers: AUC .82/.84 for the Qwen PRMs on PRMBench.
+  - It predicts the exact count weakly: Spearman .15–.53.
+  - Constant k=2 has a lower count error on PRMBench (0.99 vs 1.14–4.97).
+  - On Socratic and Hard2Verify the Qwen PRMs undercount by 1–2 errors per answer.
+- **Stage 3, the pre-registered verdict is fail** (`stage3/TWO_STEP_VERDICT.json`).
+  - On the PRMBench official pool, two-step minus GAP is −2.50 to −5.60, with every CI below 0.
+  - On all PRMBench answers including controls it is −0.76 to −4.35.
+  - On Hard2Verify it is below 0 on 5/5 PRMs (−0.12 to −33.1).
+  - Cause: the native rule calls 23–39% of erroneous PRMBench answers clean, and up to 83% on Hard2Verify.
+- Negative result recorded: results/prm_boost_math_rigor_v1/NEGATIVE_RESULT_TWO_STEP.md
+
+**Files changed**:
+- `results/prm_boost_math_rigor_v1/` — stage1b, stage1c and stage3 scripts and outputs; `TWO_STEP_PREREG.json`; `NEGATIVE_RESULT_TWO_STEP.md`
+- `docs/research_notes/math_rigor_2026-10-24/TWO_STEP_COUNT_PREREG.md` — the pre-registration
+
+---
+
+### Step 471 [PRM math rigor] — Implement and test a risk-controlled clean-answer threshold, calibrated track (partial) (2026-10-25)
+
+**What**: Implemented Learn-then-Test with Hoeffding–Bentkus p-values and fixed-sequence testing
+(`spectral_utils/risk_control.py`, 3 tests including a coverage check). The pre-registration was committed before
+the run (`ca070f05`). Rule:
+- the answer score is S = Σ(1 − r);
+- τ is certified on 50% of the PRMBench source groups so that the false-clean rate is ≤ α (δ = .10);
+- answers with S < τ get no flags, and the rest get GAP on CHAIN_N16.
+
+The test ran over 10 seeds on the other half, with a Hard2Verify transfer of the seed-0 τ. Access level:
+calibrated (labels on the calibration split).
+
+**Why**: Omri, after the label-free two-step rule failed (Step 470): design and run the calibrated track that
+Laufer-Goldshtein's risk-control tools allow.
+
+**Result**:
+- **The guarantee held for 5/5 PRMs.** The realized test false-clean rate is ≤ .05 in ≥ 9/10 seeds, and .024–.041
+  at seed 0.
+- **Usefulness: Qwen only.** On all PRMBench test answers including controls, the gain over GAP is +0.43
+  [+0.26, +0.62] for Qwen-7B and +0.52 [+0.33, +0.71] for Qwen-72B. The other three are −0.35 to −0.06.
+  Clean-recall is .34 for Qwen against .10–.16 for the others, matching the design's break-even of about .3.
+- **Official non-control pool:** −0.02 to −0.59; 4/5 PRMs are within the −0.5 margin.
+- **At α = .02**, Qwen-7B also gains on the official pool: +0.12 [+0.01, +0.24]. This is a secondary row, not the
+  verdict.
+- **Hard2Verify transfer:** almost no answer is called clean, because S grows with answer length, so the deltas
+  are about 0.
+- **Verdict: partial** (`stage4/CALIBRATED_VERDICT.json`).
+- Negative result recorded: results/prm_boost_math_rigor_v1/NEGATIVE_RESULT_CALIBRATED.md
+
+**Files changed**:
+- `spectral_utils/risk_control.py`, `tests/test_risk_control.py` — the risk-control helper and its tests
+- `results/prm_boost_math_rigor_v1/stage4_calibrated_clean.py`, `stage4/`, `CALIBRATED_CLEAN_PREREG.json`, `NEGATIVE_RESULT_CALIBRATED.md`
+- `docs/research_notes/math_rigor_2026-10-24/CALIBRATED_CLEAN_THRESHOLD_DESIGN.md`, `CALIBRATED_CLEAN_PREREG.md`
+
+---
+
+### Step 472 [PRM math rigor] — Test the PRM view's normalization inside CHAIN: answer-z vs centering-only vs global-z (2026-10-25)
+
+**What**: Inside CHAIN_N16's cross stage, only the PRM view was changed:
+- answer-z (shipped);
+- centering within the answer, then one global sd;
+- global z (the answer level kept).
+
+The telemetry stays as exported. The test covers PRMBench and Socratic × 5 PRMs and uses the collection's paired
+bootstrap against the shipped arm. This is a development comparison, not a pre-registered candidate.
+
+**Why**: Omri asked whether per-answer z-scoring hurts us (review W6; FRAMING_THEORY P1 predicts that centering
+matters and per-answer scaling is second-order).
+
+**Result** (`results/prm_boost_math_rigor_v1/stage5/PRM_NORMALIZATION.csv`):
+- **Global z (no centering) is worse in 8/10 cells for within-AUC** (−.001 to −.016, CIs below 0). The one clear
+  gain is RLHFlow on PRMBench (+.007, PRMScore +0.66).
+- **Centering-only vs answer-z.**
+  - PRMBench: within-AUC ≥ 0 in 5/5 (+.0006 to +.0048; 3 CIs above 0). GAP PRMScore +0.08 to +0.31 (2 CIs above 0).
+  - Socratic: mixed. Qwen-72B is −.0075 in AUC and −0.50 in PRMScore; RLHFlow is +0.25 in PRMScore.
+- **The PRM cross share barely moves under any variant.** So normalization is not why the PRM is under-weighted.
+- **Conclusion.** P1 holds: centering is needed, and per-answer scaling is a small effect (≤ .005 AUC). No change
+  to the incumbent; centering-only is a candidate for a later pre-registration.
+
+**Files changed**:
+- `results/prm_boost_math_rigor_v1/stage5_prm_normalization.py`, `stage5/PRM_NORMALIZATION.csv`
+
+---
+
+### Step 473 [PRM math rigor] — Test a 2-D (S, length) certified clean region, calibrated track (partial) (2026-10-25)
+
+**What**: Pre-registered (`f57b4931`) and ran a length-stratified version of the Step 471 rule: one τ per answer-
+length tercile, each certified by Learn-then-Test (α = .05, δ = .10). A per-step score S/n was declared as a
+secondary variant. Splits, seeds, endpoints and the Hard2Verify transfer are as in Step 471. Access level:
+calibrated.
+
+**Why**: Omri asked about the 2-D experiment. The 1-D rule failed to transfer, apparently because S grows with
+answer length. This is the simple baseline before a learned region (CoCoNet).
+
+**Result** (`results/prm_boost_math_rigor_v1/stage6/`):
+- **The guarantee held for 5/5 PRMs.**
+- **All-answer gain:** only the Qwen PRMs, +0.50 [+0.31, +0.70] and +0.48 [+0.32, +0.66].
+- **Official non-inferiority:** now 5/5 PRMs, up from 4/5 for the 1-D rule.
+- **Verdict: partial.**
+- **Hard2Verify:** still about nothing called clean. The cause is a probability-level shift between benchmarks,
+  not length.
+- **Secondary S/n:** 3/5 gains (PURE +0.22 [+0.02, +0.44]) and non-inferior 4/5. It would have passed as primary.
+  It is recorded as a lead, not a result.
+- Negative result recorded: results/prm_boost_math_rigor_v1/NEGATIVE_RESULT_REGION2D.md
+
+**Files changed**:
+- `results/prm_boost_math_rigor_v1/stage6_clean_region_2d.py`, `stage6/`, `CLEAN_REGION_2D_PREREG.json`, `NEGATIVE_RESULT_REGION2D.md`
+- `docs/research_notes/math_rigor_2026-10-24/CLEAN_REGION_2D_PREREG.md`
+
+---
+
+### Step 474 [PRM math rigor] — Test CHAIN's statistical hygiene: refit bootstrap, partition stability, split-half (pass) (2026-10-25)
+
+**What**: Pre-registered three checks (`51ac479c`) and ran them on all 15 cells, without changing the method.
+- **W11, refit bootstrap.** 200 source-group draws. Each draw refits the whole of CHAIN_N16 (partition, weights,
+  sign), and the result is compared with the fixed-score bootstrap on the same draws.
+- **W7, partition stability.** The ARI of each refit's telemetry partition with the full-data partition, and K.
+- **W12, split-half.** Fit on half A of the source groups (stage 4 splits, 10 seeds), freeze, apply to half B, and
+  compare with the transductive CHAIN on B.
+
+Parity of the frozen fit/apply code with the exported CHAIN was 2.1e-7.
+
+**Why**: Omri asked to close the hygiene points of the math review (W7, W11, W12).
+
+**Result** (`results/prm_boost_math_rigor_v1/stage7/`): **verdict pass.** PRMBench meets all three endpoints in 5/5
+PRMs.
+- **Refit bootstrap.**
+  - The refit CI keeps the sign of every PRMBench Δ(CHAIN − PRM): within-AUC +.037 to +.113, all CIs above 0.
+  - The CI-width ratio, refit over fixed, is .99–1.39. The widest is Qwen-7B: [.029, .041] against [.033, .041].
+  - The official GAP Δ CIs are almost unchanged.
+- **Partition stability.**
+  - Median ARI is 1.00 in 5/5 PRMBench PRMs, and the modal-K share is .85–1.00.
+  - Qwen-7B and Qwen-72B repartition in a minority of draws (ARI q10 .61 and .78).
+- **Split-half.**
+  - Inductive minus transductive on B: within-AUC −.0002 to +.0005 (median over seeds), PRMScore −0.07 to +0.06.
+  - The advantage over the PRM is unchanged.
+- **Socratic.** Every cell passes, so its losses to the PRM are real and not fit noise. For example Qwen-72B:
+  Δ −.20, refit CI [−.225, −.190].
+- **Hard2Verify, 177 answers.** The CIs and split-half hold, but the partition is unstable for Qwen-72B (ARI .56,
+  modal K 3 vs 5, share .47) and PURE (modal-K share .73).
+- **Limits.** All of this is development data. The refit covers the fit, not the earlier design choices (bank N16,
+  GAP), so the forking-paths part of W12 still needs an untouched holdout.
+
+**Files changed**:
+- `results/prm_boost_math_rigor_v1/stage7_hygiene.py`, `stage7/`, `HYGIENE_PREREG.json`
+- `docs/research_notes/math_rigor_2026-10-24/HYGIENE_PREREG.md`, `GAPS_STATUS_HE.md`
+
+---
+
+### Step 475 [PRM math rigor] — Compare AUTO with CHAIN under GAP, and CHAIN under forced K = 2..8 (W7, W8; B2 negative) (2026-10-25)
+
+**What**: Pre-registered (`fa72e7ec`) and ran two comparisons on all 15 cells, all label-free.
+- **(A)** AUTO_N16 against CHAIN_N16, both read out with GAP, with a paired source-group bootstrap of 2000 draws.
+  AUTO is free L-SML grouping over [z(PRM), N16].
+- **(B)** CHAIN with the telemetry partition forced to K = 2..8, recording the PRM's share and the GAP PRMScore.
+
+**Why**: Omri asked whether AUTO would resolve the review's A7 contradiction (W7), and how sensitive the PRM share
+is to K (W8).
+
+**Result** (`results/prm_boost_math_rigor_v1/stage8/`):
+- **(A) CHAIN preferred.**
+  - In 5/5 PRMBench PRMs, AUTO − CHAIN within-AUC is −.010 to −.033, every CI below 0.
+  - The PRMScore Δ is −0.33 to −1.61, significant in 4/5.
+  - AUTO absorbs the PRM in 15/15 cells. Its least-squares PRM share is .005–.07, against .13–.24 for CHAIN.
+  - On Socratic, AUTO is better where the PRM is weakly used anyway (Qwen-72B +.048) and worse elsewhere.
+- **(B1) met.** The PRM's cross-stage share falls with K: Spearman −1.00 in 5/5 PRMBench PRMs, and share × (K+1)
+  is .93–1.37 in four of them. This confirms P3.
+- **(B2) not met, 3/5.** The automatic K is within 0.5 of the best forced K (label-chosen) for Qwen-7B, PURE and
+  RLHFlow. It is not for Qwen-72B (−0.68) or MS (−1.09; K = 2 gives 67.48 against 66.39).
+- **Socratic.** K = 2 sharply improves the PRMs that CHAIN fails on. For example, Qwen-72B: .732 at K = 2 against
+  .613 at the automatic K. A smaller K means a larger PRM share, which is consistent with P2.
+- **Conclusion.** K is a hidden knob on the PRM's share. The fix belongs in a K-invariant estimate of that share, not
+  in a K selector.
+- Negative result recorded: results/prm_boost_math_rigor_v1/NEGATIVE_RESULT_FORCEDK.md
+
+**Files changed**:
+- `results/prm_boost_math_rigor_v1/stage8_auto_forced_k.py`, `stage8/`, `AUTO_FORCEDK_PREREG.json`, `NEGATIVE_RESULT_FORCEDK.md`
+- `docs/research_notes/math_rigor_2026-10-24/AUTO_FORCEDK_PREREG.md`, `GAPS_STATUS_HE.md`
+
+---
+
+### Step 476 [PRM math rigor] — Test AUTO-F (AUTO partition, block-CCA/Fisher weights) and an LDA vs QDA diagnostic (negative) (2026-10-25)
+
+**What**: Pre-registered (`1dba7eb7`) and ran AUTO-F on 15 cells, with forced K = 2..8.
+- **AUTO-F.** AUTO's label-free partition of [z(PRM), N16], answer-z. Each group's composite comes from block-vs-rest
+  CCA. Cross weights are one-factor FA Fisher weights (λ/ψ, non-negative).
+- **Comparison.** AUTO and CHAIN.
+- **Diagnostic, with labels.** LDA against QDA, 5-fold source-group CV.
+
+**Why**: Omri prefers AUTO to CHAIN, because it has no hand-picked prior. The question was whether Fisher/CCA weights
+fix AUTO's absorbed PRM (Step 475). The Ising aggregation paper (arXiv 2601.22336) motivated the quadratic diagnostic.
+
+**Result** (`results/prm_boost_math_rigor_v1/stage9/`): **fail.**
+- **AUTO-F is below AUTO in 5/5 PRMBench PRMs** (−.031 to −.069), and below CHAIN in 5/5 (−.046 to −.102; PRMScore
+  −3.2 to −7.0).
+- **The PRM's share stays near 0** (.001–.07) at every K.
+- **Reading.** Without the PRM as anchor, CCA and FA lock onto the dominant cross-view factor, which is the shared
+  telemetry nuisance (stage 1: 82–100% of the covariance is within-class). CHAIN's own-group PRM is therefore the
+  identifying anchor, not merely an independence assumption.
+- **QDA does not beat LDA:** QDA − LDA ≥ .01 in 0/5, and QDA < LDA in 14/15 cells. This matches the PRM boosting
+  session's independent diagnostic (`results/telemetry_class_correlation_v1`, not committed here). The class-dependent
+  direction is not supported.
+- **Supervised linear headroom over CHAIN:** LDA +.007 to +.031.
+- **Hard2Verify, reported only:** AUTO-F beats CHAIN in 4/5, on small n.
+- Negative result recorded: results/prm_boost_math_rigor_v1/NEGATIVE_RESULT_AUTO_F.md
+
+**Files changed**:
+- `results/prm_boost_math_rigor_v1/stage9_auto_f.py`, `stage9/`, `AUTO_F_PREREG.json`, `NEGATIVE_RESULT_AUTO_F.md`
+- `docs/research_notes/math_rigor_2026-10-24/AUTO_F_PREREG.md`, `GAPS_STATUS_HE.md`
 
 ---
 
