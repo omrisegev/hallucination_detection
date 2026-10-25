@@ -1,0 +1,255 @@
+{
+ "benchmarks": {
+  "crv_arith": {
+   "n_answers": 1500,
+   "n_steps": 10316,
+   "n_error_steps": 349,
+   "step_error_rate": 0.0338,
+   "answers_with_error": 125,
+   "empty_steps": 0,
+   "by_category": {
+    "nt10": {
+     "answers": 375,
+     "steps": 3114,
+     "error_rate": 0.0507
+    },
+    "nt3": {
+     "answers": 375,
+     "steps": 1840,
+     "error_rate": 0.0196
+    },
+    "nt5": {
+     "answers": 375,
+     "steps": 2542,
+     "error_rate": 0.0126
+    },
+    "nt7": {
+     "answers": 375,
+     "steps": 2820,
+     "error_rate": 0.0436
+    }
+   },
+   "chars_median": 451,
+   "chars_max": 1084,
+   "timing12_uids": [
+    "arithmetic:arith.nt10.annotated:1142",
+    "arithmetic:arith.nt10.annotated:1237",
+    "arithmetic:arith.nt10.annotated:2122",
+    "arithmetic:arith.nt3.annotated:450",
+    "arithmetic:arith.nt3.annotated:491",
+    "arithmetic:arith.nt3.annotated:5356",
+    "arithmetic:arith.nt3.annotated:7902",
+    "arithmetic:arith.nt5.annotated:1811",
+    "arithmetic:arith.nt5.annotated:3393",
+    "arithmetic:arith.nt5.annotated:4033",
+    "arithmetic:arith.nt7.annotated:1584",
+    "arithmetic:arith.nt7.annotated:3941"
+   ],
+   "sha256": {
+    "answers.json": "d3c3f2022aa639b05c8fddb5e1e7805cd18bfd729a02fa5912392b4be04e2871",
+    "answers_timing12.json": "0c6a7520bf929095937e79cb4697a5cbd40e4447ed1144cd370b10bed0a2c544",
+    "gold": "d190167d9758f40e8a27f070afbad082419c7ab077b594ca1037b59f1f1ad07b"
+   },
+   "crop_table4": {
+    "answers": 1500,
+    "steps": 10316,
+    "error_rate": 0.034,
+    "match": true
+   }
+  },
+  "crv_gsm8k": {
+   "n_answers": 1319,
+   "n_steps": 8995,
+   "n_error_steps": 657,
+   "step_error_rate": 0.073,
+   "answers_with_error": 277,
+   "empty_steps": 0,
+   "by_category": {
+    "gsm8k": {
+     "answers": 1319,
+     "steps": 8995,
+     "error_rate": 0.073
+    }
+   },
+   "chars_median": 898,
+   "chars_max": 2843,
+   "timing12_uids": [
+    "gsm8k:gsm8k.annotated:1010",
+    "gsm8k:gsm8k.annotated:1020",
+    "gsm8k:gsm8k.annotated:1113",
+    "gsm8k:gsm8k.annotated:231",
+    "gsm8k:gsm8k.annotated:247",
+    "gsm8k:gsm8k.annotated:262",
+    "gsm8k:gsm8k.annotated:365",
+    "gsm8k:gsm8k.annotated:443",
+    "gsm8k:gsm8k.annotated:524",
+    "gsm8k:gsm8k.annotated:554",
+    "gsm8k:gsm8k.annotated:739",
+    "gsm8k:gsm8k.annotated:885"
+   ],
+   "sha256": {
+    "answers.json": "aedcdb7b81c0d40f7dad8867ffb1556815b72169a28fea401f1a417f49b39e53",
+    "answers_timing12.json": "f9f563bf25c99cba9bca85d72e6f476dca904c6a79356d3ae728cbe71067de11",
+    "gold": "91d3371cf1e2aed8a6de33392d6285e6a0a1132cf393606c3ec94c8c0465ad0c"
+   },
+   "crop_table4": {
+    "answers": 1319,
+    "steps": 8995,
+    "error_rate": 0.073,
+    "match": true
+   }
+  },
+  "math_shepherd": {
+   "n_answers": 10000,
+   "n_steps": 37514,
+   "n_error_steps": 17847,
+   "step_error_rate": 0.4757,
+   "answers_with_error": 8460,
+   "empty_steps": 0,
+   "by_category": {
+    "gsm8k": {
+     "answers": 10000,
+     "steps": 37514,
+     "error_rate": 0.4757
+    }
+   },
+   "chars_median": 526,
+   "chars_max": 2305,
+   "timing12_uids": [
+    "math_shepherd:115",
+    "math_shepherd:199",
+    "math_shepherd:987",
+    "math_shepherd:3560",
+    "math_shepherd:3696",
+    "math_shepherd:3806",
+    "math_shepherd:4677",
+    "math_shepherd:5325",
+    "math_shepherd:6050",
+    "math_shepherd:6290",
+    "math_shepherd:7861",
+    "math_shepherd:9079"
+   ],
+   "sha256": {
+    "answers.json": "06987150970b641b5436d8bef139063eddb86fb16dcf289a3f42f133c57e116f",
+    "answers_timing12.json": "52d0c32e16daea53361c9c244151e5f367dbb7e0aa279d6cc32a0d536fed17e2",
+    "gold": "fa225017b039c20c29070833415053a73fb02594cb21bcdb2b6dc684e9609adb"
+   },
+   "crop_table4": {
+    "answers": 10000,
+    "steps": 37514,
+    "error_rate": 0.476,
+    "match": true
+   }
+  },
+  "prm800k": {
+   "n_answers": 8000,
+   "n_steps": 70698,
+   "n_error_steps": 2936,
+   "step_error_rate": 0.0415,
+   "answers_with_error": 2935,
+   "empty_steps": 0,
+   "by_category": {
+    "phase2_test": {
+     "answers": 2762,
+     "steps": 19456,
+     "error_rate": 0.1084
+    },
+    "phase2_train": {
+     "answers": 5238,
+     "steps": 51242,
+     "error_rate": 0.0161
+    }
+   },
+   "chars_median": 864,
+   "chars_max": 3430,
+   "timing12_uids": [
+    "prm800k:phase2_test:92",
+    "prm800k:phase2_test:159",
+    "prm800k:phase2_test:789",
+    "prm800k:phase2_train:85",
+    "prm800k:phase2_train:194",
+    "prm800k:phase2_train:282",
+    "prm800k:phase2_train:982",
+    "prm800k:phase2_train:1508",
+    "prm800k:phase2_train:2090",
+    "prm800k:phase2_train:2283",
+    "prm800k:phase2_train:3547",
+    "prm800k:phase2_train:4524"
+   ],
+   "sha256": {
+    "answers.json": "d9569861cd1e6b45fabbe5fbb8ab0e3473320dfb3dd29164dcdfb41aebdedc08",
+    "answers_timing12.json": "15a152871313e0521a60425b9880587b98488f6748e448decea633ff2964cdca",
+    "gold": "f6579a107cf8c5725cda8a500641effba9fa89428a2de676239ba938460cb7f0"
+   },
+   "crop_table4": {
+    "answers": 8000,
+    "steps": 70698,
+    "error_rate": 0.042,
+    "match": true
+   }
+  },
+  "deltabench": {
+   "n_answers": 1236,
+   "n_steps": 20324,
+   "n_error_steps": 1626,
+   "step_error_rate": 0.08,
+   "answers_with_error": 1173,
+   "empty_steps": 0,
+   "by_category": {
+    "Physics&Chemistry&Biology": {
+     "answers": 154,
+     "steps": 1899,
+     "error_rate": 0.1137
+    },
+    "code": {
+     "answers": 373,
+     "steps": 5390,
+     "error_rate": 0.0853
+    },
+    "general": {
+     "answers": 147,
+     "steps": 1850,
+     "error_rate": 0.0968
+    },
+    "math": {
+     "answers": 562,
+     "steps": 11185,
+     "error_rate": 0.0689
+    }
+   },
+   "chars_median": 14237,
+   "chars_max": 34166,
+   "timing12_uids": [
+    "deltabench:55b900f069b81347b3aae2986797d2ea",
+    "deltabench:664bc09bfeb6d42ed8b4fd29236d9ea3",
+    "deltabench:6fe50cda44f08b59a0cd156eb647cf17",
+    "deltabench:d1b2a66f42ebbec9431a2108980f29bc",
+    "deltabench:e53bf3d4add89c57af7ca683085275ab",
+    "deltabench:56425f0b2e8dd378f7f3f3fdba55e404",
+    "deltabench:71f59f94104380a0b422e5a642a9943c",
+    "deltabench:7a602ab603a15c04ea8d135e8d3b503c",
+    "deltabench:0e40bca1370e7032233db8b6331488eb",
+    "deltabench:3fdb2b4109330ab807a3fe35c03b2a2e",
+    "deltabench:37903abdfeeb0f6a0c05167b5b83ddd2",
+    "deltabench:90cc4d9617b5e35f5be30fba97f388b9"
+   ],
+   "sha256": {
+    "answers.json": "f7cad2104f3065251de4549cfcd8c3c66d7dd15c0666ce92d16236cce9f1c877",
+    "answers_timing12.json": "e8605333d9dca3e2f20a446546877cc30f4ddddb87f49fddec854b5f761223c0",
+    "gold": "cc1d80d60c113fc9e0626f3a1a8bee8104f8ac703f8912466a8c37fb37b4910c"
+   }
+  }
+ },
+ "sources": {
+  "crv/arithmetic_expressions/arith.nt10.annotated.json": "ed96a851c4d1a5b4422b9f8abac6acf611d65c8bbb7514486fdad6351badc957",
+  "crv/arithmetic_expressions/arith.nt3.annotated.json": "25c8130e1ec4f2cce6cff298afc32fc7378e3ee347fc9a3cf16c7889804d73e5",
+  "crv/arithmetic_expressions/arith.nt5.annotated.json": "e09f8df176d5d62d0dd7a6eea49aa9a6c34649486312bf6f8dce38e06367ccb1",
+  "crv/arithmetic_expressions/arith.nt7.annotated.json": "0ea679292c0e536430a63a65d44205f367a6d1ec5fdd581dd5b3ad77bc1eba84",
+  "crv/gsm8k_expressions/gsm8k.annotated.json": "9951cd7fb419e4e5047655efcd35160b518525a18c35ff7ba899306c9463f380",
+  "math_shepherd/math-shepherd.first10000.jsonl": "37a3f44ed8f1ad749110f9a5302526ed0e6259d87552ea1716d3214960868307",
+  "prm800k/phase2_test.jsonl": "6b172efa884ac8341a946dd82e06947c135b7254109fb3f7aa907c715d98aaad",
+  "prm800k/phase2_train.first12000.jsonl": "78ce9be162ca5f58b49f78e31a6674ce4efddfafc6b34e48b63972bac6707eee",
+  "deltabench/Deltabench_v1.csv": "7220404000a723b8574a2b3c199427190f2d732852d7ae1a7719f12a565a1016"
+ },
+ "label_rule": "gold correct[i] is True when step i is not annotated as an error; answers.json carries no labels"
+}
