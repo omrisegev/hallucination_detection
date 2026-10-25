@@ -138,3 +138,18 @@ Evidence of generalization comes only from:
 ## Not in scope
 
 GPU jobs; new inference; any change to frozen results; promoting a subset as the method before held-out data.
+
+## Pre-run checks (2026-10-25, before the search)
+
+`stage1.py check` writes `results/prm_view_selection_v1/stage1/PARITY.json`.
+- **Groups.** `groups_from_cov` equals `detect_dependent_groups` on 50/50 random subsets in all 10 cells.
+- **Fused scores.** Vectorized GAP flags equal the evaluator's loops on 345/345 valid random fused scores, with
+  PRMScore difference 0.
+- **PRM view.**
+  - The PRM's quantized scores tie exactly, so vectorized flags differ from the loop in 6 cells (the 1e-16 effect
+    documented in `evaluate_collection.answer_z`).
+  - The PRM-alone comparator is therefore always computed through the evaluator's exact loop. It equals STATUS_MAIN
+    in 10/10 cells.
+  - The PRM enters the fused scores only as one continuous term, so this does not affect them.
+- **Timing.** 0.365 s per subset across all 10 cells, with early exit when a cell has K < 3. About 6.6 core-hours in
+  total. 5/40 random subsets were valid in all 10 cells.
