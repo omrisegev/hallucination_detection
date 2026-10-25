@@ -29,7 +29,7 @@
 | answer-z, GAP, transductive, forking paths (W6, W10, W12) | זהה | זהה | תיקו |
 
 **שורה תחתונה של הסוקר:**
-- ה-fusion כמעט נעלם כבעיה מתמטית: ב-standalone, L-SML ≈ oriented mean (+.001 עד +.012 within-AUC).
+- ה-fusion כמעט נעלם כבעיה מתמטית: ב-standalone, L-SML מוסיף על oriented mean תרומה מובהקת אבל קטנה (+0.42..+1.13 PRMScore, +.001..+.012 within-AUC).
 - אבל השאלה "למה ה-factor הדומיננטי הוא שגיאה" עוברת למרכז. ב-boosting ה-PRM ענה עליה. ב-standalone התשובה היחידה היא prior של orientation + המבנה של PRMBench.
 - הראיות מתאימות לזה: standalone מנצח רק PRMs חלשים, ומחוץ ל-PRMBench ה-telemetry מפסיד ל-PRM ול-position-only.
 - **Verdict:** reject כ-"label-free competitor to PRMs"; major revision אם מוסיפים תנאי זיהוי label-free (סעיף 5) ובדיקת artifact.
@@ -64,7 +64,7 @@
 | W2 | CI בין קבוצות מופר | **נשאר, בצורה חזקה יותר → S2** | אין אפילו view אחד חיצוני; כל הערוצים מאותו forward pass |
 | W3 | אין תנאי שיפור מעל PRM | **נעלם** | אין input חזק לשמר. השאלה הופכת להשוואה ישירה (סעיף 3, S4) |
 | W4 | משקלות רציפים לא Bayes-optimal | **כמעט נעלם** | P3: עם loadings דומים, v ∝ u ≈ Fisher. זה הרגים ש-SML תוכנן אליו |
-| W5 | shrinkage לכיוון equal | **נעלם כבעיה, נשאר כשאלת תרומה** | equal ≈ optimal ל-views הומוגניים. אבל אז SML ≈ mean: +.012/+.002/+.001/+.005/+.006 within-AUC (standalone, 5 PRMs) |
+| W5 | shrinkage לכיוון equal | **נעלם כבעיה** | equal ≈ optimal ל-views הומוגניים. SML מעל mean: +.001..+.012 within-AUC, +0.42..+1.13 PRMScore (מובהק, קטן) |
 | W6 | answer-z | **נשאר** | P1 מצדיק centering; ה-scaling נשאר לא מוצדק. זהה |
 | W7 | grouping heuristic; סתירת A7 | **A7 נעלם; stability לא נבדק ל-standalone** | אין PRM לשים בקבוצה. ה-partition של base model לא נבדק ב-ARI |
 | W8 | PRM share תלוי K | **נעלם** | אין PRM |
@@ -137,10 +137,18 @@
 - Split-half (Step 474) סוגר את ה-fitting, לא את בחירות ה-design. אין holdout שלא נגעו בו.
 - **Base-model telemetry מעולם לא הורץ מחוץ ל-PRMBench.** כל מספרי Socratic/H2V הם backbone.
 
-### S6. SML לא תורם; ה-"identification" בפועל הוא ה-prior
-- L-SML − mean (standalone, within-AUC): +.012, +.002, +.001, +.005, +.006. ב-PRMScore: +1.13, +0.42, +0.58, +0.75, +0.81.
-- Step 468: oriented mean ≥ L-SML ב-7/10 banks (Qwen3 source).
-- **מסקנה:** השיטה standalone היא בפועל "ממוצע מכוון של 16 ערוצי UQ, אחרי answer-centering". הבסיס המתמטי שלה הוא P1 (centering) + prior של orientation. ה-SML לא נושא את הטענה, אז גם לא את ה-"label-free theory".
+### S6. L-SML תורם באופן מובהק אבל קטן, וה-identification עצמו מגיע מה-prior (תוקן 2026-10-25, אחרי שאלת עומרי)
+- **התיקון:** בגרסה הראשונה כתבתי "SML לא תורם". זה חזק מדי. ה-ablation מראה תרומה מובהקת גם בלי PRM:
+
+| ניגוד (GAP, 707-group bootstrap) | PRMScore | within-AUC | מקור |
+|---|---|---|---|
+| EQ → CHAIN (boosting) | +0.44 עד +2.08, כל ה-CIs > 0 | +.013 עד +.024 | `collection_v1/tables/ABLATION_GAP.csv` |
+| MEAN → TELE (backbone, בלי PRM) | +0.61 עד +1.58, כל ה-CIs > 0 | +.007 עד +.018 | אותו קובץ |
+| mean → L-SML (standalone base model) | +0.42 עד +1.13, כל ה-CIs > 0 | +.001 עד +.012 (72B, PURE: CI נוגע ב-0) | `STANDALONE_TABLES.md` |
+
+- **מה זה אומר:** התרומה של L-SML מעל ממוצע אמיתית ב-standalone, רק קטנה יותר מב-boosting (ב-boosting חלק מהרווח הוא הגדלת משקל ה-PRM מ-1/17 ל-~1/(K+1)).
+- **מה זה לא משנה:** הממוצע המכוון כבר לוכד את רוב ה-signal (mean standalone .754–.783 within-AUC). L-SML משפר את המשקלות *בתוך* הכיוון שה-prior של orientation כבר בחר. הוא לא מכריע *איזה* factor הוא שגיאה (S1).
+- **ה-flag rule (GAP)** תורם גם הוא בשני המקרים, אבל הוא שכבת החלטה (W10). הוא לא קשור לשאלת הזיהוי.
 
 ---
 
@@ -209,7 +217,7 @@ Setup: 8 telemetry views, Δ = 0.5 לכולם, p = .3, N = 200k, z-scored. nuisa
 |---|---|
 | "label-free telemetry of the base model matches a step-label-trained PRM on PRMBench" | **רק ל-Qwen-7B ב-PRMScore**, ולא ב-ranking; dev data |
 | "outperforms PRMs" | **לא** (מפסיד ל-72B; מנצח רק PRMs חלשים) |
-| "מבוסס על SML עם ערובות" | **לא**. אין ערובת זיהוי; SML ≈ mean |
+| "מבוסס על SML עם ערובות" | **לא**. אין ערובת זיהוי; SML משפר משקלות (מובהק, קטן), לא מזהה את ה-factor |
 | "מזהה שגיאות ולא artifact של הבנצ'מרק" | **עדיין לא** (S3, #3) |
 | "בשגיאות טבעיות" | **לא**. base model לא נבדק; backbone מפסיד ל-position |
 | "fine-tuning על step labels מוסיף מעט מעבר ל-telemetry של אותו base, ב-PRMBench" | **כן**, כממצא ניתוח, עם 5 זוגות |
