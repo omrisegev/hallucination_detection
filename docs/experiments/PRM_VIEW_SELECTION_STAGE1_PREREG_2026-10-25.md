@@ -153,3 +153,28 @@ GPU jobs; new inference; any change to frozen results; promoting a subset as the
   - The PRM enters the fused scores only as one continuous term, so this does not affect them.
 - **Timing.** 0.365 s per subset across all 10 cells, with early exit when a cell has K < 3. About 6.6 core-hours in
   total. 5/40 random subsets were valid in all 10 cells.
+
+## Post-run disclosures (2026-10-26)
+
+**Engineering change before the search, no effect on results.** Workers load light per-cell caches
+(`stage1.py cache`), because 16 full workers exceeded memory (about 5 GB each). The caches reproduce chunk 0
+bit for bit.
+
+The independent verification found the following, and none of them changes the headline (0 of 12,247 valid subsets
+meets the goal):
+1. **Unregistered constant.** DS-EM clips ψ, η and the prevalence to [1e-6, 1−1e-6].
+   - In Socratic cells the PRM's estimate is often at that boundary, so the floor sets its weight.
+   - The secondary counts "2 beat the PRM in all 10" and "4 win all 5 Socratic cells" hold at floors 1e-12, 1e-9 and
+     1e-6, and break at 1e-4.
+2. **Fitting pool.** On PRMBench it excludes the 758 control answers. That is label-informed metadata, as in stage
+   0; with all answers in the pool, one tested margin changes sign.
+3. **DS-EM details.**
+   - It uses soft-majority initialization and a tolerance on the mean log-likelihood. The pre-registration says
+     hard majority and the total.
+   - The 500-iteration cap is sometimes hit.
+4. **An invalidity rule** (all between-group weights clipped) existed, but never fired.
+
+**Exploratory, not pre-registered.** A fork of this session diagnosed Math-Shepherd's Socratic failure as step
+position, and probed position-residualized channels (`results/prm_view_selection_v1/position_probe/`). It also
+counted the 8 cells without Math-Shepherd: 9 subsets beat both comparators. Any use of these needs its own
+amendment before a rerun.

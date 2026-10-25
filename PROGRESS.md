@@ -1,3 +1,11 @@
+## 2026-10-26: view selection stage 1 (exhaustive search), Step 479 (Claude)
+
+- **No shared subset beats both the PRM and the same-set mean in all 10 cells.** 0 of 12,247 valid subsets do; the
+  best wins 9/10.
+- **Socratic is the bottleneck,** and selection does not transfer across benchmarks or across PRMs.
+- **Next (undecided):** a PRM weight anchor plus position residualization, pre-registered before any rerun.
+- Source: `results/prm_view_selection_v1/stage1/README.md`.
+
 ## 2026-10-25: view selection stage 0 (descriptive), Step 478 (Claude)
 
 - **From PRMBench to Socratic the PRM improves and the telemetry degrades:** median within-AUC falls in 5/5 PRMs.

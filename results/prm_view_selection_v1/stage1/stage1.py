@@ -3,6 +3,7 @@ docs/experiments/PRM_VIEW_SELECTION_STAGE1_PREREG_2026-10-25.md).
 
     python stage1.py check            # parity of the vectorized GAP / metric / groups against the evaluator
     python stage1.py time [n]         # time n random subsets on all 10 cells
+    python stage1.py cache            # light per-cell caches for the search workers (with a parity check)
     python stage1.py run [workers]    # all 64,839 subsets, checkpointed per chunk in chunks/
     python stage1.py assemble         # chunks -> SEARCH.npz
 """
@@ -64,6 +65,20 @@ class CellData:
         ref = STATUS.get((bench, prm, 'PRM same rule (better scale under GAP)'))
         self.ps_prm_status = float(ref['GAP']) if ref else None
 
+    def save_light(self, path):
+        np.savez(path, Z=self.Z, V=self.V.astype(np.int8), pool=self.pool, R=self.R, off=self.c.off, yv_m=self._yv_m,
+                 nyv_m=self._nyv_m, empty=self.empty, ps_prm=self.ps_prm, sign=self.sign, bench=self.bench, prm=self.prm)
+
+    @classmethod
+    def from_light(cls, path):
+        """What evaluate() needs, without the evaluator's Cell (search workers; about 40 MB per cell)."""
+        D = np.load(path); o = cls.__new__(cls); o.c = None
+        o.bench, o.prm = str(D['bench']), str(D['prm'])
+        o.Z, o.V, o.pool, o.R = D['Z'], D['V'].astype(float), D['pool'], D['R']
+        o._yv_m, o._nyv_m, o.empty, o.ps_prm, o.sign = D['yv_m'], D['nyv_m'], D['empty'], float(D['ps_prm']), D['sign']
+        o.Vp = o.V[o.pool]; o.ans = A.Answers(D['off'])
+        return o
+
     def metric(self, f):
         pv = ~f
         C = np.array([np.sum(self._yv_m & pv), np.sum(self._nyv_m & pv), np.sum(self._nyv_m & f), np.sum(self._yv_m & f)], float)
@@ -119,9 +134,40 @@ class CellData:
 _CELLS = None
 
 
-def _init():
+def _init(prune=False):
+    """prune=True (search workers): drop what evaluate() never touches (the evaluator's 49 arms, PRMBench meta rows,
+    extras), about 2-3 GB per worker otherwise."""
     global _CELLS
-    _CELLS = [CellData(b, p) for b, p in CELLS]
+    _CELLS = []
+    for b, p in CELLS:
+        cell = CellData(b, p)
+        if prune:
+            cell.c.arms = {}; cell.c.extra = {}
+            if hasattr(cell.c, 'meta_rows'): cell.c.meta_rows = None
+        _CELLS.append(cell)
+    if prune:
+        import gc; gc.collect()
+        print(f'{time.strftime("%H:%M:%S")} worker {os.getpid()} ready', flush=True)
+
+
+def _init_pruned():
+    """Search workers load the light per-cell caches written by `stage1.py cache`."""
+    global _CELLS
+    _CELLS = [CellData.from_light(HERE / 'cache' / f'{b}__{p}.npz') for b, p in CELLS]
+    print(f'{time.strftime("%H:%M:%S")} worker {os.getpid()} ready', flush=True)
+
+
+def build_cache():
+    (HERE / 'cache').mkdir(exist_ok=True)
+    for b, p in CELLS:
+        cell = CellData(b, p); path = HERE / 'cache' / f'{b}__{p}.npz'
+        cell.save_light(path)
+        light = CellData.from_light(path)                       # the light cell must give the same answers
+        for S in ([0, 1, 2, 3], [0, 4, 7, 10, 12], list(range(16))):
+            a, z = cell.evaluate(S), light.evaluate(S)
+            assert a.keys() == z.keys() and all((a[k] == z[k]) or (a[k] != a[k] and z[k] != z[k]) for k in a), (b, p, S)
+        print(b, p, 'cached, light parity OK', flush=True)
+        del cell, light
 
 
 def all_subsets():
@@ -204,7 +250,7 @@ def run(workers):
     import multiprocessing as mp
     (HERE / 'chunks').mkdir(exist_ok=True)
     n_chunks = int(np.ceil(len(all_subsets()) / CHUNK)); t0 = time.time()
-    with mp.get_context('spawn').Pool(workers, initializer=_init) as pool:
+    with mp.get_context('spawn').Pool(workers, initializer=_init_pruned) as pool:
         for k, (ci, st) in enumerate(pool.imap_unordered(_run_chunk, range(n_chunks))):
             print(f'{time.strftime("%H:%M:%S")} chunk {ci} {st} ({k + 1}/{n_chunks}, {time.time() - t0:.0f}s)', flush=True)
 
@@ -224,3 +270,4 @@ if __name__ == '__main__':
     elif cmd == 'time': timing(int(sys.argv[2]) if len(sys.argv) > 2 else 30)
     elif cmd == 'run': run(int(sys.argv[2]) if len(sys.argv) > 2 else 16)
     elif cmd == 'assemble': assemble()
+    elif cmd == 'cache': build_cache()

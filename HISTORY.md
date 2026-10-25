@@ -11051,6 +11051,58 @@ checks whether the label-free machinery can see which channels help, on PRMBench
 
 ---
 
+### Step 479 [PRM boosting, view selection] — Stage 1: exhaustive subset search; no channel subset beats both the PRM and the same-set mean in all 10 cells, and Socratic is the bottleneck (2026-10-26)
+
+**What**: Pre-registered (0124cfe6, pre-run checks 0a6be2e6, post-run disclosures) exhaustive search.
+- **Search space:** all 64,839 subsets of the 16 N16 channels with |S| ≥ 4.
+- **Cells:** 5 PRMs × PRMBench and Socratic, with refitting from scratch in each cell.
+- **Method:**
+  - PRM-anchored orientation and per-answer GAP votes;
+  - L-SML groups (Jaffe 2016, Algorithm 1), with K ≥ 3 required in every cell;
+  - SML within groups, two-coin DS-EM between groups, all weights non-negative;
+  - the binary-estimated weights applied to the continuous answer-z values; GAP; official PRMScore.
+- **Goal (Omri):** one shared subset that beats both the PRM alone and the plain mean of the same views in all 10
+  cells.
+- **Compute:** 72 minutes on 14 workers, from light per-cell caches (full workers exceeded memory).
+
+**Why**: Omri's idea. A small, principled channel set, binarized to cut channel–channel dependence, should keep the
+PRM dominant and avoid the copies that break L-SML.
+
+**Result** (`results/prm_view_selection_v1/stage1/README.md`; independent re-implementation and recount matched):
+- **No subset meets the goal.** Of 12,247 valid subsets, 0 succeed; the same holds with binary scoring and with HEM
+  on the top 300. The best wins 9/10. Every 9/10 subset fails either Socratic Math-Shepherd (−15.7 to −16.2) or
+  Socratic Qwen-7B (−3.4).
+- **Partial targets:** 815 subsets win all 5 PRMBench cells, 4 win all 5 Socratic cells, and 2 near-identical
+  subsets beat the PRM alone in all 10 (but not the mean).
+- **Socratic is the bottleneck.** The share of subsets beating the PRM there is 1.7–43%. The best gains on strong
+  PRMs are +0.4 to +2.3, against 81–96% of subsets beating the PRM on PRMBench.
+- **Selection does not transfer.**
+  - Selected on PRMBench, it loses all 5 Socratic cells (−1.3 to −15.1).
+  - Selected on Socratic, it beats the PRM on PRMBench 5/5, but loses to the same-set mean 5/5.
+  - Leave-one-PRM-out: the held-out PRMBench cell is won 5/5, the held-out Socratic cell lost 5/5 (−1.3 to −20.5).
+- **Mechanism.** Where fusion survives on Socratic, DS-EM gives the PRM 70–86% of the weight; when that share
+  collapses, so does the score. Between-group weights were clipped in 37% of fits.
+- **Omri's structural conditions** (correlation with the PRM above the mean correlation with the set; low pairwise
+  correlation) do not predict the min-margin: Spearman −.06 and +.27.
+- **Verification caveats.**
+  - The small Socratic wins are tie-level and depend on DS-EM's unregistered probability floor (1e-6). The
+    secondary counts break at 1e-4.
+  - The PRMBench fitting pool excludes the label-known control answers.
+- **Fork analyses** (exploratory, reproduced here):
+  - Math-Shepherd's Socratic failure is step position: residualizing the channels fixes orientation, but DS-EM then
+    moves weight off the PRM and the strong-PRM cells collapse.
+  - Without Math-Shepherd, 9 subsets beat both comparators in 8 cells, with Socratic margins that are essentially
+    the PRM except on RLHFlow.
+- **Next** (undecided): register a PRM weight anchor (a floor, or the PRM in every group), together with position
+  residualization, before any rerun.
+
+**Files changed**:
+- `docs/experiments/PRM_VIEW_SELECTION_STAGE1_PREREG_2026-10-25.md`
+- `spectral_utils/prm_anchored_lsml.py`
+- `results/prm_view_selection_v1/stage1/`
+
+---
+
 ### Step 291 [prm-voters] — PRMBench step voters pilot execution and gate verification on AIRCC
 
 **What**: Executed and verified the PRMBench step voter pilots (N=30, 35 meta rows) on the `aircc` compute cluster (`power-gpu`, `owner_940`, NVIDIA B200 GPU).
