@@ -1,3 +1,12 @@
+## 2026-10-25: class-conditional telemetry correlation (Ising check), Step 477 (Claude)
+
+- **Error and correct steps have different channel correlations on 5/5 PRMBench PRMs** (p = .001; survives position
+  terciles and a class-mean-shift control). But QDA < LDA on 5/5 PRMs, and cross products add only +.001 to +.010
+  within-AUC.
+- **Supervised linear LR beats CHAIN_N16 by +.008 to +.034.** The headroom is in the linear weights.
+- Step length and error category are still not controlled as confounds.
+- Source: `results/telemetry_class_correlation_v1/README.md`.
+
 ## 2026-10-25: AUTO-F (AUTO partition + block-CCA/Fisher weights), fail, Step 476 (Claude)
 
 - **AUTO-F is below AUTO (−.031 to −.069) and below CHAIN (−.046 to −.102) in 5/5 PRMBench PRMs.**

@@ -10967,6 +10967,44 @@ fix AUTO's absorbed PRM (Step 475). The Ising aggregation paper (arXiv 2601.2233
 
 ---
 
+### Step 477 [PRM boosting] — Class-conditional telemetry correlation on PRMBench: real, but a quadratic rule gains almost nothing (2026-10-25)
+
+**What**: Label-using diagnostic (CPU, no method change). Answer-z N16 and N17 (N16 + PRM reward), 5 PRMBench PRMs,
+6,209 non-control answers with ≥3 steps (83,368 steps: 13,147 error, 70,221 correct).
+- **Part A.** Compare R_err with R_ok: off-diagonal Frobenius norm, mean off-diagonal r, top pairs.
+  - Null: 1,000 within-answer label permutations. CIs: 1,000-draw cluster bootstrap by source group.
+  - Robustness: relative-position terciles.
+- **Part B.** Supervised headroom, 5-fold GroupKFold by source group, within-answer AUC. Arms: LDA, QDA, LR linear,
+  LR + squares, LR + pairwise products, label-free CHAIN_N16.
+
+**Why**: The Ising aggregation paper (arXiv 2601.22336) shows that class-dependent dependence can be invisible to a
+linear rule. Omri asked whether this explains L-SML's ceiling.
+
+**Result** (`results/telemetry_class_correlation_v1/`):
+- **The dependence differs, on 5/5 PRMs.**
+  - N16 Frobenius norm 0.94–1.76 against permutation-null means of 0.30–0.44, p = .001 everywhere.
+  - Survives position terciles in 26/30 cells; the exceptions are the first tercile of the two Qwen PRMs.
+- **Confound found and ruled out.** Answer-z plus a pure class mean shift can by itself make R_err ≠ R_ok.
+  - Class-centred correlations stay at 1.10–1.62.
+  - An equal-covariance Gaussian simulation gives only 0.14–0.17.
+- **Pattern.** realized_z / realized_drv couple far more strongly to the entropy, energy and tail channels on error
+  steps. "Errors agree more overall" (Curie-Weiss) does not hold on the two Qwen PRMs.
+- **Little detection value.**
+  - QDA < LDA on 5/5 PRMs.
+  - Cross products beyond squares add +.001 to +.010 within-AUC.
+  - Supervised linear LR beats CHAIN_N16 by +.008 to +.034: the headroom is in the linear weights, not in a
+    quadratic rule.
+  - Agrees with Step 476's pre-registered LDA/QDA diagnostic.
+- **CHAIN_N16 within-AUC recomputed with `evaluate_collection.within`:** .8377 (Qwen-7B) and .7749 (RLHFlow), matching.
+- **Open.** Step length and error category are not yet controlled. The 16 channels include the three digit features.
+  Development data; every statistic uses labels.
+
+**Files changed**:
+- `results/telemetry_class_correlation_v1/`: `class_correlation.py`, `CLASS_CORRELATION.csv`, `QUADRATIC_HEADROOM.csv`,
+  `TOP_PAIRS.csv`, `RUN_META.json`, `README.md`, `run.log`
+
+---
+
 ### Step 291 [prm-voters] — PRMBench step voters pilot execution and gate verification on AIRCC
 
 **What**: Executed and verified the PRMBench step voter pilots (N=30, 35 meta rows) on the `aircc` compute cluster (`power-gpu`, `owner_940`, NVIDIA B200 GPU).
