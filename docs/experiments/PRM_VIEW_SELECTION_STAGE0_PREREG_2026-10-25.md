@@ -139,3 +139,28 @@ Part C therefore uses a new fit, `binary_view_estimation.anchored_two_factor`:
 It recovers u, λ and ψ within .03 on the same synthetic case (`tests/test_binary_view_estimation.py`, 5/5 pass).
 Nothing else changes. The divergence in the existing helper is reported to the PRM math rigor session; it is not
 fixed here.
+
+## Amendment 2, after the first run (2026-10-25): disclosed deviations and sensitivity runs
+
+An independent verification agent recomputed the key values with its own code, and all of them matched. It flagged
+the following deviations:
+
+1. **Orientation scale.** The sign of each channel was taken on raw values, as worded above ("pooled Pearson
+   correlation"). That mixes in between-answer variation, while everything else is answer-z.
+   - On PRMBench/Qwen-7B this anti-orients top15_turnover and realized_z; on Socratic/Math-Shepherd, realized_z.
+   - Sensitivity run: `ORIENT=az` (sign on answer-z).
+2. **Prevalence.** b is fitted by least squares through the origin over all distinct triples, not the median written
+   in B1. Prevalence is descriptive only.
+3. **Dawid-Skene stopping.** The tolerance is relative (|Δll| < 1e-8·|ll|), not absolute.
+4. **Estimation pool.** `keep` excludes PRMBench's 758 control answers. That is label-informed metadata (they are known
+   to be error-free). Sensitivity run: `POOL=all`.
+5. **The two-factor information ratio I_all/I_PRM (11–379) is not interpretable as information gain.**
+   - λ_PRM = 0 only fixes the rotation. The fitted "error factor" is the shared telemetry direction that the PRM
+     loads on.
+   - I is inflated by near-duplicate channels: the residual partial correlation between digit_alternative and
+     digit_alternative_innovation is .997.
+   - Validation confirms it: the Bartlett error score's within-AUC is .809 against .801 for the PRM (Qwen-7B).
+   - The ratio is reported as a diagnostic of channel redundancy only, and P2's I-ratio clause is void.
+
+Both sensitivity runs (`sensitivity_orient-az_pool-keep/`, `sensitivity_orient-az_pool-all/`) leave every prediction
+verdict unchanged.
