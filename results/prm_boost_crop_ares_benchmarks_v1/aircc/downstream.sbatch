@@ -79,5 +79,5 @@ for mode in ${ONLY_MODES:-prm sa}; do
     done
   done
 done
-md5sum $SC/*.npz > $O/MD5_scores.txt
+( cd $SC && md5sum ./*.npz > $O/MD5_scores.txt ) 2>/dev/null || echo "no scores yet"
 echo CAB_DOWNSTREAM_DONE
