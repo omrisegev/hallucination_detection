@@ -16,6 +16,7 @@ SB=$TEL_CODE/cluster/submit_prm_telemetry_offline.sbatch
 submit() {   # name wall out args...
   local name=$1 wall=$2 out=$3; shift 3
   if [ -e "$out/manifest.json" ] && [ "$phase" != full ]; then echo "REFUSING: $out already has a manifest" >&2; return 1; fi
+  if [ -n "$(squeue -h -u $USER -n $name 2>/dev/null)" ]; then echo "REFUSING: $name is already queued or running" >&2; return 1; fi
   sbatch --parsable -A $ACCT -p $PART --qos=$QOS --time=$wall --job-name=$name \
     --export=ALL,CODE_DIR=$TEL_CODE $SB "$@" --out $out
 }

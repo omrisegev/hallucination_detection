@@ -13,8 +13,8 @@ export GDRIVE=gdrive:hallucination_detection/cluster_results/prm_boost_crop_ares
 export RC=$S/bin/rclone
 
 export ADAPTERS="qwen_prm pure_prm rlhflow_prm math_shepherd qwen_prm_72b"
-export NEW_BENCHES="crv_arith crv_gsm8k math_shepherd prm800k deltabench"     # prm mode AND standalone
-export SA_ONLY_BENCHES="processbench socratic hard2verify"                  # PRM telemetry exists; standalone missing
+export NEW_BENCHES=${NEW_BENCHES:-"crv_arith crv_gsm8k math_shepherd prm800k deltabench"}     # prm mode AND standalone
+export SA_ONLY_BENCHES=${SA_ONLY_BENCHES-"processbench socratic hard2verify"}                  # PRM telemetry exists; standalone missing
 declare -A ANSWERS=( [processbench]=$S/data/prm_boost_processbench_v1/answers.json
                      [socratic]=$S/data/lsml_external_20260924/socratic/answers.json
                      [hard2verify]=$S/data/lsml_external_20260924/hard2verify/answers.json )
