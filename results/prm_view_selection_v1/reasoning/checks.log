@@ -1,0 +1,120 @@
+{
+ "rule_pick_frequency_of_8": {
+  "q15_H1": 1,
+  "q15_VE1": 3,
+  "chosen_surprisal": 5,
+  "true_tail50": 3,
+  "energy_level": 2,
+  "energy_innovation": 2,
+  "top15_turnover": 1,
+  "top50_js": 4,
+  "bocpd_p0": 4,
+  "realized_z": 1,
+  "realized_drv": 1,
+  "digit_spread": 8
+ },
+ "rule_pick_frequency_of_8_cov": {
+  "q15_H1": 2,
+  "q15_VE1": 1,
+  "chosen_surprisal": 4,
+  "logprob_margin": 2,
+  "true_tail50": 3,
+  "energy_level": 2,
+  "energy_innovation": 5,
+  "top15_turnover": 1,
+  "top50_js": 1,
+  "bocpd_p0": 4,
+  "realized_z": 1,
+  "realized_drv": 1,
+  "digit_spread": 8
+ },
+ "rule_pooled_family_picks": {
+  "uncertainty": "true_tail50",
+  "realized": "chosen_surprisal",
+  "dynamics": "energy_innovation",
+  "digit": "digit_spread"
+ },
+ "rule_pooled_median_corr": {
+  "q15_H1": 0.272,
+  "q15_VE1": 0.217,
+  "chosen_surprisal": 0.297,
+  "logprob_margin": 0.177,
+  "true_tail50": 0.315,
+  "energy_level": 0.219,
+  "energy_innovation": 0.163,
+  "top15_turnover": 0.086,
+  "top50_js": 0.141,
+  "dominant_freq16": 0.047,
+  "bocpd_p0": 0.087,
+  "realized_z": 0.106,
+  "realized_drv": 0.169,
+  "digit_alternative": 0.196,
+  "digit_spread": 0.275,
+  "digit_alternative_innovation": 0.199
+ },
+ "stage2": {
+  "valid": 22436,
+  "successes": 1073,
+  "share_with_EI_or_JS_valid": 0.745,
+  "share_with_EI_or_JS_successes": 0.898,
+  "success_rate_with_EI": 0.0673,
+  "success_rate_without_EI": 0.0226,
+  "median_mean_by_cell_with_EI": [
+   66.4,
+   65.79,
+   66.46,
+   63.62,
+   61.83,
+   59.22,
+   62.25,
+   56.59
+  ],
+  "median_mean_by_cell_without_EI": [
+   67.94,
+   67.61,
+   67.24,
+   65.35,
+   63.59,
+   60.9,
+   63.26,
+   58.0
+  ],
+  "median_fused_by_cell_with_EI": [
+   68.07,
+   66.75,
+   66.36,
+   63.88,
+   64.61,
+   60.26,
+   63.29,
+   55.05
+  ],
+  "median_fused_by_cell_without_EI": [
+   68.18,
+   68.63,
+   67.23,
+   64.48,
+   64.56,
+   61.09,
+   63.5,
+   57.03
+  ]
+ },
+ "stage1_redundancy": {
+  "n_uncertainty_family_channels": {
+   "rho_socratic_median_prm_share": 0.136,
+   "rho_socratic_min_margin": 0.276,
+   "rho_prmbench_min_margin": -0.047
+  },
+  "n_families_covered": {
+   "rho_socratic_median_prm_share": 0.226,
+   "rho_socratic_min_margin": 0.256,
+   "rho_prmbench_min_margin": 0.098
+  }
+ },
+ "replay_parity": {
+  "compared": 31,
+  "not_in_search": 0,
+  "max_abs_diff": 0.0
+ }
+}

@@ -11153,6 +11153,81 @@ search for a subset that works both with and without the PRM, charts, and a comp
 
 ---
 
+### Step 481 [PRM boosting, view selection] — Reasoning for the channel set: step position explains the Socratic wins; a label-free Jaffe-based rule rebuilds SUB5; the strong-PRM Socratic gap is weighting; Socratic checked against its paper; redundancy under SLIDER's protocol (2026-10-26)
+
+**What**: Reviewed stages 0–2 to find the channel set easiest to justify, then answered Omri's follow-ups.
+- **Omri's decision:** Math-Shepherd is dropped. The line now uses 4 PRMs × PRMBench/Socratic = 8 cells.
+- **Two pre-declared descriptive runs.** No search; CPU only; existing caches.
+  - `PREDECLARATION_8CELL_EVAL.md`: three sets, raw and position-neutral, with and without the PRM; the
+    Jaffe-assumption diagnostics; error categories; the competitor protocols.
+  - `PREDECLARATION_REDUNDANCY_SLIDER.md`: redundancy errors on both benchmarks under SLIDER's protocol.
+- **Post-hoc diagnostics, labelled as such:**
+  - weighting: label-free DS-EM against Oracle-CI;
+  - position as an extra voter;
+  - an oracle check of how much position can add;
+  - Socratic's label structure by reasoning pattern.
+- **The Socratic-PRMBench paper** (arXiv 2505.23474) was read.
+- **Parity:**
+  - the fork's position probe, 18/18;
+  - the competitor protocols, 20/20;
+  - SEARCH replays, 31/31;
+  - COMP_SLIDER, 12/12.
+
+**Why**: Omri asked for the set our argument is easiest to ground mathematically (Jaffe, Fetaya and Nadler 2016)
+and in error types, TPR/FPR and the competitors. He also asked how the pipeline works, how the channels perform with
+and without the PRM, how position should be handled, whether Socratic is a first-error benchmark, and how we compare
+with SLIDER on redundancy.
+
+**Result** (`docs/research_notes/VIEW_SELECTION_FEATURE_REASONING_2026-10-26.md`; development data, in-sample):
+- **Position explains the Socratic "wins".**
+  - Position alone has within-answer AUC .731 on Socratic (.662 on PRMBench).
+  - The PRM anchor orients the weak dynamics channels along position (+.24 to +.60).
+  - 8 of the 9 subsets that win all 8 cells contain top15_turnover + dominant_freq16 + bocpd_p0, against 7.8% of
+    valid subsets.
+  - After neutralizing position, the PRM's share falls from .70–.77 to .15–.26, and SUB5 loses all 3 strong-PRM
+    Socratic cells (−2.3 to −4.0).
+- **Without position, Jaffe's assumptions hold far better.**
+  - All 16 channels are above chance in 8/8 cells (raw: up to 6 below).
+  - The Lemma-1 misfit of [PRM, rule set] is ≤ .046 in every cell (raw: up to .33).
+- **The label-free rule rebuilds SUB5's structure.** The rule takes the channel most covariant with the PRM's vote
+  in each code-defined family, with an orientation audit. It picks {q15_H1, chosen_surprisal, top15_turnover,
+  digit_spread}. Cell by cell, its dynamics slot rotates among exactly SUB5's three dynamics channels.
+- **Performance, position-neutral:**
+  - every set beats the PRM on 4/4 PRMBench cells and on Socratic RLHFlow (+11 to +12);
+  - every set loses on the 3 strong-PRM Socratic cells;
+  - SUB5 beats its own mean in 8/8 cells with the PRM and 7/8 without it.
+- **The weighting is the bottleneck on strong-PRM Socratic.**
+  - The available gain there is ≤ +0.5, and only when the PRM holds most of the weight.
+  - DS-EM overestimates the channels' accuracy by +.10 to +.18.
+  - The paper's Oracle-CI also loses.
+- **The mechanics, per Omri's questions:**
+  - GAP binarization is used for SML.
+  - L-SML is Algorithm 1 plus SML within groups plus DS-EM between groups; the scoring is linear, not Eq. 19.
+  - HEM ran only as a secondary on 300 subsets: 0 successes.
+  - Clustering ran even on 4-channel subsets, where Lemma 4's guarantee is vacuous because it needs K ≥ 4.
+- **Position cannot be an SML voter.** After residualization the channels are negatively correlated with position
+  within each class (60/64 checks), so a position voter violates Lemma 1 by construction. Position belongs in the
+  prior of a latent-class model.
+- **Socratic is used correctly.**
+  - It is a PRMBench-style step-level benchmark, scored with PRM-Score; our native scores reproduce the paper's.
+  - Its position signal comes from design: the error's location depends on the reasoning pattern (integration
+    .92–.98, repeat .46–.51).
+- **Redundancy:**
+  - PRMBench: every telemetry arm beats SLIDER's 61.9 (66–78); the PRMs are near chance in balanced accuracy.
+  - Socratic regather_redundancy: position-neutral SUB5 + PRM beats the PRM in 4/4 PRMs (86–89 against 55–85).
+  - Late patterns: position and the PRM dominate.
+- **Not established:**
+  - The rule was written after SUB5 was known.
+  - Nothing has been tested on held-out data.
+  - SLIDER itself could not be run.
+
+**Files changed**:
+- `docs/research_notes/VIEW_SELECTION_FEATURE_REASONING_2026-10-26.md`
+- `results/prm_view_selection_v1/reasoning/`: scripts, pre-declarations and outputs. `cache_pos/` and `scores/` are
+  git-ignored.
+
+---
+
 ### Step 291 [prm-voters] — PRMBench step voters pilot execution and gate verification on AIRCC
 
 **What**: Executed and verified the PRMBench step voter pilots (N=30, 35 meta rows) on the `aircc` compute cluster (`power-gpu`, `owner_940`, NVIDIA B200 GPU).

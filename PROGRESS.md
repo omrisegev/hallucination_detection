@@ -1,3 +1,27 @@
+## 2026-10-26: reasoning for the channel set, position, Socratic and SLIDER, Step 481 (Claude)
+
+- **Omri dropped Math-Shepherd.** The line now uses 4 PRMs × 2 benchmarks = 8 cells.
+- **The Socratic wins come from step position.**
+  - Position alone has within-answer AUC .731.
+  - The PRM anchor turns weak dynamics channels into position proxies.
+  - With position neutralized, no set beats a strong PRM on Socratic.
+  - The gap there is weighting: the available gain is ≤ +0.5, and DS-EM overestimates the telemetry. It is not the
+    choice of channels.
+- **A label-free rule rebuilds SUB5's structure in the position-neutral representation.** The rule is Jaffe's
+  selection heuristic, with accuracy ranked by covariance with the PRM.
+- **Socratic is a step-level PRMBench-style benchmark.** This was checked against its paper, so it was used correctly.
+  Its position signal comes from its reasoning-pattern design.
+- **Redundancy:**
+  - PRMBench: the telemetry beats SLIDER (66–78 against 61.9 accuracy).
+  - Socratic regather_redundancy: SUB5 + PRM beats all 4 PRMs.
+- **Open decisions:**
+  - whether the position-neutral representation becomes the default;
+  - a PRM weight anchor, or accepting the PRM on strong-PRM Socratic;
+  - reporting Socratic per reasoning pattern;
+  - a pre-registered held-out test on Hard2Verify.
+- **Sources:** `docs/research_notes/VIEW_SELECTION_FEATURE_REASONING_2026-10-26.md`;
+  `results/prm_view_selection_v1/reasoning/`.
+
 ## 2026-10-26: view selection stage 2 (telemetry only) and comparisons, Step 480 (Claude)
 
 - **Telemetry-only L-SML beats its own mean in all 10 cells for 380 subsets,** but never beats the PRM on strong-PRM
