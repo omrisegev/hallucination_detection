@@ -70,7 +70,7 @@ for mode in ${ONLY_MODES:-prm sa}; do
       raw=$d/external_telemetry.pkl
       if [ $mode = sa ]; then
         if [[ " $SA_ONLY_BENCHES " == *" $b "* ]]; then praw=$(printf "${PRM_RAW_OLD[$b]}" $a); else praw=$O/full_prm_${a}_${b}/external_telemetry.pkl; fi
-        [ -s $praw ] || { echo "SKIP (no PRM rewards yet): $praw"; continue; }
+        [ -s $praw ] && complete_ok $(dirname $praw)/manifest.json || { echo "SKIP (PRM run not complete): $praw"; continue; }
         [ -e $d/grafted.pkl ] || python3 -B $K/graft_rewards.py $raw $praw $d/grafted.pkl
         raw=$d/grafted.pkl
       fi
