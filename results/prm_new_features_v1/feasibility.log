@@ -1,0 +1,29 @@
+{'candidate': 'reward_next_risk', 'what': 'PRM risk of step k+1, read as evidence about step k', 'valid_rate': 0.885, 'answers_constant': 0, 'r_prm': 0.159, 'max_n16': 0.17, 'max_n16_channel': 'true_tail50', 'mean_abs_n16': 0.077, 'R2_n16': 0.05, 'R2_all': 0.107, 'r_pos': 0.233}
+{'candidate': 'reward_delta_risk', 'what': 'risk_k - risk_{k-1}: how sharply the verdict turns at step k', 'valid_rate': 0.885, 'answers_constant': 0, 'r_prm': 0.553, 'max_n16': 0.279, 'max_n16_channel': 'bocpd_p0', 'mean_abs_n16': 0.193, 'R2_n16': 0.19, 'R2_all': 0.481, 'r_pos': -0.03}
+{'candidate': 'reward_drop_from_max', 'what': 'best reward so far minus reward_k', 'valid_rate': 1.0, 'answers_constant': 2, 'r_prm': 0.778, 'max_n16': 0.562, 'max_n16_channel': 'true_tail50', 'mean_abs_n16': 0.297, 'R2_n16': 0.425, 'R2_all': 0.663, 'r_pos': 0.414}
+{'candidate': 'reward_future_mean_risk', 'what': 'mean PRM risk over steps after k', 'valid_rate': 0.885, 'answers_constant': 0, 'r_prm': 0.009, 'max_n16': -0.142, 'max_n16_channel': 'realized_z', 'mean_abs_n16': 0.068, 'R2_n16': 0.083, 'R2_all': 0.239, 'r_pos': 0.355}
+{'candidate': 'boundary_entropy', 'what': 'full-vocab entropy at the scoring state after step k', 'valid_rate': 0.885, 'answers_constant': 0, 'r_prm': 0.551, 'max_n16': 0.552, 'max_n16_channel': 'q15_H1', 'mean_abs_n16': 0.272, 'R2_n16': 0.363, 'R2_all': 0.416, 'r_pos': 0.19}
+{'candidate': 'boundary_top1_prob', 'what': 'surprisal of the backbone top-1 continuation at the scoring state after step k', 'valid_rate': 0.885, 'answers_constant': 0, 'r_prm': 0.658, 'max_n16': 0.681, 'max_n16_channel': 'true_tail50', 'mean_abs_n16': 0.344, 'R2_n16': 0.572, 'R2_all': 0.633, 'r_pos': 0.293}
+{'candidate': 'xprm_qwen_prm_72b_reward', 'what': 'qwen_prm_72b PRM risk on the same step', 'valid_rate': 1.0, 'answers_constant': 0, 'r_prm': 0.778, 'max_n16': 0.529, 'max_n16_channel': 'q15_H1', 'mean_abs_n16': 0.291, 'R2_n16': 0.393, 'R2_all': 0.652, 'r_pos': 0.226}
+{'candidate': 'xprm_pure_prm_reward', 'what': 'pure_prm PRM risk on the same step', 'valid_rate': 1.0, 'answers_constant': 0, 'r_prm': 0.598, 'max_n16': 0.638, 'max_n16_channel': 'true_tail50', 'mean_abs_n16': 0.311, 'R2_n16': 0.56, 'R2_all': 0.707, 'r_pos': 0.737}
+{'candidate': 'xprm_rlhflow_prm_reward', 'what': 'rlhflow_prm PRM risk on the same step', 'valid_rate': 1.0, 'answers_constant': 0, 'r_prm': 0.259, 'max_n16': 0.177, 'max_n16_channel': 'realized_z', 'mean_abs_n16': 0.088, 'R2_n16': 0.247, 'R2_all': 0.415, 'r_pos': -0.322}
+{'candidate': 'xprm_qwen_prm_72b_n16_mean', 'what': 'qwen_prm_72b backbone N16 mean (unoriented)', 'valid_rate': 1.0, 'answers_constant': 0, 'r_prm': 0.307, 'max_n16': 0.739, 'max_n16_channel': 'energy_level', 'mean_abs_n16': 0.527, 'R2_n16': 0.875, 'R2_all': 0.888, 'r_pos': -0.178}
+{'candidate': 'xprm_pure_prm_n16_mean', 'what': 'pure_prm backbone N16 mean (unoriented)', 'valid_rate': 1.0, 'answers_constant': 0, 'r_prm': 0.371, 'max_n16': 0.764, 'max_n16_channel': 'logprob_margin', 'mean_abs_n16': 0.504, 'R2_n16': 0.814, 'R2_all': 0.819, 'r_pos': -0.211}
+{'candidate': 'xprm_rlhflow_prm_n16_mean', 'what': 'rlhflow_prm backbone N16 mean (unoriented)', 'valid_rate': 1.0, 'answers_constant': 0, 'r_prm': 0.241, 'max_n16': 0.72, 'max_n16_channel': 'logprob_margin', 'mean_abs_n16': 0.477, 'R2_n16': 0.781, 'R2_all': 0.795, 'r_pos': -0.337}
+{'corr_boundary_entropy_vs_next_H1_first_token': 1.0}
+{'channel': 'q15_H1', 'R2_rest': 0.929, 'max_abs_other_n16': 0.867, 'r_prm': 0.602, 'r_pos': 0.297}
+{'channel': 'q15_VE1', 'R2_rest': 0.79, 'max_abs_other_n16': 0.785, 'r_prm': 0.463, 'r_pos': 0.026}
+{'channel': 'chosen_surprisal', 'R2_rest': 0.903, 'max_abs_other_n16': 0.867, 'r_prm': 0.535, 'r_pos': 0.169}
+{'channel': 'logprob_margin', 'R2_rest': 0.759, 'max_abs_other_n16': 0.709, 'r_prm': 0.395, 'r_pos': -0.135}
+{'channel': 'true_tail50', 'R2_rest': 0.901, 'max_abs_other_n16': 0.849, 'r_prm': 0.593, 'r_pos': 0.595}
+{'channel': 'energy_level', 'R2_rest': 0.758, 'max_abs_other_n16': 0.785, 'r_prm': 0.359, 'r_pos': 0.027}
+{'channel': 'energy_innovation', 'R2_rest': 0.707, 'max_abs_other_n16': 0.543, 'r_prm': -0.249, 'r_pos': -0.546}
+{'channel': 'top15_turnover', 'R2_rest': 0.861, 'max_abs_other_n16': 0.916, 'r_prm': -0.147, 'r_pos': -0.57}
+{'channel': 'top50_js', 'R2_rest': 0.875, 'max_abs_other_n16': 0.916, 'r_prm': -0.189, 'r_pos': -0.585}
+{'channel': 'dominant_freq16', 'R2_rest': 0.345, 'max_abs_other_n16': 0.528, 'r_prm': -0.017, 'r_pos': -0.238}
+{'channel': 'bocpd_p0', 'R2_rest': 0.517, 'max_abs_other_n16': 0.418, 'r_prm': 0.136, 'r_pos': -0.069}
+{'channel': 'realized_z', 'R2_rest': 0.651, 'max_abs_other_n16': 0.487, 'r_prm': 0.039, 'r_pos': -0.379}
+{'channel': 'realized_drv', 'R2_rest': 0.703, 'max_abs_other_n16': 0.714, 'r_prm': 0.329, 'r_pos': -0.135}
+{'channel': 'digit_alternative', 'R2_rest': 1.0, 'max_abs_other_n16': 1.0, 'r_prm': 0.372, 'r_pos': 0.231}
+{'channel': 'digit_spread', 'R2_rest': 0.855, 'max_abs_other_n16': 0.896, 'r_prm': 0.439, 'r_pos': 0.314}
+{'channel': 'digit_alternative_innovation', 'R2_rest': 1.0, 'max_abs_other_n16': 1.0, 'r_prm': 0.369, 'r_pos': 0.22}

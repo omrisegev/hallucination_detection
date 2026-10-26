@@ -1,0 +1,13 @@
+candidate,what,valid_rate,answers_constant,r_prm,max_n16,max_n16_channel,mean_abs_n16,R2_n16,R2_all,r_pos
+reward_next_risk,"PRM risk of step k+1, read as evidence about step k",0.885,0,0.159,0.17,true_tail50,0.077,0.05,0.107,0.233
+reward_delta_risk,risk_k - risk_{k-1}: how sharply the verdict turns at step k,0.885,0,0.553,0.279,bocpd_p0,0.193,0.19,0.481,-0.03
+reward_drop_from_max,best reward so far minus reward_k,1.0,2,0.778,0.562,true_tail50,0.297,0.425,0.663,0.414
+reward_future_mean_risk,mean PRM risk over steps after k,0.885,0,0.009,-0.142,realized_z,0.068,0.083,0.239,0.355
+boundary_entropy,full-vocab entropy at the scoring state after step k,0.885,0,0.551,0.552,q15_H1,0.272,0.363,0.416,0.19
+boundary_top1_prob,surprisal of the backbone top-1 continuation at the scoring state after step k,0.885,0,0.658,0.681,true_tail50,0.344,0.572,0.633,0.293
+xprm_qwen_prm_72b_reward,qwen_prm_72b PRM risk on the same step,1.0,0,0.778,0.529,q15_H1,0.291,0.393,0.652,0.226
+xprm_pure_prm_reward,pure_prm PRM risk on the same step,1.0,0,0.598,0.638,true_tail50,0.311,0.56,0.707,0.737
+xprm_rlhflow_prm_reward,rlhflow_prm PRM risk on the same step,1.0,0,0.259,0.177,realized_z,0.088,0.247,0.415,-0.322
+xprm_qwen_prm_72b_n16_mean,qwen_prm_72b backbone N16 mean (unoriented),1.0,0,0.307,0.739,energy_level,0.527,0.875,0.888,-0.178
+xprm_pure_prm_n16_mean,pure_prm backbone N16 mean (unoriented),1.0,0,0.371,0.764,logprob_margin,0.504,0.814,0.819,-0.211
+xprm_rlhflow_prm_n16_mean,rlhflow_prm backbone N16 mean (unoriented),1.0,0,0.241,0.72,logprob_margin,0.477,0.781,0.795,-0.337
