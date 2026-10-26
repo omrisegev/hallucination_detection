@@ -2,8 +2,54 @@
 
 Plan and gap table: [docs/experiments/PRM_BOOST_MISSING_BENCHMARKS_2026-10-26_HE.md](../../docs/experiments/PRM_BOOST_MISSING_BENCHMARKS_2026-10-26_HE.md).
 
-**Status:** the input builder ran locally. The four CROP sets match CROP Table 4 exactly. No AIRCC job has run yet:
-three ssh probes timed out on 2026-10-26.
+**Status (2026-10-26):** COLLECTION COMPLETE. 65 label-free score files (25 PRM-mode, 40 standalone) are in
+`$O/scores/` on AIRCC (`MD5_scores.txt`) and are uploaded to
+`gdrive:hallucination_detection/cluster_results/prm_boost_crop_ares_benchmarks_v1/`. Evaluation with labels has not run.
+
+## Runs (AIRCC, 2026-10-26)
+
+Code: `code_standalone_v1` (SYNC_COMMIT 41b63ac) for the telemetry. The downstream used `code_thinkfix_bank_553de79`
+(`prm_boost_build_bank_external_v2.py`, digits from the standalone tokenizer) and `eval_mirror_prm_gen_v1`
+(`ablation5_socratic.py`). Preflight: every row passed except local disk (6.7 GB free, below the 10 GB limit). Omri
+waived that row because all outputs stay on AIRCC.
+
+| step | jobs | result |
+|---|---|---|
+| census (CPU) | 293520-24 | FAILED: the container does not start on CPU nodes (`nvidia-container-cli` missing). Not needed, because the driver counts context overflow itself |
+| parity, prm mode, PRMBench first 40 rows vs the frozen pkls | 293525,27,29,31,33 | **PASS ×5, max gap 0** for rewards and all telemetry |
+| parity, standalone vs the frozen standalone pkls | 293526-34 (even) | the 40-row run differs on ~2.2% of tokens (entropy p99 0.007; 97% bit-identical) |
+| standalone determinism (same 40 rows, twice) | 293616 | **PASS, gap 0**. The difference above comes from bf16 batch composition (a 40-row run vs the full run), not from the code |
+| downstream parity P0: rebuild the Socratic qwen_prm bank + ablation5 scores | 293600 | **PASS**: 7/7 bank keys and 26/26 score keys identical to `full_qwen_prm_socratic/bank_v2` and `collect_socratic_v1/SCORES_qwen_prm.npz` |
+| timing, 12 rows per cell | 293535-99 | 65/65 manifests; the only failures are counted context overflow |
+| full runs | 293622-86, 293707 | 65/65 COMPLETE or COMPLETE_WITH_FAILURES (counted context overflow only) |
+| downstream: bank + scores | 293712 | COMPLETED, 65 SCORES files |
+
+Notes:
+- **Math-Shepherd PRM on Math-Shepherd (293644)** crashed. Row `math_shepherd:926` contains Cyrillic text with the
+  PRM's own step tag `ки`, so the PRM finds 9 scores for 3 steps. The run was redone on 9,999 rows
+  (`answers_excl_tag926.json`, job 293707). The crashed output is kept in `crashed_293644_full_prm_math_shepherd_math_shepherd/`.
+- **rlhflow_prm step-text mismatches** (prm mode): 1 row on crv_gsm8k, 175 on math_shepherd, 153 on prm800k and 434 on
+  deltabench. These are boundary-token decode differences of the Llama template. The frozen runs have the same
+  behaviour (PRMBench 152/6969, Socratic 44, ProcessBench 87), and it is not counted as a failure.
+- **Standalone cells get the PRM rewards** of the same answers (`graft_rewards.py`). An answer the PRM could not read is
+  therefore also missing from the standalone scores, even when the base model read it. Example: standalone Mistral read
+  all of DeltaBench but is scored on 447 rows.
+
+Coverage (answers with scores / all):
+
+| benchmark | qwen_prm | qwen_prm_72b | pure_prm | rlhflow_prm | math_shepherd |
+|---|---|---|---|---|---|
+| crv_arith, crv_gsm8k, prm800k, processbench, socratic | all | all | all | all | all |
+| math_shepherd | 10000 | 10000 | 10000 | 10000 | 9999 |
+| deltabench (prm and sa) | 508 | 508 | 510-511 | 1236 | 447 |
+| hard2verify (sa) | 181 | 181 | 182 | 200 | 177 |
+
+The DeltaBench and Hard2Verify losses are the 4,096-token context of the Qwen2.5-Math family and of the Math-Shepherd
+PRM. Nothing is truncated.
+
+Training-data overlap, to be marked in every table:
+- Math-Shepherd train is the training data of the Math-Shepherd PRM (and RLHFlow is trained on data of the same type).
+- `jinachris/Qwen2.5-Math-7B-PRM800K` (pure_prm) is trained on PRM800K.
 
 ## Inputs (`make_inputs.py`, run locally 2026-10-26)
 
