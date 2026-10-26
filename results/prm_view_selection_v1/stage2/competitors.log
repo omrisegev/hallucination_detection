@@ -1,0 +1,12 @@
+subsets:
+  SUB1 = S1 best (stage-1 goal, all 10): chosen_surprisal + logprob_margin + energy_innovation + top15_turnover + bocpd_p0 + realized_z + digit_alternative + digit_spread
+  SUB2 = S1 best 8 cells: q15_VE1 + chosen_surprisal + top15_turnover + dominant_freq16 + bocpd_p0
+  SUB3 = S2 best (primary, all 10): q15_VE1 + chosen_surprisal + logprob_margin + energy_innovation + top50_js
+  SUB4 = JOINT (max of min over 20 margins): q15_VE1 + chosen_surprisal + energy_innovation + top15_turnover + realized_z + digit_alternative + digit_alternative_innovation
+  SUB5 = JOINT 8 cells (no Math-Shepherd): q15_H1 + chosen_surprisal + top15_turnover + dominant_freq16 + bocpd_p0 + digit_spread
+qwen_prm_7b done
+qwen_prm_72b done
+pure_prm done
+rlhflow_prm done
+math_shepherd done
+parity vs existing COMP tables: {'n_checked': 75, 'max_abs_diff': 0.0}

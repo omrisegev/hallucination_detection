@@ -1,0 +1,262 @@
+{
+ "n_valid_all": 19254,
+ "n_success_primary": 380,
+ "n_success_secondary": 0,
+ "n_success_primary_binary": 4,
+ "n_primary_prmbench5": 2282,
+ "n_primary_socratic5": 1177,
+ "n_primary_8cells": 1073,
+ "n_beat_prm_any_socratic_strong": 386,
+ "cells_won_hist": {
+  "0": 299,
+  "1": 567,
+  "2": 1146,
+  "3": 2019,
+  "4": 2965,
+  "5": 3369,
+  "6": 3128,
+  "7": 2591,
+  "8": 1814,
+  "9": 976,
+  "10": 380
+ },
+ "per_cell": {
+  "prmbench/qwen_prm_7b": {
+   "prm": 68.00788095877274,
+   "beat_mean": 0.6974654617222396,
+   "beat_prm": 0.5142308091825075,
+   "best_fused": 70.88231951315898,
+   "best_margin": 6.5666210775728615
+  },
+  "prmbench/qwen_prm_72b": {
+   "prm": 69.49450901556327,
+   "beat_mean": 0.6537862262387036,
+   "beat_prm": 0.21346213773761297,
+   "best_fused": 71.2245390166734,
+   "best_margin": 7.491551467402182
+  },
+  "prmbench/pure_prm": {
+   "prm": 66.23546598732828,
+   "beat_mean": 0.5028565492884596,
+   "beat_prm": 0.5817492469097331,
+   "best_fused": 70.14650623488737,
+   "best_margin": 4.073155957278445
+  },
+  "prmbench/rlhflow_prm": {
+   "prm": 59.38995351991002,
+   "beat_mean": 0.4518541601745092,
+   "beat_prm": 0.9087981718084553,
+   "best_fused": 67.85352479579271,
+   "best_margin": 4.981636410072888
+  },
+  "prmbench/math_shepherd": {
+   "prm": 60.21108402794057,
+   "beat_mean": 0.2966656279214709,
+   "beat_prm": 0.6683805962397424,
+   "best_fused": 67.25119798264032,
+   "best_margin": 4.96073933694116
+  },
+  "socratic/qwen_prm_7b": {
+   "prm": 70.09754055174817,
+   "beat_mean": 0.7604134205879298,
+   "beat_prm": 0.02004778227900696,
+   "best_fused": 71.217988961302,
+   "best_margin": 13.80468649621401
+  },
+  "socratic/qwen_prm_72b": {
+   "prm": 71.72433051225886,
+   "beat_mean": 0.5421211176898307,
+   "beat_prm": 0.0,
+   "best_fused": 67.43446783512962,
+   "best_margin": 9.20365342398756
+  },
+  "socratic/pure_prm": {
+   "prm": 70.58644475948822,
+   "beat_mean": 0.6776254284823933,
+   "beat_prm": 0.0,
+   "best_fused": 66.35795330433953,
+   "best_margin": 4.249835154508965
+  },
+  "socratic/rlhflow_prm": {
+   "prm": 50.382501944480765,
+   "beat_mean": 0.23709359094214189,
+   "beat_prm": 0.9661888438765971,
+   "best_fused": 61.07221261559228,
+   "best_margin": 4.6167753363148165
+  },
+  "socratic/math_shepherd": {
+   "prm": 65.51542242902222,
+   "beat_mean": 0.45808663134933003,
+   "beat_prm": 0.0,
+   "best_fused": 59.01391851926303,
+   "best_margin": 5.478399432775717
+  }
+ },
+ "by_size": {
+  "4": {
+   "valid": 0,
+   "success": 0
+  },
+  "5": {
+   "valid": 2744,
+   "success": 61
+  },
+  "6": {
+   "valid": 3973,
+   "success": 90
+  },
+  "7": {
+   "valid": 3295,
+   "success": 91
+  },
+  "8": {
+   "valid": 2499,
+   "success": 72
+  },
+  "9": {
+   "valid": 2441,
+   "success": 57
+  },
+  "10": {
+   "valid": 1655,
+   "success": 4
+  },
+  "11": {
+   "valid": 1343,
+   "success": 2
+  },
+  "12": {
+   "valid": 851,
+   "success": 1
+  },
+  "13": {
+   "valid": 346,
+   "success": 2
+  },
+  "14": {
+   "valid": 91,
+   "success": 0
+  },
+  "15": {
+   "valid": 15,
+   "success": 0
+  },
+  "16": {
+   "valid": 1,
+   "success": 0
+  }
+ },
+ "min_margin_quantiles": {
+  "0": -27.746851896807335,
+  "0.5": -3.570266594829018,
+  "0.9": -1.039963280849008,
+  "0.99": 0.28445730946417846,
+  "1": 1.6230374825994645
+ },
+ "clip_between_rate": 0.2621637062428586,
+ "cross_benchmark": {
+  "PB->SO": [
+   -1.1001837610790943,
+   4.065969578377448,
+   -4.9089803752036545,
+   0.8764382828307262,
+   0.32626294961443847
+  ],
+  "SO->PB": [
+   4.583828820220354,
+   5.442787701753325,
+   2.900909179050288,
+   3.6414193347629364,
+   2.479229115160784
+  ]
+ },
+ "lopo_heldout": {
+  "qwen_prm_7b": [
+   4.583828820220354,
+   4.8544649892367815
+  ],
+  "qwen_prm_72b": [
+   -5.164875717614976,
+   -2.2716936222473407
+  ],
+  "pure_prm": [
+   2.900909179050288,
+   1.689672137175343
+  ],
+  "rlhflow_prm": [
+   3.1512872707127,
+   0.7845261688296645
+  ],
+  "math_shepherd": [
+   0.1638340070017108,
+   -2.2141018028303776
+  ]
+ },
+ "named": {
+  "S2 best (primary, all 10)": {
+   "subset": "q15_VE1 + chosen_surprisal + logprob_margin + energy_innovation + top50_js",
+   "s1_cells_won": 6,
+   "s2_cells_won": 10
+  },
+  "S2 best (secondary, all 10)": {
+   "subset": "q15_H1 + chosen_surprisal + true_tail50 + bocpd_p0 + realized_z + digit_spread",
+   "s1_cells_won": null,
+   "s2_cells_won": 3
+  },
+  "S2 selected on PRMBench": {
+   "subset": "q15_VE1 + chosen_surprisal + logprob_margin + energy_innovation + top50_js + bocpd_p0 + realized_drv",
+   "s1_cells_won": null,
+   "s2_cells_won": 8
+  },
+  "S2 selected on Socratic": {
+   "subset": "q15_VE1 + chosen_surprisal + logprob_margin + energy_innovation + top50_js",
+   "s1_cells_won": 6,
+   "s2_cells_won": 10
+  },
+  "S2 LOPO qwen_prm_7b": {
+   "subset": "q15_VE1 + chosen_surprisal + logprob_margin + energy_innovation + top50_js",
+   "s1_cells_won": 6,
+   "s2_cells_won": 10
+  },
+  "S2 LOPO qwen_prm_72b": {
+   "subset": "q15_H1 + chosen_surprisal + energy_innovation + dominant_freq16 + digit_alternative + digit_alternative_innovation",
+   "s1_cells_won": 4,
+   "s2_cells_won": 8
+  },
+  "S2 LOPO pure_prm": {
+   "subset": "q15_VE1 + chosen_surprisal + logprob_margin + energy_innovation + top50_js",
+   "s1_cells_won": 6,
+   "s2_cells_won": 10
+  },
+  "S2 LOPO rlhflow_prm": {
+   "subset": "q15_VE1 + chosen_surprisal + energy_innovation + top50_js + realized_drv",
+   "s1_cells_won": null,
+   "s2_cells_won": 10
+  },
+  "S2 LOPO math_shepherd": {
+   "subset": "q15_H1 + energy_innovation + dominant_freq16 + realized_drv + digit_alternative + digit_alternative_innovation",
+   "s1_cells_won": 6,
+   "s2_cells_won": 9
+  },
+  "JOINT (max of min over 20 margins)": {
+   "subset": "q15_VE1 + chosen_surprisal + energy_innovation + top15_turnover + realized_z + digit_alternative + digit_alternative_innovation",
+   "s1_cells_won": 4,
+   "s2_cells_won": 9
+  },
+  "JOINT 8 cells (no Math-Shepherd)": {
+   "subset": "q15_H1 + chosen_surprisal + top15_turnover + dominant_freq16 + bocpd_p0 + digit_spread",
+   "s1_cells_won": 9,
+   "s2_cells_won": 9
+  },
+  "S1 best (stage-1 goal, all 10)": {
+   "subset": "chosen_surprisal + logprob_margin + energy_innovation + top15_turnover + bocpd_p0 + realized_z + digit_alternative + digit_spread",
+   "s1_cells_won": 6,
+   "s2_cells_won": 8
+  },
+  "S1 best 8 cells": {
+   "subset": "q15_VE1 + chosen_surprisal + top15_turnover + dominant_freq16 + bocpd_p0",
+   "s1_cells_won": 9,
+   "s2_cells_won": 8
+  }
+ }
+}

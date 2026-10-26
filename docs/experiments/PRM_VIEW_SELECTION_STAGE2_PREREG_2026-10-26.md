@@ -103,3 +103,15 @@ GPU; new inference; any change to stage-1 or frozen results; stage 1b.
   difference of 0 (`results/prm_view_selection_v1/stage2/PARITY.json`).
 - **The `ds_em_votes(anchor=None)` majority switch** was added without changing stage 1: a stage-1 replay is identical.
 - **Timing.** 0.366 s per subset across all 10 cells; about 6.6 core-hours.
+
+## Post-run disclosures (2026-10-26)
+
+- **Added at Omri's request after the run started:** the competitor comparison (CROP, ARES, PRISM, SLIDER), with
+  each outstanding subset in "+PRM" and "alone" versions (`competitors.py`).
+- **Fixed after the independent verification:**
+  - the channel-frequency reference set, which is now the successes, as pre-registered;
+  - the PRM's matched-TPR scale for RLHFlow and Math-Shepherd.
+- **Early exit.** The pre-registered early exit hides cells, so the 8-cell secondary count is 1,078 once the hidden
+  cells are completed (1,073 in `ANALYSIS.json`); the headlines are unchanged.
+- **Carried over from stage 1:** DS-EM details (soft-majority start, tolerance on the mean log-likelihood,
+  probability floor 1e-6).

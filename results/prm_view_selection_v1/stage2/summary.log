@@ -1,0 +1,205 @@
+{
+ "n_valid_all": 19254,
+ "n_success_primary": 380,
+ "n_success_secondary": 0,
+ "n_success_primary_binary": 4,
+ "n_primary_prmbench5": 2282,
+ "n_primary_socratic5": 1177,
+ "n_primary_8cells": 1073,
+ "n_beat_prm_any_socratic_strong": 386,
+ "cells_won_hist": {
+  "0": 299,
+  "1": 567,
+  "2": 1146,
+  "3": 2019,
+  "4": 2965,
+  "5": 3369,
+  "6": 3128,
+  "7": 2591,
+  "8": 1814,
+  "9": 976,
+  "10": 380
+ },
+ "min_margin_quantiles": {
+  "0": -27.746851896807335,
+  "0.5": -3.570266594829018,
+  "0.9": -1.039963280849008,
+  "0.99": 0.28445730946417846,
+  "1": 1.6230374825994645
+ },
+ "clip_between_rate": 0.2621637062428586,
+ "cross_benchmark": {
+  "PB->SO": [
+   -1.1001837610790943,
+   4.065969578377448,
+   -4.9089803752036545,
+   0.8764382828307262,
+   0.32626294961443847
+  ],
+  "SO->PB": [
+   4.583828820220354,
+   5.442787701753325,
+   2.900909179050288,
+   3.6414193347629364,
+   2.479229115160784
+  ]
+ },
+ "lopo_heldout": {
+  "qwen_prm_7b": [
+   4.583828820220354,
+   4.8544649892367815
+  ],
+  "qwen_prm_72b": [
+   -5.164875717614976,
+   -2.2716936222473407
+  ],
+  "pure_prm": [
+   2.900909179050288,
+   1.689672137175343
+  ],
+  "rlhflow_prm": [
+   3.1512872707127,
+   0.7845261688296645
+  ],
+  "math_shepherd": [
+   0.1638340070017108,
+   -2.2141018028303776
+  ]
+ },
+ "named": {
+  "S2 best (primary, all 10)": {
+   "subset": "q15_VE1 + chosen_surprisal + logprob_margin + energy_innovation + top50_js",
+   "s1_cells_won": 6,
+   "s2_cells_won": 10
+  },
+  "S2 best (secondary, all 10)": {
+   "subset": "q15_H1 + chosen_surprisal + true_tail50 + bocpd_p0 + realized_z + digit_spread",
+   "s1_cells_won": null,
+   "s2_cells_won": 3
+  },
+  "S2 selected on PRMBench": {
+   "subset": "q15_VE1 + chosen_surprisal + logprob_margin + energy_innovation + top50_js + bocpd_p0 + realized_drv",
+   "s1_cells_won": null,
+   "s2_cells_won": 8
+  },
+  "S2 selected on Socratic": {
+   "subset": "q15_VE1 + chosen_surprisal + logprob_margin + energy_innovation + top50_js",
+   "s1_cells_won": 6,
+   "s2_cells_won": 10
+  },
+  "S2 LOPO qwen_prm_7b": {
+   "subset": "q15_VE1 + chosen_surprisal + logprob_margin + energy_innovation + top50_js",
+   "s1_cells_won": 6,
+   "s2_cells_won": 10
+  },
+  "S2 LOPO qwen_prm_72b": {
+   "subset": "q15_H1 + chosen_surprisal + energy_innovation + dominant_freq16 + digit_alternative + digit_alternative_innovation",
+   "s1_cells_won": 4,
+   "s2_cells_won": 8
+  },
+  "S2 LOPO pure_prm": {
+   "subset": "q15_VE1 + chosen_surprisal + logprob_margin + energy_innovation + top50_js",
+   "s1_cells_won": 6,
+   "s2_cells_won": 10
+  },
+  "S2 LOPO rlhflow_prm": {
+   "subset": "q15_VE1 + chosen_surprisal + energy_innovation + top50_js + realized_drv",
+   "s1_cells_won": null,
+   "s2_cells_won": 10
+  },
+  "S2 LOPO math_shepherd": {
+   "subset": "q15_H1 + energy_innovation + dominant_freq16 + realized_drv + digit_alternative + digit_alternative_innovation",
+   "s1_cells_won": 6,
+   "s2_cells_won": 9
+  },
+  "JOINT (max of min over 20 margins)": {
+   "subset": "q15_VE1 + chosen_surprisal + energy_innovation + top15_turnover + realized_z + digit_alternative + digit_alternative_innovation",
+   "s1_cells_won": 4,
+   "s2_cells_won": 9
+  },
+  "JOINT 8 cells (no Math-Shepherd)": {
+   "subset": "q15_H1 + chosen_surprisal + top15_turnover + dominant_freq16 + bocpd_p0 + digit_spread",
+   "s1_cells_won": 9,
+   "s2_cells_won": 9
+  },
+  "S1 best (stage-1 goal, all 10)": {
+   "subset": "chosen_surprisal + logprob_margin + energy_innovation + top15_turnover + bocpd_p0 + realized_z + digit_alternative + digit_spread",
+   "s1_cells_won": 6,
+   "s2_cells_won": 8
+  },
+  "S1 best 8 cells": {
+   "subset": "q15_VE1 + chosen_surprisal + top15_turnover + dominant_freq16 + bocpd_p0",
+   "s1_cells_won": 9,
+   "s2_cells_won": 8
+  }
+ }
+}
+{
+ "n_valid_both": 8194,
+ "spearman_minmargin": 0.261557499773831,
+ "spearman_mean_margin": 0.2745820596985269,
+ "top1_sizes": [
+  123,
+  193
+ ],
+ "top1_overlap": 0,
+ "top1_jaccard": 0.0,
+ "n_both_goals_10": 0,
+ "n_both_goals_8": 1,
+ "joint": {
+  "subset": "q15_VE1 + chosen_surprisal + energy_innovation + top15_turnover + realized_z + digit_alternative + digit_alternative_innovation",
+  "min_of_20": -1.0264199638488805,
+  "stage1": [
+   0.6547760422555342,
+   0.4535524488982219,
+   -0.11975146485261234,
+   -1.0264199638488805,
+   -0.20302221417914268,
+   0.15639484425636851,
+   0.44305204574524737,
+   -0.9079309020439865,
+   -0.05265339440128258,
+   -0.19061727700345443
+  ],
+  "stage2": [
+   3.2654417195474537,
+   3.2602041516059614,
+   1.2668770898634278,
+   2.4051735538058594,
+   2.7892894256146334,
+   4.571834510677185,
+   2.5477048657380763,
+   1.4325941910146582,
+   0.4740292964996371,
+   -0.9816351384115478
+  ]
+ },
+ "joint8": {
+  "subset": "q15_H1 + chosen_surprisal + top15_turnover + dominant_freq16 + bocpd_p0 + digit_spread",
+  "min_of_16": 0.12163610513348999,
+  "stage1": [
+   0.26498016721753004,
+   0.896207455352581,
+   0.6990062317353534,
+   0.7796090867710745,
+   1.2879666267805447,
+   0.6214858512379351,
+   0.2987094036877096,
+   0.14836193499988326,
+   0.4144489587057123,
+   -16.214192374685382
+  ],
+  "stage2": [
+   0.8793662354544409,
+   0.9130383569581397,
+   0.5957654350068964,
+   0.35376608462692616,
+   -0.5318397768446985,
+   2.862244484273006,
+   0.12163610513348999,
+   1.724960227081553,
+   0.5119423971239954,
+   0.09038606945494365
+  ]
+ }
+}

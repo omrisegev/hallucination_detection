@@ -11103,6 +11103,56 @@ PRM dominant and avoid the copies that break L-SML.
 
 ---
 
+### Step 480 [PRM boosting, view selection] — Stage 2: telemetry-only L-SML beats its own mean in all 10 cells for 380 subsets, but never beats the PRM on strong-PRM Socratic; no subset serves both goals in 10 cells; comparisons with CROP, ARES, PRISM and SLIDER (2026-10-26)
+
+**What**: Pre-registered (92cc8faa; pre-run checks 6cd68544) exhaustive telemetry-only search.
+- **Setup:** stage 1's algorithm without the PRM. Stored channel orientation; GAP votes; L-SML groups with K ≥ 3; SML
+  within groups, DS-EM between them (majority label switch); continuous scoring. All 64,839 subsets × 10 cells,
+  69 minutes on 14 workers.
+- **Compared against stage 1:** Spearman, top-1% overlap, joint subset, and both-goals counts on 10 and 8 cells.
+- **Competitors:** five outstanding subsets, each "+PRM" (stage-1 fusion) and "alone" (stage-2 fusion), scored under
+  CROP, ARES, PRISM and SLIDER's own protocols. Code re-used from `collection_competitors.py`; parity 75/75.
+- **Figures:** six charts.
+- **Also recorded, not run:** the stage-1b amendment proposed after stage 1
+  (`docs/experiments/PRM_VIEW_SELECTION_STAGE1B_PROPOSAL_2026-10-26.md`).
+
+**Why**: Omri asked for the same search without the PRM, a comparison of the subsets selected in the two runs, a
+search for a subset that works both with and without the PRM, charts, and a comparison with the four competitors.
+
+**Result** (`results/prm_view_selection_v1/stage2/README.md`; independent re-implementation matched):
+- **Stage 2 alone.**
+  - 380 of 19,254 valid subsets beat their own mean in all 10 cells. The best is q15_VE1 + chosen_surprisal +
+    logprob_margin + energy_innovation + top50_js (min-margin +1.62).
+  - The same subset is chosen when selecting on Socratic, and it transfers to PRMBench 5/5.
+  - Weakness: its own mean is weak, so it is still below TELE_N16, MEAN_N16 and the PRM in absolute terms (Qwen-7B
+    PRMBench 67.30 vs TELE_N16 69.26 and PRM 68.01).
+  - No telemetry-only subset beats max(PRM, mean) in all 10 cells. 0% of subsets beat the PRM on Socratic Qwen-72B,
+    PURE and Math-Shepherd.
+- **Stage 1 against stage 2.**
+  - The worst-cell margins correlate weakly (Spearman +.26). The top-1% sets do not overlap (Jaccard 0): stage 1
+    favours realized_z, stage 2 energy_innovation and realized_drv.
+  - Both goals in all 10 cells: 0 subsets.
+  - In the 8 cells without Math-Shepherd: exactly 1, q15_H1 + chosen_surprisal + top15_turnover + dominant_freq16 +
+    bocpd_p0 + digit_spread. Its Socratic margins with the PRM are tie-level.
+- **Competitors (Qwen-7B, in-sample).**
+  - PRISM matched TPR: FPR 46.31 for the best +PRM subset, against PRISM 47.13 and PRM 47.70. The best "alone" gives
+    52.18.
+  - PRMScore under GAP: alone 68.78, against PRISM 68.0 and PRM 68.01.
+  - CROP: kept 23.67 (+PRM) and 18.93 (alone), against 21.8. Cross-domain, most +PRM subsets break the 5% risk on
+    Socratic.
+  - ARES protocol: ties with the PRM on Qwen; the weak PRMs gain 6.6 to 11.6 Macro-F1.
+  - SLIDER: 75.4 / 75.5, against Step-RRI 61.9.
+- **Fixed after verification:** channel frequency is now counted over the successes; the PRM's matched-TPR scale for
+  RLHFlow and Math-Shepherd. The early exit hid 5 extra 8-cell successes (1,073 → 1,078); no headline changes.
+
+**Files changed**:
+- `docs/experiments/PRM_VIEW_SELECTION_STAGE2_PREREG_2026-10-26.md`
+- `docs/experiments/PRM_VIEW_SELECTION_STAGE1B_PROPOSAL_2026-10-26.md`
+- `spectral_utils/prm_anchored_lsml.py`
+- `results/prm_view_selection_v1/stage2/`
+
+---
+
 ### Step 291 [prm-voters] — PRMBench step voters pilot execution and gate verification on AIRCC
 
 **What**: Executed and verified the PRMBench step voter pilots (N=30, 35 meta rows) on the `aircc` compute cluster (`power-gpu`, `owner_940`, NVIDIA B200 GPU).

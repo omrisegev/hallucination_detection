@@ -1,0 +1,33 @@
+{
+ "parity": {
+  "n_checked": 75,
+  "max_abs_diff": 0.0
+ },
+ "subsets": [
+  {
+   "id": "SUB1",
+   "selection": "S1 best (stage-1 goal, all 10)",
+   "subset": "chosen_surprisal + logprob_margin + energy_innovation + top15_turnover + bocpd_p0 + realized_z + digit_alternative + digit_spread"
+  },
+  {
+   "id": "SUB2",
+   "selection": "S1 best 8 cells",
+   "subset": "q15_VE1 + chosen_surprisal + top15_turnover + dominant_freq16 + bocpd_p0"
+  },
+  {
+   "id": "SUB3",
+   "selection": "S2 best (primary, all 10)",
+   "subset": "q15_VE1 + chosen_surprisal + logprob_margin + energy_innovation + top50_js"
+  },
+  {
+   "id": "SUB4",
+   "selection": "JOINT (max of min over 20 margins)",
+   "subset": "q15_VE1 + chosen_surprisal + energy_innovation + top15_turnover + realized_z + digit_alternative + digit_alternative_innovation"
+  },
+  {
+   "id": "SUB5",
+   "selection": "JOINT 8 cells (no Math-Shepherd)",
+   "subset": "q15_H1 + chosen_surprisal + top15_turnover + dominant_freq16 + bocpd_p0 + digit_spread"
+  }
+ ]
+}

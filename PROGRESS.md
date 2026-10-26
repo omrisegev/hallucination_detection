@@ -1,3 +1,12 @@
+## 2026-10-26: view selection stage 2 (telemetry only) and comparisons, Step 480 (Claude)
+
+- **Telemetry-only L-SML beats its own mean in all 10 cells for 380 subsets,** but never beats the PRM on strong-PRM
+  Socratic.
+- **No subset serves both goals (with and without the PRM) in 10 cells.** In 8 cells without Math-Shepherd, one does.
+- **Competitors (Qwen-7B, in-sample):** a +PRM subset gets PRISM matched-TPR FPR 46.3 against 47.1; telemetry alone
+  gets PRMScore 68.8 against PRISM's 68.0.
+- **Source:** `results/prm_view_selection_v1/stage2/README.md` and `figures/`.
+
 ## 2026-10-26: view selection stage 1 (exhaustive search), Step 479 (Claude)
 
 - **No shared subset beats both the PRM and the same-set mean in all 10 cells.** 0 of 12,247 valid subsets do; the
