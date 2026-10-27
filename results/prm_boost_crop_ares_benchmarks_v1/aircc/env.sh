@@ -10,7 +10,7 @@ export NAMES_FROM=$R/prm_boost_v1/bank_prm/FEATURES.npz
 export DATA=$S/data/prm_boost_crop_ares_benchmarks_v1          # <bench>/answers.json, no labels
 export O=$R/prm_boost_crop_ares_benchmarks_v1                  # every output of this experiment
 export GDRIVE=gdrive:hallucination_detection/cluster_results/prm_boost_crop_ares_benchmarks_v1
-export RC=$S/bin/rclone
+export RC="$S/bin/rclone --config $S/.config/rclone/rclone.conf"   # $HOME moved to cycle3; the gdrive remote is in the old home
 
 export ADAPTERS="qwen_prm pure_prm rlhflow_prm math_shepherd qwen_prm_72b"
 export NEW_BENCHES=${NEW_BENCHES:-"crv_arith crv_gsm8k math_shepherd prm800k deltabench"}     # prm mode AND standalone

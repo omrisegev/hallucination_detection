@@ -89,3 +89,16 @@ read by a scoring step.
 
 The prm mode runs on the 5 new benchmarks. The standalone mode runs on the 5 new benchmarks plus ProcessBench,
 Socratic and Hard2Verify, whose PRM telemetry already exists.
+
+## Label evaluation (local, 2026-10-27; development data)
+
+`evaluate_cab.py` (metric functions imported from `prm_boost_collection_v1/evaluate_collection.py`) and `crop_cab.py`
+(CROP Table 6 protocol, functions copied from `prmbench_paper_metric_parity_v1/crop_metrics.py`). Gold lives only in
+`hd_collection_data/crop_ares_v1/gold/` on the local machine. Outputs: `eval/CAB_EVAL_ALL.csv`, `eval/CROP_TABLE6_CAB.csv`,
+`eval/SUMMARY_TABLES.md`.
+
+Parity:
+- the evaluator reproduces the frozen Socratic qwen_prm numbers exactly (PRM native 68.0917, HALF_N16 Q80 67.3720);
+- Direct PRM (Qwen-7B) under CROP's protocol vs CROP Table 6: CRV-Arith AUROC .943 / kept 97.4% (CROP .9421 / 97.5),
+  CRV-GSM8K .849 / 79.8 (.8659 / 81.7), Math-Shepherd .455 / 1.0 / risk 0.9 (.4537 / 1.0 / 0.9), PRM800K .930 / 68.3
+  (.9327 / 67.2).
