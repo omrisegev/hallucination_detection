@@ -1,0 +1,648 @@
+<meta name="dash-one-writer">
+<style>
+  .sb-page { display: grid; gap: var(--cds-gap-lg); font-family: var(--font-anthropic-sans); }
+  .sb-head h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; text-wrap: balance; }
+  .sb-head p { margin: var(--cds-gap-xs) 0 0; color: var(--color-fg-muted); max-width: 70ch; }
+  .sb-take { font-size: var(--cds-font-size-body); color: var(--color-fg) !important; }
+  .sb-page b { font-weight: 600; }
+  .sb-controls { display: grid; gap: var(--cds-gap-sm); }
+  .sb-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: var(--cds-gap-xs); }
+  .sb-ctl > span { min-width: 9.5rem; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); letter-spacing: .02em; }
+  .sb-ctl button { font: inherit; font-size: var(--cds-font-size-caption); padding: var(--cds-pad-xs) var(--cds-pad-sm); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-bg); color: var(--color-fg); cursor: pointer; }
+  .sb-ctl button[aria-pressed="true"] { background: var(--color-fg); color: var(--color-bg); border-color: var(--color-fg); }
+  .sb-ctl button:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+  .sb-reqnote { margin: 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); max-width: 80ch; }
+  .sb-preset { font-style: italic; }
+  .sb-cands { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: var(--cds-gap-md); }
+  .sb-cand ul { margin: var(--cds-gap-sm) 0 0; padding-left: 1.1rem; display: grid; gap: var(--cds-gap-xs); font-size: var(--cds-font-size-caption); line-height: 1.5; }
+  .sb-pbnote { margin: 0; padding: var(--cds-pad-sm) var(--cds-pad-md); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-panel); font-size: var(--cds-font-size-caption); max-width: 90ch; }
+  .sb-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: var(--cds-gap-md); }
+  .sb-tile { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); display: grid; gap: var(--cds-gap-xs); }
+  .sb-tile .sb-lab { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .sb-tile .sb-num { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; }
+  .sb-tile .sb-sub { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .sb-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); min-width: 0; }
+  .sb-card h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; }
+  .sb-card .sb-note { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: var(--cds-gap-xs) 0 var(--cds-gap-md); max-width: 80ch; }
+  .sb-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-bottom: var(--cds-gap-sm); }
+  .sb-legend i { display: inline-block; width: .7rem; height: .7rem; border-radius: 50%; margin-right: .35rem; vertical-align: -.05rem; }
+  .sb-chart { position: relative; min-height: 12rem; }
+  .sb-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); max-width: 20rem; z-index: 2; }
+  .sb-tip .sb-tip-h { color: var(--cds-text-secondary); margin-bottom: 2px; }
+  .sb-tablewrap { max-height: 32rem; overflow: auto; }
+  .sb-table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+  .sb-table th { position: sticky; top: 0; background: var(--color-panel); text-align: left; font-weight: var(--cds-font-weight-medium); color: var(--color-fg-muted); padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); white-space: nowrap; }
+  .sb-table td { padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); white-space: nowrap; }
+  .sb-table td.sb-n { text-align: right; }
+  .sb-win { color: var(--color-ok); }
+  .sb-loss { color: var(--color-bad); }
+  .sb-defs { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); display: grid; gap: var(--cds-gap-xs); max-width: 85ch; }
+  .sb-defs p { margin: 0; }
+  @media (max-width: 40rem) { .sb-ctl > span { min-width: 100%; } .sb-hide-narrow { display: none; } }
+  [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+  .tv-sec { display: grid; gap: var(--cds-gap-sm); }
+  .tv-sec .tv-h { font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); margin: var(--cds-gap-md) 0 0; }
+  .tv-sec .tv-cav { margin: 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); max-width: 90ch; }
+  .tv-sec .sb-tablewrap { max-height: none; }
+</style>
+
+<div class="sb-page">
+  <header class="sb-head" id="top">
+    <h1>Thesis candidates scorecard</h1>
+    <p class="sb-take"><b data-draw="cand-name">—</b> wins <b data-draw="n-lsml" data-source="comparisons">—</b> of <b data-draw="n-total" data-source="comparisons">—</b> cells against <b data-draw="cmp-name">—</b>. The plain average of the same inputs wins <b data-draw="n-avg" data-source="comparisons">—</b>.</p>
+    <p>Three label-free candidates, each fused with L-SML and read out with the GAP rule: SUB5 (six telemetry channels), TELE16 (all 16 channels) and CHAIN16 (the PRM combined with the 16 channels). Development data; the Math-Shepherd PRM is excluded.</p>
+  </header>
+
+  <section class="sb-card" id="overview">
+    <h2>Out-of-sample wins per candidate</h2>
+    <p class="sb-note">Main metric of each benchmark, cells not used to tune the candidate, both telemetry sources. "All three" means above the PRM, its own plain average and the best published score at once (cells with a published score only).</p>
+    <div class="sb-tablewrap">
+      <table class="sb-table sb-ov" data-source="comparisons">
+        <thead><tr><th>Candidate</th><th>Beats the PRM</th><th>Beats its own average</th><th>Beats best published</th><th>Beats all three</th></tr></thead>
+        <tbody>
+          <tr><td>SUB5, telemetry only</td><td data-draw="cstat" data-cand="sub5" data-what="prm">—</td><td data-draw="cstat" data-cand="sub5" data-what="avg">—</td><td data-draw="cstat" data-cand="sub5" data-what="pub">—</td><td data-draw="cstat" data-cand="sub5" data-what="all">—</td></tr>
+          <tr><td>SUB5 + PRM</td><td data-draw="cstat" data-cand="sub5prm" data-what="prm">—</td><td data-draw="cstat" data-cand="sub5prm" data-what="avg">—</td><td data-draw="cstat" data-cand="sub5prm" data-what="pub">—</td><td data-draw="cstat" data-cand="sub5prm" data-what="all">—</td></tr>
+          <tr><td>TELE16, telemetry only</td><td data-draw="cstat" data-cand="tele" data-what="prm">—</td><td data-draw="cstat" data-cand="tele" data-what="avg">—</td><td data-draw="cstat" data-cand="tele" data-what="pub">—</td><td data-draw="cstat" data-cand="tele" data-what="all">—</td></tr>
+          <tr><td>TELE16 + PRM</td><td data-draw="cstat" data-cand="teleprm" data-what="prm">—</td><td data-draw="cstat" data-cand="teleprm" data-what="avg">—</td><td data-draw="cstat" data-cand="teleprm" data-what="pub">—</td><td data-draw="cstat" data-cand="teleprm" data-what="all">—</td></tr>
+          <tr><td>CHAIN16</td><td data-draw="cstat" data-cand="chain" data-what="prm">—</td><td data-draw="cstat" data-cand="chain" data-what="avg">—</td><td data-draw="cstat" data-cand="chain" data-what="pub">—</td><td data-draw="cstat" data-cand="chain" data-what="all">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+
+  <p class="sb-pbnote" id="processbench-limit"><b>ProcessBench is the known limit.</b> Its first-error metric is read out with the NC rule, which takes the gate (does the answer have an error at all) and the number of flagged steps from the PRM; the candidate only orders the steps. So ProcessBench numbers for "telemetry only" are not pure telemetry, and no telemetry-only rule is offered for it.</p>
+
+  <section class="sb-cands" id="candidates" aria-label="The candidates">
+    <article class="sb-card sb-cand" id="cand-sub5">
+      <h2>SUB5: six telemetry channels</h2>
+      <ul>
+        <li><b>What it does.</b> Takes six token-level telemetry channels, z-scores each within its answer, groups them label-free into L-SML groups (at least three are required), weights the groups by L-SML (Dawid-Skene EM on per-answer GAP votes), and flags the top steps of each answer with the GAP count rule. Two variants: telemetry only (from the PRM's backbone or from the PRM's standalone base model), and SUB5 + PRM, where the PRM's step score enters as one more channel and anchors the weights.</li>
+        <li><b>What it measures.</b> q15_H1 (spread of the top-15 next-token distribution), chosen_surprisal (how surprising the written token is), top15_turnover (how much the top-15 candidate set changes between tokens), dominant_freq16 (the dominant frequency of the uncertainty signal over a 16-token window), bocpd_p0 (Bayesian change-point probability) and digit_spread (spread of the probability over digit tokens).</li>
+        <li><b>Benchmarks.</b> The six channels were chosen out of the 16 with PRMBench and Socratic labels, so those two are in sample; Hard2Verify, ProcessBench, CRV-Arith, CRV-GSM8K, PRM800K and DeltaBench are out of sample. Out of sample, telemetry only beats the PRM in <b data-draw="cstat" data-cand="sub5" data-what="prm">—</b> cells and its own plain average in <b data-draw="cstat" data-cand="sub5" data-what="avg">—</b>; SUB5 + PRM beats the PRM in <b data-draw="cstat" data-cand="sub5prm" data-what="prm">—</b> and its average in <b data-draw="cstat" data-cand="sub5prm" data-what="avg">—</b>.</li>
+      </ul>
+    </article>
+    <article class="sb-card sb-cand" id="cand-tele">
+      <h2>TELE16: all 16 telemetry channels</h2>
+      <ul>
+        <li><b>What it does.</b> The same pipeline on the full 16-channel bank: answer z-scores, label-free L-SML groups and weights, GAP readout. Telemetry only comes from the backbone or from the standalone base model. TELE16 + PRM (stored as PRMG_N16) puts the PRM's step score into that same L-SML as one more channel. It differs from CHAIN16, which first fuses the telemetry into group scores and only then combines them with the PRM.</li>
+        <li><b>What it measures.</b> Uncertainty level: q15_H1, q15_VE1 (top-15 spread measures), chosen_surprisal, logprob_margin (gap between the two most likely tokens), energy_level, true_tail50 (mass outside the top 50). Change over the answer: energy_innovation, top15_turnover, top50_js (divergence between neighbouring top-50 distributions), bocpd_p0, realized_drv. Written token against the distribution: realized_z. Spectral: dominant_freq16. Digits: digit_alternative, digit_spread, digit_alternative_innovation.</li>
+        <li><b>Benchmarks.</b> The 16-channel bank and the fusion recipe were developed on PRMBench, so PRMBench is in sample; Socratic was run afterwards as an external test and counts as out of sample here, as do the other six. Out of sample, telemetry only beats the PRM in <b data-draw="cstat" data-cand="tele" data-what="prm">—</b> cells and its plain average (MEAN_N16) in <b data-draw="cstat" data-cand="tele" data-what="avg">—</b>; TELE16 + PRM beats the PRM in <b data-draw="cstat" data-cand="teleprm" data-what="prm">—</b> and its average (EQ_N16) in <b data-draw="cstat" data-cand="teleprm" data-what="avg">—</b>.</li>
+      </ul>
+    </article>
+    <article class="sb-card sb-cand" id="cand-chain">
+      <h2>CHAIN16: the PRM combined with the 16 channels</h2>
+      <ul>
+        <li><b>What it does.</b> Two stages, both label-free: L-SML on the 16 channels gives one score per channel group; a second L-SML weighs the PRM's step score against those group scores; GAP flags the top steps (on ProcessBench, the PRM's own gate and count with CHAIN16's order). The telemetry can come from the backbone or from the standalone base model.</li>
+        <li><b>What it measures.</b> The PRM's step score plus the same 16 telemetry channels as TELE16.</li>
+        <li><b>Benchmarks.</b> Defined on PRMBench (in sample); every other benchmark is out of sample. Its plain-average control is EQ_N16, the equal-weight mean of the PRM and the 16 channels. Out of sample it beats the PRM in <b data-draw="cstat" data-cand="chain" data-what="prm">—</b> cells and EQ_N16 in <b data-draw="cstat" data-cand="chain" data-what="avg">—</b>.</li>
+      </ul>
+    </article>
+  </section>
+
+  <div class="sb-controls" id="filters">
+    <div class="sb-ctl" role="group" aria-label="Candidate">
+      <span>Candidate</span>
+      <button type="button" data-param="cand" data-value="sub5">SUB5, telemetry only</button>
+      <button type="button" data-param="cand" data-value="sub5prm">SUB5 + PRM</button>
+      <button type="button" data-param="cand" data-value="tele">TELE16, telemetry only</button>
+      <button type="button" data-param="cand" data-value="teleprm">TELE16 + PRM</button>
+      <button type="button" data-param="cand" data-value="chain">CHAIN16</button>
+    </div>
+    <div class="sb-ctl" role="group" aria-label="Compared with">
+      <span>Compared with</span>
+      <button type="button" data-param="cmp" data-value="PRM">The PRM itself (same rule)</button>
+      <button type="button" data-param="cmp" data-value="TELE_N16">TELE16</button>
+      <button type="button" data-param="cmp" data-value="MEAN_N16">MEAN_N16 (all 16 averaged)</button>
+      <button type="button" data-param="cmp" data-value="CHAIN_N16">CHAIN16</button>
+      <button type="button" data-param="cmp" data-value="SUB5 alone">SUB5, telemetry only</button>
+      <button type="button" data-param="cmp" data-value="pub:any">Best published, any</button>
+      <button type="button" data-param="cmp" data-value="pub:Trained PRM">Best published trained PRM</button>
+      <button type="button" data-param="cmp" data-value="pub:Supervised on labels">Best published supervised</button>
+      <button type="button" data-param="cmp" data-value="pub:Prompted LLM critic">Best published LLM critic</button>
+      <button type="button" data-param="cmp" data-value="pub:Label-free">Best published label-free</button>
+    </div>
+    <div class="sb-ctl" role="group" aria-label="Metric">
+      <span>Metric</span>
+      <button type="button" data-param="metric" data-value="main">Main metric of each benchmark</button>
+      <button type="button" data-param="metric" data-value="within_auc">Within-answer AUC</button>
+      <button type="button" data-param="metric" data-value="crop_kept_a05">CROP kept % at α 0.05</button>
+      <button type="button" data-param="metric" data-value="crop_auroc">CROP step AUROC</button>
+    </div>
+    <div class="sb-ctl" role="group" aria-label="Benchmarks">
+      <span>Benchmarks</span>
+      <button type="button" data-param="sample" data-value="all">All</button>
+      <button type="button" data-param="sample" data-value="Out of sample">Out of sample</button>
+      <button type="button" data-param="sample" data-value="Used to tune it">Used to tune the candidate</button>
+    </div>
+    <div class="sb-ctl" role="group" aria-label="Telemetry source">
+      <span>Telemetry source</span>
+      <button type="button" data-param="mode" data-value="all">Both</button>
+      <button type="button" data-param="mode" data-value="backbone">PRM backbone</button>
+      <button type="button" data-param="mode" data-value="standalone">Standalone base model</button>
+    </div>
+    <div class="sb-ctl" role="group" aria-label="Outcome">
+      <span>Show</span>
+      <button type="button" data-param="outcome" data-value="all">Every cell</button>
+      <button type="button" data-param="outcome" data-value="win">Candidate wins</button>
+      <button type="button" data-param="outcome" data-value="loss">Candidate loses</button>
+      <button type="button" data-param="outcome" data-value="lsml_only">Wins only with L-SML</button>
+      <button type="button" data-param="outcome" data-value="avg_only">Average wins, L-SML loses</button>
+      <button type="button" data-param="outcome" data-value="beats_all">Beats average, PRM and best published</button>
+    </div>
+    <div class="sb-ctl" role="group" aria-label="Must also beat">
+      <span>Must also beat</span>
+      <button type="button" data-req="req_prm">The PRM itself</button>
+      <button type="button" data-req="req_avg">Its own plain average</button>
+      <button type="button" data-req="req_mean16">MEAN_N16</button>
+      <button type="button" data-req="req_pub">Best published method</button>
+      <button type="button" class="sb-preset" data-preset="all3">PRM + average + published</button>
+      <button type="button" class="sb-preset" data-preset="none">Clear</button>
+    </div>
+    <p class="sb-reqnote">These checks are added to the comparator above and to the "Show" choice. "Best published method" uses the published type chosen under "Compared with" (any type otherwise). A cell with no such published score on this metric is left out while it is on.</p>
+  </div>
+
+  <section class="sb-tiles" id="summary" aria-label="Summary">
+    <div class="sb-tile"><span class="sb-lab">Candidate (L-SML) wins</span><span class="sb-num" data-draw="t-lsml" data-source="comparisons">—</span><span class="sb-sub">cells where the candidate is above the comparator</span></div>
+    <div class="sb-tile"><span class="sb-lab">Plain average wins</span><span class="sb-num" data-draw="t-avg" data-source="comparisons">—</span><span class="sb-sub">same inputs, equal weights, no L-SML</span></div>
+    <div class="sb-tile"><span class="sb-lab">Wins that need L-SML</span><span class="sb-num" data-draw="t-only" data-source="comparisons">—</span><span class="sb-sub">the candidate wins and its average loses</span></div>
+    <div class="sb-tile"><span class="sb-lab">L-SML minus average</span><span class="sb-num" data-draw="t-gap" data-source="comparisons">—</span><span class="sb-sub">mean over the cells shown, metric points</span></div>
+  </section>
+
+  <section class="sb-card" id="chart">
+    <h2>Margin over the comparator, per cell</h2>
+    <p class="sb-note">Each row is one benchmark, telemetry source and PRM. Right of zero means the candidate is better. With a published comparator, each row ends with the competitor and the paper (and table) its score comes from. The ring is the candidate's plain average (same inputs, equal weights), so the distance between dot and ring is what L-SML adds.</p>
+    <div class="sb-legend"><span><i style="background: var(--color-ok)"></i>candidate (L-SML) wins</span><span><i style="background: var(--color-bad)"></i>candidate (L-SML) loses</span><span><i style="border: 2px solid var(--color-fg-muted)"></i>its plain average</span></div>
+    <div class="sb-chart" data-draw="chart" data-source="comparisons"></div>
+  </section>
+
+  <section class="sb-card" id="cells">
+    <h2>Values behind each row</h2>
+    <p class="sb-note">When a published score is selected, the comparator column names the system and the paper column names the paper and table it is printed in. Published scores are taken as printed; their protocols can differ from ours (see the notes below).</p>
+    <div class="sb-tablewrap">
+      <table class="sb-table" data-source="comparisons" data-row-key="key">
+        <thead><tr>
+          <th data-field="benchmark_label">Benchmark</th>
+          <th data-field="mode">Telemetry</th>
+          <th data-field="prm_label">PRM</th>
+          <th data-field="sample" class="sb-hide-narrow">Benchmarks</th>
+          <th data-field="metric_label" class="sb-hide-narrow">Metric</th>
+          <th data-field="ours">Candidate</th>
+          <th data-field="avg">Average</th>
+          <th data-field="cmp_label">Comparator</th>
+          <th data-field="cmp_paper">Paper</th>
+          <th data-field="cmp_value">Comparator value</th>
+          <th data-field="d_ours">Candidate margin</th>
+          <th data-field="d_avg">Average margin</th>
+        </tr></thead>
+        <tbody data-draw="rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="sb-card tv-sec" id="competitor-protocols">
+    <h2>Telemetry only vs PRISM, SLIDER and CROP</h2>
+    <p class="sb-note">Each base model's own telemetry, with no PRM in the score, against the PRM built on that base model, under each competitor's own protocol and metrics. Every row is one pair: the standalone base model → its PRM. "TELE16" is L-SML over the 16 standalone channels, "Average" the same 16 channels with equal weights, "PRM" the paired PRM at its native threshold (reward ≤ 0.5 is an error). The competitor's published number is repeated on every row, with its paper and table. All values reproduce the stored PRM and TELE16 rows exactly (128 of 128 checks).</p>
+
+    <h3 class="tv-h" id="prism-t2">PRISM, Table 2: PRMBench error-detection rates</h3>
+    <div class="sb-ctl" role="group" aria-label="PRISM Table 2 metric">
+      <span>Metric</span>
+      <button type="button" data-tvparam="tv_t2" data-value="PRMScore">PRMScore</button>
+      <button type="button" data-tvparam="tv_t2" data-value="FPR">FPR</button>
+      <button type="button" data-tvparam="tv_t2" data-value="FNR">FNR</button>
+      <button type="button" data-tvparam="tv_t2" data-value="Precision">Precision</button>
+      <button type="button" data-tvparam="tv_t2" data-value="TPR">TPR</button>
+      <button type="button" data-tvparam="tv_t2" data-value="TNR">TNR</button>
+    </div>
+    <div class="sb-tablewrap"><table class="sb-table" data-source="competitor_protocols" data-row-key="key">
+      <thead><tr><th data-field="pair">Standalone model → paired PRM</th><th data-field="tele">TELE16</th><th data-field="avg">Average</th><th data-field="prm">PRM, native</th><th data-field="prm2">PRM, same rule as TELE16</th><th data-field="pub_value">Published</th><th data-field="pub_label">System and paper</th><th data-field="pub2_value">Published</th><th data-field="pub2_label">System and paper</th></tr></thead>
+      <tbody data-draw="tv-rows" data-sec="prism_t2"></tbody>
+    </table></div>
+    <p class="tv-cav">Positive class is a correct step; FPR is the share of error steps passed as correct. Pool: 6,211 non-control answers. PRMBench is in sample for TELE16 (its channels and recipe were developed there). PRISM's printed FNR and precision only fit when the 758 control rows are pooled in; ours use the official pool.</p>
+
+    <h3 class="tv-h" id="prism-mtpr">PRISM, same operating point: PRMBench at TPR ≈ 87.3</h3>
+    <div class="sb-ctl" role="group" aria-label="PRISM matched TPR metric">
+      <span>Metric</span>
+      <button type="button" data-tvparam="tv_mtpr" data-value="PRMScore">PRMScore</button>
+      <button type="button" data-tvparam="tv_mtpr" data-value="FPR">FPR</button>
+      <button type="button" data-tvparam="tv_mtpr" data-value="FNR">FNR</button>
+      <button type="button" data-tvparam="tv_mtpr" data-value="Precision">Precision</button>
+      <button type="button" data-tvparam="tv_mtpr" data-value="TPR">TPR</button>
+      <button type="button" data-tvparam="tv_mtpr" data-value="TNR">TNR</button>
+    </div>
+    <div class="sb-tablewrap"><table class="sb-table" data-source="competitor_protocols" data-row-key="key">
+      <thead><tr><th data-field="pair">Standalone model → paired PRM</th><th data-field="tele">TELE16</th><th data-field="avg">Average</th><th data-field="prm">PRM, threshold moved</th><th data-field="pub_value">Published</th><th data-field="pub_label">System and paper</th></tr></thead>
+      <tbody data-draw="tv-rows" data-sec="prism_mtpr"></tbody>
+    </table></div>
+    <p class="tv-cav">One global threshold per row is chosen WITH labels so that TPR is about 87.3, PRISM's own point; this reading uses labels for every row, ours included. In sample for TELE16.</p>
+
+    <h3 class="tv-h" id="prism-t7">PRISM, Table 7: PRMBench PRMScore by error category</h3>
+    <div class="sb-ctl" role="group" aria-label="PRISM Table 7 category">
+      <span>Category</span>
+      <button type="button" data-tvparam="tv_t7" data-value="Overall">Overall</button>
+      <button type="button" data-tvparam="tv_t7" data-value="NR">Redundancy (NR)</button>
+      <button type="button" data-tvparam="tv_t7" data-value="NCL">Circular logic (NCL)</button>
+      <button type="button" data-tvparam="tv_t7" data-value="Simplicity">Simplicity</button>
+      <button type="button" data-tvparam="tv_t7" data-value="ES">Empirical soundness (ES)</button>
+      <button type="button" data-tvparam="tv_t7" data-value="SC">Step consistency (SC)</button>
+      <button type="button" data-tvparam="tv_t7" data-value="DC">Domain consistency (DC)</button>
+      <button type="button" data-tvparam="tv_t7" data-value="CI">Confidence invariance (CI)</button>
+      <button type="button" data-tvparam="tv_t7" data-value="Soundness">Soundness</button>
+      <button type="button" data-tvparam="tv_t7" data-value="PS">Prerequisite sensitivity (PS)</button>
+      <button type="button" data-tvparam="tv_t7" data-value="DR">Deception resistance (DR)</button>
+      <button type="button" data-tvparam="tv_t7" data-value="MS">Multi-solution (MS)</button>
+      <button type="button" data-tvparam="tv_t7" data-value="Sensitivity">Sensitivity</button>
+    </div>
+    <div class="sb-tablewrap"><table class="sb-table" data-source="competitor_protocols" data-row-key="key">
+      <thead><tr><th data-field="pair">Standalone model → paired PRM</th><th data-field="tele">TELE16</th><th data-field="avg">Average</th><th data-field="prm">PRM, native</th><th data-field="prm2">PRM, same rule as TELE16</th><th data-field="pub_value">Published</th><th data-field="pub_label">System and paper</th><th data-field="pub2_value">Published</th><th data-field="pub2_label">System and paper</th></tr></thead>
+      <tbody data-draw="tv-rows" data-sec="prism_t7"></tbody>
+    </table></div>
+    <p class="tv-cav">Multi-solution has no error steps, so its score is the valid-step F1. Redundancy and circular logic go through the validity path (we have no redundancy head). In sample for TELE16.</p>
+
+    <h3 class="tv-h" id="prism-pb">PRISM, Table 6: ProcessBench</h3>
+    <div class="sb-ctl" role="group" aria-label="PRISM ProcessBench metric">
+      <span>Metric</span>
+      <button type="button" data-tvparam="tv_pb" data-value="average F1">Average F1</button>
+      <button type="button" data-tvparam="tv_pb" data-value="gsm8k F1">GSM8K F1</button>
+      <button type="button" data-tvparam="tv_pb" data-value="gsm8k TPR">GSM8K TPR</button>
+      <button type="button" data-tvparam="tv_pb" data-value="gsm8k TNR">GSM8K TNR</button>
+      <button type="button" data-tvparam="tv_pb" data-value="math F1">MATH F1</button>
+      <button type="button" data-tvparam="tv_pb" data-value="math TPR">MATH TPR</button>
+      <button type="button" data-tvparam="tv_pb" data-value="math TNR">MATH TNR</button>
+      <button type="button" data-tvparam="tv_pb" data-value="omnimath F1">Omni-MATH F1</button>
+      <button type="button" data-tvparam="tv_pb" data-value="omnimath TPR">Omni-MATH TPR</button>
+      <button type="button" data-tvparam="tv_pb" data-value="omnimath TNR">Omni-MATH TNR</button>
+      <button type="button" data-tvparam="tv_pb" data-value="olympiadbench F1">OlympiadBench F1</button>
+      <button type="button" data-tvparam="tv_pb" data-value="olympiadbench TPR">OlympiadBench TPR</button>
+      <button type="button" data-tvparam="tv_pb" data-value="olympiadbench TNR">OlympiadBench TNR</button>
+    </div>
+    <div class="sb-tablewrap"><table class="sb-table" data-source="competitor_protocols" data-row-key="key">
+      <thead><tr><th data-field="pair">Standalone model → paired PRM</th><th data-field="tele">TELE16, telemetry rule</th><th data-field="avg">Average, telemetry rule</th><th data-field="x1">TELE16, PRM gate</th><th data-field="x2">Average, PRM gate</th><th data-field="prm">PRM, native</th><th data-field="pub_value">Published</th><th data-field="pub_label">System and paper</th><th data-field="pub2_value">Published</th><th data-field="pub2_label">System and paper</th></tr></thead>
+      <tbody data-draw="tv-rows" data-sec="prism_pb"></tbody>
+    </table></div>
+    <p class="tv-cav">TPR is accuracy on samples with an error (exact first-error step), TNR accuracy on error-free samples, F1 their harmonic mean. With the pure telemetry rule (first flagged step, Q80) average F1 is only <b data-draw="tv-pbrange" data-source="tvc_pb_range">—</b>: it almost never answers "no error". The "PRM gate" columns use the PRM's native gate and error count with the arm's order, so they are not telemetry only. PRISM prints Omni-MATH and OlympiadBench cells that do not fit F1 as a harmonic mean; they are shown as printed, and its published average is our arithmetic over its four F1 cells.</p>
+
+    <h3 class="tv-h" id="slider">SLIDER / Step-RRI: PRMBench redundancy class</h3>
+    <div class="sb-ctl" role="group" aria-label="SLIDER metric">
+      <span>Metric</span>
+      <button type="button" data-tvparam="tv_slider" data-value="acc_lr">Plain accuracy, LR threshold</button>
+      <button type="button" data-tvparam="tv_slider" data-value="balacc_lr">Balanced accuracy, LR threshold</button>
+      <button type="button" data-tvparam="tv_slider" data-value="acc_rule">Plain accuracy, label-free rule</button>
+      <button type="button" data-tvparam="tv_slider" data-value="balacc_rule">Balanced accuracy, label-free rule</button>
+    </div>
+    <div class="sb-tablewrap"><table class="sb-table" data-source="competitor_protocols" data-row-key="key">
+      <thead><tr><th data-field="pair">Standalone model → paired PRM</th><th data-field="tele">TELE16</th><th data-field="avg">Average</th><th data-field="prm">PRM, native</th><th data-field="prm2">PRM, same rule as TELE16</th><th data-field="pub_value">Published</th><th data-field="pub_label">System and paper</th></tr></thead>
+      <tbody data-draw="tv-rows" data-sec="slider"></tbody>
+    </table></div>
+    <p class="tv-cav">SLIDER publishes no code, so this comparison is approximate. It reports one "accuracy" read from a chart, with a threshold from a linear classifier on held-out labels; split, weighting and step-1 handling are not stated. We read their metric through their cosine baseline: on our split (10 problem-level 50/50 splits, a one-feature logistic-regression threshold) cosine gets <b data-draw="tv-note" data-source="competitor_protocols" data-field="tele" data-where="key=note||slider_cosine|0">—</b>% against their <b data-draw="tv-note-pub" data-source="competitor_protocols" data-field="pub_value" data-where="key=note||slider_cosine|0">—</b>%, which points to plain accuracy with a class-balanced threshold. About 87% of steps are not redundant: always answering "not redundant" scores <b data-draw="tv-note" data-source="competitor_protocols" data-field="tele" data-where="key=note||slider_majority|0">—</b>% plain accuracy, so balanced accuracy is the fairer reading. SLIDER reports no balanced accuracy. In sample for TELE16.</p>
+
+    <h3 class="tv-h" id="crop-t6">CROP, Table 6: conformal clean prefix at α = 0.05</h3>
+    <div class="sb-ctl" role="group" aria-label="CROP benchmark">
+      <span>Benchmark</span>
+      <button type="button" data-tvparam="tv_crop_b" data-value="prmbench">PRMBench</button>
+      <button type="button" data-tvparam="tv_crop_b" data-value="processbench">ProcessBench</button>
+      <button type="button" data-tvparam="tv_crop_b" data-value="crv_arith">CRV-Arithmetic</button>
+      <button type="button" data-tvparam="tv_crop_b" data-value="crv_gsm8k">CRV-GSM8K</button>
+      <button type="button" data-tvparam="tv_crop_b" data-value="prm800k">PRM800K</button>
+    </div>
+    <div class="sb-ctl" role="group" aria-label="CROP metric">
+      <span>Metric</span>
+      <button type="button" data-tvparam="tv_crop_m" data-value="kept">Kept prefix %</button>
+      <button type="button" data-tvparam="tv_crop_m" data-value="auroc">Step AUROC</button>
+      <button type="button" data-tvparam="tv_crop_m" data-value="risk">Prefix risk %</button>
+    </div>
+    <div class="sb-tablewrap"><table class="sb-table" data-source="competitor_protocols" data-row-key="key">
+      <thead><tr><th data-field="pair">Standalone model → paired PRM</th><th data-field="tele">TELE16</th><th data-field="avg">Average</th><th data-field="prm">PRM, CROP's grid</th><th data-field="prm2">PRM, same grid as TELE16</th><th data-field="pub_value">Published</th><th data-field="pub_label">System and paper</th><th data-field="pub2_value">Published</th><th data-field="pub2_label">System and paper</th><th data-field="pub3_value">Published</th><th data-field="pub3_label">System and paper</th></tr></thead>
+      <tbody data-draw="tv-rows" data-sec="crop_t6"></tbody>
+    </table></div>
+    <p class="tv-cav">Kept is the mean retained-prefix fraction, risk the share of test traces whose kept prefix holds an error (target ≤ 5%), AUROC pooled over test steps. 10 splits 60/20/20. CROP calibrates every threshold with labels and trains its LR rows on 60% of each set; our arms use no training split. The grids differ: CROP uses a fixed 101-point grid on its external sets, our arms a 201-quantile grid, so the PRM is shown on both. PRMBench is in sample for TELE16; our PRMBench uses all 6,211 answers (CROP sampled 5,000), and CROP used 20 splits on CRV.</p>
+
+    <h3 class="tv-h" id="crop-t17">CROP, Table 17: cross-domain transfer</h3>
+    <div class="sb-ctl" role="group" aria-label="CROP Table 17 direction">
+      <span>Calibrate → test</span>
+      <button type="button" data-tvparam="tv_t17_d" data-value="crv_arith->crv_gsm8k">CRV-Arithmetic → CRV-GSM8K</button>
+      <button type="button" data-tvparam="tv_t17_d" data-value="crv_gsm8k->crv_arith">CRV-GSM8K → CRV-Arithmetic</button>
+    </div>
+    <div class="sb-ctl" role="group" aria-label="CROP Table 17 metric">
+      <span>Metric</span>
+      <button type="button" data-tvparam="tv_t17_m" data-value="risk">Prefix risk %</button>
+      <button type="button" data-tvparam="tv_t17_m" data-value="kept">Kept prefix %</button>
+      <button type="button" data-tvparam="tv_t17_m" data-value="FA">False acceptance %</button>
+      <button type="button" data-tvparam="tv_t17_m" data-value="accept">Whole trace accepted %</button>
+    </div>
+    <div class="sb-tablewrap"><table class="sb-table" data-source="competitor_protocols" data-row-key="key">
+      <thead><tr><th data-field="pair">Standalone model → paired PRM</th><th data-field="tele">TELE16</th><th data-field="avg">Average</th><th data-field="prm">PRM, CROP's grid</th><th data-field="prm2">PRM, same grid as TELE16</th><th data-field="pub_value">Published</th><th data-field="pub_label">System and paper</th></tr></thead>
+      <tbody data-draw="tv-rows" data-sec="crop_t17"></tbody>
+    </table></div>
+    <p class="tv-cav">The threshold is calibrated on one CRV set and applied to the other, so exchangeability is broken on purpose; CROP shows this as a failure diagnostic, and its table does not name the proxy. False acceptance and accepted traces follow our reading of its column names.</p>
+
+    <p class="tv-cav"><b>Not computed</b> (they need new generation): PRISM's Best-of-N, guided decoding and GRPO tests, and CROP's repair accuracy. CROP's Math-Shepherd set is left out with its PRM.</p>
+  </section>
+
+  <section class="sb-defs" id="notes">
+    <p>"Beats average, PRM and best published" keeps a cell only when the candidate is above all three at once: its own plain average, the PRM itself under the same rule, and the best published score of any kind for that benchmark and metric. Cells with no published score never pass this filter.</p>
+    <p>Main metrics: PRMBench PRMScore; Socratic, CRV-Arith, CRV-GSM8K, PRM800K and DeltaBench step macro-F1; Hard2Verify official step balanced F1 (177 answers); ProcessBench average first-error F1. Every candidate and control uses the label-free GAP count rule; on ProcessBench the NC rule (the PRM's native gate and count, the arm's order). "The PRM itself" is that PRM under the same rule (ProcessBench: its native threshold).</p>
+    <p>Papers: PRMBench (arXiv 2501.03124, Table 3), PRISM (2606.09078), PathFinder-PRM (2505.19706), R-PRM (2503.21295), ActPRM (2504.10559), Socratic-PRMBench (2505.23474, Tables 3-4), Hard2Verify (2510.13744, Table 2), the Qwen PRM paper "The Lessons of Developing PRMs" (2501.07301, Table 7) for ProcessBench, and CROP (2605.30085, Table 6) for kept % and AUROC (its Direct PRM and Trace+PRM use Qwen2.5-Math-PRM-7B, so they are compared with that PRM only). PRM-specific published rows count only against the same PRM. Label-free published rows: uPRM and its LLM-as-a-Judge control (arXiv 2605.10158, Section 5.1; averages of the printed subset F1s are our arithmetic), ScalePRM (2512.03244; trained on LLM-generated verdicts, no ground truth), and ARES on PRMBench (2507.12948, Table 1; approximate: unstated subset, threshold tuned by 5-fold CV on labels, many LLM calls). DeltaBench has no published number on our metric. LLM critics and CROP's supervised rows use labels or many model calls that the candidates do not.</p>
+    <p>Two cells have no SUB5 score because the six channels form fewer than three L-SML groups: CRV-Arith backbone Qwen-72B (SUB5 + PRM) and CRV-Arith standalone Qwen-7B (SUB5 alone).</p>
+  </section>
+</div>
+
+<script>
+  const MAIN = {prmbench: 'PRMScore_GAP', socratic: 'macro_f1_GAP', hard2verify: 'balanced_f1_GAP', processbench: 'avg_f1_NC',
+                crv_arith: 'macro_f1_GAP', crv_gsm8k: 'macro_f1_GAP', prm800k: 'macro_f1_GAP', deltabench: 'macro_f1_GAP'};
+  const CANDS = {
+    sub5: {ours: 'SUB5 alone', avg: 'SUB5 mean', tuned: ['prmbench', 'socratic']},
+    sub5prm: {ours: 'SUB5 +PRM', avg: 'SUB5 +PRM mean', tuned: ['prmbench', 'socratic']},
+    tele: {ours: 'TELE_N16', avg: 'MEAN_N16', tuned: ['prmbench']},
+    teleprm: {ours: 'PRMG_N16', avg: 'EQ_N16', tuned: ['prmbench']},
+    chain: {ours: 'CHAIN_N16', avg: 'EQ_N16', tuned: ['prmbench']},
+  };
+  window.sbCands = CANDS;
+  const COMPARATORS = ['PRM', 'TELE_N16', 'MEAN_N16', 'CHAIN_N16', 'SUB5 alone', 'pub:any', 'pub:Trained PRM', 'pub:Supervised on labels', 'pub:Prompted LLM critic', 'pub:Label-free'];
+  dash.calc('comparisons', {
+    title: 'Candidates against each comparator',
+    description: 'For every cell and candidate, the candidate (L-SML) and its own plain average minus the comparator, per metric; published scores take the best printed value for the benchmark and metric.',
+    inputs: ['scores', 'published'],
+    fn: (scores, published) => {
+      const v = new Map();
+      for (const r of scores) v.set([r.benchmark, r.mode, r.prm, r.arm, r.metric].join('|'), Number(r.value));
+      const cells = new Map();
+      for (const r of scores) cells.set([r.benchmark, r.mode, r.prm].join('|'), r);
+      const out = [];
+      for (const [ck, c] of cells) {
+        for (const [cand, cd] of Object.entries(CANDS)) {
+          const oursArm = cd.ours, avgArm = cd.avg;
+          const sample = cd.tuned.includes(c.benchmark) ? 'Used to tune it' : 'Out of sample';
+          for (const mk of ['main', 'within_auc', 'crop_kept_a05', 'crop_auroc']) {
+            const metric = mk === 'main' ? MAIN[c.benchmark] : mk;
+            const ours = v.get([ck, oursArm, metric].join('|'));
+            if (ours === undefined) continue;
+            const avg = v.get([ck, avgArm, metric].join('|'));
+            const prmV = v.get([ck, c.benchmark === 'prmbench' && metric.startsWith('crop') ? 'PRM (1-reward)' : 'PRM', metric].join('|'));
+            const pubC = published.filter((p) => p.benchmark === c.benchmark && p.metric === metric && (p.prm === 'any' || p.prm === c.prm)).map((p) => Number(p.value));
+            const pubV = pubC.length ? Math.max(...pubC) : undefined;
+            const beatsAll = avg !== undefined && prmV !== undefined && pubV !== undefined && ours > avg && ours > prmV && ours > pubV;
+            for (const cmp of COMPARATORS) {
+              if (cmp === oursArm) continue;
+              let cv, label, paper = 'Our run (same cell)', paperShort = '';
+              if (cmp.startsWith('pub:')) {
+                const acc = cmp.slice(4);
+                const cand = published.filter((p) => p.benchmark === c.benchmark && p.metric === metric && (p.prm === 'any' || p.prm === c.prm) && (acc === 'any' || p.access === acc));
+                if (!cand.length) continue;
+                const best = cand.reduce((a, b) => (Number(b.value) > Number(a.value) ? b : a));
+                cv = Number(best.value); label = best.competitor; paper = best.paper; paperShort = best.paper_short;
+              } else {
+                const a = cmp === 'PRM' && c.benchmark === 'prmbench' && metric.startsWith('crop') ? 'PRM (1-reward)' : cmp;
+                cv = v.get([ck, a, metric].join('|'));
+                if (cv === undefined) continue;
+                label = {PRM: 'The PRM itself', TELE_N16: 'TELE16', CHAIN_N16: 'CHAIN16', 'SUB5 alone': 'SUB5, telemetry only'}[cmp] ?? cmp;
+              }
+              out.push({key: [ck, cand, mk, cmp].join('|'), benchmark: c.benchmark, benchmark_label: c.benchmark_label, bench_order: Number(c.bench_order),
+                        mode: c.mode, prm: c.prm, prm_label: c.prm_label, sample, cand, metric_key: mk, metric_label: c['label_' + mk] || metric,
+                        cmp, cmp_label: label, cmp_paper: paper, cmp_paper_short: paperShort, ours, avg: avg === undefined ? null : avg, cmp_value: cv,
+                        d_ours: ours - cv, d_avg: avg === undefined ? null : avg - cv, beats_all: beatsAll});
+            }
+          }
+        }
+      }
+      return out;
+    },
+  });
+
+  const DEFAULTS = {cand: 'sub5', cmp: 'PRM', metric: 'main', sample: 'all', mode: 'all', outcome: 'all',
+                    req_prm: false, req_avg: false, req_mean16: false, req_pub: false};
+  const P = () => ({...DEFAULTS, ...dash.params()});
+  document.querySelectorAll('.sb-ctl button[data-param]').forEach((b) => b.addEventListener('click', () => dash.setParams({[b.dataset.param]: b.dataset.value})));
+  document.querySelectorAll('.sb-ctl button[data-req]').forEach((b) => b.addEventListener('click', () => dash.setParams({[b.dataset.req]: !P()[b.dataset.req]})));
+  document.querySelectorAll('.sb-ctl button[data-preset]').forEach((b) => b.addEventListener('click', () => {
+    const on = b.dataset.preset === 'all3';
+    dash.setParams({req_prm: on, req_avg: on, req_pub: on, req_mean16: false});
+  }));
+  dash.onData(() => {
+    const p = P();
+    document.querySelectorAll('.sb-ctl button[data-param]').forEach((b) => b.setAttribute('aria-pressed', String(p[b.dataset.param] === b.dataset.value)));
+    document.querySelectorAll('.sb-ctl button[data-req]').forEach((b) => b.setAttribute('aria-pressed', String(!!p[b.dataset.req])));
+  });
+
+  window.sbRows = () => {
+    const d = dash.data('comparisons');
+    if (d.status !== 'ok') return null;
+    const p = P();
+    const idx = new Map();
+    for (const r of d.data) if (r.cand === p.cand && r.metric_key === p.metric) idx.set([r.benchmark, r.mode, r.prm, r.cmp].join('|'), r);
+    const beats = (r, cmp) => { const o = idx.get([r.benchmark, r.mode, r.prm, cmp].join('|')); return !!o && o.d_ours > 0; };
+    const reqOk = (r) => (!p.req_prm || beats(r, 'PRM')) && (!p.req_mean16 || beats(r, 'MEAN_N16'))
+      && (!p.req_pub || beats(r, p.cmp.startsWith('pub:') ? p.cmp : 'pub:any')) && (!p.req_avg || (r.avg !== null && r.ours > r.avg));
+    return d.data.filter((r) => reqOk(r) && r.cand === p.cand && r.cmp === p.cmp && r.metric_key === p.metric
+      && (p.sample === 'all' || r.sample === p.sample) && (p.mode === 'all' || r.mode === p.mode)
+      && (p.outcome === 'all' || (p.outcome === 'win' && r.d_ours > 0) || (p.outcome === 'loss' && r.d_ours <= 0)
+          || (p.outcome === 'lsml_only' && r.d_ours > 0 && r.d_avg !== null && r.d_avg <= 0)
+          || (p.outcome === 'beats_all' && r.beats_all)
+          || (p.outcome === 'avg_only' && r.d_ours <= 0 && r.d_avg !== null && r.d_avg > 0)))
+      .sort((a, b) => a.bench_order - b.bench_order || a.mode.localeCompare(b.mode) || a.prm_label.localeCompare(b.prm_label));
+  };
+  window.sbIsAuc = (m) => m === 'within_auc' || m === 'crop_auroc';
+  window.sbFmt = (x, m) => (x === null || x === undefined || Number.isNaN(x) ? '—' : d3.format(sbIsAuc(m) ? '.3f' : '.2f')(x));
+  window.sbSigned = (x, m) => (x === null || x === undefined ? '—' : (x > 0 ? '+' : '') + d3.format(sbIsAuc(m) ? '.3f' : '.2f')(x));
+</script>
+
+<script>
+  const counts = () => {
+    const rows = sbRows();
+    if (!rows) return null;
+    const withAvg = rows.filter((r) => r.d_avg !== null);
+    return {n: rows.length, lsml: rows.filter((r) => r.d_ours > 0).length, avg: withAvg.filter((r) => r.d_avg > 0).length,
+            only: withAvg.filter((r) => r.d_ours > 0 && r.d_avg <= 0).length,
+            gap: withAvg.length ? d3.mean(withAvg, (r) => r.ours - r.avg) : null, m: dash.params().metric ?? 'main'};
+  };
+  const put = (el, text) => { el.textContent = text; };
+  dash.draw('n-lsml', (el) => { const c = counts(); put(el, c ? String(c.lsml) : '—'); });
+  dash.draw('n-total', (el) => { const c = counts(); put(el, c ? String(c.n) : '—'); });
+  dash.draw('n-avg', (el) => { const c = counts(); put(el, c ? String(c.avg) : '—'); });
+  dash.draw('cmp-name', (el) => {
+    const cmp = dash.params().cmp ?? 'PRM';
+    const names = {PRM: 'the PRM itself', TELE_N16: 'TELE16', MEAN_N16: 'MEAN_N16', CHAIN_N16: 'CHAIN16', 'SUB5 alone': 'SUB5 (telemetry only)', 'pub:any': 'the best published score',
+                   'pub:Trained PRM': 'the best published trained PRM', 'pub:Supervised on labels': 'the best published supervised method',
+                   'pub:Prompted LLM critic': 'the best published LLM critic', 'pub:Label-free': 'the best published label-free method'};
+    put(el, names[cmp] ?? cmp);
+  });
+  dash.draw('cand-name', (el) => {
+    const n = {sub5: 'SUB5 (telemetry only)', sub5prm: 'SUB5 + PRM', tele: 'TELE16 (telemetry only)', teleprm: 'TELE16 + PRM', chain: 'CHAIN16'};
+    put(el, n[dash.params().cand ?? 'sub5'] ?? '—');
+  });
+  dash.draw('cstat', (el) => {
+    const d = dash.data('comparisons');
+    if (d.status !== 'ok') { put(el, '—'); return; }
+    const cand = el.dataset.cand, what = el.dataset.what;
+    const base = d.data.filter((r) => r.cand === cand && r.metric_key === 'main' && r.sample === 'Out of sample');
+    const vsPrm = base.filter((r) => r.cmp === 'PRM'), pub = base.filter((r) => r.cmp === 'pub:any');
+    const prmWin = new Set(vsPrm.filter((r) => r.d_ours > 0).map((r) => r.benchmark + r.mode + r.prm));
+    let w, n;
+    if (what === 'prm') { n = vsPrm.length; w = vsPrm.filter((r) => r.d_ours > 0).length; }
+    else if (what === 'avg') { const a = vsPrm.filter((r) => r.avg !== null); n = a.length; w = a.filter((r) => r.ours > r.avg).length; }
+    else if (what === 'pub') { n = pub.length; w = pub.filter((r) => r.d_ours > 0).length; }
+    else { n = pub.length; w = pub.filter((r) => r.d_ours > 0 && r.avg !== null && r.ours > r.avg && prmWin.has(r.benchmark + r.mode + r.prm)).length; }
+    put(el, `${w} of ${n}`);
+  });
+  dash.draw('t-lsml', (el) => { const c = counts(); put(el, c ? `${c.lsml} of ${c.n}` : '—'); });
+  dash.draw('t-avg', (el) => { const c = counts(); put(el, c ? `${c.avg} of ${c.n}` : '—'); });
+  dash.draw('t-only', (el) => { const c = counts(); put(el, c ? String(c.only) : '—'); });
+  dash.draw('t-gap', (el) => { const c = counts(); put(el, c && c.gap !== null ? sbSigned(c.gap, c.m) : '—'); });
+
+  dash.draw('rows', (tb) => {
+    const rows = sbRows();
+    tb.replaceChildren();
+    if (!rows) return;
+    for (const r of rows) {
+      const tr = document.createElement('tr'); tr.dataset.key = r.key;
+      const cells = [r.benchmark_label, r.mode, r.prm_label, r.sample, r.metric_label, sbFmt(r.ours, r.metric_key), sbFmt(r.avg, r.metric_key),
+                     r.cmp_label, r.cmp_paper, sbFmt(r.cmp_value, r.metric_key), sbSigned(r.d_ours, r.metric_key), sbSigned(r.d_avg, r.metric_key)];
+      cells.forEach((t, i) => {
+        const td = document.createElement('td'); td.textContent = t;
+        if (i >= 5 && i !== 7 && i !== 8) td.className = 'sb-n';
+        if (i === 3 || i === 4) td.classList.add('sb-hide-narrow');
+        if (i === 10) td.classList.add(r.d_ours > 0 ? 'sb-win' : 'sb-loss');
+        if (i === 11 && r.d_avg !== null) td.classList.add(r.d_avg > 0 ? 'sb-win' : 'sb-loss');
+        tr.append(td);
+      });
+      tb.append(tr);
+    }
+  });
+</script>
+
+<script>
+  dash.draw('chart', (el) => {
+    const rows = sbRows();
+    el.replaceChildren();
+    if (!rows) return;
+    const m = dash.params().metric ?? 'main';
+    const W = Math.max(280, el.clientWidth), rowH = 20, top = 26, bottom = 10;
+    const svg = d3.select(el).append('svg').attr('width', '100%');
+    if (!rows.length) {
+      svg.attr('viewBox', `0 0 ${W} 60`).attr('height', 60).append('text').attr('x', W / 2).attr('y', 34).attr('text-anchor', 'middle')
+        .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text('No cells match these filters.');
+      return;
+    }
+    const label = (r) => `${r.benchmark_label} · ${r.mode === 'backbone' ? 'backbone' : 'standalone'} · ${r.prm_label}`;
+    const probe = svg.append('text').style('font-size', 'var(--cds-font-size-caption)');
+    const narrow = W < 520;
+    let left = 0;
+    for (const r of rows) { probe.text(narrow ? `${r.benchmark_label} · ${r.prm_label}` : label(r)); left = Math.max(left, probe.node().getComputedTextLength()); }
+    const pub = rows.some((r) => r.cmp_paper_short) && !narrow;
+    let right = 12;
+    if (pub) { for (const r of rows) { probe.text(`${r.cmp_label} · ${r.cmp_paper_short}`); right = Math.max(right, probe.node().getComputedTextLength() + 16); } right = Math.min(right, W * 0.32); }
+    probe.remove(); left = Math.min(left + 12, W * 0.45);
+    const H = top + rows.length * rowH + bottom;
+    svg.attr('viewBox', `0 0 ${W} ${H}`).attr('height', H);
+    const vals = rows.flatMap((r) => [r.d_ours, r.d_avg]).filter((x) => x !== null);
+    const ext = Math.max(1e-9, d3.max(vals, Math.abs));
+    const x = d3.scaleLinear([-ext * 1.08, ext * 1.08], [left, W - right]).nice();
+    const y = (i) => top + i * rowH + rowH / 2;
+    const ax = svg.append('g').attr('transform', `translate(0,${top - 6})`).call(d3.axisTop(x).ticks(narrow ? 4 : 7).tickFormat(sbIsAuc(m) ? d3.format('+.2f') : d3.format('+.1f')))
+      .attr('font-size', null).attr('font-family', null);
+    ax.selectAll('text').attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)');
+    ax.selectAll('line,path').attr('stroke', 'var(--cds-chart-axis)');
+    svg.append('g').selectAll('line').data(x.ticks(narrow ? 4 : 7)).join('line').attr('x1', (d) => x(d)).attr('x2', (d) => x(d))
+      .attr('y1', top - 6).attr('y2', H - bottom).attr('stroke', 'var(--cds-chart-grid)');
+    svg.append('line').attr('x1', x(0)).attr('x2', x(0)).attr('y1', top - 6).attr('y2', H - bottom).attr('stroke', 'var(--cds-chart-reference)').attr('stroke-width', 1.5);
+    let prev = null;
+    rows.forEach((r, i) => {
+      if (prev !== null && prev !== r.benchmark) svg.append('line').attr('x1', 0).attr('x2', W).attr('y1', top + i * rowH).attr('y2', top + i * rowH).attr('stroke', 'var(--color-border-line)');
+      prev = r.benchmark;
+    });
+    svg.append('g').selectAll('text').data(rows).join('text').attr('x', left - 10).attr('y', (d, i) => y(i)).attr('dy', '0.35em').attr('text-anchor', 'end')
+      .attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)')
+      .text((d) => (narrow ? `${d.benchmark_label} · ${d.prm_label}` : label(d)));
+    if (pub) {
+      svg.append('text').attr('x', W - 4).attr('y', top - 12).attr('text-anchor', 'end').attr('fill', 'var(--color-fg-muted)')
+        .style('font-size', 'var(--cds-font-size-caption)').text('Competitor · paper');
+      svg.append('g').selectAll('text').data(rows).join('text').attr('x', W - 4).attr('y', (d, i) => y(i)).attr('dy', '0.35em').attr('text-anchor', 'end')
+        .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)')
+        .text((d) => `${d.cmp_label} · ${d.cmp_paper_short}`)
+        .each(function () { const n = this; while (n.getComputedTextLength() > right - 10 && n.textContent.length > 4) n.textContent = n.textContent.slice(0, -2) + '…'; });
+    }
+    const g = svg.append('g');
+    g.selectAll('line.sb-link').data(rows.filter((r) => r.d_avg !== null)).join('line').attr('class', 'sb-link')
+      .attr('x1', (d) => x(d.d_avg)).attr('x2', (d) => x(d.d_ours)).attr('y1', (d) => y(rows.indexOf(d))).attr('y2', (d) => y(rows.indexOf(d)))
+      .attr('stroke', 'var(--cds-chart-muted)').attr('stroke-width', 2).attr('stroke-linecap', 'round');
+    g.selectAll('circle.sb-avg').data(rows.filter((r) => r.d_avg !== null)).join('circle').attr('class', 'sb-avg')
+      .attr('cx', (d) => x(d.d_avg)).attr('cy', (d) => y(rows.indexOf(d))).attr('r', 4.5).attr('fill', 'var(--color-panel)')
+      .attr('stroke', 'var(--color-fg-muted)').attr('stroke-width', 1.5);
+    g.selectAll('circle.sb-ours').data(rows).join('circle').attr('class', 'sb-ours')
+      .attr('cx', (d) => x(d.d_ours)).attr('cy', (d, i) => y(i)).attr('r', 5)
+      .attr('fill', (d) => (d.d_ours > 0 ? 'var(--color-ok)' : 'var(--color-bad)'));
+    const tip = d3.select(el).append('div').attr('class', 'sb-tip').style('display', 'none');
+    svg.append('rect').attr('x', 0).attr('y', top).attr('width', W).attr('height', rows.length * rowH).attr('fill', 'transparent')
+      .on('mousemove', (event) => {
+        const [mx, my] = d3.pointer(event, el);
+        const i = Math.floor((d3.pointer(event, svg.node())[1] - top) / rowH);
+        const r = rows[i];
+        if (!r) { tip.style('display', 'none'); return; }
+        tip.style('display', null).html('');
+        tip.append('div').attr('class', 'sb-tip-h').text(`${label(r)} · ${r.metric_label}`);
+        tip.append('div').text(`Candidate ${sbFmt(r.ours, m)} (${sbSigned(r.d_ours, m)})`);
+        tip.append('div').text(`Average ${sbFmt(r.avg, m)} (${sbSigned(r.d_avg, m)})`);
+        tip.append('div').text(`${r.cmp_label} ${sbFmt(r.cmp_value, m)}`);
+        if (r.cmp_paper_short) tip.append('div').attr('class', 'sb-tip-h').text(r.cmp_paper);
+        const bw = el.clientWidth, tw = tip.node().offsetWidth;
+        tip.style('left', `${Math.min(Math.max(0, mx + 12), bw - tw)}px`).style('top', `${my + 14}px`);
+      })
+      .on('mouseleave', () => tip.style('display', 'none'));
+  });
+</script>
+
+<script>
+  const TV_DEFAULTS = {tv_t2: 'PRMScore', tv_mtpr: 'PRMScore', tv_t7: 'Overall', tv_pb: 'average F1', tv_slider: 'acc_lr',
+                       tv_crop_b: 'prmbench', tv_crop_m: 'kept', tv_t17_d: 'crv_arith->crv_gsm8k', tv_t17_m: 'risk'};
+  const TV_PICK = {prism_t2: ['', 'tv_t2'], prism_mtpr: ['', 'tv_mtpr'], prism_t7: ['', 'tv_t7'], prism_pb: ['', 'tv_pb'],
+                   slider: ['', 'tv_slider'], crop_t6: ['tv_crop_b', 'tv_crop_m'], crop_t17: ['tv_t17_d', 'tv_t17_m']};
+  const tvP = () => ({...TV_DEFAULTS, ...dash.params()});
+  const tvFmt = (v, dec) => (v === '' || v === null || v === undefined || !Number.isFinite(Number(v)) ? '—' : Number(v).toFixed(Number(dec)));
+  document.querySelectorAll('button[data-tvparam]').forEach((b) => b.addEventListener('click', () => dash.setParams({[b.dataset.tvparam]: b.dataset.value})));
+  dash.onData(() => {
+    const p = tvP();
+    document.querySelectorAll('button[data-tvparam]').forEach((b) => b.setAttribute('aria-pressed', String(p[b.dataset.tvparam] === b.dataset.value)));
+  });
+  dash.calc('tvc_pb_range', {
+    title: 'ProcessBench F1, telemetry rule',
+    description: 'Lowest and highest ProcessBench average F1 of TELE16 and its plain average under the pure telemetry rule, over the four pairs.',
+    inputs: ['competitor_protocols'],
+    fn: (competitor_protocols) => {
+      const v = competitor_protocols.filter((r) => r.section === 'prism_pb' && r.metric === 'average F1')
+        .flatMap((r) => [Number(r.tele), Number(r.avg)]);
+      return [{lo: Math.min(...v), hi: Math.max(...v)}];
+    },
+  });
+  dash.draw('tv-rows', (tb) => {
+    tb.replaceChildren();
+    const d = dash.data('competitor_protocols');
+    if (d.status !== 'ok') return;
+    const sec = tb.dataset.sec, [subK, metK] = TV_PICK[sec] ?? ['', ''], p = tvP();
+    const fields = [...tb.closest('table').querySelectorAll('th[data-field]')].map((th) => th.dataset.field);
+    const rows = d.data.filter((r) => r.section === sec && r.sub === (subK ? p[subK] : '') && r.metric === p[metK])
+      .sort((a, b) => Number(a.pair_order) - Number(b.pair_order));
+    for (const r of rows) {
+      const tr = document.createElement('tr'); tr.dataset.key = r.key;
+      for (const f of fields) {
+        const td = document.createElement('td');
+        const num = !['pair', 'pub_label', 'pub2_label', 'pub3_label'].includes(f);
+        td.textContent = num ? tvFmt(r[f], r.decimals) : (r[f] || '—');
+        if (num) td.className = 'sb-n';
+        tr.append(td);
+      }
+      tb.append(tr);
+    }
+  });
+  dash.draw('tv-pbrange', (el) => {
+    const d = dash.data('tvc_pb_range');
+    el.textContent = d.status === 'ok' && d.data.length ? `${tvFmt(d.data[0].lo, 1)} to ${tvFmt(d.data[0].hi, 1)}` : '—';
+  });
+  const tvNote = (field) => (el) => {
+    const d = dash.data('competitor_protocols');
+    const key = (el.dataset.where || '').replace(/^key=/, '');
+    const r = d.status === 'ok' ? d.data.find((x) => x.key === key) : null;
+    el.textContent = r ? tvFmt(r[field], r.decimals) : '—';
+  };
+  dash.draw('tv-note', tvNote('tele'));
+  dash.draw('tv-note-pub', tvNote('pub_value'));
+</script>

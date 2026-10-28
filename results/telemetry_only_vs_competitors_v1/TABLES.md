@@ -386,3 +386,10 @@ Exchangeability is broken on purpose; CROP presents this as a failure diagnostic
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | PRM (1 − reward), q201 | CRV-GSM8K → CRV-Arith | 0.3 | 34.1 | 0.3 | 33.0 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | TELE16 (L-SML), q201 | CRV-GSM8K → CRV-Arith | 0.5 | 28.4 | 0.2 | 9.9 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | TELE16 plain average, q201 | CRV-GSM8K → CRV-Arith | 0.5 | 27.0 | 0.1 | 8.6 |
+
+## On the scorecard
+
+These tables are the section "Telemetry only vs PRISM, SLIDER and CROP" of the Thesis candidates scorecard
+(https://claude.ai/artifact/3bknWqmrPsYNycXfjmWpMb, private until shared). Its dataset `competitor_protocols` is
+`dashboard/competitor_protocols.csv`, built by `make_dashboard_data.py`; the page as stored is `dashboard/index.html`
+(`page_doc.json` is the same text as written to the page's store).

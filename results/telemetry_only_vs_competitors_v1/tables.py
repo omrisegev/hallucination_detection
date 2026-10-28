@@ -153,5 +153,6 @@ md += ['## CROP, Table 17: cross-domain transfer (calibrate on one CRV set, test
        'in this table. FA = whole traces accepted that contain an error; accept = whole traces accepted (our reading of '
        'the columns; % of target test traces).', '',
        table(['pair', 'arm', 'calibrate → test', 'risk %', 'kept %', 'FA %', 'accept %'], rows), '']
-(HERE / 'TABLES_BODY.md').write_text('\n'.join(md), encoding='utf-8')
-print(len(md))
+if __name__ == '__main__':
+    (HERE / 'TABLES_BODY.md').write_text('\n'.join(md), encoding='utf-8')
+    print(len(md))
