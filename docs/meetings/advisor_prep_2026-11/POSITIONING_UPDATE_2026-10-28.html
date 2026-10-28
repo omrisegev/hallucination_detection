@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PRM Boosting Positioning Update</title>
+<style>
+:root{--bg:#fbfaf7;--surface:#ffffff;--ink:#1d1d1b;--ink2:#55534d;--muted:#8a877f;--line:#e4e1da;--accent:#2f5d8a;--good:#2e7d4f;--bad:#b3412e;--warn:#9a6a12;--chip:#eef2f6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17181a;--surface:#202225;--ink:#ecebe7;--ink2:#b9b6ae;--muted:#8d8a83;--line:#34363a;--accent:#7fb0de;--good:#6cc08f;--bad:#e8826f;--warn:#e0b45c;--chip:#2a2e34}}
+:root[data-theme="dark"]{--bg:#17181a;--surface:#202225;--ink:#ecebe7;--ink2:#b9b6ae;--muted:#8d8a83;--line:#34363a;--accent:#7fb0de;--good:#6cc08f;--bad:#e8826f;--warn:#e0b45c;--chip:#2a2e34}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 -apple-system,"Segoe UI",Arial,sans-serif}
+main{max-width:1040px;margin:0 auto;padding:28px 16px 64px}
+h1{font-size:26px;margin:0 0 4px}
+h2{font-size:20px;margin:36px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+h3{font-size:16px;margin:20px 0 6px}
+.meta{color:var(--muted);font-size:14px;margin-bottom:18px}
+.lead{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.lead b{color:var(--accent)}
+p,li{color:var(--ink)}
+ul{padding-inline-start:20px;margin:6px 0}
+.tw{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px;margin:10px 0}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:start;vertical-align:top}
+th{color:var(--ink2);font-weight:600;background:var(--chip);white-space:nowrap}
+tr:last-child td{border-bottom:none}
+td.n,th.n{text-align:center;white-space:nowrap;font-variant-numeric:tabular-nums}
+.n{direction:ltr;unicode-bidi:isolate}
+.best{font-weight:700;color:var(--good)}
+.lose{color:var(--bad)}
+.note{color:var(--ink2);font-size:14px}
+.tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:999px;background:var(--chip);color:var(--ink2);margin-inline-start:6px}
+.pill-a{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)}
+.pill-b{background:color-mix(in srgb,var(--good) 18%,transparent);color:var(--good)}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;background:var(--chip);padding:1px 5px;border-radius:4px;direction:ltr;unicode-bidi:isolate}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.card h3{margin-top:0}
+.status-ok{color:var(--good);font-weight:600}.status-no{color:var(--bad);font-weight:600}.status-mid{color:var(--warn);font-weight:600}
+</style>
+</head>
+<body>
+<main>
+<h1>PRM boosting מול המתחרים: עדכון והכנה לפגישה</h1>
+<div class="meta">2026-10-28 · נתוני פיתוח (כבר נבדקו) · ענף <code>claude/prm-boosting</code> · המקור: <code>docs/meetings/advisor_prep_2026-11/MEETING_PLAN_HE.md</code></div>
+
+<div class="lead">
+<b>בשורה אחת:</b> ב-PRMBench, גם האיחוד עם ה-PRM <span class="tag pill-a">A</span> וגם הטלמטריה לבד, בלי PRM ובלי תוויות <span class="tag pill-b">B</span>, מגיעים ל-PRMScore גבוה מזה של PRISM, שמאמן את ה-PRM מחדש (<span class="n">70.40</span> ו-<span class="n">69.26</span> מול <span class="n">68.0</span>). ב-Socratic, ה-PRM החזק עדיין מנצח את שניהם. מאז המייל האחרון בדקנו אם אלגוריתם אחר או ערוץ חדש יסגרו את הפער הזה, ושום דבר לא סגר אותו.
+</div>
+
+<h2>1. הטבלה המרכזית: Qwen2.5-Math-PRM-7B על PRMBench</h2>
+<p class="note">זה ה-PRM שבו משתמשים PRISM ו-CROP. <span class="tag pill-a">A</span> הוא ה-PRM ועוד הטלמטריה (CHAIN_N16). <span class="tag pill-b">B</span> הוא טלמטריה בלבד, בלי ה-PRM. המקורות: <code>results/prm_boost_collection_v1/tables/COMP_*.csv</code>, <code>results/prm_view_selection_v1/stage2/COMPETITORS.csv</code> ו-<code>results/prm_standalone_telemetry_v1/README.md</code>.</p>
+<div class="tw"><table>
+<tr><th>מדד</th><th>התוצאה במאמר</th><th class="n">ה-PRM לבד</th><th class="n">A: CHAIN_N16</th><th class="n">B: TELE_N16 (backbone)</th><th class="n">B: standalone</th><th class="n">B: SUB5 לבד*</th></tr>
+<tr><td>PRMScore (לפי GAP)</td><td>PRISM <span class="n">68.0</span> (אומן מחדש)</td><td class="n">68.01</td><td class="n best">70.40</td><td class="n best">69.26</td><td class="n">68.26</td><td class="n">68.78</td></tr>
+<tr><td>FPR ב-TPR קבוע של 87.3 (נמוך עדיף)</td><td>PRISM <span class="n">47.13</span></td><td class="n">47.70</td><td class="n">47.78</td><td class="n lose">50.63</td><td class="n">—</td><td class="n lose">52.18</td></tr>
+<tr><td>CROP: % שנשמר ב-α = 5%</td><td>Trace+PRM <span class="n">21.8</span> (עם תוויות); Trace בלבד <span class="n">15.9</span> (עם תוויות)</td><td class="n">4.83 / 17.24 (שני grids)</td><td class="n best">23.33</td><td class="n">20.84</td><td class="n">—</td><td class="n">18.93</td></tr>
+<tr><td>CROP: סיכון בהעברה ל-Socratic (יעד 5%)</td><td>—</td><td class="n">2.07</td><td class="n lose">6.71</td><td class="n lose">7.51</td><td class="n">—</td><td class="n lose">10.4</td></tr>
+<tr><td>ARES Macro-F1 (בקירוב)</td><td>(קבוצה אחרת)</td><td class="n">68.17</td><td class="n">68.10</td><td class="n">67.18</td><td class="n">—</td><td class="n">66.58</td></tr>
+<tr><td>SLIDER, balanced accuracy על redundancy</td><td>Step-RRI <span class="n">61.9</span></td><td class="n">54.5</td><td class="n">74.3</td><td class="n best">75.7</td><td class="n">—</td><td class="n">74.3</td></tr>
+</table></div>
+<p class="note">* SUB5 נבחר על PRMBench ו-Socratic, ולכן המספרים שלו in-sample. "—" פירושו שעוד לא חושב (סעיף 5).</p>
+
+<div class="grid">
+<div class="card"><h3>מה אפשר לטעון</h3><ul>
+<li><b>A:</b> מעל PRISM ב-PRMScore בלי לאמן מחדש. בערך שווה לו ב-FPR עם TPR קבוע. ב-CROP מעל ה-proxy המפוקח שלהם.</li>
+<li><b>B:</b> טלמטריה בלבד, בלי תוויות. ב-PRMScore מעל PRISM. ב-CROP מעל ה-proxy המפוקח שגם הוא טלמטריה בלבד. ב-redundancy הרבה מעל SLIDER, בלי אף קריאה ל-LLM.</li>
+</ul></div>
+<div class="card"><h3>מה חייבים לומר</h3><ul>
+<li>חלק מהיתרון בא מכלל GAP: תחת Q80, ‏TELE_N16 מקבל <span class="n">67.11</span>.</li>
+<li>ב-CROP השתמשנו ב-quantile grid. ה-grid הזה לבדו מעלה את ה-PRM מ-<span class="n">4.8</span> ל-<span class="n">17.2</span>.</li>
+<li>בהעברה ל-Socratic, כל הגרסאות שלנו עוברות את יעד הסיכון של 5%.</li>
+<li>מסלול B מפסיד ב-FPR כשה-TPR קבוע.</li>
+</ul></div>
+</div>
+
+<h2>2. גם אחרי PRMBench</h2>
+<div class="tw"><table>
+<tr><th>בנצ'מרק (Qwen-7B)</th><th class="n">ה-PRM לבד</th><th class="n">A: CHAIN</th><th class="n">B: TELE_N16</th><th class="n">B: SUB5 לבד</th><th>התוצאה המובילה שפורסמה</th></tr>
+<tr><td>Socratic-PRMBench</td><td class="n best">70.10</td><td class="n">66.89</td><td class="n">64.47</td><td class="n">67.74</td><td>o3-mini <span class="n">75.7</span>; ה-PRM הכי טוב בטבלה שלהם <span class="n">68.0</span></td></tr>
+<tr><td>Hard2Verify (177 תשובות)</td><td class="n">45.82</td><td class="n">44.27</td><td class="n">46.71</td><td class="n best">49.35</td><td>GPT-5 <span class="n">85.8</span>; Qwen-PRM-7B <span class="n">42.37</span></td></tr>
+</table></div>
+<p class="note">ב-Hard2Verify, ‏SUB5 לבד הוא הכי טוב ב-3 מתוך 4 PRMs, וקורס עם PURE (<span class="n">30.1</span> מול <span class="n">50.8</span>). המדגם קטן. המקור: <code>results/prm_view_selection_v1/h2v_holdout/</code>.</p>
+
+<h2>3. מה נעשה במחשב הזה מאז דף ה-positioning (24.10)</h2>
+<div class="tw"><table>
+<tr><th>Step</th><th>מה נבדק</th><th>תוצאה</th></tr>
+<tr><td class="n">469–473</td><td>מסגור מתמטי; gate בלי תוויות; ספירה דו-שלבית; סף מכויל עם ערובה</td><td>תנאי השיפור P2 חוזה את הסימן ב-13 מתוך 15 תאים. ה-gate נכשל. לסף המכויל יש ערובה, אבל הוא מוסיף רווח רק ב-Qwen.</td></tr>
+<tr><td class="n">474</td><td>היגיינה סטטיסטית (refit bootstrap, יציבות החלוקה, split-half)</td><td class="status-ok">עבר</td></tr>
+<tr><td class="n">475–476</td><td>AUTO מול CHAIN; משקלי Fisher/CCA בלי עוגן</td><td>CHAIN עדיף. בלי ה-PRM כעוגן, השיטה ננעלת על הרעש המשותף.</td></tr>
+<tr><td class="n">477</td><td>האם הקשרים בין הערוצים שונים כשיש שגיאה (Ising)</td><td>הם שונים, אבל כלל ריבועי לא מוסיף כמעט כלום.</td></tr>
+<tr><td class="n">478–480</td><td>חיפוש על כל 64,839 תת-הסטים, עם ה-PRM ובלעדיו</td><td>אין סט שעובד בכל 10 התאים עם ה-PRM. 380 סטים בלי ה-PRM מנצחים את הממוצע של עצמם. SUB5 הוא היחיד שעובד גם עם ה-PRM וגם בלעדיו (8 תאים).</td></tr>
+<tr><td class="n">481</td><td>למה דווקא הערוצים האלה; מיקום הצעד; מבנה Socratic</td><td>ה"ניצחונות" ב-Socratic באו ממיקום הצעד. השקלול הוא צוואר הבקבוק, לא בחירת הערוצים.</td></tr>
+<tr><td class="n">482</td><td>HEM, התחלה מה-eigenvector, SML פשוט; הציון לצעד הבא כמצביע</td><td><span class="status-no">האלגוריתם לא עוזר</span> (HEM: ‏8 שיפורים ו-16 הרעות). הציון לצעד הבא <span class="status-mid">עוזר כשה-PRM טוב</span> ומזיק עם RLHFlow.</td></tr>
+<tr><td class="n">—</td><td>פיצ'רים חדשים מתוך ה-PRM (סשן נפרד, ענף <code>claude/prm-new-features-2026-10-26</code>)</td><td>המועמד המוביל: ציון ה-PRM על קלט ששונה בכוונה. זה דורש GPU.</td></tr>
+</table></div>
+
+<h2>4. מה להשלים לפני הפגישה (ב-CPU)</h2>
+<ul>
+<li><b>פרוטוקולי המתחרים על standalone.</b> צריך להוריד בערך 210 MB מ-Drive. זו השורה הכי נקייה במסלול B.</li>
+<li><b>Mind the Gap על PRMBench.</b> הערוץ <code>evidence_drop_risk</code> לבד, ובנוסף כערוץ ה-17. זה המתחרה הישיר של מסלול B.</li>
+<li><b>CROP:</b> להריץ את TELE גם על ה-grid הקבוע שלהם.</li>
+<li><b>לעדכן את דף ה-positioning למנחים:</b> להוסיף את עמודות מסלול B ולתקן ניסוחים מוגזמים.</li>
+</ul>
+
+<h2>5. שאלות למנחים</h2>
+<ol>
+<li>מה הטענה המרכזית: PRM boosting, או טלמטריה בלי PRM שמגיעה לרמה של PRMs מאומנים?</li>
+<li>GPU לפיצ'רים שהרעש שלהם נפרד (ציון ה-PRM בלי השאלה, או בלי צעד אחד)?</li>
+<li>אילו נתונים יהיו המבחן הסופי, שלא נגענו בהם?</li>
+<li>Socratic: להציג אותו ככישלון מוסבר, או לחפש עוגן שיתקן אותו?</li>
+</ol>
+
+<h2>6. ענפים ב-remote</h2>
+<ul>
+<li><code>claude/prm-boosting</code>: כל העבודה מהמחשב הזה, עד Step 482 ותוכנית הפגישה.</li>
+<li><code>claude/prm-new-features-2026-10-26</code>: מחקר הפיצ'רים החדשים. לא מוזג.</li>
+<li>מהמחשב השני (לא מוזגו לכאן): <code>claude/prm-boost-missing-benchmarks-2026-10-26</code> (עודכן ב-27.10), <code>claude/prm-standalone-math-peer-review-2026-10-25</code>, <code>claude/prm-boost-auto-gap-nnr1-2026-10-24</code>, <code>claude/prm-boost-positioning-peer-review-2026-10-24</code>.</li>
+</ul>
+</main>
+</body>
+</html>
