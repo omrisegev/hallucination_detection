@@ -1,0 +1,650 @@
+{
+ "bank": "results/advisor_completion_2026-10-11/inputs/bank_V_N56.npz",
+ "steps": 94203,
+ "channels": 56,
+ "labels_read": false,
+ "exact_copies": [
+  {
+   "a": "q15_H1",
+   "b": "hist_entropy_series",
+   "r": 1.0
+  },
+  {
+   "a": "chosen_surprisal",
+   "b": "hist_spilled_series",
+   "r": 1.0
+  },
+  {
+   "a": "q15_VE1",
+   "b": "ct7_ve1",
+   "r": 1.0
+  },
+  {
+   "a": "digit_alternative",
+   "b": "digit_alternative_innovation",
+   "r": 0.99982
+  }
+ ],
+ "near_copies_ge_0_9": [
+  {
+   "a": "hist_entropy_series",
+   "b": "hist_topk_entropy_series",
+   "r": 0.9962,
+   "fa": "F1",
+   "fb": "F1"
+  },
+  {
+   "a": "q15_H1",
+   "b": "hist_topk_entropy_series",
+   "r": 0.9962,
+   "fa": "F1",
+   "fb": "F1"
+  },
+  {
+   "a": "hist_topk_entropy_series",
+   "b": "hist_topk_renyi2_series",
+   "r": 0.9915,
+   "fa": "F1",
+   "fb": "F1"
+  },
+  {
+   "a": "hist_entropy_series",
+   "b": "hist_topk_renyi2_series",
+   "r": 0.9913,
+   "fa": "F1",
+   "fb": "F1"
+  },
+  {
+   "a": "q15_H1",
+   "b": "hist_topk_renyi2_series",
+   "r": 0.9913,
+   "fa": "F1",
+   "fb": "F1"
+  },
+  {
+   "a": "ct7_ve1",
+   "b": "hist_topk_varentropy_series",
+   "r": 0.9702,
+   "fa": "F1",
+   "fb": "F1"
+  },
+  {
+   "a": "q15_VE1",
+   "b": "hist_topk_varentropy_series",
+   "r": 0.9702,
+   "fa": "F1",
+   "fb": "F1"
+  },
+  {
+   "a": "ct7_ve0",
+   "b": "ct7_H0lim",
+   "r": 0.9694,
+   "fa": "F1",
+   "fb": "F1"
+  },
+  {
+   "a": "digit_alternative",
+   "b": "digit_spread",
+   "r": 0.9452,
+   "fa": "F7",
+   "fb": "F7"
+  },
+  {
+   "a": "digit_spread",
+   "b": "digit_alternative_innovation",
+   "r": 0.9444,
+   "fa": "F7",
+   "fb": "F7"
+  },
+  {
+   "a": "ct7_H0lim",
+   "b": "hist_entropy_series",
+   "r": 0.9302,
+   "fa": "F1",
+   "fb": "F1"
+  },
+  {
+   "a": "q15_H1",
+   "b": "ct7_H0lim",
+   "r": 0.9302,
+   "fa": "F1",
+   "fb": "F1"
+  },
+  {
+   "a": "energy_innovation",
+   "b": "hist_energy_series",
+   "r": 0.9266,
+   "fa": "F3",
+   "fb": "F1"
+  },
+  {
+   "a": "ct7_ve0.75",
+   "b": "ct7_ve1",
+   "r": 0.9235,
+   "fa": "F1",
+   "fb": "F1"
+  },
+  {
+   "a": "q15_VE1",
+   "b": "ct7_ve0.75",
+   "r": 0.9235,
+   "fa": "F1",
+   "fb": "F1"
+  },
+  {
+   "a": "ct7_H0lim",
+   "b": "hist_topk_entropy_series",
+   "r": 0.9221,
+   "fa": "F1",
+   "fb": "F1"
+  },
+  {
+   "a": "ct7_H0lim",
+   "b": "hist_topk_varentropy_series",
+   "r": 0.9205,
+   "fa": "F1",
+   "fb": "F1"
+  },
+  {
+   "a": "ct7_H0lim",
+   "b": "ct7_ve1",
+   "r": 0.9047,
+   "fa": "F1",
+   "fb": "F1"
+  },
+  {
+   "a": "q15_VE1",
+   "b": "ct7_H0lim",
+   "r": 0.9047,
+   "fa": "F1",
+   "fb": "F1"
+  },
+  {
+   "a": "hist_topk_entropy_series",
+   "b": "hist_topk_tail_mass_series",
+   "r": 0.9025,
+   "fa": "F1",
+   "fb": "F1"
+  },
+  {
+   "a": "ct7_ve0",
+   "b": "hist_topk_varentropy_series",
+   "r": 0.9009,
+   "fa": "F1",
+   "fb": "F1"
+  }
+ ],
+ "family_spectra": {
+  "F1": {
+   "n": 18,
+   "top": [
+    11.868,
+    2.727,
+    0.971,
+    0.875
+   ],
+   "pc1_share": 0.659,
+   "eff_rank": 3.45
+  },
+  "F2": {
+   "n": 6,
+   "top": [
+    4.223,
+    1.026,
+    0.342,
+    0.229
+   ],
+   "pc1_share": 0.704,
+   "eff_rank": 2.57
+  },
+  "F3": {
+   "n": 7,
+   "top": [
+    3.218,
+    1.751,
+    0.726,
+    0.55
+   ],
+   "pc1_share": 0.46,
+   "eff_rank": 4.45
+  },
+  "F4": {
+   "n": 4,
+   "top": [
+    1.753,
+    1.216,
+    0.708,
+    0.323
+   ],
+   "pc1_share": 0.438,
+   "eff_rank": 3.43
+  },
+  "F5": {
+   "n": 12,
+   "top": [
+    3.638,
+    2.545,
+    1.221,
+    0.968
+   ],
+   "pc1_share": 0.303,
+   "eff_rank": 7.94
+  },
+  "F6": {
+   "n": 6,
+   "top": [
+    1.981,
+    1.274,
+    1.057,
+    0.735
+   ],
+   "pc1_share": 0.33,
+   "eff_rank": 5.26
+  },
+  "F7": {
+   "n": 3,
+   "top": [
+    2.927,
+    0.073,
+    0.0
+   ],
+   "pc1_share": 0.976,
+   "eff_rank": 1.12
+  }
+ },
+ "clusters": {
+  "|r|>=0.9": {
+   "n_clusters": 45,
+   "multi": [
+    {
+     "members": [
+      "digit_alternative",
+      "digit_spread",
+      "digit_alternative_innovation"
+     ],
+     "families": [
+      "F7"
+     ]
+    },
+    {
+     "members": [
+      "energy_innovation",
+      "hist_energy_series"
+     ],
+     "families": [
+      "F1",
+      "F3"
+     ]
+    },
+    {
+     "members": [
+      "chosen_surprisal",
+      "hist_spilled_series"
+     ],
+     "families": [
+      "F2"
+     ]
+    },
+    {
+     "members": [
+      "q15_VE1",
+      "ct7_ve0.75",
+      "ct7_ve1",
+      "hist_topk_varentropy_series"
+     ],
+     "families": [
+      "F1"
+     ]
+    },
+    {
+     "members": [
+      "q15_H1",
+      "hist_entropy_series",
+      "hist_topk_entropy_series",
+      "hist_topk_renyi2_series"
+     ],
+     "families": [
+      "F1"
+     ]
+    },
+    {
+     "members": [
+      "ct7_ve0",
+      "ct7_H0lim"
+     ],
+     "families": [
+      "F1"
+     ]
+    }
+   ]
+  },
+  "|r|>=0.8": {
+   "n_clusters": 39,
+   "multi": [
+    {
+     "members": [
+      "hist_entropy_rolling_high_band_power",
+      "hist_entropy_rolling_spectral_centroid"
+     ],
+     "families": [
+      "F5"
+     ]
+    },
+    {
+     "members": [
+      "digit_alternative",
+      "digit_spread",
+      "digit_alternative_innovation"
+     ],
+     "families": [
+      "F7"
+     ]
+    },
+    {
+     "members": [
+      "energy_innovation",
+      "hist_energy_series",
+      "hist_logprob_margin_series"
+     ],
+     "families": [
+      "F1",
+      "F3"
+     ]
+    },
+    {
+     "members": [
+      "chosen_surprisal",
+      "realized_drv",
+      "hist_spilled_series"
+     ],
+     "families": [
+      "F2"
+     ]
+    },
+    {
+     "members": [
+      "q15_H1",
+      "q15_VE1",
+      "ct7_ve0",
+      "ct7_H0lim",
+      "ct7_ve0.75",
+      "ct7_ve1",
+      "hist_entropy_series",
+      "hist_topk_entropy_series",
+      "hist_topk_varentropy_series",
+      "hist_topk_renyi2_series",
+      "hist_topk_tail_mass_series"
+     ],
+     "families": [
+      "F1"
+     ]
+    }
+   ]
+  },
+  "|r|>=0.7": {
+   "n_clusters": 32,
+   "multi": [
+    {
+     "members": [
+      "hist_entropy_rolling_high_band_power",
+      "hist_entropy_rolling_dominant_freq",
+      "hist_entropy_rolling_spectral_centroid"
+     ],
+     "families": [
+      "F5"
+     ]
+    },
+    {
+     "members": [
+      "digit_alternative",
+      "digit_spread",
+      "digit_alternative_innovation"
+     ],
+     "families": [
+      "F7"
+     ]
+    },
+    {
+     "members": [
+      "energy_innovation",
+      "hist_energy_series",
+      "hist_logprob_margin_series"
+     ],
+     "families": [
+      "F1",
+      "F3"
+     ]
+    },
+    {
+     "members": [
+      "hist_entropy_rolling_low_band_power",
+      "hist_entropy_rolling_rs_hurst"
+     ],
+     "families": [
+      "F5"
+     ]
+    },
+    {
+     "members": [
+      "chosen_surprisal",
+      "realized_z",
+      "realized_drv",
+      "ct7_chosen_std_excess",
+      "hist_spilled_series"
+     ],
+     "families": [
+      "F2"
+     ]
+    },
+    {
+     "members": [
+      "ct7_bocpd_residual",
+      "evidence_drop_risk"
+     ],
+     "families": [
+      "F3"
+     ]
+    },
+    {
+     "members": [
+      "q15_H1",
+      "q15_VE1",
+      "logprob_margin",
+      "ct7_H0lim_prefix_innovation",
+      "ct7_ve0",
+      "ct7_H0lim",
+      "ct7_ve0.75",
+      "ct7_ve1",
+      "hist_entropy_series",
+      "hist_topk_entropy_series",
+      "hist_topk_varentropy_series",
+      "hist_topk_renyi2_series",
+      "hist_topk_tail_mass_series"
+     ],
+     "families": [
+      "F1",
+      "F3"
+     ]
+    }
+   ]
+  },
+  "|r|>=0.5": {
+   "n_clusters": 21,
+   "multi": [
+    {
+     "members": [
+      "hist_entropy_rolling_high_band_power",
+      "hist_entropy_rolling_dominant_freq",
+      "hist_entropy_rolling_spectral_centroid"
+     ],
+     "families": [
+      "F5"
+     ]
+    },
+    {
+     "members": [
+      "digit_alternative",
+      "digit_spread",
+      "digit_alternative_innovation"
+     ],
+     "families": [
+      "F7"
+     ]
+    },
+    {
+     "members": [
+      "energy_innovation",
+      "top50_js",
+      "H1_frac_above_z",
+      "hist_energy_series",
+      "hist_energy_rolling_min",
+      "hist_top1_logprob_series",
+      "hist_logprob_margin_series"
+     ],
+     "families": [
+      "F1",
+      "F3",
+      "F4"
+     ]
+    },
+    {
+     "members": [
+      "dominant_freq16",
+      "hist_entropy_rolling_low_band_power",
+      "hist_entropy_rolling_rs_hurst"
+     ],
+     "families": [
+      "F5"
+     ]
+    },
+    {
+     "members": [
+      "chosen_surprisal",
+      "realized_z",
+      "realized_drv",
+      "ct7_chosen_std_excess",
+      "hist_spilled_series",
+      "hist_spilled_sw_var_series"
+     ],
+     "families": [
+      "F2",
+      "F6"
+     ]
+    },
+    {
+     "members": [
+      "bocpd_p0",
+      "hist_entropy_rolling_tail_ratio"
+     ],
+     "families": [
+      "F3",
+      "F5"
+     ]
+    },
+    {
+     "members": [
+      "q15_H1",
+      "q15_VE1",
+      "logprob_margin",
+      "true_tail50",
+      "energy_level",
+      "ct7_bocpd_residual",
+      "ct7_H0lim_prefix_innovation",
+      "ct7_ve0",
+      "evidence_drop_risk",
+      "ct7_H0lim",
+      "ct7_ve0.75",
+      "ct7_ve1",
+      "hist_entropy_series",
+      "hist_entropy_sw_var_series",
+      "hist_topk_entropy_series",
+      "hist_topk_varentropy_series",
+      "hist_topk_renyi2_series",
+      "hist_topk_tail_mass_series"
+     ],
+     "families": [
+      "F1",
+      "F3",
+      "F6"
+     ]
+    }
+   ]
+  }
+ },
+ "mean_abs_r_family": {
+  "F1": {
+   "F1": 0.595,
+   "F2": 0.241,
+   "F3": 0.383,
+   "F4": 0.329,
+   "F5": 0.144,
+   "F6": 0.2,
+   "F7": 0.176
+  },
+  "F2": {
+   "F1": 0.241,
+   "F2": 0.596,
+   "F3": 0.194,
+   "F4": 0.178,
+   "F5": 0.093,
+   "F6": 0.206,
+   "F7": 0.082
+  },
+  "F3": {
+   "F1": 0.383,
+   "F2": 0.194,
+   "F3": 0.363,
+   "F4": 0.228,
+   "F5": 0.211,
+   "F6": 0.2,
+   "F7": 0.127
+  },
+  "F4": {
+   "F1": 0.329,
+   "F2": 0.178,
+   "F3": 0.228,
+   "F4": 0.234,
+   "F5": 0.117,
+   "F6": 0.144,
+   "F7": 0.067
+  },
+  "F5": {
+   "F1": 0.144,
+   "F2": 0.093,
+   "F3": 0.211,
+   "F4": 0.117,
+   "F5": 0.235,
+   "F6": 0.114,
+   "F7": 0.092
+  },
+  "F6": {
+   "F1": 0.2,
+   "F2": 0.206,
+   "F3": 0.2,
+   "F4": 0.144,
+   "F5": 0.114,
+   "F6": 0.18,
+   "F7": 0.077
+  },
+  "F7": {
+   "F1": 0.176,
+   "F2": 0.082,
+   "F3": 0.127,
+   "F4": 0.067,
+   "F5": 0.092,
+   "F6": 0.077,
+   "F7": 0.963
+  }
+ },
+ "whole_bank": {
+  "n": 56,
+  "top": [
+   16.508,
+   8.001,
+   4.782,
+   3.24
+  ],
+  "pc1_share": 0.295,
+  "eff_rank": 16.12
+ }
+}

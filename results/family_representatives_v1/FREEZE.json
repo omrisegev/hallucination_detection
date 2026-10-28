@@ -1,0 +1,391 @@
+{
+ "status": "FROZEN_BEFORE_LABEL_EVALUATION",
+ "date": "2026-10-20",
+ "labels_read": false,
+ "candidates": {
+  "A_copies_pc1": "FrozenT(residualize=False)",
+  "B_copies_pc1_lenpos": "FrozenT(residualize=True)"
+ },
+ "selection": "chosen from label-free structure metrics only (METRICS_A_STEPS.json); Omri asked to evaluate both, once",
+ "evaluation_protocol": "5 source-group outer folds (population.npz fold = FOLDS_V2 prmbench.outer); T and every fusion fitted on training steps only; Q80 flag threshold from training answer-z scores; official PRMBench evaluator",
+ "decision_rule": "Z beats N56 if L-SML within-AUC paired source-group 95% CI > 0 and PRMScore does not fall beyond its CI; S1/S3 must move the same way (spec section 11)",
+ "not_included": "L-SML+HEM (tail-vote pipeline needs its own data environment; not run here)",
+ "code": {
+  "transforms.py": "33cd102f60e1c1bf33603167234cc85c742d34cc5e41e568c1efd62e75b507b0",
+  "metrics_a.py": "94652f75ff6bd1092b69d2a9fcd7b4af9506df2f2e01bbb17d52c17a29bc504c",
+  "freeze.py": "ae04ad8f5532343eb78e0d0445557561c813091d936f65e38d129a02379450d8"
+ },
+ "inputs": {
+  "results/advisor_completion_2026-10-11/inputs/bank_V_N56.npz": "ffeef79e9a0888af3cda5dfff1c48b3e0bfbba9a84e814f862e0ff6f01088565",
+  "results/advisor_completion_2026-10-11/inputs/population.npz": "8966b0ef65235352dec0bd0541f17162650a3972b47b839c9de79cfa46ab4240",
+  "results/advisor_completion_2026-10-11/inputs/prmbench_meta.json": "eb569f07ce0de61c1344411ecd475af6699e493f3b14f3f417cd3d1618802f51",
+  "results/advisor_completion_2026-10-11/inputs/prmbench_prm.pkl": "95be425c66d4dadc6a8e03567ad66ef2933aee27eb7967bf7200139c56518232"
+ },
+ "full_data_fit_description": {
+  "A_copies_pc1": {
+   "residualize": false,
+   "n_out": 39,
+   "names_out": [
+    "hist_entropy_stft_high_series",
+    "hist_entropy_stft_frame_entropy",
+    "PC1[hist_entropy_rolling_high_band_power, hist_entropy_rolling_spectral_centroid]",
+    "hist_entropy_rolling_dominant_freq",
+    "hist_entropy_rolling_spectral_entropy",
+    "hist_entropy_rolling_hl_ratio",
+    "PC1[digit_alternative, digit_spread]",
+    "hist_entropy_cusum_abs_series",
+    "hist_spilled_cusum_abs_series",
+    "hist_energy_cusum_abs_series",
+    "hist_entropy_rolling_low_band_power",
+    "hist_entropy_rolling_rs_hurst",
+    "dominant_freq16",
+    "bocpd_p0",
+    "hist_entropy_rolling_tail_ratio",
+    "ct7_bocpd_residual",
+    "evidence_drop_risk",
+    "PC1[q15_H1, q15_VE1, ct7_ve0, ct7_H0lim, ct7_ve0.75, hist_topk_entropy_series, hist_topk_varentropy_series, hist_topk_renyi2_series, hist_topk_tail_mass_series]",
+    "ct7_H0lim_prefix_innovation",
+    "logprob_margin",
+    "energy_level",
+    "true_tail50",
+    "hist_entropy_sw_var_series",
+    "top50_js",
+    "hist_top1_logprob_series",
+    "PC1[energy_innovation, hist_energy_series, hist_logprob_margin_series]",
+    "H1_frac_above_z",
+    "hist_energy_rolling_min",
+    "H1_jump",
+    "top15_turnover",
+    "hist_energy_sw_var_series",
+    "hist_entropy_pe_series",
+    "H1_first_token",
+    "H1_slope",
+    "PC1[chosen_surprisal, realized_drv]",
+    "realized_z",
+    "ct7_chosen_std_excess",
+    "hist_spilled_sw_var_series",
+    "hist_spilled_rolling_min"
+   ],
+   "copies_dropped": [
+    {
+     "dropped": "ct7_ve1",
+     "copy_of": "q15_VE1",
+     "r": 1.0
+    },
+    {
+     "dropped": "hist_entropy_series",
+     "copy_of": "q15_H1",
+     "r": 1.0
+    },
+    {
+     "dropped": "hist_spilled_series",
+     "copy_of": "chosen_surprisal",
+     "r": 1.0
+    },
+    {
+     "dropped": "digit_alternative_innovation",
+     "copy_of": "digit_alternative",
+     "r": 0.99982
+    }
+   ],
+   "blocks": [
+    {
+     "members": [
+      "hist_entropy_rolling_high_band_power",
+      "hist_entropy_rolling_spectral_centroid"
+     ],
+     "loadings": [
+      0.7071,
+      0.7071
+     ],
+     "eig": [
+      1.825,
+      0.175
+     ],
+     "pc1_share": 0.913
+    },
+    {
+     "members": [
+      "digit_alternative",
+      "digit_spread"
+     ],
+     "loadings": [
+      0.7071,
+      0.7071
+     ],
+     "eig": [
+      1.945,
+      0.055
+     ],
+     "pc1_share": 0.973
+    },
+    {
+     "members": [
+      "q15_H1",
+      "q15_VE1",
+      "ct7_ve0",
+      "ct7_H0lim",
+      "ct7_ve0.75",
+      "hist_topk_entropy_series",
+      "hist_topk_varentropy_series",
+      "hist_topk_renyi2_series",
+      "hist_topk_tail_mass_series"
+     ],
+     "loadings": [
+      0.345,
+      0.3334,
+      0.3366,
+      0.3473,
+      0.2976,
+      0.3454,
+      0.3444,
+      0.3358,
+      0.3109
+     ],
+     "eig": [
+      7.835,
+      0.712,
+      0.196
+     ],
+     "pc1_share": 0.871
+    },
+    {
+     "members": [
+      "energy_innovation",
+      "hist_energy_series",
+      "hist_logprob_margin_series"
+     ],
+     "loadings": [
+      0.588,
+      0.5762,
+      0.5677
+     ],
+     "eig": [
+      2.766,
+      0.171,
+      0.062
+     ],
+     "pc1_share": 0.922
+    },
+    {
+     "members": [
+      "chosen_surprisal",
+      "realized_drv"
+     ],
+     "loadings": [
+      0.7071,
+      0.7071
+     ],
+     "eig": [
+      1.836,
+      0.164
+     ],
+     "pc1_share": 0.918
+    }
+   ]
+  },
+  "B_copies_pc1_lenpos": {
+   "residualize": true,
+   "n_out": 39,
+   "names_out": [
+    "hist_entropy_stft_high_series",
+    "hist_entropy_stft_frame_entropy",
+    "PC1[hist_entropy_rolling_high_band_power, hist_entropy_rolling_spectral_centroid]",
+    "hist_entropy_rolling_dominant_freq",
+    "hist_entropy_rolling_spectral_entropy",
+    "hist_entropy_rolling_hl_ratio",
+    "PC1[digit_alternative, digit_spread]",
+    "hist_entropy_cusum_abs_series",
+    "hist_spilled_cusum_abs_series",
+    "hist_energy_cusum_abs_series",
+    "hist_entropy_rolling_low_band_power",
+    "hist_entropy_rolling_rs_hurst",
+    "dominant_freq16",
+    "bocpd_p0",
+    "hist_entropy_rolling_tail_ratio",
+    "ct7_bocpd_residual",
+    "evidence_drop_risk",
+    "PC1[q15_H1, q15_VE1, ct7_ve0, ct7_H0lim, ct7_ve0.75, hist_topk_entropy_series, hist_topk_varentropy_series, hist_topk_renyi2_series, hist_topk_tail_mass_series]",
+    "ct7_H0lim_prefix_innovation",
+    "logprob_margin",
+    "energy_level",
+    "true_tail50",
+    "hist_entropy_sw_var_series",
+    "top50_js",
+    "hist_top1_logprob_series",
+    "PC1[energy_innovation, hist_energy_series, hist_logprob_margin_series]",
+    "H1_frac_above_z",
+    "hist_energy_rolling_min",
+    "H1_jump",
+    "top15_turnover",
+    "hist_energy_sw_var_series",
+    "hist_entropy_pe_series",
+    "H1_first_token",
+    "H1_slope",
+    "PC1[chosen_surprisal, realized_drv]",
+    "realized_z",
+    "ct7_chosen_std_excess",
+    "hist_spilled_sw_var_series",
+    "hist_spilled_rolling_min"
+   ],
+   "copies_dropped": [
+    {
+     "dropped": "ct7_ve1",
+     "copy_of": "q15_VE1",
+     "r": 1.0
+    },
+    {
+     "dropped": "hist_entropy_series",
+     "copy_of": "q15_H1",
+     "r": 1.0
+    },
+    {
+     "dropped": "hist_spilled_series",
+     "copy_of": "chosen_surprisal",
+     "r": 1.0
+    },
+    {
+     "dropped": "digit_alternative_innovation",
+     "copy_of": "digit_alternative",
+     "r": 0.99982
+    }
+   ],
+   "blocks": [
+    {
+     "members": [
+      "hist_entropy_rolling_high_band_power",
+      "hist_entropy_rolling_spectral_centroid"
+     ],
+     "loadings": [
+      0.7071,
+      0.7071
+     ],
+     "eig": [
+      1.825,
+      0.175
+     ],
+     "pc1_share": 0.913
+    },
+    {
+     "members": [
+      "digit_alternative",
+      "digit_spread"
+     ],
+     "loadings": [
+      0.7071,
+      0.7071
+     ],
+     "eig": [
+      1.945,
+      0.055
+     ],
+     "pc1_share": 0.973
+    },
+    {
+     "members": [
+      "q15_H1",
+      "q15_VE1",
+      "ct7_ve0",
+      "ct7_H0lim",
+      "ct7_ve0.75",
+      "hist_topk_entropy_series",
+      "hist_topk_varentropy_series",
+      "hist_topk_renyi2_series",
+      "hist_topk_tail_mass_series"
+     ],
+     "loadings": [
+      0.345,
+      0.3334,
+      0.3366,
+      0.3473,
+      0.2976,
+      0.3454,
+      0.3444,
+      0.3358,
+      0.3109
+     ],
+     "eig": [
+      7.835,
+      0.712,
+      0.196
+     ],
+     "pc1_share": 0.871
+    },
+    {
+     "members": [
+      "energy_innovation",
+      "hist_energy_series",
+      "hist_logprob_margin_series"
+     ],
+     "loadings": [
+      0.588,
+      0.5762,
+      0.5677
+     ],
+     "eig": [
+      2.766,
+      0.171,
+      0.062
+     ],
+     "pc1_share": 0.922
+    },
+    {
+     "members": [
+      "chosen_surprisal",
+      "realized_drv"
+     ],
+     "loadings": [
+      0.7071,
+      0.7071
+     ],
+     "eig": [
+      1.836,
+      0.164
+     ],
+     "pc1_share": 0.918
+    }
+   ],
+   "r2_removed_by_position_length": {
+    "hist_entropy_stft_high_series": 0.0644,
+    "hist_entropy_stft_frame_entropy": 0.0629,
+    "PC1[hist_entropy_rolling_high_band_power, hist_entropy_rolling_spectral_centroid]": 0.1673,
+    "hist_entropy_rolling_dominant_freq": 0.1632,
+    "hist_entropy_rolling_spectral_entropy": 0.2385,
+    "hist_entropy_rolling_hl_ratio": 0.0622,
+    "PC1[digit_alternative, digit_spread]": 0.1061,
+    "hist_entropy_cusum_abs_series": 0.3679,
+    "hist_spilled_cusum_abs_series": 0.3242,
+    "hist_energy_cusum_abs_series": 0.507,
+    "hist_entropy_rolling_low_band_power": 0.1656,
+    "hist_entropy_rolling_rs_hurst": 0.1685,
+    "dominant_freq16": 0.1814,
+    "bocpd_p0": 0.1263,
+    "hist_entropy_rolling_tail_ratio": 0.2891,
+    "ct7_bocpd_residual": 0.4132,
+    "evidence_drop_risk": 0.3619,
+    "PC1[q15_H1, q15_VE1, ct7_ve0, ct7_H0lim, ct7_ve0.75, hist_topk_entropy_series, hist_topk_varentropy_series, hist_topk_renyi2_series, hist_topk_tail_mass_series]": 0.106,
+    "ct7_H0lim_prefix_innovation": 0.0909,
+    "logprob_margin": 0.1763,
+    "energy_level": 0.3835,
+    "true_tail50": 0.0961,
+    "hist_entropy_sw_var_series": 0.0736,
+    "top50_js": 0.3865,
+    "hist_top1_logprob_series": 0.5648,
+    "PC1[energy_innovation, hist_energy_series, hist_logprob_margin_series]": 0.5379,
+    "H1_frac_above_z": 0.1692,
+    "hist_energy_rolling_min": 0.5103,
+    "H1_jump": 0.1357,
+    "top15_turnover": 0.4841,
+    "hist_energy_sw_var_series": 0.2599,
+    "hist_entropy_pe_series": 0.2062,
+    "H1_first_token": 0.185,
+    "H1_slope": 0.1838,
+    "PC1[chosen_surprisal, realized_drv]": 0.1991,
+    "realized_z": 0.1436,
+    "ct7_chosen_std_excess": 0.2945,
+    "hist_spilled_sw_var_series": 0.3141,
+    "hist_spilled_rolling_min": 0.4219
+   }
+  }
+ }
+}
