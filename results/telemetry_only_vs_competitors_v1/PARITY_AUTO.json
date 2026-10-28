@@ -1,0 +1,409 @@
+{
+ "n_checks": 40,
+ "failed": [],
+ "max_abs_diff": 1.4210854715202004e-14,
+ "auto_fit": {
+  "prmbench/qwen_prm_7b": {
+   "K": 4,
+   "prm_alone": false
+  },
+  "processbench/qwen_prm_7b": {
+   "K": 4,
+   "prm_alone": false
+  },
+  "crv_arith/qwen_prm_7b": {
+   "K": 4,
+   "prm_alone": false
+  },
+  "crv_gsm8k/qwen_prm_7b": {
+   "K": 4,
+   "prm_alone": false
+  },
+  "prm800k/qwen_prm_7b": {
+   "K": 5,
+   "prm_alone": false
+  },
+  "prmbench/qwen_prm_72b": {
+   "K": 5,
+   "prm_alone": false
+  },
+  "processbench/qwen_prm_72b": {
+   "K": 7,
+   "prm_alone": false
+  },
+  "crv_arith/qwen_prm_72b": {
+   "K": 4,
+   "prm_alone": false
+  },
+  "crv_gsm8k/qwen_prm_72b": {
+   "K": 5,
+   "prm_alone": false
+  },
+  "prm800k/qwen_prm_72b": {
+   "K": 5,
+   "prm_alone": false
+  },
+  "prmbench/pure_prm": {
+   "K": 4,
+   "prm_alone": false
+  },
+  "processbench/pure_prm": {
+   "K": 4,
+   "prm_alone": false
+  },
+  "crv_arith/pure_prm": {
+   "K": 4,
+   "prm_alone": false
+  },
+  "crv_gsm8k/pure_prm": {
+   "K": 5,
+   "prm_alone": false
+  },
+  "prm800k/pure_prm": {
+   "K": 5,
+   "prm_alone": false
+  },
+  "prmbench/rlhflow_prm": {
+   "K": 6,
+   "prm_alone": false
+  },
+  "processbench/rlhflow_prm": {
+   "K": 6,
+   "prm_alone": false
+  },
+  "crv_arith/rlhflow_prm": {
+   "K": 5,
+   "prm_alone": false
+  },
+  "crv_gsm8k/rlhflow_prm": {
+   "K": 5,
+   "prm_alone": false
+  },
+  "prm800k/rlhflow_prm": {
+   "K": 5,
+   "prm_alone": false
+  }
+ },
+ "checks": [
+  {
+   "check": "qwen_prm_7b PRMBench AUTO PRMScore GAP vs stage8",
+   "got": 69.86534505288058,
+   "ref": 69.86534505288058,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "qwen_prm_7b PRMBench AUTO within-AUC vs stage8",
+   "got": 0.8242930915898031,
+   "ref": 0.8242930915898031,
+   "abs_diff": 0.0,
+   "tol": 0.0001,
+   "ok": true
+  },
+  {
+   "check": "qwen_prm_7b PRMBench backbone TELE_N16 PRMScore GAP vs STATUS_MAIN",
+   "got": 69.25744182372276,
+   "ref": 69.25744182372274,
+   "abs_diff": 1.4210854715202004e-14,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "qwen_prm_7b ProcessBench AUTO avg F1 NC vs AUTO_NEW",
+   "got": 63.21330424389965,
+   "ref": 63.21330424389965,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "qwen_prm_7b crv_arith AUTO macro-F1 GAP vs AUTO_NEW",
+   "got": 50.22560277552353,
+   "ref": 50.22560277552353,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "qwen_prm_7b crv_arith backbone TELE_N16 CROP kept vs CROP_TABLE6_CAB",
+   "got": 22.300752118252117,
+   "ref": 22.300752118252117,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "qwen_prm_7b crv_gsm8k AUTO macro-F1 GAP vs AUTO_NEW",
+   "got": 49.986699596294535,
+   "ref": 49.986699596294535,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "qwen_prm_7b crv_gsm8k backbone TELE_N16 CROP kept vs CROP_TABLE6_CAB",
+   "got": 27.771436829432908,
+   "ref": 27.771436829432908,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "qwen_prm_7b prm800k AUTO macro-F1 GAP vs AUTO_NEW",
+   "got": 56.84219006677681,
+   "ref": 56.84219006677681,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "qwen_prm_7b prm800k backbone TELE_N16 CROP kept vs CROP_TABLE6_CAB",
+   "got": 29.135672708629876,
+   "ref": 29.135672708629876,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "qwen_prm_72b PRMBench AUTO PRMScore GAP vs stage8",
+   "got": 70.17609916708223,
+   "ref": 70.17609916708221,
+   "abs_diff": 1.4210854715202004e-14,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "qwen_prm_72b PRMBench AUTO within-AUC vs stage8",
+   "got": 0.8277813229941824,
+   "ref": 0.8277813229941824,
+   "abs_diff": 0.0,
+   "tol": 0.0001,
+   "ok": true
+  },
+  {
+   "check": "qwen_prm_72b PRMBench backbone TELE_N16 PRMScore GAP vs STATUS_MAIN",
+   "got": 69.68477044201067,
+   "ref": 69.68477044201067,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "qwen_prm_72b ProcessBench AUTO avg F1 NC vs AUTO_NEW",
+   "got": 67.2707506816534,
+   "ref": 67.2707506816534,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "qwen_prm_72b crv_arith AUTO macro-F1 GAP vs AUTO_NEW",
+   "got": 49.79402594115923,
+   "ref": 49.79402594115923,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "qwen_prm_72b crv_arith backbone TELE_N16 CROP kept vs CROP_TABLE6_CAB",
+   "got": 32.74663836163836,
+   "ref": 32.74663836163836,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "qwen_prm_72b crv_gsm8k AUTO macro-F1 GAP vs AUTO_NEW",
+   "got": 49.07269498265584,
+   "ref": 49.07269498265584,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "qwen_prm_72b crv_gsm8k backbone TELE_N16 CROP kept vs CROP_TABLE6_CAB",
+   "got": 28.180800598272604,
+   "ref": 28.180800598272604,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "qwen_prm_72b prm800k AUTO macro-F1 GAP vs AUTO_NEW",
+   "got": 55.173249790906674,
+   "ref": 55.173249790906674,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "qwen_prm_72b prm800k backbone TELE_N16 CROP kept vs CROP_TABLE6_CAB",
+   "got": 34.52743872516003,
+   "ref": 34.52743872516003,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "pure_prm PRMBench AUTO PRMScore GAP vs stage8",
+   "got": 69.06313336522174,
+   "ref": 69.06313336522174,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "pure_prm PRMBench AUTO within-AUC vs stage8",
+   "got": 0.7989673249088418,
+   "ref": 0.7989673249088418,
+   "abs_diff": 0.0,
+   "tol": 0.0001,
+   "ok": true
+  },
+  {
+   "check": "pure_prm PRMBench backbone TELE_N16 PRMScore GAP vs STATUS_MAIN",
+   "got": 68.70961828997035,
+   "ref": 68.70961828997035,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "pure_prm ProcessBench AUTO avg F1 NC vs AUTO_NEW",
+   "got": 37.69031976914129,
+   "ref": 37.69031976914129,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "pure_prm crv_arith AUTO macro-F1 GAP vs AUTO_NEW",
+   "got": 40.212502002492116,
+   "ref": 40.212502002492116,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "pure_prm crv_arith backbone TELE_N16 CROP kept vs CROP_TABLE6_CAB",
+   "got": 43.59453019203019,
+   "ref": 43.59453019203019,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "pure_prm crv_gsm8k AUTO macro-F1 GAP vs AUTO_NEW",
+   "got": 47.50984455021864,
+   "ref": 47.50984455021864,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "pure_prm crv_gsm8k backbone TELE_N16 CROP kept vs CROP_TABLE6_CAB",
+   "got": 30.524815352048186,
+   "ref": 30.524815352048186,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "pure_prm prm800k AUTO macro-F1 GAP vs AUTO_NEW",
+   "got": 58.10746912667698,
+   "ref": 58.10746912667698,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "pure_prm prm800k backbone TELE_N16 CROP kept vs CROP_TABLE6_CAB",
+   "got": 20.245805122383004,
+   "ref": 20.245805122383004,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "rlhflow_prm PRMBench AUTO PRMScore GAP vs stage8",
+   "got": 65.92482778940517,
+   "ref": 65.92482778940517,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "rlhflow_prm PRMBench AUTO within-AUC vs stage8",
+   "got": 0.764738624833558,
+   "ref": 0.764738624833558,
+   "abs_diff": 0.0,
+   "tol": 0.0001,
+   "ok": true
+  },
+  {
+   "check": "rlhflow_prm PRMBench backbone TELE_N16 PRMScore GAP vs STATUS_MAIN",
+   "got": 66.17227385636284,
+   "ref": 66.17227385636284,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "rlhflow_prm ProcessBench AUTO avg F1 NC vs AUTO_NEW",
+   "got": 33.17192460239835,
+   "ref": 33.17192460239835,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "rlhflow_prm crv_arith AUTO macro-F1 GAP vs AUTO_NEW",
+   "got": 45.17550020139879,
+   "ref": 45.17550020139879,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "rlhflow_prm crv_arith backbone TELE_N16 CROP kept vs CROP_TABLE6_CAB",
+   "got": 52.475131627631626,
+   "ref": 52.475131627631626,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "rlhflow_prm crv_gsm8k AUTO macro-F1 GAP vs AUTO_NEW",
+   "got": 48.01853484212161,
+   "ref": 48.01853484212161,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "rlhflow_prm crv_gsm8k backbone TELE_N16 CROP kept vs CROP_TABLE6_CAB",
+   "got": 33.24475795142903,
+   "ref": 33.24475795142903,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "rlhflow_prm prm800k AUTO macro-F1 GAP vs AUTO_NEW",
+   "got": 52.28587729600493,
+   "ref": 52.28587729600493,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  },
+  {
+   "check": "rlhflow_prm prm800k backbone TELE_N16 CROP kept vs CROP_TABLE6_CAB",
+   "got": 13.468719064387983,
+   "ref": 13.468719064387983,
+   "abs_diff": 0.0,
+   "tol": 1e-06,
+   "ok": true
+  }
+ ]
+}

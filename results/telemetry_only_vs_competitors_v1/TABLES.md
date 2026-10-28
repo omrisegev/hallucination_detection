@@ -69,6 +69,25 @@ on PRMBench; elsewhere the two are close and the average is sometimes higher.
 
 Files: `compute.py` (all numbers), `RESULTS.csv` (1,360 rows, long format), `PARITY.json`, `tables.py` (writes the tables below the summary, as TABLES_BODY.md).
 
+## AUTO (added 2026-10-28)
+
+**AUTO (PRM + backbone telemetry)** = the PRM as one of 17 channels with the telemetry of the PRM's own backbone, free
+L-SML grouping (stage8 `auto`, unchanged; `auto_competitors.py`). It USES the PRM, so it is not telemetry only. In the
+tables below its rows sit beside the standalone telemetry rows; the backbone TELE16/average rows are in
+`RESULTS_BACKBONE.csv`. Parity (`PARITY_AUTO.json`): 40 checks, 0 failed, max difference 1.4e-14: AUTO's PRMBench
+PRMScore and within-AUC vs stage 8, its ProcessBench / CRV / PRM800K main metric vs `AUTO_NEW.csv`, backbone TELE16 vs
+STATUS_MAIN and CROP_TABLE6_CAB. The 20 AUTO fits never left the PRM in a group of its own.
+
+- PRMBench PRMScore (PRISM T2): 69.9 / 70.2 / 69.1 / 65.9, above the PRM native in 4 of 4, above PRISM 68.0 in 3 of 4;
+  FPR 46–54 vs PRISM 47.1. At PRISM's TPR 87.3 (threshold with labels): 64.2–68.0, below PRISM in all 4, above the
+  PRM only for PURE and RLHFlow. In sample.
+- Categories: keeps most of the telemetry's redundancy/circular strength (NR 68–73, NCL 69–73) and recovers part of
+  the PRM's soundness (ES 64–70 vs standalone TELE16 64–66).
+- SLIDER: LR-threshold accuracy 69–76, balanced 70–77 (Step-RRI 61.9; approximate).
+- CROP on PRMBench: kept 21.6 / 20.5 / 18.9 / 15.1; with Qwen-PRM-7B it equals CROP's supervised Trace+PRM (21.8).
+  Elsewhere well below the PRM: ProcessBench kept 9.5–14.4 vs 20.8–49.6, CRV/PRM800K AUROC .39–.81 vs .75–.98.
+- ProcessBench (PRISM T6) average F1: 8.9–10.1 with the telemetry rule, 33–67 with the PRM gate, vs PRM native 29–78.
+
 ## PRISM, Table 2: PRMBench error-detection rates
 
 Positive class = a correct step. FPR = error steps passed as correct. Pool: 6,211 non-control answers, 83,371 steps.
@@ -81,18 +100,22 @@ Positive class = a correct step. FPR = error steps passed as correct. Pool: 6,21
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | PRM, same rule as telemetry | trained PRM, label-free rule | 58.45 | 7.86 | 89.38 | 92.14 | 41.55 | 68.01 |
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | TELE16 (L-SML) | label-free | 50.29 | 11.50 | 90.38 | 88.50 | 49.71 | 68.26 |
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | TELE16 plain average | label-free | 52.66 | 11.68 | 89.96 | 88.32 | 47.34 | 67.14 |
+| Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | AUTO (PRM + backbone telemetry) | trained PRM + label-free fusion | 47.02 | 11.17 | 90.98 | 88.83 | 52.98 | 69.87 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | PRM, native threshold | trained PRM | 61.34 | 6.22 | 89.09 | 93.78 | 38.66 | 68.18 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | PRM, same rule as telemetry | trained PRM, label-free rule | 54.73 | 8.08 | 89.97 | 91.92 | 45.27 | 69.49 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | TELE16 (L-SML) | label-free | 51.62 | 11.40 | 90.16 | 88.60 | 48.38 | 67.80 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | TELE16 plain average | label-free | 52.42 | 11.50 | 90.02 | 88.50 | 47.58 | 67.39 |
+| Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | AUTO (PRM + backbone telemetry) | trained PRM + label-free fusion | 45.78 | 11.36 | 91.18 | 88.64 | 54.22 | 70.18 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | PRM, native threshold | trained PRM | 63.43 | 8.24 | 88.54 | 91.76 | 36.57 | 65.31 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | PRM, same rule as telemetry | trained PRM, label-free rule | 55.34 | 11.43 | 89.53 | 88.57 | 44.66 | 66.24 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | TELE16 (L-SML) | label-free | 54.07 | 10.43 | 89.84 | 89.57 | 45.93 | 67.63 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | TELE16 plain average | label-free | 54.99 | 10.64 | 89.67 | 89.36 | 45.01 | 67.06 |
+| Qwen2.5-Math-7B → PURE-PRM-7B | AUTO (PRM + backbone telemetry) | trained PRM + label-free fusion | 51.37 | 10.10 | 90.33 | 89.90 | 48.63 | 69.06 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | PRM, native threshold | trained PRM | 82.12 | 9.72 | 85.45 | 90.28 | 17.88 | 54.43 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | PRM, same rule as telemetry | trained PRM, label-free rule | 68.07 | 13.03 | 87.22 | 86.97 | 31.93 | 59.39 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | TELE16 (L-SML) | label-free | 53.40 | 10.11 | 89.99 | 89.89 | 46.60 | 68.20 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | TELE16 plain average | label-free | 55.12 | 10.13 | 89.70 | 89.87 | 44.88 | 67.45 |
+| Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | AUTO (PRM + backbone telemetry) | trained PRM + label-free fusion | 53.98 | 12.48 | 89.65 | 87.52 | 46.02 | 65.92 |
 
 ## PRISM, same operating point: global threshold set (with labels) so TPR ≈ 87.30
 
@@ -104,15 +127,19 @@ Same threshold access for every row; the PRM row moves the untouched PRM's thres
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | PRM, native threshold | 47.70 | 12.69 | 90.72 | 87.31 | 52.30 | 68.26 |
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | TELE16 (L-SML) | 52.82 | 12.71 | 89.82 | 87.29 | 47.18 | 66.21 |
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | TELE16 plain average | 54.55 | 12.68 | 89.53 | 87.32 | 45.45 | 65.52 |
+| Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | AUTO (PRM + backbone telemetry) | 49.68 | 12.72 | 90.37 | 87.28 | 50.32 | 67.46 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | PRM, native threshold | 45.25 | 12.67 | 91.16 | 87.33 | 54.75 | 69.22 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | TELE16 (L-SML) | 53.94 | 12.69 | 89.63 | 87.31 | 46.06 | 65.77 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | TELE16 plain average | 54.85 | 12.68 | 89.48 | 87.32 | 45.15 | 65.40 |
+| Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | AUTO (PRM + backbone telemetry) | 48.29 | 12.70 | 90.62 | 87.30 | 51.71 | 68.02 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | PRM, native threshold | 52.24 | 12.75 | 89.92 | 87.25 | 47.76 | 66.41 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | TELE16 (L-SML) | 54.43 | 12.72 | 89.54 | 87.28 | 45.57 | 65.54 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | TELE16 plain average | 55.29 | 12.70 | 89.40 | 87.30 | 44.71 | 65.20 |
+| Qwen2.5-Math-7B → PURE-PRM-7B | AUTO (PRM + backbone telemetry) | 51.37 | 12.68 | 90.08 | 87.32 | 48.63 | 66.81 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | PRM, native threshold | 77.14 | 12.70 | 85.80 | 87.30 | 22.86 | 55.26 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | TELE16 (L-SML) | 52.72 | 12.70 | 89.84 | 87.30 | 47.28 | 66.26 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | TELE16 plain average | 54.24 | 12.68 | 89.58 | 87.32 | 45.76 | 65.65 |
+| Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | AUTO (PRM + backbone telemetry) | 57.81 | 12.70 | 88.97 | 87.30 | 42.19 | 64.15 |
 
 ## PRISM, Table 7: PRMBench PRMScore by error category
 
@@ -127,18 +154,22 @@ NR redundancy, NCL circular logic, ES empirical soundness, SC step consistency, 
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | PRM, same rule as telemetry | 68.0 | 55.2 | 63.1 | 59.1 | 73.1 | 70.1 | 68.2 | 79.3 | 72.7 | 63.4 | 70.6 | 94.6 | 76.2 |
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | TELE16 (L-SML) | 68.3 | 73.0 | 71.5 | 72.2 | 66.0 | 71.2 | 71.2 | 71.2 | 69.9 | 63.2 | 60.8 | 89.0 | 71.0 |
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | TELE16 plain average | 67.1 | 71.3 | 70.3 | 70.8 | 64.5 | 69.8 | 70.1 | 69.4 | 68.5 | 62.4 | 61.0 | 89.6 | 71.0 |
+| Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | AUTO (PRM + backbone telemetry) | 69.9 | 70.4 | 72.7 | 71.6 | 69.3 | 72.6 | 70.3 | 75.2 | 71.9 | 64.1 | 65.8 | 91.1 | 73.7 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | PRM, native threshold | 68.2 | 50.4 | 58.7 | 54.6 | 73.7 | 71.1 | 72.1 | 78.5 | 73.8 | 60.3 | 71.2 | 99.4 | 77.0 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | PRM, same rule as telemetry | 69.5 | 59.8 | 64.9 | 62.3 | 74.0 | 70.9 | 72.0 | 79.1 | 74.0 | 63.0 | 71.1 | 94.6 | 76.2 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | TELE16 (L-SML) | 67.8 | 73.8 | 70.3 | 72.0 | 65.5 | 70.0 | 70.6 | 71.4 | 69.4 | 62.8 | 60.1 | 88.8 | 70.6 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | TELE16 plain average | 67.4 | 71.2 | 70.2 | 70.7 | 65.3 | 69.3 | 70.5 | 70.0 | 68.8 | 63.0 | 61.2 | 90.1 | 71.4 |
+| Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | AUTO (PRM + backbone telemetry) | 70.2 | 73.3 | 72.6 | 73.0 | 69.7 | 72.8 | 70.9 | 74.7 | 72.0 | 64.2 | 66.0 | 88.3 | 72.8 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | PRM, native threshold | 65.3 | 49.1 | 55.1 | 52.1 | 71.1 | 68.9 | 64.0 | 76.9 | 70.2 | 60.3 | 69.3 | 97.9 | 75.8 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | PRM, same rule as telemetry | 66.2 | 53.5 | 60.4 | 56.9 | 71.4 | 68.9 | 64.3 | 77.5 | 70.5 | 62.3 | 69.5 | 94.5 | 75.4 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | TELE16 (L-SML) | 67.6 | 73.1 | 69.9 | 71.5 | 63.8 | 70.9 | 71.4 | 72.1 | 69.5 | 62.3 | 59.9 | 90.9 | 71.0 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | TELE16 plain average | 67.1 | 71.3 | 69.2 | 70.3 | 64.1 | 70.6 | 70.1 | 70.7 | 68.9 | 62.4 | 60.4 | 90.4 | 71.1 |
+| Qwen2.5-Math-7B → PURE-PRM-7B | AUTO (PRM + backbone telemetry) | 69.1 | 72.5 | 70.8 | 71.6 | 66.4 | 72.9 | 71.5 | 74.7 | 71.4 | 63.4 | 62.9 | 90.7 | 72.3 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | PRM, native threshold | 54.4 | 46.2 | 47.4 | 46.8 | 56.6 | 55.2 | 54.4 | 63.8 | 57.5 | 51.5 | 56.2 | 97.9 | 68.5 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | PRM, same rule as telemetry | 59.4 | 49.6 | 58.3 | 53.9 | 61.9 | 60.6 | 59.1 | 67.7 | 62.3 | 57.1 | 60.5 | 91.2 | 69.6 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | TELE16 (L-SML) | 68.2 | 73.8 | 70.5 | 72.1 | 66.1 | 71.8 | 72.3 | 72.1 | 70.6 | 61.7 | 60.0 | 90.1 | 70.6 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | TELE16 plain average | 67.5 | 72.5 | 69.5 | 71.0 | 65.7 | 70.4 | 70.5 | 70.1 | 69.2 | 61.7 | 61.2 | 90.6 | 71.2 |
+| Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | AUTO (PRM + backbone telemetry) | 65.9 | 67.6 | 68.8 | 68.2 | 63.9 | 68.8 | 71.5 | 68.6 | 68.2 | 61.6 | 59.4 | 88.5 | 69.8 |
 
 ## PRISM, Table 6 (appendix 10.2): ProcessBench
 
@@ -156,24 +187,32 @@ TPR = accuracy on samples with an error (exact first-error step), TNR = accuracy
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | TELE16 plain average | Q80 (telemetry only) | 51.7 | 8.3 | 14.3 | 35.5 | 6.7 | 11.2 | 35.3 | 7.1 | 11.8 | 31.8 | 3.5 | 6.4 | 10.9 |
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | TELE16 (L-SML) | NC (PRM gate + count) | 46.9 | 96.4 | 63.1 | 39.9 | 91.1 | 55.5 | 35.6 | 83.4 | 49.9 | 33.4 | 85.3 | 48.0 | 54.1 |
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | TELE16 plain average | NC (PRM gate + count) | 48.8 | 96.4 | 64.8 | 40.7 | 91.1 | 56.3 | 34.3 | 83.4 | 48.6 | 32.7 | 85.3 | 47.2 | 54.2 |
+| Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | AUTO (PRM + backbone telemetry) | Q80 | 63.3 | 3.1 | 5.9 | 42.4 | 4.7 | 8.4 | 37.5 | 6.2 | 10.7 | 42.5 | 6.5 | 11.3 | 9.1 |
+| Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | AUTO (PRM + backbone telemetry) | NC (PRM gate + count) | 63.3 | 96.4 | 76.4 | 51.2 | 91.1 | 65.5 | 40.7 | 83.4 | 54.7 | 41.9 | 85.3 | 56.2 | 63.2 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | PRM, native threshold | native | 78.3 | 97.9 | 87.0 | 73.9 | 87.9 | 80.3 | 65.0 | 79.3 | 71.4 | 67.8 | 81.7 | 74.1 | 78.2 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | PRM, same rule as telemetry | Q80 | 70.5 | 35.8 | 47.5 | 66.7 | 20.4 | 31.3 | 59.3 | 14.9 | 23.9 | 63.7 | 6.8 | 12.3 | 28.7 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | TELE16 (L-SML) | Q80 (telemetry only) | 45.4 | 5.7 | 10.1 | 37.4 | 6.4 | 10.9 | 33.5 | 5.8 | 9.9 | 30.7 | 4.7 | 8.2 | 9.8 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | TELE16 plain average | Q80 (telemetry only) | 45.9 | 6.2 | 11.0 | 38.0 | 5.9 | 10.2 | 34.8 | 6.2 | 10.6 | 31.8 | 4.7 | 8.2 | 10.0 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | TELE16 (L-SML) | NC (PRM gate + count) | 34.3 | 97.9 | 50.8 | 38.2 | 87.9 | 53.3 | 32.7 | 79.3 | 46.3 | 28.9 | 81.7 | 42.7 | 48.3 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | TELE16 plain average | NC (PRM gate + count) | 34.8 | 97.9 | 51.3 | 39.1 | 87.9 | 54.1 | 33.7 | 79.3 | 47.3 | 29.0 | 81.7 | 42.9 | 48.9 |
+| Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | AUTO (PRM + backbone telemetry) | Q80 | 58.9 | 5.7 | 10.4 | 46.6 | 5.2 | 9.3 | 44.3 | 6.6 | 11.5 | 46.3 | 5.0 | 9.0 | 10.1 |
+| Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | AUTO (PRM + backbone telemetry) | NC (PRM gate + count) | 64.3 | 97.9 | 77.6 | 56.9 | 87.9 | 69.1 | 50.9 | 79.3 | 62.0 | 48.0 | 81.7 | 60.4 | 67.3 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | PRM, native threshold | native | 47.8 | 93.8 | 63.3 | 51.3 | 81.3 | 62.9 | 25.4 | 80.9 | 38.7 | 31.3 | 82.0 | 45.3 | 52.6 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | PRM, same rule as telemetry | Q80 | 48.3 | 8.8 | 14.9 | 44.9 | 11.8 | 18.7 | 30.3 | 3.7 | 6.6 | 39.8 | 5.0 | 8.9 | 12.3 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | TELE16 (L-SML) | Q80 (telemetry only) | 40.6 | 4.7 | 8.4 | 34.5 | 5.9 | 10.1 | 30.2 | 7.5 | 12.0 | 25.6 | 6.5 | 10.4 | 10.2 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | TELE16 plain average | Q80 (telemetry only) | 45.4 | 4.7 | 8.5 | 35.5 | 4.7 | 8.3 | 32.8 | 4.6 | 8.0 | 28.0 | 4.7 | 8.1 | 8.2 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | TELE16 (L-SML) | NC (PRM gate + count) | 22.2 | 93.8 | 35.9 | 32.2 | 81.3 | 46.1 | 21.1 | 80.9 | 33.4 | 19.8 | 82.0 | 31.9 | 36.8 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | TELE16 plain average | NC (PRM gate + count) | 26.1 | 93.8 | 40.8 | 32.2 | 81.3 | 46.1 | 22.0 | 80.9 | 34.6 | 21.0 | 82.0 | 33.5 | 38.7 |
+| Qwen2.5-Math-7B → PURE-PRM-7B | AUTO (PRM + backbone telemetry) | Q80 | 44.0 | 5.7 | 10.1 | 36.5 | 6.2 | 10.5 | 29.4 | 5.8 | 9.7 | 23.9 | 5.9 | 9.5 | 9.9 |
+| Qwen2.5-Math-7B → PURE-PRM-7B | AUTO (PRM + backbone telemetry) | NC (PRM gate + count) | 26.6 | 93.8 | 41.4 | 32.7 | 81.3 | 46.6 | 19.5 | 80.9 | 31.4 | 19.4 | 82.0 | 31.3 | 37.7 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | PRM, native threshold | native | 35.3 | 97.9 | 51.9 | 22.7 | 70.9 | 34.4 | 9.9 | 43.6 | 16.1 | 8.5 | 44.8 | 14.3 | 29.2 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | PRM, same rule as telemetry | Q80 | 48.8 | 1.0 | 2.0 | 29.1 | 1.2 | 2.4 | 11.7 | 0.8 | 1.6 | 10.7 | 0.3 | 0.6 | 1.6 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | TELE16 (L-SML) | Q80 (telemetry only) | 44.9 | 3.6 | 6.7 | 36.7 | 5.7 | 9.8 | 29.2 | 1.7 | 3.1 | 28.1 | 5.0 | 8.5 | 7.0 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | TELE16 plain average | Q80 (telemetry only) | 46.9 | 3.6 | 6.7 | 36.2 | 6.7 | 11.2 | 29.8 | 2.1 | 3.9 | 28.3 | 4.1 | 7.2 | 7.3 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | TELE16 (L-SML) | NC (PRM gate + count) | 22.2 | 97.9 | 36.2 | 25.9 | 70.9 | 38.0 | 27.3 | 43.6 | 33.5 | 22.7 | 44.8 | 30.1 | 34.5 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | TELE16 plain average | NC (PRM gate + count) | 20.8 | 97.9 | 34.3 | 25.6 | 70.9 | 37.6 | 28.1 | 43.6 | 34.1 | 21.6 | 44.8 | 29.2 | 33.8 |
+| Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | AUTO (PRM + backbone telemetry) | Q80 | 44.9 | 6.2 | 10.9 | 32.0 | 5.9 | 10.0 | 24.2 | 4.6 | 7.7 | 21.3 | 4.1 | 6.9 | 8.9 |
+| Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | AUTO (PRM + backbone telemetry) | NC (PRM gate + count) | 24.6 | 97.9 | 39.4 | 24.7 | 70.9 | 36.7 | 24.0 | 43.6 | 30.9 | 18.0 | 44.8 | 25.7 | 33.2 |
 
 ## SLIDER / Step-RRI: PRMBench redundancy class (758 answers, positive = redundant step)
 
@@ -189,18 +228,22 @@ SLIDER calibrates a threshold with a linear classifier on a held-out labelled se
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | PRM, same rule as telemetry | 78.81 | 54.54 | 86.80 | 81.83 | 54.74 |
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | TELE16 (L-SML) | 76.15 | 75.95 | 89.10 | 86.71 | 74.70 |
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | TELE16 plain average | 74.62 | 74.06 | 88.39 | 86.00 | 72.69 |
+| Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | AUTO (PRM + backbone telemetry) | 75.84 | 75.57 | 88.19 | 85.23 | 72.33 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | PRM, native threshold | 69.83 | 65.77 | 86.79 | 85.24 | 51.44 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | PRM, same rule as telemetry | 82.93 | 56.09 | 86.80 | 83.91 | 58.72 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | TELE16 (L-SML) | 76.41 | 75.98 | 88.45 | 87.16 | 75.40 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | TELE16 plain average | 74.21 | 73.92 | 88.20 | 85.79 | 72.87 |
+| Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | AUTO (PRM + backbone telemetry) | 76.28 | 76.58 | 88.97 | 86.76 | 75.25 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | PRM, native threshold | 59.28 | 62.06 | 86.80 | 83.30 | 50.16 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | PRM, same rule as telemetry | 75.14 | 57.18 | 86.80 | 79.80 | 53.29 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | TELE16 (L-SML) | 76.46 | 75.68 | 88.39 | 87.05 | 74.20 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | TELE16 plain average | 74.23 | 73.32 | 88.10 | 86.43 | 72.00 |
+| Qwen2.5-Math-7B → PURE-PRM-7B | AUTO (PRM + backbone telemetry) | 76.40 | 75.62 | 87.97 | 86.71 | 73.65 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | PRM, native threshold | 54.56 | 52.72 | 86.80 | 80.48 | 47.45 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | PRM, same rule as telemetry | 54.56 | 52.72 | 86.80 | 76.22 | 49.55 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | TELE16 (L-SML) | 78.58 | 77.47 | 88.46 | 87.79 | 74.08 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | TELE16 plain average | 76.72 | 75.50 | 88.09 | 86.96 | 73.16 |
+| Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | AUTO (PRM + backbone telemetry) | 69.35 | 70.23 | 87.40 | 83.13 | 70.24 |
 
 ## CROP, Table 6: conformal clean prefix at α = 0.05
 
@@ -221,18 +264,22 @@ Our PRMBench uses all 6,211 non-control answers (CROP sampled 5,000), split assi
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | PRM (1 − reward), 201-quantile grid | 0.7999 | 17.2 | 3.9 |
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | TELE16 (L-SML), 201-quantile grid | 0.7440 | 18.2 | 4.9 |
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | TELE16 plain average, 201-quantile grid | 0.7302 | 17.9 | 4.8 |
+| Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | AUTO (PRM + backbone telemetry), 201-quantile grid | 0.7806 | 21.6 | 5.0 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | PRM (1 − reward), CROP fixed 101 grid | 0.7844 | 20.4 | 7.3 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | PRM (1 − reward), 201-quantile grid | 0.7844 | 20.4 | 7.3 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | TELE16 (L-SML), 201-quantile grid | 0.7316 | 16.7 | 4.7 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | TELE16 plain average, 201-quantile grid | 0.7255 | 17.2 | 5.0 |
+| Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | AUTO (PRM + backbone telemetry), 201-quantile grid | 0.7800 | 20.5 | 4.6 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | PRM (1 − reward), CROP fixed 101 grid | 0.7811 | 13.7 | 3.4 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | PRM (1 − reward), 201-quantile grid | 0.7811 | 16.9 | 4.6 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | TELE16 (L-SML), 201-quantile grid | 0.7167 | 16.4 | 4.9 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | TELE16 plain average, 201-quantile grid | 0.7127 | 16.1 | 4.8 |
+| Qwen2.5-Math-7B → PURE-PRM-7B | AUTO (PRM + backbone telemetry), 201-quantile grid | 0.7477 | 18.9 | 4.9 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | PRM (1 − reward), CROP fixed 101 grid | 0.6307 | 8.3 | 4.5 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | PRM (1 − reward), 201-quantile grid | 0.6307 | 8.7 | 4.7 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | TELE16 (L-SML), 201-quantile grid | 0.7343 | 18.2 | 4.8 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | TELE16 plain average, 201-quantile grid | 0.7271 | 18.1 | 4.7 |
+| Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | AUTO (PRM + backbone telemetry), 201-quantile grid | 0.7089 | 15.1 | 4.4 |
 
 ### ProcessBench
 
@@ -249,18 +296,22 @@ Same 3,400 traces / 25,697 steps as CROP Table 4; labels mark the first-error st
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | PRM (1 − reward), 201-quantile grid | 0.8834 | 44.2 | 5.2 |
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | TELE16 (L-SML), 201-quantile grid | 0.7352 | 10.8 | 4.9 |
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | TELE16 plain average, 201-quantile grid | 0.7390 | 11.1 | 5.0 |
+| Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | AUTO (PRM + backbone telemetry), 201-quantile grid | 0.7714 | 13.8 | 5.2 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | PRM (1 − reward), CROP fixed 101 grid | 0.9071 | 49.7 | 4.9 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | PRM (1 − reward), 201-quantile grid | 0.9071 | 49.6 | 4.8 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | TELE16 (L-SML), 201-quantile grid | 0.7525 | 11.1 | 4.9 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | TELE16 plain average, 201-quantile grid | 0.7567 | 11.8 | 5.0 |
+| Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | AUTO (PRM + backbone telemetry), 201-quantile grid | 0.7825 | 14.4 | 5.0 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | PRM (1 − reward), CROP fixed 101 grid | 0.7646 | 27.6 | 4.7 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | PRM (1 − reward), 201-quantile grid | 0.7646 | 28.1 | 4.9 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | TELE16 (L-SML), 201-quantile grid | 0.7351 | 10.5 | 5.3 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | TELE16 plain average, 201-quantile grid | 0.7416 | 11.1 | 5.3 |
+| Qwen2.5-Math-7B → PURE-PRM-7B | AUTO (PRM + backbone telemetry), 201-quantile grid | 0.7400 | 11.2 | 5.4 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | PRM (1 − reward), CROP fixed 101 grid | 0.6989 | 20.6 | 4.6 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | PRM (1 − reward), 201-quantile grid | 0.6989 | 20.8 | 4.7 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | TELE16 (L-SML), 201-quantile grid | 0.7306 | 10.8 | 5.3 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | TELE16 plain average, 201-quantile grid | 0.7294 | 10.8 | 4.9 |
+| Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | AUTO (PRM + backbone telemetry), 201-quantile grid | 0.7239 | 9.5 | 5.7 |
 
 ### CRV-Arithmetic
 
@@ -277,18 +328,22 @@ Inputs rebuilt with CROP's selection rules (counts match Table 4). CROP used 20 
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | PRM (1 − reward), 201-quantile grid | 0.9433 | 96.9 | 3.4 |
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | TELE16 (L-SML), 201-quantile grid | 0.6137 | 43.4 | 4.9 |
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | TELE16 plain average, 201-quantile grid | 0.5483 | 44.8 | 4.7 |
+| Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | AUTO (PRM + backbone telemetry), 201-quantile grid | 0.6852 | 22.8 | 4.1 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | PRM (1 − reward), CROP fixed 101 grid | 0.9783 | 96.7 | 2.4 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | PRM (1 − reward), 201-quantile grid | 0.9783 | 97.0 | 3.3 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | TELE16 (L-SML), 201-quantile grid | 0.5304 | 36.4 | 4.2 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | TELE16 plain average, 201-quantile grid | 0.5033 | 41.7 | 4.5 |
+| Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | AUTO (PRM + backbone telemetry), 201-quantile grid | 0.6970 | 32.0 | 4.2 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | PRM (1 − reward), CROP fixed 101 grid | 0.8772 | 90.4 | 4.2 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | PRM (1 − reward), 201-quantile grid | 0.8772 | 90.3 | 4.1 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | TELE16 (L-SML), 201-quantile grid | 0.4101 | 49.9 | 4.9 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | TELE16 plain average, 201-quantile grid | 0.4128 | 50.4 | 5.0 |
+| Qwen2.5-Math-7B → PURE-PRM-7B | AUTO (PRM + backbone telemetry), 201-quantile grid | 0.3875 | 44.3 | 4.5 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | PRM (1 − reward), CROP fixed 101 grid | 0.8604 | 95.6 | 4.7 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | PRM (1 − reward), 201-quantile grid | 0.8604 | 95.1 | 4.4 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | TELE16 (L-SML), 201-quantile grid | 0.4854 | 52.5 | 4.4 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | TELE16 plain average, 201-quantile grid | 0.4724 | 52.2 | 4.2 |
+| Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | AUTO (PRM + backbone telemetry), 201-quantile grid | 0.4236 | 50.6 | 5.1 |
 
 ### CRV-GSM8K
 
@@ -305,18 +360,22 @@ As CRV-Arithmetic.
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | PRM (1 − reward), 201-quantile grid | 0.8486 | 80.9 | 5.2 |
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | TELE16 (L-SML), 201-quantile grid | 0.5541 | 27.6 | 5.2 |
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | TELE16 plain average, 201-quantile grid | 0.5539 | 28.8 | 5.1 |
+| Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | AUTO (PRM + backbone telemetry), 201-quantile grid | 0.5821 | 29.2 | 4.8 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | PRM (1 − reward), CROP fixed 101 grid | 0.8792 | 80.8 | 5.2 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | PRM (1 − reward), 201-quantile grid | 0.8792 | 81.4 | 5.2 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | TELE16 (L-SML), 201-quantile grid | 0.5336 | 33.2 | 5.1 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | TELE16 plain average, 201-quantile grid | 0.5333 | 31.8 | 4.9 |
+| Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | AUTO (PRM + backbone telemetry), 201-quantile grid | 0.5881 | 28.7 | 5.1 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | PRM (1 − reward), CROP fixed 101 grid | 0.8471 | 62.5 | 5.5 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | PRM (1 − reward), 201-quantile grid | 0.8471 | 63.0 | 5.5 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | TELE16 (L-SML), 201-quantile grid | 0.5050 | 32.2 | 4.8 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | TELE16 plain average, 201-quantile grid | 0.5071 | 32.4 | 4.4 |
+| Qwen2.5-Math-7B → PURE-PRM-7B | AUTO (PRM + backbone telemetry), 201-quantile grid | 0.5275 | 31.1 | 4.5 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | PRM (1 − reward), CROP fixed 101 grid | 0.7967 | 59.8 | 4.5 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | PRM (1 − reward), 201-quantile grid | 0.7967 | 62.3 | 4.8 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | TELE16 (L-SML), 201-quantile grid | 0.5196 | 33.3 | 5.1 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | TELE16 plain average, 201-quantile grid | 0.5208 | 32.1 | 5.1 |
+| Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | AUTO (PRM + backbone telemetry), 201-quantile grid | 0.5225 | 35.1 | 5.1 |
 
 ### PRM800K
 
@@ -333,18 +392,22 @@ Inputs rebuilt with CROP's selection rules (counts match Table 4).
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | PRM (1 − reward), 201-quantile grid | 0.9299 | 69.1 | 5.0 |
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | TELE16 (L-SML), 201-quantile grid | 0.5003 | 14.7 | 5.4 |
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | TELE16 plain average, 201-quantile grid | 0.6535 | 20.1 | 5.1 |
+| Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | AUTO (PRM + backbone telemetry), 201-quantile grid | 0.7093 | 30.5 | 5.1 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | PRM (1 − reward), CROP fixed 101 grid | 0.9500 | 75.8 | 5.0 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | PRM (1 − reward), 201-quantile grid | 0.9500 | 75.4 | 5.0 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | TELE16 (L-SML), 201-quantile grid | 0.4975 | 17.9 | 5.3 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | TELE16 plain average, 201-quantile grid | 0.6336 | 19.9 | 5.2 |
+| Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | AUTO (PRM + backbone telemetry), 201-quantile grid | 0.8079 | 35.8 | 5.1 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | PRM (1 − reward), CROP fixed 101 grid | 0.8781 | 61.6 | 5.4 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | PRM (1 − reward), 201-quantile grid | 0.8781 | 61.8 | 5.4 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | TELE16 (L-SML), 201-quantile grid | 0.5251 | 17.3 | 5.5 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | TELE16 plain average, 201-quantile grid | 0.6137 | 17.1 | 5.2 |
+| Qwen2.5-Math-7B → PURE-PRM-7B | AUTO (PRM + backbone telemetry), 201-quantile grid | 0.6849 | 23.6 | 5.3 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | PRM (1 − reward), CROP fixed 101 grid | 0.7477 | 36.9 | 4.6 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | PRM (1 − reward), 201-quantile grid | 0.7477 | 37.3 | 4.7 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | TELE16 (L-SML), 201-quantile grid | 0.5532 | 22.8 | 5.1 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | TELE16 plain average, 201-quantile grid | 0.6612 | 24.2 | 5.1 |
+| Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | AUTO (PRM + backbone telemetry), 201-quantile grid | 0.5629 | 13.6 | 5.1 |
 
 ## CROP, Table 17: cross-domain transfer (calibrate on one CRV set, test on the other)
 
@@ -358,34 +421,42 @@ Exchangeability is broken on purpose; CROP presents this as a failure diagnostic
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | PRM (1 − reward), q201 | CRV-Arith → CRV-GSM8K | 14.5 | 94.8 | 12.6 | 90.7 |
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | TELE16 (L-SML), q201 | CRV-Arith → CRV-GSM8K | 11.2 | 54.3 | 9.2 | 35.5 |
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | TELE16 plain average, q201 | CRV-Arith → CRV-GSM8K | 10.7 | 53.6 | 8.6 | 33.2 |
+| Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | AUTO (PRM + backbone telemetry), q201 | CRV-Arith → CRV-GSM8K | 9.1 | 48.0 | 6.6 | 28.1 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | PRM (1 − reward), fixed grid | CRV-Arith → CRV-GSM8K | 13.5 | 94.2 | 11.6 | 89.5 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | PRM (1 − reward), q201 | CRV-Arith → CRV-GSM8K | 14.2 | 94.7 | 12.5 | 90.4 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | TELE16 (L-SML), q201 | CRV-Arith → CRV-GSM8K | 11.1 | 58.4 | 9.1 | 40.1 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | TELE16 plain average, q201 | CRV-Arith → CRV-GSM8K | 12.6 | 65.7 | 11.2 | 51.0 |
+| Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | AUTO (PRM + backbone telemetry), q201 | CRV-Arith → CRV-GSM8K | 12.8 | 59.5 | 9.8 | 38.0 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | PRM (1 − reward), fixed grid | CRV-Arith → CRV-GSM8K | 11.1 | 89.0 | 8.8 | 78.8 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | PRM (1 − reward), q201 | CRV-Arith → CRV-GSM8K | 10.9 | 88.9 | 8.7 | 78.6 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | TELE16 (L-SML), q201 | CRV-Arith → CRV-GSM8K | 10.8 | 61.1 | 9.2 | 48.0 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | TELE16 plain average, q201 | CRV-Arith → CRV-GSM8K | 10.0 | 57.6 | 8.2 | 42.3 |
+| Qwen2.5-Math-7B → PURE-PRM-7B | AUTO (PRM + backbone telemetry), q201 | CRV-Arith → CRV-GSM8K | 6.5 | 38.2 | 4.4 | 20.4 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | PRM (1 − reward), fixed grid | CRV-Arith → CRV-GSM8K | 14.1 | 92.1 | 11.5 | 86.9 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | PRM (1 − reward), q201 | CRV-Arith → CRV-GSM8K | 13.7 | 91.5 | 11.1 | 86.1 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | TELE16 (L-SML), q201 | CRV-Arith → CRV-GSM8K | 14.8 | 77.1 | 13.1 | 64.6 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | TELE16 plain average, q201 | CRV-Arith → CRV-GSM8K | 15.4 | 77.8 | 13.8 | 65.3 |
+| Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | AUTO (PRM + backbone telemetry), q201 | CRV-Arith → CRV-GSM8K | 14.7 | 78.3 | 13.0 | 71.5 |
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | PRM (1 − reward), fixed grid | CRV-GSM8K → CRV-Arith | 0.7 | 74.3 | 0.4 | 64.6 |
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | PRM (1 − reward), q201 | CRV-GSM8K → CRV-Arith | 0.7 | 77.3 | 0.4 | 67.3 |
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | TELE16 (L-SML), q201 | CRV-GSM8K → CRV-Arith | 1.7 | 28.5 | 0.7 | 12.9 |
 | Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | TELE16 plain average, q201 | CRV-GSM8K → CRV-Arith | 1.3 | 28.2 | 0.7 | 13.6 |
+| Qwen2.5-Math-7B-Instruct → Qwen-PRM-7B | AUTO (PRM + backbone telemetry), q201 | CRV-GSM8K → CRV-Arith | 1.7 | 18.3 | 1.0 | 1.5 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | PRM (1 − reward), fixed grid | CRV-GSM8K → CRV-Arith | 0.3 | 73.4 | 0.2 | 65.8 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | PRM (1 − reward), q201 | CRV-GSM8K → CRV-Arith | 0.3 | 73.5 | 0.2 | 65.7 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | TELE16 (L-SML), q201 | CRV-GSM8K → CRV-Arith | 1.3 | 19.1 | 0.8 | 2.2 |
 | Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | TELE16 plain average, q201 | CRV-GSM8K → CRV-Arith | 1.4 | 20.2 | 0.9 | 4.3 |
+| Qwen2.5-Math-72B-Instruct → Qwen-PRM-72B | AUTO (PRM + backbone telemetry), q201 | CRV-GSM8K → CRV-Arith | 0.9 | 18.2 | 0.3 | 1.3 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | PRM (1 − reward), fixed grid | CRV-GSM8K → CRV-Arith | 0.7 | 32.6 | 0.0 | 7.4 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | PRM (1 − reward), q201 | CRV-GSM8K → CRV-Arith | 0.7 | 33.2 | 0.0 | 7.5 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | TELE16 (L-SML), q201 | CRV-GSM8K → CRV-Arith | 1.3 | 23.2 | 1.0 | 13.7 |
 | Qwen2.5-Math-7B → PURE-PRM-7B | TELE16 plain average, q201 | CRV-GSM8K → CRV-Arith | 2.5 | 34.8 | 2.1 | 23.6 |
+| Qwen2.5-Math-7B → PURE-PRM-7B | AUTO (PRM + backbone telemetry), q201 | CRV-GSM8K → CRV-Arith | 3.2 | 33.5 | 2.9 | 25.0 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | PRM (1 − reward), fixed grid | CRV-GSM8K → CRV-Arith | 0.3 | 30.8 | 0.3 | 29.9 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | PRM (1 − reward), q201 | CRV-GSM8K → CRV-Arith | 0.3 | 34.1 | 0.3 | 33.0 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | TELE16 (L-SML), q201 | CRV-GSM8K → CRV-Arith | 0.5 | 28.4 | 0.2 | 9.9 |
 | Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | TELE16 plain average, q201 | CRV-GSM8K → CRV-Arith | 0.5 | 27.0 | 0.1 | 8.6 |
+| Llama-3.1-8B-Instruct → RLHFlow-PRM-8B | AUTO (PRM + backbone telemetry), q201 | CRV-GSM8K → CRV-Arith | 1.6 | 26.5 | 1.1 | 11.8 |
 
 ## On the scorecard
 

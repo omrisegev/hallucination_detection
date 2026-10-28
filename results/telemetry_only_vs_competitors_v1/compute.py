@@ -56,6 +56,13 @@ def tables(name):
 # ============================================================================================== PRMBench
 def prmbench(prm):
     c = E.load('prmbench', f'{prm}__standalone')
+    scale, cr = prmbench_core(c, prm)
+    parity_prmbench(c, prm, scale, cr)
+    del c
+
+
+def prmbench_core(c, prm):
+    """PRISM T2 / matched TPR / T7, SLIDER and CROP T6 rows for one PRMBench cell (arms: the PRM and TELE)."""
     scale = 'PRM_Q80_PROB' if A.META[f'prmbench/{prm}']['prm_reference_scale'] == '1-reward' else 'PRM_Q80'
     arms = [('PRM native', 'PRM_native', 'native'), ('PRM (same rule)', scale, 'GAP')] + [(a, a, 'GAP') for a in TELE]
     # ---- PRISM Table 2 / Table 7 at the decision rule
@@ -105,7 +112,10 @@ def prmbench(prm):
     for arm, label, grid in (('PRM_native', 'PRM (1-reward)', 'fixed101'), ('PRM_Q80_PROB', 'PRM (1-reward)', 'q201')) + tuple((a, a, 'q201') for a in TELE):
         for k, m in (('kept_alpha05', 'kept'), ('risk_alpha05', 'risk'), ('auroc', 'auroc')):
             add(prm, 'prmbench', 'CROP T6', label, m, cr[arm][k], grid=grid)
-    # ---- parity
+    return scale, cr
+
+
+def parity_prmbench(c, prm, scale, cr):
     t1 = {(r['prm'], r['arm'], r['rule']): r for r in tables('COMP_PRISM_T1_T2.csv') if r['pool'].startswith('non')}
     t7 = {(r['prm'], r['arm'], r['rule']): r for r in tables('COMP_PRISM_T7_CATEGORIES.csv')}
     mine = lambda proto, label, met, **kw: next(r['value'] for r in ROWS if r['prm'] == prm and r['benchmark'] == 'prmbench' and r['protocol'] == proto
@@ -131,15 +141,19 @@ def prmbench(prm):
         gate(f'{prm} PRMBench standalone {a} matched-TPR PRMScore vs SUB5_ALL', mine('PRISM matched TPR 87.3', a, 'PRMScore'), s5[(a, 'PRMScore_sameTPR87.3')])
         gate(f'{prm} PRMBench standalone {a} CROP kept vs SUB5_ALL', cr[a]['kept_alpha05'], s5[(a, 'crop_kept_a05')])
     gate(f'{prm} PRMBench PRM (same rule) PRMScore GAP vs SUB5_ALL', mine('PRISM T2', 'PRM (same rule)', 'PRMScore'), s5[('PRM', 'PRMScore_GAP')])
-    del c
 
 
 # ============================================================================================== CAB cells (sa)
+MODE = 'sa'                    # 'sa' = standalone telemetry cells; auto_competitors.py sets 'prm' (PRM backbone)
+CELL_HOOK = None               # auto_competitors.py: adds the AUTO_N16 arm to every loaded cell
+
+
 def cab_cell(bench, prm):
-    key = f'cab|sa|{bench}'
-    A.REG[key] = dict(mode='sa', bench=bench, common=A.common_uids(bench))
+    key = f'cab|{MODE}|{bench}'
+    A.REG[key] = dict(mode=MODE, bench=bench, common=A.common_uids(bench))
     c = E.load(key, prm)
     if bench == 'processbench': c.keep = c.keep_gold
+    if CELL_HOOK: CELL_HOOK(c, bench, prm)
     return c
 
 
@@ -209,9 +223,18 @@ def crop_cross(src, tgt, prm):
 
 def processbench(prm):
     c = cab_cell('processbench', prm)
+    R = processbench_core(c, prm)
+    s5 = {(r['arm'], r['metric']): float(r['value']) for r in E.read_csv(A.HERE / 'SUB5_ALL.csv')
+          if r['benchmark'] == 'processbench' and r['mode'] == 'standalone' and r['prm'] == prm}
+    gate(f'{prm} ProcessBench standalone TELE_N16 avg F1 NC vs SUB5_ALL', R['TELE_N16_NC']['avg_f1'], s5[('TELE_N16', 'avg_f1_NC')])
+    gate(f'{prm} ProcessBench PRM native avg F1 vs SUB5_ALL', R['PRM_native']['avg_f1'], s5[('PRM native', 'avg_f1_native')])
+    del c
+
+
+def processbench_core(c, prm):
     crop_table6(c, 'processbench', prm)
     # PRISM Table 6: per-subset error-sample accuracy (TPR), correct-sample accuracy (TNR), F1
-    S = np.load(A.cab_dir('sa', prm, 'processbench') / 'scores' / f'SCORES_sa_{A.PFILE.get(prm, prm)}_processbench.npz')
+    S = np.load(A.cab_dir(MODE, prm, 'processbench') / 'scores' / f'SCORES_{MODE}_{A.PFILE.get(prm, prm)}_processbench.npz')
     lay = {k: S[k] for k in ('uids', 'nonempty', 'nonempty_lengths', 'native_valid')}
     assert list(lay['uids'].astype(str)) == list(c.ids)
     R, _, _ = EP.evaluate(lay, {'PRM': c.arms['PRM'], **{a: c.arms[a] for a in TELE}}, A.PB_GOLD, 'scored', A.PB_GOLD, False)
@@ -223,11 +246,7 @@ def processbench(prm):
             add(prm, 'processbench', 'PRISM PB T6', label, f'{s} TNR', r[f'{s}_correct_acc'], rule=rule)
             add(prm, 'processbench', 'PRISM PB T6', label, f'{s} F1', r[f'{s}_f1'], rule=rule)
         add(prm, 'processbench', 'PRISM PB T6', label, 'average F1', r['avg_f1'], rule=rule)
-    s5 = {(r['arm'], r['metric']): float(r['value']) for r in E.read_csv(A.HERE / 'SUB5_ALL.csv')
-          if r['benchmark'] == 'processbench' and r['mode'] == 'standalone' and r['prm'] == prm}
-    gate(f'{prm} ProcessBench standalone TELE_N16 avg F1 NC vs SUB5_ALL', R['TELE_N16_NC']['avg_f1'], s5[('TELE_N16', 'avg_f1_NC')])
-    gate(f'{prm} ProcessBench PRM native avg F1 vs SUB5_ALL', R['PRM_native']['avg_f1'], s5[('PRM native', 'avg_f1_native')])
-    del c
+    return R
 
 
 def crop_parity(prm):

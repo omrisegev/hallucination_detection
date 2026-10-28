@@ -8,7 +8,7 @@ R = list(csv.DictReader(open(HERE / 'RESULTS.csv', encoding='utf-8')))
 PRMS = [('qwen_prm_7b', 'Qwen-PRM-7B', 'Qwen2.5-Math-7B-Instruct'), ('qwen_prm_72b', 'Qwen-PRM-72B', 'Qwen2.5-Math-72B-Instruct'),
         ('pure_prm', 'PURE-PRM-7B', 'Qwen2.5-Math-7B'), ('rlhflow_prm', 'RLHFlow-PRM-8B', 'Llama-3.1-8B-Instruct')]
 ARM_LABEL = {'PRM native': 'PRM, native threshold', 'PRM (same rule)': 'PRM, same rule as telemetry',
-             'TELE_N16': 'TELE16 (L-SML)', 'MEAN_N16': 'TELE16 plain average', 'PRM (1-reward)': 'PRM (1 − reward)'}
+             'TELE_N16': 'TELE16 (L-SML)', 'AUTO_N16': 'AUTO (PRM + backbone telemetry)', 'MEAN_N16': 'TELE16 plain average', 'PRM (1-reward)': 'PRM (1 − reward)'}
 V = defaultdict(dict)
 for r in R:
     k = (r['prm'], r['benchmark'], r['protocol'], r['arm'], r['pool'], r['rule'], r['scope'], r['grid'])
@@ -40,7 +40,8 @@ rows = [['published', 'Qwen-PRM-7B baseline (PRISM T2)', 'trained PRM', '69.34',
         ['published', 'PRISM, re-trained Qwen-PRM-7B (PRISM T2)', 'trained on PRM800K pairs', '47.13', '12.69', '91.93', '87.30', '52.86', '68.00']]
 for prm, pl, base in PRMS:
     for arm, rule, acc in (('PRM native', 'native', 'trained PRM'), ('PRM (same rule)', 'GAP', 'trained PRM, label-free rule'),
-                           ('TELE_N16', 'GAP', 'label-free'), ('MEAN_N16', 'GAP', 'label-free')):
+                           ('TELE_N16', 'GAP', 'label-free'), ('MEAN_N16', 'GAP', 'label-free'),
+                           ('AUTO_N16', 'GAP', 'trained PRM + label-free fusion')):
         p, a = who(pl, base, arm)
         rows.append([p, a, acc] + [f(get(prm, 'prmbench', 'PRISM T2', arm, c, 'non-control', rule), 2) for c in cols])
 md += ['## PRISM, Table 2: PRMBench error-detection rates', '',
@@ -49,7 +50,7 @@ md += ['## PRISM, Table 2: PRMBench error-detection rates', '',
 # ------------------------------------------------------------------ PRISM matched TPR
 rows = [['published', 'PRISM (its own operating point)', '47.13', '12.69', '91.93', '87.30', '52.86', '68.00']]
 for prm, pl, base in PRMS:
-    for arm in ('PRM native', 'TELE_N16', 'MEAN_N16'):
+    for arm in ('PRM native', 'TELE_N16', 'MEAN_N16', 'AUTO_N16'):
         p, a = who(pl, base, arm)
         rows.append([p, a] + [f(get(prm, 'prmbench', 'PRISM matched TPR 87.3', arm, c, rule='global threshold, labels'), 2) for c in cols])
 md += ['## PRISM, same operating point: global threshold set (with labels) so TPR ≈ 87.30', '',
@@ -62,7 +63,7 @@ T7 = {'Qwen-PRM-7B baseline (PRISM T7)': [65.5, 49.1, 55.0, 52.1, 71.7, 67.4, 66
       'PRISM 132k curriculum-3 (PRISM T7)': [68.0, 52.3, 63.7, 58.0, 73.9, 68.5, 67.4, 77.4, 71.8, 61.1, 70.6, 99.3, 77.0]}
 rows = [['published', k] + [f(x) for x in v] for k, v in T7.items()]
 for prm, pl, base in PRMS:
-    for arm, rule in (('PRM native', 'native'), ('PRM (same rule)', 'GAP'), ('TELE_N16', 'GAP'), ('MEAN_N16', 'GAP')):
+    for arm, rule in (('PRM native', 'native'), ('PRM (same rule)', 'GAP'), ('TELE_N16', 'GAP'), ('MEAN_N16', 'GAP'), ('AUTO_N16', 'GAP')):
         p, a = who(pl, base, arm)
         rows.append([p, a] + [f(get(prm, 'prmbench', 'PRISM T7', arm, c, rule=rule)) for c in c7])
 md += ['## PRISM, Table 7: PRMBench PRMScore by error category', '',
@@ -83,7 +84,8 @@ for k, v in pub.items():
 for prm, pl, base in PRMS:
     for arm, rule, rl in (('PRM native', 'native', 'native'), ('PRM (same rule)', 'Q80', 'Q80'),
                           ('TELE_N16', 'Q80', 'Q80 (telemetry only)'), ('MEAN_N16', 'Q80', 'Q80 (telemetry only)'),
-                          ('TELE_N16', 'NC', 'NC (PRM gate + count)'), ('MEAN_N16', 'NC', 'NC (PRM gate + count)')):
+                          ('TELE_N16', 'NC', 'NC (PRM gate + count)'), ('MEAN_N16', 'NC', 'NC (PRM gate + count)'),
+                          ('AUTO_N16', 'Q80', 'Q80'), ('AUTO_N16', 'NC', 'NC (PRM gate + count)')):
         p, a = who(pl, base, arm)
         rows.append([p, a, rl] + [f(get(prm, 'processbench', 'PRISM PB T6', arm, f'{s} {m}', rule=rule)) for s, _ in subs for m in ('TPR', 'TNR', 'F1')]
                     + [f(get(prm, 'processbench', 'PRISM PB T6', arm, 'average F1', rule=rule))])
@@ -100,7 +102,7 @@ rows = [['published', 'Step-RRI (SLIDER Fig. 7)', '61.91', '—', '—', '—', 
 maj = get('qwen_prm_7b', 'prmbench', 'SLIDER', 'majority class', 'acc', rule='always not redundant', scope='all_steps')
 rows.append(['ours', 'always "not redundant" (majority)', f(maj, 2), '—', '—', '—', '50.00'])
 for prm, pl, base in PRMS:
-    for arm, rule in (('PRM native', 'native'), ('PRM (same rule)', 'GAP'), ('TELE_N16', 'GAP'), ('MEAN_N16', 'GAP')):
+    for arm, rule in (('PRM native', 'native'), ('PRM (same rule)', 'GAP'), ('TELE_N16', 'GAP'), ('MEAN_N16', 'GAP'), ('AUTO_N16', 'GAP')):
         p, a = who(pl, base, arm); g = lambda m, r: get(prm, 'prmbench', 'SLIDER', arm, m, rule=r, scope='all_steps')
         rows.append([p, a, f(g('acc', 'LR threshold balanced'), 2), f(g('bal_acc', 'LR threshold balanced'), 2),
                      f(g('acc', 'LR threshold unweighted'), 2), f(g('acc', f'label-free {rule}'), 2), f(g('bal_acc', f'label-free {rule}'), 2)])
@@ -130,7 +132,7 @@ md += ['## CROP, Table 6: conformal clean prefix at α = 0.05', '',
 for b, pubs in C6.items():
     rows = [['published', f'{n} (CROP T6)', f(a, 4), f(k), f(r)] for n, a, k, r in pubs]
     for prm, pl, base in PRMS:
-        for arm, grid in (('PRM (1-reward)', 'fixed101'), ('PRM (1-reward)', 'q201'), ('TELE_N16', 'q201'), ('MEAN_N16', 'q201')):
+        for arm, grid in (('PRM (1-reward)', 'fixed101'), ('PRM (1-reward)', 'q201'), ('TELE_N16', 'q201'), ('MEAN_N16', 'q201'), ('AUTO_N16', 'q201')):
             p, a = who(pl, base, arm); g = lambda m: get(prm, b, 'CROP T6', arm, m, grid=grid)
             gl = 'CROP fixed 101 grid' if grid == 'fixed101' else '201-quantile grid'
             rows.append([p, f'{a}, {gl}', f(g('auroc'), 4), f(g('kept')), f(g('risk'))])
@@ -145,7 +147,7 @@ rows = [['published', 'CROP (CROP T17)', 'CRV-Arith → CRV-GSM8K', '14.8', '69.
         ['published', 'CROP (CROP T17)', 'CRV-GSM8K → CRV-Arith', '5.1', '69.0', '4.4', '54.7']]
 for d, dl in (('crv_arith->crv_gsm8k', 'CRV-Arith → CRV-GSM8K'), ('crv_gsm8k->crv_arith', 'CRV-GSM8K → CRV-Arith')):
     for prm, pl, base in PRMS:
-        for arm, grid in (('PRM (1-reward)', 'fixed101'), ('PRM (1-reward)', 'q201'), ('TELE_N16', 'q201'), ('MEAN_N16', 'q201')):
+        for arm, grid in (('PRM (1-reward)', 'fixed101'), ('PRM (1-reward)', 'q201'), ('TELE_N16', 'q201'), ('MEAN_N16', 'q201'), ('AUTO_N16', 'q201')):
             p, a = who(pl, base, arm); g = lambda m: get(prm, d, 'CROP T17', arm, m, grid=grid)
             rows.append([p, f'{a}, {"fixed grid" if grid == "fixed101" else "q201"}', dl, f(g('risk')), f(g('kept')), f(g('FA')), f(g('accept'))])
 md += ['## CROP, Table 17: cross-domain transfer (calibrate on one CRV set, test on the other)', '',

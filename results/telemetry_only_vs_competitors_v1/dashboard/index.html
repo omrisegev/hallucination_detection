@@ -202,7 +202,7 @@
 
   <section class="sb-card tv-sec" id="competitor-protocols">
     <h2>Telemetry only vs PRISM, SLIDER and CROP</h2>
-    <p class="sb-note">Each base model's own telemetry, with no PRM in the score, against the PRM built on that base model, under each competitor's own protocol and metrics. Every row is one pair: the standalone base model → its PRM. "TELE16" is L-SML over the 16 standalone channels, "Average" the same 16 channels with equal weights, "PRM" the paired PRM at its native threshold (reward ≤ 0.5 is an error). The competitor's published number is repeated on every row, with its paper and table. All values reproduce the stored PRM and TELE16 rows exactly (128 of 128 checks).</p>
+    <p class="sb-note">Each base model's own telemetry, with no PRM in the score, against the PRM built on that base model, under each competitor's own protocol and metrics. Every row is one pair: the standalone base model → its PRM. "TELE16" is L-SML over the 16 standalone channels, "Average" the same 16 channels with equal weights, "PRM" the paired PRM at its native threshold (reward ≤ 0.5 is an error). "AUTO (PRM + backbone telemetry)" is not telemetry only: it fuses the PRM as one of 17 channels with the telemetry of the PRM's own backbone, with automatic L-SML grouping, so it uses the PRM. The competitor's published number is repeated on every row, with its paper and table. All values reproduce the stored PRM and TELE16 rows exactly (128 of 128 checks).</p>
 
     <h3 class="tv-h" id="prism-t2">PRISM, Table 2: PRMBench error-detection rates</h3>
     <div class="sb-ctl" role="group" aria-label="PRISM Table 2 metric">
@@ -215,7 +215,7 @@
       <button type="button" data-tvparam="tv_t2" data-value="TNR">TNR</button>
     </div>
     <div class="sb-tablewrap"><table class="sb-table" data-source="competitor_protocols" data-row-key="key">
-      <thead><tr><th data-field="pair">Standalone model → paired PRM</th><th data-field="tele">TELE16</th><th data-field="avg">Average</th><th data-field="prm">PRM, native</th><th data-field="prm2">PRM, same rule as TELE16</th><th data-field="pub_value">Published</th><th data-field="pub_label">System and paper</th><th data-field="pub2_value">Published</th><th data-field="pub2_label">System and paper</th></tr></thead>
+      <thead><tr><th data-field="pair">Standalone model → paired PRM</th><th data-field="tele">TELE16</th><th data-field="avg">Average</th><th data-field="auto">AUTO (PRM + backbone telemetry)</th><th data-field="prm">PRM, native</th><th data-field="prm2">PRM, same rule as TELE16</th><th data-field="pub_value">Published</th><th data-field="pub_label">System and paper</th><th data-field="pub2_value">Published</th><th data-field="pub2_label">System and paper</th></tr></thead>
       <tbody data-draw="tv-rows" data-sec="prism_t2"></tbody>
     </table></div>
     <p class="tv-cav">Positive class is a correct step; FPR is the share of error steps passed as correct. Pool: 6,211 non-control answers. PRMBench is in sample for TELE16 (its channels and recipe were developed there). PRISM's printed FNR and precision only fit when the 758 control rows are pooled in; ours use the official pool.</p>
@@ -231,7 +231,7 @@
       <button type="button" data-tvparam="tv_mtpr" data-value="TNR">TNR</button>
     </div>
     <div class="sb-tablewrap"><table class="sb-table" data-source="competitor_protocols" data-row-key="key">
-      <thead><tr><th data-field="pair">Standalone model → paired PRM</th><th data-field="tele">TELE16</th><th data-field="avg">Average</th><th data-field="prm">PRM, threshold moved</th><th data-field="pub_value">Published</th><th data-field="pub_label">System and paper</th></tr></thead>
+      <thead><tr><th data-field="pair">Standalone model → paired PRM</th><th data-field="tele">TELE16</th><th data-field="avg">Average</th><th data-field="auto">AUTO (PRM + backbone telemetry)</th><th data-field="prm">PRM, threshold moved</th><th data-field="pub_value">Published</th><th data-field="pub_label">System and paper</th></tr></thead>
       <tbody data-draw="tv-rows" data-sec="prism_mtpr"></tbody>
     </table></div>
     <p class="tv-cav">One global threshold per row is chosen WITH labels so that TPR is about 87.3, PRISM's own point; this reading uses labels for every row, ours included. In sample for TELE16.</p>
@@ -254,7 +254,7 @@
       <button type="button" data-tvparam="tv_t7" data-value="Sensitivity">Sensitivity</button>
     </div>
     <div class="sb-tablewrap"><table class="sb-table" data-source="competitor_protocols" data-row-key="key">
-      <thead><tr><th data-field="pair">Standalone model → paired PRM</th><th data-field="tele">TELE16</th><th data-field="avg">Average</th><th data-field="prm">PRM, native</th><th data-field="prm2">PRM, same rule as TELE16</th><th data-field="pub_value">Published</th><th data-field="pub_label">System and paper</th><th data-field="pub2_value">Published</th><th data-field="pub2_label">System and paper</th></tr></thead>
+      <thead><tr><th data-field="pair">Standalone model → paired PRM</th><th data-field="tele">TELE16</th><th data-field="avg">Average</th><th data-field="auto">AUTO (PRM + backbone telemetry)</th><th data-field="prm">PRM, native</th><th data-field="prm2">PRM, same rule as TELE16</th><th data-field="pub_value">Published</th><th data-field="pub_label">System and paper</th><th data-field="pub2_value">Published</th><th data-field="pub2_label">System and paper</th></tr></thead>
       <tbody data-draw="tv-rows" data-sec="prism_t7"></tbody>
     </table></div>
     <p class="tv-cav">Multi-solution has no error steps, so its score is the valid-step F1. Redundancy and circular logic go through the validity path (we have no redundancy head). In sample for TELE16.</p>
@@ -277,7 +277,7 @@
       <button type="button" data-tvparam="tv_pb" data-value="olympiadbench TNR">OlympiadBench TNR</button>
     </div>
     <div class="sb-tablewrap"><table class="sb-table" data-source="competitor_protocols" data-row-key="key">
-      <thead><tr><th data-field="pair">Standalone model → paired PRM</th><th data-field="tele">TELE16, telemetry rule</th><th data-field="avg">Average, telemetry rule</th><th data-field="x1">TELE16, PRM gate</th><th data-field="x2">Average, PRM gate</th><th data-field="prm">PRM, native</th><th data-field="pub_value">Published</th><th data-field="pub_label">System and paper</th><th data-field="pub2_value">Published</th><th data-field="pub2_label">System and paper</th></tr></thead>
+      <thead><tr><th data-field="pair">Standalone model → paired PRM</th><th data-field="tele">TELE16, telemetry rule</th><th data-field="avg">Average, telemetry rule</th><th data-field="x1">TELE16, PRM gate</th><th data-field="x2">Average, PRM gate</th><th data-field="auto">AUTO (PRM + backbone telemetry), telemetry rule</th><th data-field="auto2">AUTO (PRM + backbone telemetry), PRM gate</th><th data-field="prm">PRM, native</th><th data-field="pub_value">Published</th><th data-field="pub_label">System and paper</th><th data-field="pub2_value">Published</th><th data-field="pub2_label">System and paper</th></tr></thead>
       <tbody data-draw="tv-rows" data-sec="prism_pb"></tbody>
     </table></div>
     <p class="tv-cav">TPR is accuracy on samples with an error (exact first-error step), TNR accuracy on error-free samples, F1 their harmonic mean. With the pure telemetry rule (first flagged step, Q80) average F1 is only <b data-draw="tv-pbrange" data-source="tvc_pb_range">—</b>: it almost never answers "no error". The "PRM gate" columns use the PRM's native gate and error count with the arm's order, so they are not telemetry only. PRISM prints Omni-MATH and OlympiadBench cells that do not fit F1 as a harmonic mean; they are shown as printed, and its published average is our arithmetic over its four F1 cells.</p>
@@ -291,7 +291,7 @@
       <button type="button" data-tvparam="tv_slider" data-value="balacc_rule">Balanced accuracy, label-free rule</button>
     </div>
     <div class="sb-tablewrap"><table class="sb-table" data-source="competitor_protocols" data-row-key="key">
-      <thead><tr><th data-field="pair">Standalone model → paired PRM</th><th data-field="tele">TELE16</th><th data-field="avg">Average</th><th data-field="prm">PRM, native</th><th data-field="prm2">PRM, same rule as TELE16</th><th data-field="pub_value">Published</th><th data-field="pub_label">System and paper</th></tr></thead>
+      <thead><tr><th data-field="pair">Standalone model → paired PRM</th><th data-field="tele">TELE16</th><th data-field="avg">Average</th><th data-field="auto">AUTO (PRM + backbone telemetry)</th><th data-field="prm">PRM, native</th><th data-field="prm2">PRM, same rule as TELE16</th><th data-field="pub_value">Published</th><th data-field="pub_label">System and paper</th></tr></thead>
       <tbody data-draw="tv-rows" data-sec="slider"></tbody>
     </table></div>
     <p class="tv-cav">SLIDER publishes no code, so this comparison is approximate. It reports one "accuracy" read from a chart, with a threshold from a linear classifier on held-out labels; split, weighting and step-1 handling are not stated. We read their metric through their cosine baseline: on our split (10 problem-level 50/50 splits, a one-feature logistic-regression threshold) cosine gets <b data-draw="tv-note" data-source="competitor_protocols" data-field="tele" data-where="key=note||slider_cosine|0">—</b>% against their <b data-draw="tv-note-pub" data-source="competitor_protocols" data-field="pub_value" data-where="key=note||slider_cosine|0">—</b>%, which points to plain accuracy with a class-balanced threshold. About 87% of steps are not redundant: always answering "not redundant" scores <b data-draw="tv-note" data-source="competitor_protocols" data-field="tele" data-where="key=note||slider_majority|0">—</b>% plain accuracy, so balanced accuracy is the fairer reading. SLIDER reports no balanced accuracy. In sample for TELE16.</p>
@@ -312,7 +312,7 @@
       <button type="button" data-tvparam="tv_crop_m" data-value="risk">Prefix risk %</button>
     </div>
     <div class="sb-tablewrap"><table class="sb-table" data-source="competitor_protocols" data-row-key="key">
-      <thead><tr><th data-field="pair">Standalone model → paired PRM</th><th data-field="tele">TELE16</th><th data-field="avg">Average</th><th data-field="prm">PRM, CROP's grid</th><th data-field="prm2">PRM, same grid as TELE16</th><th data-field="pub_value">Published</th><th data-field="pub_label">System and paper</th><th data-field="pub2_value">Published</th><th data-field="pub2_label">System and paper</th><th data-field="pub3_value">Published</th><th data-field="pub3_label">System and paper</th></tr></thead>
+      <thead><tr><th data-field="pair">Standalone model → paired PRM</th><th data-field="tele">TELE16</th><th data-field="avg">Average</th><th data-field="auto">AUTO (PRM + backbone telemetry)</th><th data-field="prm">PRM, CROP's grid</th><th data-field="prm2">PRM, same grid as TELE16</th><th data-field="pub_value">Published</th><th data-field="pub_label">System and paper</th><th data-field="pub2_value">Published</th><th data-field="pub2_label">System and paper</th><th data-field="pub3_value">Published</th><th data-field="pub3_label">System and paper</th></tr></thead>
       <tbody data-draw="tv-rows" data-sec="crop_t6"></tbody>
     </table></div>
     <p class="tv-cav">Kept is the mean retained-prefix fraction, risk the share of test traces whose kept prefix holds an error (target ≤ 5%), AUROC pooled over test steps. 10 splits 60/20/20. CROP calibrates every threshold with labels and trains its LR rows on 60% of each set; our arms use no training split. The grids differ: CROP uses a fixed 101-point grid on its external sets, our arms a 201-quantile grid, so the PRM is shown on both. PRMBench is in sample for TELE16; our PRMBench uses all 6,211 answers (CROP sampled 5,000), and CROP used 20 splits on CRV.</p>
@@ -331,7 +331,7 @@
       <button type="button" data-tvparam="tv_t17_m" data-value="accept">Whole trace accepted %</button>
     </div>
     <div class="sb-tablewrap"><table class="sb-table" data-source="competitor_protocols" data-row-key="key">
-      <thead><tr><th data-field="pair">Standalone model → paired PRM</th><th data-field="tele">TELE16</th><th data-field="avg">Average</th><th data-field="prm">PRM, CROP's grid</th><th data-field="prm2">PRM, same grid as TELE16</th><th data-field="pub_value">Published</th><th data-field="pub_label">System and paper</th></tr></thead>
+      <thead><tr><th data-field="pair">Standalone model → paired PRM</th><th data-field="tele">TELE16</th><th data-field="avg">Average</th><th data-field="auto">AUTO (PRM + backbone telemetry)</th><th data-field="prm">PRM, CROP's grid</th><th data-field="prm2">PRM, same grid as TELE16</th><th data-field="pub_value">Published</th><th data-field="pub_label">System and paper</th></tr></thead>
       <tbody data-draw="tv-rows" data-sec="crop_t17"></tbody>
     </table></div>
     <p class="tv-cav">The threshold is calibrated on one CRV set and applied to the other, so exchangeability is broken on purpose; CROP shows this as a failure diagnostic, and its table does not name the proxy. False acceptance and accepted traces follow our reading of its column names.</p>
