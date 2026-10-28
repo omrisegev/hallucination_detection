@@ -11,6 +11,8 @@
   .sb-ctl button { font: inherit; font-size: var(--cds-font-size-caption); padding: var(--cds-pad-xs) var(--cds-pad-sm); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-bg); color: var(--color-fg); cursor: pointer; }
   .sb-ctl button[aria-pressed="true"] { background: var(--color-fg); color: var(--color-bg); border-color: var(--color-fg); }
   .sb-ctl button:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+  .sb-reqnote { margin: 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); max-width: 80ch; }
+  .sb-preset { font-style: italic; }
   .sb-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: var(--cds-gap-md); }
   .sb-tile { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); display: grid; gap: var(--cds-gap-xs); }
   .sb-tile .sb-lab { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
@@ -88,6 +90,16 @@
       <button type="button" data-param="outcome" data-value="lsml_only">Wins only with L-SML</button>
       <button type="button" data-param="outcome" data-value="avg_only">Average wins, L-SML loses</button>
     </div>
+    <div class="sb-ctl" role="group" aria-label="Must also beat">
+      <span>SUB5 must also beat</span>
+      <button type="button" data-req="req_prm">The PRM itself</button>
+      <button type="button" data-req="req_avg">Plain average of the same channels</button>
+      <button type="button" data-req="req_mean16">MEAN_N16</button>
+      <button type="button" data-req="req_pub">Best published method</button>
+      <button type="button" class="sb-preset" data-preset="all3">PRM + average + published</button>
+      <button type="button" class="sb-preset" data-preset="none">Clear</button>
+    </div>
+    <p class="sb-reqnote">These checks are added to the comparator above and to the "Show" choice. "Best published method" uses the published type chosen under "Compared with" (any type otherwise). A cell with no such published score on this metric is left out while it is on.</p>
   </div>
 
   <section class="sb-tiles" id="summary" aria-label="Summary">
@@ -184,19 +196,31 @@
     },
   });
 
-  const DEFAULTS = {arm: 'alone', cmp: 'TELE_N16', metric: 'main', sample: 'all', mode: 'all', outcome: 'all'};
+  const DEFAULTS = {arm: 'alone', cmp: 'TELE_N16', metric: 'main', sample: 'all', mode: 'all', outcome: 'all',
+                    req_prm: false, req_avg: false, req_mean16: false, req_pub: false};
   const P = () => ({...DEFAULTS, ...dash.params()});
   document.querySelectorAll('.sb-ctl button[data-param]').forEach((b) => b.addEventListener('click', () => dash.setParams({[b.dataset.param]: b.dataset.value})));
+  document.querySelectorAll('.sb-ctl button[data-req]').forEach((b) => b.addEventListener('click', () => dash.setParams({[b.dataset.req]: !P()[b.dataset.req]})));
+  document.querySelectorAll('.sb-ctl button[data-preset]').forEach((b) => b.addEventListener('click', () => {
+    const on = b.dataset.preset === 'all3';
+    dash.setParams({req_prm: on, req_avg: on, req_pub: on, req_mean16: false});
+  }));
   dash.onData(() => {
     const p = P();
     document.querySelectorAll('.sb-ctl button[data-param]').forEach((b) => b.setAttribute('aria-pressed', String(p[b.dataset.param] === b.dataset.value)));
+    document.querySelectorAll('.sb-ctl button[data-req]').forEach((b) => b.setAttribute('aria-pressed', String(!!p[b.dataset.req])));
   });
 
   window.sbRows = () => {
     const d = dash.data('comparisons');
     if (d.status !== 'ok') return null;
     const p = P();
-    return d.data.filter((r) => r.arm === p.arm && r.cmp === p.cmp && r.metric_key === p.metric
+    const idx = new Map();
+    for (const r of d.data) if (r.arm === p.arm && r.metric_key === p.metric) idx.set([r.benchmark, r.mode, r.prm, r.cmp].join('|'), r);
+    const beats = (r, cmp) => { const o = idx.get([r.benchmark, r.mode, r.prm, cmp].join('|')); return !!o && o.d_ours > 0; };
+    const reqOk = (r) => (!p.req_prm || beats(r, 'PRM')) && (!p.req_mean16 || beats(r, 'MEAN_N16')) && (!p.req_pub || beats(r, p.cmp.startsWith('pub:') ? p.cmp : 'pub:any'))
+      && (!p.req_avg || (r.avg !== null && r.ours > r.avg));
+    return d.data.filter((r) => reqOk(r) && r.arm === p.arm && r.cmp === p.cmp && r.metric_key === p.metric
       && (p.sample === 'all' || r.sample === p.sample) && (p.mode === 'all' || r.mode === p.mode)
       && (p.outcome === 'all' || (p.outcome === 'win' && r.d_ours > 0) || (p.outcome === 'loss' && r.d_ours <= 0)
           || (p.outcome === 'lsml_only' && r.d_ours > 0 && r.d_avg !== null && r.d_avg <= 0)
