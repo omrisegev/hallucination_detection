@@ -11228,6 +11228,47 @@ with SLIDER on redundancy.
 
 ---
 
+### Step 482 [PRM boosting, view selection] — Between-group estimators (HEM, spectral start, plain SML) do not beat DS-EM; the next-step PRM reward helps CHAIN when the PRM is good and hurts with RLHFlow (2026-10-28)
+
+**What**: Pre-registered (240bc0ea) CPU run on 12 cells: PRMBench, Socratic and Hard2Verify × Qwen-7B, Qwen-72B, PURE
+and RLHFlow.
+- **Part A, between-group estimator only.** SUB5 and N16, each "+PRM" (stage 1) and "alone" (stage 2). Arms:
+  - DS-EM, majority start (the reference);
+  - DS-EM, spectral start (SML eigenvector, Zhang–Chen–Zhou–Jordan 2014);
+  - HEM (Jaffe, Fetaya and Nadler 2016), spectral start (primary) and majority start;
+  - plain SML eigenvector between groups.
+- **Part B.** The next-step PRM reward as its own group in CHAIN_N16's cross stage.
+- **Parity:** 40/40 against SEARCH.npz and h2v_holdout (diff 0.0); CHAIN 12/12 against STATUS_MAIN (1.4e-14).
+- **Also recorded:** SUB4/SUB5 on Hard2Verify (`h2v_holdout/`, pre-declared). SUB5 alone is the best Hard2Verify arm
+  on 3 of 4 PRMs but collapses on PURE (30.1 against the PRM's 50.8).
+
+**Why**: Omri asked whether plain SML (eigenvector, HEM or DS-EM) would do better than our L-SML setup. He chose the
+more recent estimator (HEM) and asked about the eigenvector as an EM start. He also chose to test the next-step reward
+found by the PRM-features session (`docs/research_notes/PRM_MODEL_NEW_FEATURES_2026-10-26.md`, branch
+`claude/prm-new-features-2026-10-26`).
+
+**Result** (`results/prm_view_selection_v1/estimators/README.md`):
+- **The spectral start changes nothing.** HEM's two starts agree in 48/48 comparisons; DS-EM's agree in 45/48.
+- **HEM is not preferred:** 8 gains, 16 losses, 24 ties against DS-EM.
+  - It is worse on PRMBench N16 in 7/8 (−0.55 to −2.36).
+  - It is better on RLHFlow cells.
+  - It is much worse on Socratic strong PRMs with SUB5 + PRM (Qwen-72B −4.8, PURE −5.6).
+- **Plain SML between groups:** 9 gains, 18 losses.
+- **The next-step view in CHAIN: pre-registered rule not met** (6 gains, 3 losses, 3 ties).
+  - It gains on every non-RLHFlow cell of PRMBench (+0.55 to +0.97) and Socratic (+0.24 to +1.29).
+  - It loses on every RLHFlow cell (−1.6, −8.2, −8.0).
+  - On Socratic strong PRMs, CHAIN + next is still −2.5 to −14.1 below the PRM.
+- **Reading:** the estimator choice is not the bottleneck. This is consistent with Step 481's Oracle-CI result and
+  with the conditional-independence violation.
+
+**Files changed**:
+- `docs/experiments/PRM_VIEW_SELECTION_ESTIMATORS_NEXTSTEP_PREREG_2026-10-28.md`
+- `spectral_utils/prm_anchored_lsml.py`: `spectral_vote_weights`, and `ds_em_votes(init=...)`; the default is unchanged
+- `results/prm_view_selection_v1/estimators/`
+- `results/prm_view_selection_v1/h2v_holdout/`
+
+---
+
 ### Step 291 [prm-voters] — PRMBench step voters pilot execution and gate verification on AIRCC
 
 **What**: Executed and verified the PRMBench step voter pilots (N=30, 35 meta rows) on the `aircc` compute cluster (`power-gpu`, `owner_940`, NVIDIA B200 GPU).

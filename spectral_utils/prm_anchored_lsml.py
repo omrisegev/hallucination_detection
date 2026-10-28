@@ -51,16 +51,32 @@ def sml_weights_nonneg(R):
     return np.clip(v, 0, None), n_neg
 
 
-def ds_em_votes(B, anchor=0, iters: int = 500, tol: float = 1e-9, eps: float = 1e-6):
+def spectral_vote_weights(B):
+    """Leading eigenvector of the zero-diagonal covariance of +-1 votes B, sign so that the sum is positive (the SML
+    direction; used as an EM start, Zhang-Chen-Zhou-Jordan 2014)."""
+    M = np.cov(np.asarray(B, float).T); M = M - np.diag(np.diag(M))
+    v = np.linalg.eigh(M)[1][:, -1]
+    return -v if v.sum() < 0 else v
+
+
+def ds_em_votes(B, anchor=0, iters: int = 500, tol: float = 1e-9, eps: float = 1e-6, init='majority'):
     """Two-coin Dawid-Skene EM on +-1 votes B (n x m), on compressed patterns. Label switching resolved by the anchor
     (psi + eta > 1), or with anchor=None by the majority rule (flip if fewer than half the views have psi + eta > 1;
     Parisi et al. 2014 assumption iii; stage 2). Returns dict(psi, eta, prevalence, w) with ML log-odds weights w
-    clipped at 0."""
+    clipped at 0. init='majority' (stages 1-2) starts from the soft majority vote; init='spectral' from
+    expit(s / sd(s)), s = votes @ spectral_vote_weights(B), both clipped to [.05, .95]."""
     B = np.asarray(B) > 0; n, m = B.shape
     code = B.astype(np.int64) @ (1 << np.arange(m, dtype=np.int64))
     u, cnt = np.unique(code, return_counts=True)
     P = ((u[:, None] >> np.arange(m)) & 1).astype(bool); wts = cnt / cnt.sum()
-    q = np.clip(((2 * P - 1).mean(1) + 1) / 2, .05, .95)
+    if init == 'spectral':
+        s = (2. * P - 1) @ spectral_vote_weights(2. * B - 1)
+        sd = np.sqrt(wts @ (s - wts @ s) ** 2)
+        q = np.clip(1 / (1 + np.exp(-s / max(sd, 1e-8))), .05, .95)
+    elif init == 'majority':
+        q = np.clip(((2 * P - 1).mean(1) + 1) / 2, .05, .95)
+    else:
+        raise ValueError(init)
     ll_old = -np.inf
     for it in range(iters):
         p = np.clip(wts @ q, eps, 1 - eps)

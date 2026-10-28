@@ -1,3 +1,15 @@
+## 2026-10-28: between-group estimators and the next-step PRM view, Step 482 (Claude)
+
+- **Changing the estimator does not help.**
+  - The spectral start changes nothing.
+  - HEM against DS-EM: 8 gains, 16 losses out of 48.
+  - Plain SML: 9 gains, 18 losses.
+  - DS-EM stays.
+- **The next-step PRM reward in CHAIN** gains in the 6 non-RLHFlow PRMBench/Socratic cells (+0.24 to +1.29) and loses
+  in every RLHFlow cell. It does not close the strong-PRM Socratic gap.
+- **SUB5 alone on Hard2Verify** is the best arm on 3 of 4 PRMs and collapses on PURE.
+- **Source:** `results/prm_view_selection_v1/estimators/README.md`, `h2v_holdout/`.
+
 ## 2026-10-26: reasoning for the channel set, position, Socratic and SLIDER, Step 481 (Claude)
 
 - **Omri dropped Math-Shepherd.** The line now uses 4 PRMs × 2 benchmarks = 8 cells.
