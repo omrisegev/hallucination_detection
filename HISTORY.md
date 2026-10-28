@@ -11269,6 +11269,44 @@ found by the PRM-features session (`docs/research_notes/PRM_MODEL_NEW_FEATURES_2
 
 ---
 
+### Step 483 [PRM boosting, anchored Fisher] — PRM-anchored Fisher fusion (FRAMING_THEORY P5) implemented end to end; on the existing views it is identified in only 3 of 12 cells and otherwise falls back to the PRM (negative) (2026-10-28)
+
+**What**:
+- **Code.** A new module, `spectral_utils/prm_anchored_fisher.py`, runs the whole P5 pipeline:
+  1. CHAIN_N16's cross-stage views;
+  2. within-answer residualization on position (and log length, where available) for estimation;
+  3. groups whose covariance with the PRM is ≤ 0 are excluded;
+  4. anchored loadings (`fusion_theory.anchored_loadings`, rank or cumulant routes);
+  5. Fisher weights w = C⁻¹u;
+  6. a fallback to the PRM view when the loadings are not identified.
+- **Tests.** 5 synthetic tests pass, in `tests/test_prm_anchored_fisher.py`.
+- **Run.** Pre-registered (7203cb67) on 15 cells: PRMBench, Socratic and Hard2Verify × 5 PRMs.
+- **Arms.** Seven estimator and fallback variants, plus a label-using in-sample LDA reference (ORACLE_FISHER).
+- **Parity.** Views 15/15 (diff 0.0); CHAIN against STATUS_MAIN 15/15 (1.4e-14).
+- **Branch:** `claude/prm-anchored-fisher-2026-10-28`.
+
+**Why**: Omri asked to implement the anchored algorithm, run it on all available data, and share it with the other
+machine. Step 469 had used the same estimators only as a gate, and the fusion itself had never been scored.
+
+**Result** (`results/prm_anchored_fisher_v1/README.md`, `NEGATIVE_RESULT.md`):
+- **Not identified (rule R3).** ANCH_AUTO used anchored weights in 3 of the 12 line cells.
+- **Why:** the rank route gives a flat profile, and the cumulant route returns loadings that exceed the view
+  variance. This repeats Step 469.
+- **R1 fails:** 4 gains, 7 losses against CHAIN. The gains are fallbacks to the PRM view on Socratic, not the
+  algorithm. PRMBench is −4.0 to −6.9.
+- **R2 fails:** below the PRM on all 3 strong-PRM Socratic cells.
+- **Label-using LDA on the same views:** +0.7 to +1.1 over CHAIN on PRMBench. On Socratic it is above the PRM in
+  within-AUC, but below it on 2/3 strong cells in GAP PRMScore.
+- **Reading:** on own-backbone telemetry, P5's identification lacks signal. The module stays usable for views with
+  separate noise, such as the counterfactual PRM readings.
+
+**Files changed**:
+- `spectral_utils/prm_anchored_fisher.py`, `tests/test_prm_anchored_fisher.py`
+- `docs/experiments/PRM_ANCHORED_FISHER_PREREG_2026-10-28.md`
+- `results/prm_anchored_fisher_v1/`
+
+---
+
 ### Step 291 [prm-voters] — PRMBench step voters pilot execution and gate verification on AIRCC
 
 **What**: Executed and verified the PRMBench step voter pilots (N=30, 35 meta rows) on the `aircc` compute cluster (`power-gpu`, `owner_940`, NVIDIA B200 GPU).

@@ -1,3 +1,14 @@
+## 2026-10-28: PRM-anchored Fisher fusion (P5), Step 483 (Claude, branch claude/prm-anchored-fisher-2026-10-28)
+
+- **Implemented end to end:** `spectral_utils/prm_anchored_fisher.py`, with 5 synthetic tests.
+- **On real data it is not identified.** It uses anchored weights in only 3 of 12 cells, and falls back to the PRM
+  elsewhere.
+  - Against CHAIN: 4 gains (all of them fallbacks), 7 losses.
+  - It is below the PRM on strong-PRM Socratic.
+- **What stays open:** the same module with views whose noise is separate from the PRM's, such as the counterfactual
+  PRM readings.
+- **Source:** `results/prm_anchored_fisher_v1/README.md`.
+
 ## 2026-10-28: between-group estimators and the next-step PRM view, Step 482 (Claude)
 
 - **Changing the estimator does not help.**
