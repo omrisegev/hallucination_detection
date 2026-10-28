@@ -79,7 +79,7 @@ PRMScore and within-AUC vs stage 8, its ProcessBench / CRV / PRM800K main metric
 STATUS_MAIN and CROP_TABLE6_CAB. The 20 AUTO fits never left the PRM in a group of its own.
 
 - PRMBench PRMScore (PRISM T2): 69.9 / 70.2 / 69.1 / 65.9, above the PRM native in 4 of 4, above PRISM 68.0 in 3 of 4;
-  FPR 46–54 vs PRISM 47.1. At PRISM's TPR 87.3 (threshold with labels): 64.2–68.0, below PRISM in all 4, above the
+  FPR 46–54 vs PRISM 47.1. At PRISM's TPR 87.3 (threshold with labels): 64.2–68.0, at or below PRISM in all 4 (Qwen-PRM-72B ties at 68.0), above the
   PRM only for PURE and RLHFlow. In sample.
 - Categories: keeps most of the telemetry's redundancy/circular strength (NR 68–73, NCL 69–73) and recovers part of
   the PRM's soundness (ES 64–70 vs standalone TELE16 64–66).
