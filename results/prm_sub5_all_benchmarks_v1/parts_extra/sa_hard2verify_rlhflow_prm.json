@@ -1,0 +1,97 @@
+{
+ "rows": [
+  {
+   "benchmark": "hard2verify",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "balanced_f1_GAP",
+   "value": 40.03057569313714,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "within_auc",
+   "value": 0.5147739199659483,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "pooled_auroc",
+   "value": 0.511202021071972,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "balanced_f1_GAP",
+   "value": 37.71993593837725,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "within_auc",
+   "value": 0.5020820797637128,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "pooled_auroc",
+   "value": 0.5041526713174289,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "balanced_f1_GAP",
+   "value": 15.539185539720313,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "within_auc",
+   "value": 0.26106158928242545,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "pooled_auroc",
+   "value": 0.34954927798352137,
+   "arm": "HALF_N16"
+  }
+ ],
+ "parity": [
+  {
+   "check": "extra hard2verify/sa/rlhflow_prm TELE_N16 balanced_f1_GAP",
+   "got": 40.24060246686912,
+   "ref": 40.24060246686912,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra hard2verify/sa/rlhflow_prm HALF_N16 balanced_f1_GAP",
+   "got": 15.539185539720313,
+   "ref": 15.539185539720313,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "skipped": [],
+ "cells": {}
+}

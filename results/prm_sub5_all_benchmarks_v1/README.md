@@ -96,6 +96,40 @@ selected on, and of Hard2Verify were added on 2026-10-28 (second run), together 
 - **Standalone cells.** In the standalone cells, CHAIN_N16 combines the PRM with the standalone model's telemetry.
   The PRM rows equal the backbone cell's PRM rows, because the rewards are grafted onto the same answers.
 
+## Thesis candidates (2026-10-28, third run)
+
+The scorecard compares five variants of Omri's three thesis candidates. Each has its own plain-average control
+(same inputs, equal weights, no L-SML):
+
+| candidate | variant | arm | plain average | tuned on (in sample) |
+|---|---|---|---|---|
+| SUB5 | telemetry only (backbone or standalone) | SUB5 alone | SUB5 mean | PRMBench, Socratic |
+| SUB5 | + PRM (backbone) | SUB5 +PRM | SUB5 +PRM mean | PRMBench, Socratic |
+| TELE16 | telemetry only (backbone or standalone) | TELE_N16 | MEAN_N16 | PRMBench |
+| TELE16 | + PRM, the PRM as one more L-SML channel | PRMG_N16 | EQ_N16 | PRMBench |
+| CHAIN16 | PRM + group scores of the 16 channels | CHAIN_N16 | EQ_N16 | PRMBench |
+
+- **Where TELE16 and CHAIN16 were tuned.** The N16 bank and CHAIN were developed on PRMBench. Socratic was their
+  pre-registered external test (HISTORY, five-arm ablation step), so for them it counts as out of sample.
+- **PRMG_N16 is not CHAIN_N16.**
+  - PRMG_N16 runs one L-SML over the 16 channels, with the PRM as one more channel.
+  - CHAIN_N16 first fuses the telemetry into group scores, then runs a second L-SML over the PRM and those group scores.
+- **The `extra` job.** `python sub5_all.py extra <prm|sa> <bench> <prm>` (driven by `run_extra.sh`, output in
+  `parts_extra/`) evaluates the stored PRMG_N16, EQ_N16 and HALF_N16 arms of every cell. It uses the same metric
+  functions and does not refit.
+- **Parity.** 367 checks now pass. The new arms are checked against `STATUS_MAIN` (EQ, HALF), `CAB_EVAL_ALL` (PRMG,
+  EQ, HALF) and `RESULTS_processbench` (PRMG, EQ, HALF under NC).
+
+Out-of-sample wins on the main metric (cells won / cells compared):
+
+| candidate | beats the PRM | beats its own average | beats best published | beats all three |
+|---|---|---|---|---|
+| SUB5, telemetry only | 13 / 47 | 16 / 47 | 0 / 16 | 0 / 16 |
+| SUB5 + PRM | 8 / 23 | 12 / 23 | 0 / 8 | 0 / 8 |
+| TELE16, telemetry only | 16 / 56 | 35 / 56 | 0 / 24 | 0 / 24 |
+| TELE16 + PRM | 15 / 56 | 28 / 56 | 0 / 24 | 0 / 24 |
+| CHAIN16 | 17 / 56 | 28 / 56 | 0 / 24 | 0 / 24 |
+
 ## Dashboard
 
 `dashboard/` holds the interactive scorecard: `scores.csv` (made by `make_data.py` from SUB5_ALL.csv),

@@ -1,0 +1,97 @@
+{
+ "rows": [
+  {
+   "benchmark": "deltabench",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "metric": "macro_f1_GAP",
+   "value": 58.55699570352526,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "metric": "within_auc",
+   "value": 0.6686535454569511,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "metric": "pooled_auroc",
+   "value": 0.6692904162859887,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "metric": "macro_f1_GAP",
+   "value": 58.31739961759082,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "metric": "within_auc",
+   "value": 0.6662707535279262,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "metric": "pooled_auroc",
+   "value": 0.6674679538373403,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "metric": "macro_f1_GAP",
+   "value": 59.696087121691775,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "metric": "within_auc",
+   "value": 0.6782788127229421,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "metric": "pooled_auroc",
+   "value": 0.6770216395453587,
+   "arm": "HALF_N16"
+  }
+ ],
+ "parity": [
+  {
+   "check": "extra deltabench/sa/qwen_prm_7b TELE_N16 macro_f1_GAP",
+   "got": 57.91268011229418,
+   "ref": 57.91268011229418,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra deltabench/sa/qwen_prm_7b HALF_N16 macro_f1_GAP",
+   "got": 59.696087121691775,
+   "ref": 59.696087121691775,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "skipped": [],
+ "cells": {}
+}

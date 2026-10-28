@@ -1,0 +1,105 @@
+{
+ "rows": [
+  {
+   "benchmark": "hard2verify",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "balanced_f1_GAP",
+   "value": 38.71130551816958,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "within_auc",
+   "value": 0.48107380881809847,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "pooled_auroc",
+   "value": 0.4948655011052737,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "balanced_f1_GAP",
+   "value": 41.43672321869321,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "within_auc",
+   "value": 0.49482940739199277,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "pooled_auroc",
+   "value": 0.5045617661413028,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "balanced_f1_GAP",
+   "value": 47.690507191674975,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "within_auc",
+   "value": 0.7147231103016162,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "pooled_auroc",
+   "value": 0.637887922372463,
+   "arm": "HALF_N16"
+  }
+ ],
+ "parity": [
+  {
+   "check": "extra hard2verify/prm/pure_prm TELE_N16 balanced_f1_GAP",
+   "got": 38.19460707000314,
+   "ref": 38.19460707000314,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra hard2verify/prm/pure_prm EQ_N16 balanced_f1_GAP",
+   "got": 41.43672321869321,
+   "ref": 41.43672321869321,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra hard2verify/prm/pure_prm HALF_N16 balanced_f1_GAP",
+   "got": 47.690507191674975,
+   "ref": 47.690507191674975,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "skipped": [],
+ "cells": {}
+}

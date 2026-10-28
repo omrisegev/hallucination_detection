@@ -1,0 +1,105 @@
+{
+ "rows": [
+  {
+   "benchmark": "socratic",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "metric": "macro_f1_GAP",
+   "value": 57.6609096439363,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "metric": "within_auc",
+   "value": 0.5959492131018148,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "metric": "pooled_auroc",
+   "value": 0.5807046089162787,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "metric": "macro_f1_GAP",
+   "value": 58.6248165005129,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "metric": "within_auc",
+   "value": 0.6012225951742428,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "metric": "pooled_auroc",
+   "value": 0.581316285622474,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "metric": "macro_f1_GAP",
+   "value": 52.620596351577454,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "metric": "within_auc",
+   "value": 0.5718307058192993,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "metric": "pooled_auroc",
+   "value": 0.5511741056206915,
+   "arm": "HALF_N16"
+  }
+ ],
+ "parity": [
+  {
+   "check": "extra socratic/prm/rlhflow_prm TELE_N16 macro_f1_GAP",
+   "got": 57.528505550158556,
+   "ref": 57.528505550158556,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra socratic/prm/rlhflow_prm EQ_N16 macro_f1_GAP",
+   "got": 58.6248165005129,
+   "ref": 58.6248165005129,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra socratic/prm/rlhflow_prm HALF_N16 macro_f1_GAP",
+   "got": 52.620596351577454,
+   "ref": 52.620596351577454,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "skipped": [],
+ "cells": {}
+}

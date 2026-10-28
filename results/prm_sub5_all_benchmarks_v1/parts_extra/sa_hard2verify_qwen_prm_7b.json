@@ -1,0 +1,97 @@
+{
+ "rows": [
+  {
+   "benchmark": "hard2verify",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "metric": "balanced_f1_GAP",
+   "value": 46.449060285442876,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "metric": "within_auc",
+   "value": 0.5661560528416588,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "metric": "pooled_auroc",
+   "value": 0.5562914477650504,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "metric": "balanced_f1_GAP",
+   "value": 45.77337530232175,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "metric": "within_auc",
+   "value": 0.5501192006530636,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "metric": "pooled_auroc",
+   "value": 0.5454583297447823,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "metric": "balanced_f1_GAP",
+   "value": 45.77998432192318,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "metric": "within_auc",
+   "value": 0.6133047843384053,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "metric": "pooled_auroc",
+   "value": 0.5841342979358655,
+   "arm": "HALF_N16"
+  }
+ ],
+ "parity": [
+  {
+   "check": "extra hard2verify/sa/qwen_prm_7b TELE_N16 balanced_f1_GAP",
+   "got": 47.22467768355034,
+   "ref": 47.22467768355034,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra hard2verify/sa/qwen_prm_7b HALF_N16 balanced_f1_GAP",
+   "got": 45.77998432192318,
+   "ref": 45.77998432192318,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "skipped": [],
+ "cells": {}
+}

@@ -1,0 +1,105 @@
+{
+ "rows": [
+  {
+   "benchmark": "hard2verify",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "metric": "balanced_f1_GAP",
+   "value": 35.38812494424408,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "metric": "within_auc",
+   "value": 0.482421577361484,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "metric": "pooled_auroc",
+   "value": 0.49036689346309537,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "metric": "balanced_f1_GAP",
+   "value": 33.658572120308364,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "metric": "within_auc",
+   "value": 0.4714959164064883,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "metric": "pooled_auroc",
+   "value": 0.4874759567077197,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "metric": "balanced_f1_GAP",
+   "value": 16.897861364421065,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "metric": "within_auc",
+   "value": 0.2446487786583053,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "metric": "pooled_auroc",
+   "value": 0.339692245858812,
+   "arm": "HALF_N16"
+  }
+ ],
+ "parity": [
+  {
+   "check": "extra hard2verify/prm/rlhflow_prm TELE_N16 balanced_f1_GAP",
+   "got": 35.35817449023935,
+   "ref": 35.35817449023935,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra hard2verify/prm/rlhflow_prm EQ_N16 balanced_f1_GAP",
+   "got": 33.658572120308364,
+   "ref": 33.658572120308364,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra hard2verify/prm/rlhflow_prm HALF_N16 balanced_f1_GAP",
+   "got": 16.897861364421065,
+   "ref": 16.897861364421065,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "skipped": [],
+ "cells": {}
+}

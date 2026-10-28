@@ -1,0 +1,97 @@
+{
+ "rows": [
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "qwen_prm_72b",
+   "metric": "macro_f1_GAP",
+   "value": 66.61506432804363,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "qwen_prm_72b",
+   "metric": "within_auc",
+   "value": 0.7203636284965497,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "qwen_prm_72b",
+   "metric": "pooled_auroc",
+   "value": 0.7020675080533193,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "qwen_prm_72b",
+   "metric": "macro_f1_GAP",
+   "value": 65.22970563646115,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "qwen_prm_72b",
+   "metric": "within_auc",
+   "value": 0.6966408677564758,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "qwen_prm_72b",
+   "metric": "pooled_auroc",
+   "value": 0.6789964054371207,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "qwen_prm_72b",
+   "metric": "macro_f1_GAP",
+   "value": 67.9143611614635,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "qwen_prm_72b",
+   "metric": "within_auc",
+   "value": 0.8147651433379468,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "qwen_prm_72b",
+   "metric": "pooled_auroc",
+   "value": 0.7730132972116428,
+   "arm": "HALF_N16"
+  }
+ ],
+ "parity": [
+  {
+   "check": "extra socratic/sa/qwen_prm_72b TELE_N16 macro_f1_GAP",
+   "got": 65.30581397465917,
+   "ref": 65.30581397465917,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra socratic/sa/qwen_prm_72b HALF_N16 macro_f1_GAP",
+   "got": 67.9143611614635,
+   "ref": 67.9143611614635,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "skipped": [],
+ "cells": {}
+}

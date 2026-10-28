@@ -1,0 +1,105 @@
+{
+ "rows": [
+  {
+   "benchmark": "socratic",
+   "mode": "backbone",
+   "prm": "qwen_prm_72b",
+   "metric": "macro_f1_GAP",
+   "value": 59.60133130427083,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "backbone",
+   "prm": "qwen_prm_72b",
+   "metric": "within_auc",
+   "value": 0.6508645717767388,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "backbone",
+   "prm": "qwen_prm_72b",
+   "metric": "pooled_auroc",
+   "value": 0.6365892400566149,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "backbone",
+   "prm": "qwen_prm_72b",
+   "metric": "macro_f1_GAP",
+   "value": 62.249507950687644,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "backbone",
+   "prm": "qwen_prm_72b",
+   "metric": "within_auc",
+   "value": 0.6824949098980616,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "backbone",
+   "prm": "qwen_prm_72b",
+   "metric": "pooled_auroc",
+   "value": 0.6622470206435165,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "backbone",
+   "prm": "qwen_prm_72b",
+   "metric": "macro_f1_GAP",
+   "value": 66.79131093511398,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "backbone",
+   "prm": "qwen_prm_72b",
+   "metric": "within_auc",
+   "value": 0.809216032128773,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "backbone",
+   "prm": "qwen_prm_72b",
+   "metric": "pooled_auroc",
+   "value": 0.7670645650568807,
+   "arm": "HALF_N16"
+  }
+ ],
+ "parity": [
+  {
+   "check": "extra socratic/prm/qwen_prm_72b TELE_N16 macro_f1_GAP",
+   "got": 58.654441092965094,
+   "ref": 58.654441092965094,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra socratic/prm/qwen_prm_72b EQ_N16 macro_f1_GAP",
+   "got": 62.249507950687644,
+   "ref": 62.249507950687644,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra socratic/prm/qwen_prm_72b HALF_N16 macro_f1_GAP",
+   "got": 66.79131093511398,
+   "ref": 66.79131093511398,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "skipped": [],
+ "cells": {}
+}

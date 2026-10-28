@@ -1,0 +1,113 @@
+{
+ "rows": [
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_72b",
+   "metric": "macro_f1_GAP",
+   "value": 57.28129468347849,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_72b",
+   "metric": "within_auc",
+   "value": 0.6529446194441528,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_72b",
+   "metric": "pooled_auroc",
+   "value": 0.6518974267234862,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_72b",
+   "metric": "macro_f1_GAP",
+   "value": 57.31068746862803,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_72b",
+   "metric": "within_auc",
+   "value": 0.6419040175416612,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_72b",
+   "metric": "pooled_auroc",
+   "value": 0.6469888107301137,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_72b",
+   "metric": "macro_f1_GAP",
+   "value": 59.07851198604297,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_72b",
+   "metric": "within_auc",
+   "value": 0.6540584016773635,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_72b",
+   "metric": "pooled_auroc",
+   "value": 0.6550402826493908,
+   "arm": "HALF_N16"
+  }
+ ],
+ "parity": [
+  {
+   "check": "extra deltabench/prm/qwen_prm_72b TELE_N16 macro_f1_GAP",
+   "got": 57.124195408170706,
+   "ref": 57.124195408170706,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra deltabench/prm/qwen_prm_72b PRMG_N16 macro_f1_GAP",
+   "got": 57.28129468347849,
+   "ref": 57.28129468347849,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra deltabench/prm/qwen_prm_72b EQ_N16 macro_f1_GAP",
+   "got": 57.31068746862803,
+   "ref": 57.31068746862803,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra deltabench/prm/qwen_prm_72b HALF_N16 macro_f1_GAP",
+   "got": 59.07851198604297,
+   "ref": 59.07851198604297,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "skipped": [],
+ "cells": {}
+}

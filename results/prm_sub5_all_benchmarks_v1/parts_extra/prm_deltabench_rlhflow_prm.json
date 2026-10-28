@@ -1,0 +1,113 @@
+{
+ "rows": [
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "metric": "macro_f1_GAP",
+   "value": 53.83647028837818,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "metric": "within_auc",
+   "value": 0.5789950495599325,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "metric": "pooled_auroc",
+   "value": 0.5904735740282863,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "metric": "macro_f1_GAP",
+   "value": 54.516384059820965,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "metric": "within_auc",
+   "value": 0.5895582518139931,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "metric": "pooled_auroc",
+   "value": 0.5978970604207796,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "metric": "macro_f1_GAP",
+   "value": 52.524532726347495,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "metric": "within_auc",
+   "value": 0.5616039679686887,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "metric": "pooled_auroc",
+   "value": 0.5672575427477389,
+   "arm": "HALF_N16"
+  }
+ ],
+ "parity": [
+  {
+   "check": "extra deltabench/prm/rlhflow_prm TELE_N16 macro_f1_GAP",
+   "got": 54.74850163814735,
+   "ref": 54.74850163814735,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra deltabench/prm/rlhflow_prm PRMG_N16 macro_f1_GAP",
+   "got": 53.83647028837818,
+   "ref": 53.83647028837818,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra deltabench/prm/rlhflow_prm EQ_N16 macro_f1_GAP",
+   "got": 54.516384059820965,
+   "ref": 54.516384059820965,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra deltabench/prm/rlhflow_prm HALF_N16 macro_f1_GAP",
+   "got": 52.524532726347495,
+   "ref": 52.524532726347495,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "skipped": [],
+ "cells": {}
+}

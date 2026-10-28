@@ -1,0 +1,105 @@
+{
+ "rows": [
+  {
+   "benchmark": "hard2verify",
+   "mode": "backbone",
+   "prm": "qwen_prm_72b",
+   "metric": "balanced_f1_GAP",
+   "value": 44.84559365416465,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "backbone",
+   "prm": "qwen_prm_72b",
+   "metric": "within_auc",
+   "value": 0.564649281681564,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "backbone",
+   "prm": "qwen_prm_72b",
+   "metric": "pooled_auroc",
+   "value": 0.5464932678781615,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "backbone",
+   "prm": "qwen_prm_72b",
+   "metric": "balanced_f1_GAP",
+   "value": 43.18656030486209,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "backbone",
+   "prm": "qwen_prm_72b",
+   "metric": "within_auc",
+   "value": 0.5445058564155313,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "backbone",
+   "prm": "qwen_prm_72b",
+   "metric": "pooled_auroc",
+   "value": 0.5353960324979187,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "backbone",
+   "prm": "qwen_prm_72b",
+   "metric": "balanced_f1_GAP",
+   "value": 40.60291768802171,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "backbone",
+   "prm": "qwen_prm_72b",
+   "metric": "within_auc",
+   "value": 0.5308709528722629,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "hard2verify",
+   "mode": "backbone",
+   "prm": "qwen_prm_72b",
+   "metric": "pooled_auroc",
+   "value": 0.5313696781787386,
+   "arm": "HALF_N16"
+  }
+ ],
+ "parity": [
+  {
+   "check": "extra hard2verify/prm/qwen_prm_72b TELE_N16 balanced_f1_GAP",
+   "got": 45.36868321172529,
+   "ref": 45.36868321172529,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra hard2verify/prm/qwen_prm_72b EQ_N16 balanced_f1_GAP",
+   "got": 43.18656030486209,
+   "ref": 43.18656030486209,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra hard2verify/prm/qwen_prm_72b HALF_N16 balanced_f1_GAP",
+   "got": 40.60291768802171,
+   "ref": 40.60291768802171,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "skipped": [],
+ "cells": {}
+}

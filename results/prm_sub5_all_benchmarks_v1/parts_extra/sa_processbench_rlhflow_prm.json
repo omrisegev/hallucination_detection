@@ -1,0 +1,73 @@
+{
+ "rows": [
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "arm": "PRMG_N16",
+   "metric": "avg_f1_NC",
+   "value": 34.73270462344007
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "arm": "PRMG_N16",
+   "metric": "within_auc",
+   "value": 0.6667429487986032
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "arm": "EQ_N16",
+   "metric": "avg_f1_NC",
+   "value": 34.29049815743009
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "arm": "EQ_N16",
+   "metric": "within_auc",
+   "value": 0.6846491206439748
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "arm": "HALF_N16",
+   "metric": "avg_f1_NC",
+   "value": 31.770234147917847
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "arm": "HALF_N16",
+   "metric": "within_auc",
+   "value": 0.4683969137784819
+  }
+ ],
+ "parity": [
+  {
+   "check": "extra processbench/sa/rlhflow_prm TELE_N16 within-AUC (evaluate_cab definition)",
+   "got": 0.6983304441578669,
+   "ref": 0.6983304441578669,
+   "abs_diff": 0.0,
+   "tol": 0.001,
+   "ok": true
+  },
+  {
+   "check": "extra processbench/sa/rlhflow_prm HALF_N16 within-AUC (evaluate_cab definition)",
+   "got": 0.4683969137784819,
+   "ref": 0.4683969137784819,
+   "abs_diff": 0.0,
+   "tol": 0.001,
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "skipped": [],
+ "cells": {}
+}

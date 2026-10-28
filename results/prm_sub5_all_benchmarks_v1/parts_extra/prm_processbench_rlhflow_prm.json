@@ -1,0 +1,89 @@
+{
+ "rows": [
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "arm": "PRMG_N16",
+   "metric": "avg_f1_NC",
+   "value": 33.72054302917509
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "arm": "PRMG_N16",
+   "metric": "within_auc",
+   "value": 0.6021099634226276
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "arm": "EQ_N16",
+   "metric": "avg_f1_NC",
+   "value": 34.1050889511727
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "arm": "EQ_N16",
+   "metric": "within_auc",
+   "value": 0.6499313468182873
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "arm": "HALF_N16",
+   "metric": "avg_f1_NC",
+   "value": 30.166947404415794
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "arm": "HALF_N16",
+   "metric": "within_auc",
+   "value": 0.42930093549377946
+  }
+ ],
+ "parity": [
+  {
+   "check": "extra processbench/prm/rlhflow_prm TELE_N16 avg F1 NC",
+   "got": 33.9152484214054,
+   "ref": 33.9152484214054,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra processbench/prm/rlhflow_prm PRMG_N16 avg F1 NC",
+   "got": 33.72054302917509,
+   "ref": 33.72054302917509,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra processbench/prm/rlhflow_prm EQ_N16 avg F1 NC",
+   "got": 34.1050889511727,
+   "ref": 34.1050889511727,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra processbench/prm/rlhflow_prm HALF_N16 avg F1 NC",
+   "got": 30.166947404415794,
+   "ref": 30.166947404415794,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "skipped": [],
+ "cells": {}
+}

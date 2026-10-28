@@ -1,0 +1,73 @@
+{
+ "rows": [
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "arm": "PRMG_N16",
+   "metric": "avg_f1_NC",
+   "value": 58.132953908048286
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "arm": "PRMG_N16",
+   "metric": "within_auc",
+   "value": 0.8232292549249963
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "arm": "EQ_N16",
+   "metric": "avg_f1_NC",
+   "value": 56.549998477695055
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "arm": "EQ_N16",
+   "metric": "within_auc",
+   "value": 0.8014261079550973
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "arm": "HALF_N16",
+   "metric": "avg_f1_NC",
+   "value": 70.53551004606568
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "arm": "HALF_N16",
+   "metric": "within_auc",
+   "value": 0.9197342912773903
+  }
+ ],
+ "parity": [
+  {
+   "check": "extra processbench/sa/qwen_prm_7b TELE_N16 within-AUC (evaluate_cab definition)",
+   "got": 0.7730653047995275,
+   "ref": 0.7730653047995275,
+   "abs_diff": 0.0,
+   "tol": 0.001,
+   "ok": true
+  },
+  {
+   "check": "extra processbench/sa/qwen_prm_7b HALF_N16 within-AUC (evaluate_cab definition)",
+   "got": 0.9197342912773903,
+   "ref": 0.9197342912773903,
+   "abs_diff": 0.0,
+   "tol": 0.001,
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "skipped": [],
+ "cells": {}
+}

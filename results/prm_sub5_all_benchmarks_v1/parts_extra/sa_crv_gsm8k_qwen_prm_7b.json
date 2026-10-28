@@ -1,0 +1,145 @@
+{
+ "rows": [
+  {
+   "benchmark": "crv_gsm8k",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "metric": "macro_f1_GAP",
+   "value": 48.81954130175286,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "crv_gsm8k",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "metric": "within_auc",
+   "value": 0.5919557356263903,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "crv_gsm8k",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "metric": "pooled_auroc",
+   "value": 0.5672812266226803,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "crv_gsm8k",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "metric": "macro_f1_GAP",
+   "value": 48.81055026694582,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "crv_gsm8k",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "metric": "within_auc",
+   "value": 0.5975938596136678,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "crv_gsm8k",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "metric": "pooled_auroc",
+   "value": 0.5686819034308823,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "crv_gsm8k",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "metric": "macro_f1_GAP",
+   "value": 50.06126067944836,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "crv_gsm8k",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "metric": "within_auc",
+   "value": 0.7074256866079353,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "crv_gsm8k",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "metric": "pooled_auroc",
+   "value": 0.6500792432949877,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "crv_gsm8k",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "arm": "PRMG_N16",
+   "metric": "crop_kept_a05",
+   "value": 28.357661071398915
+  },
+  {
+   "benchmark": "crv_gsm8k",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "arm": "PRMG_N16",
+   "metric": "crop_auroc",
+   "value": 0.5641734309727051
+  },
+  {
+   "benchmark": "crv_gsm8k",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "arm": "EQ_N16",
+   "metric": "crop_kept_a05",
+   "value": 29.40136844275101
+  },
+  {
+   "benchmark": "crv_gsm8k",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "arm": "EQ_N16",
+   "metric": "crop_auroc",
+   "value": 0.5657978346177577
+  },
+  {
+   "benchmark": "crv_gsm8k",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "arm": "HALF_N16",
+   "metric": "crop_kept_a05",
+   "value": 41.72588733473144
+  },
+  {
+   "benchmark": "crv_gsm8k",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "arm": "HALF_N16",
+   "metric": "crop_auroc",
+   "value": 0.6448131136127895
+  }
+ ],
+ "parity": [
+  {
+   "check": "extra crv_gsm8k/sa/qwen_prm_7b TELE_N16 macro_f1_GAP",
+   "got": 48.41059007808391,
+   "ref": 48.41059007808391,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra crv_gsm8k/sa/qwen_prm_7b HALF_N16 macro_f1_GAP",
+   "got": 50.06126067944836,
+   "ref": 50.06126067944836,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "skipped": [],
+ "cells": {}
+}

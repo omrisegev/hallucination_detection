@@ -1,0 +1,97 @@
+{
+ "rows": [
+  {
+   "benchmark": "deltabench",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "macro_f1_GAP",
+   "value": 54.73032031967511,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "within_auc",
+   "value": 0.5986675223870662,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "pooled_auroc",
+   "value": 0.6014163349710472,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "macro_f1_GAP",
+   "value": 55.14554654401827,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "within_auc",
+   "value": 0.6070686277438312,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "pooled_auroc",
+   "value": 0.6093445524185562,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "macro_f1_GAP",
+   "value": 53.14464439787995,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "within_auc",
+   "value": 0.5673089420946094,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "pooled_auroc",
+   "value": 0.5739207380573604,
+   "arm": "HALF_N16"
+  }
+ ],
+ "parity": [
+  {
+   "check": "extra deltabench/sa/rlhflow_prm TELE_N16 macro_f1_GAP",
+   "got": 54.06733589014898,
+   "ref": 54.06733589014898,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra deltabench/sa/rlhflow_prm HALF_N16 macro_f1_GAP",
+   "got": 53.14464439787995,
+   "ref": 53.14464439787995,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "skipped": [],
+ "cells": {}
+}

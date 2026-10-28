@@ -1,0 +1,97 @@
+{
+ "rows": [
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "macro_f1_GAP",
+   "value": 62.672105000124056,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "within_auc",
+   "value": 0.6643478508943739,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "pooled_auroc",
+   "value": 0.6421347128776093,
+   "arm": "PRMG_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "macro_f1_GAP",
+   "value": 61.804830687836045,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "within_auc",
+   "value": 0.653426667873198,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "pooled_auroc",
+   "value": 0.6315014157402629,
+   "arm": "EQ_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "macro_f1_GAP",
+   "value": 54.553801856959296,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "within_auc",
+   "value": 0.6009675304316368,
+   "arm": "HALF_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "pooled_auroc",
+   "value": 0.5782896392885202,
+   "arm": "HALF_N16"
+  }
+ ],
+ "parity": [
+  {
+   "check": "extra socratic/sa/rlhflow_prm TELE_N16 macro_f1_GAP",
+   "got": 62.45192745946253,
+   "ref": 62.45192745946253,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra socratic/sa/rlhflow_prm HALF_N16 macro_f1_GAP",
+   "got": 54.553801856959296,
+   "ref": 54.553801856959296,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "skipped": [],
+ "cells": {}
+}

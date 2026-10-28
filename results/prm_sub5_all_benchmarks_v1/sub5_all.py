@@ -365,10 +365,71 @@ def run_jobs(jobs, gate, rows, parity, info_all, fails, part, cab_ref, pb_ref, s
     if fails: raise SystemExit(3)
 
 
+EXTRA_ARMS = ['PRMG_N16', 'EQ_N16', 'HALF_N16']   # TELE_N16 + PRM (L-SML, PRM as a channel) and two equal-weight controls
+
+
+def run_extra(mode, bench, prm, part):
+    """Evaluate the stored PRMG_N16 / EQ_N16 / HALF_N16 arms of one cell with the same metric functions (no refit).
+    TELE_N16 is re-evaluated as the cell's parity anchor; the new arms are checked wherever a table has them."""
+    cab_ref, pb_ref, sa_ref = refs(); rows, parity, fails = [], [], []
+
+    def gate(name, got, ref, tol=TOL):
+        d = abs(float(got) - float(ref)); ok = d <= tol
+        parity.append(dict(check=name, got=float(got), ref=float(ref), abs_diff=d, tol=tol, ok=ok))
+        print(('PASS ' if ok else 'FAIL ') + name, round(float(got), 4), round(float(ref), 4), flush=True)
+        if not ok: fails.append(name)
+
+    tag = f'{bench}/{mode}/{prm}'
+    if mode == 'prm' and bench in COLLECTION:
+        key, pname = bench, prm
+    elif bench == 'prmbench':
+        key, pname = 'prmbench', f'{prm}__standalone'
+    else:
+        key, pname = f'cab|{mode}|{bench}', prm
+        REG[key] = dict(mode=mode, bench=bench, common=common_uids(bench))
+    c = E.load(key, pname)
+    if not hasattr(c, 'n_gold'): c.n_gold = len(c.ids)
+    arms = [(a, a, 'GAP') for a in ['TELE_N16'] + EXTRA_ARMS if a in c.arms]
+    if bench == 'prmbench':
+        R = rows_prmbench(c, arms)
+        get = lambda a, m='PRMScore_GAP': next(r['value'] for r in R if r['arm'] == a and r['metric'] == m)
+        if mode == 'prm':
+            for a in ['TELE_N16', 'EQ_N16', 'HALF_N16']:
+                gate(f'extra {tag} {a} PRMScore GAP', get(a), S1.STATUS[(bench, prm, a)]['GAP'])
+        else:
+            gate(f'extra {tag} TELE_N16 PRMScore GAP', get('TELE_N16'), sa_ref[(prm, 'SA_TELE_N16')]['GAP'])
+    elif bench == 'processbench':
+        R = rows_pb(c, arms)
+        if mode == 'prm':
+            for a in ['TELE_N16'] + EXTRA_ARMS:
+                gate(f'extra {tag} {a} avg F1 NC', next(r['value'] for r in R if r['arm'] == a and r['metric'] == 'avg_f1_NC'),
+                     pb_ref[(PFILE.get(prm, prm), f'{a}_NC')]['avg_f1'])
+        else:
+            c.keep = c.keep_gold
+            for a in ['TELE_N16', 'HALF_N16']:
+                gate(f'extra {tag} {a} within-AUC (evaluate_cab definition)', CAB.row(c, 'sa', bench, 'common', a, 'GAP')['within_auc'],
+                     cab_ref[(bench, mode, PFILE.get(prm, prm), a, 'GAP')]['within_auc'], 1e-3)
+    else:
+        R = rows_cab(c, mode, bench, prm, arms)
+        mn = 'balanced_f1_GAP' if bench == 'hard2verify' else 'macro_f1_GAP'
+        get = lambda a: next(r['value'] for r in R if r['arm'] == a and r['metric'] == mn)
+        for a in ['TELE_N16'] + EXTRA_ARMS:
+            if mode == 'prm' and bench in COLLECTION:
+                if (bench, prm, a) in S1.STATUS: gate(f'extra {tag} {a} {mn}', get(a), S1.STATUS[(bench, prm, a)]['GAP'])
+            elif (bench, mode, PFILE.get(prm, prm), a, 'GAP') in cab_ref:
+                gate(f'extra {tag} {a} {mn}', get(a), cab_ref[(bench, mode, PFILE.get(prm, prm), a, 'GAP')]['macro_f1'])
+        if bench in CROP_BENCHES:
+            R += rows_crop(c, arms)
+    R = [r for r in R if r['arm'] != 'TELE_N16']
+    rows = [dict(benchmark=bench, mode={'prm': 'backbone', 'sa': 'standalone'}[mode], prm=prm, **r) for r in R]
+    json.dump(dict(rows=rows, parity=parity, failed=fails, skipped=[], cells={}), open(part, 'w'), indent=1, default=float)
+    print(tag, 'extra done', len(rows), flush=True)
+
+
 def assemble():
     """Merge parts/*.json (one process per cell, to bound memory) and add the CROP parity rows."""
     rows, parity, fails, skipped, cells = [], [], [], [], {}
-    for f in sorted((HERE / 'parts').glob('*.json')):
+    for f in sorted((HERE / 'parts').glob('*.json')) + sorted((HERE / 'parts_extra').glob('*.json')):
         d = json.load(open(f)); rows += d['rows']; parity += d['parity']; fails += d['failed']; skipped += d['skipped']; cells.update(d['cells'])
     crop_ref = {(r['benchmark'], r['mode'], r['prm'], r['arm']): r for r in E.read_csv(HERE / 'vendor/CROP_TABLE6_CAB.csv') if r['grid'] == 'q201'}
     for r in rows:
@@ -390,6 +451,9 @@ if __name__ == '__main__':
     elif cmd == 'job':      # python sub5_all.py job <prm|sa> <bench> <prm>  -> parts/<mode>_<bench>_<prm>.json
         (HERE / 'parts').mkdir(exist_ok=True); m, b, p = sys.argv[2:5]
         main([(m, b, p)], False, HERE / 'parts' / f'{m}_{b}_{p}.json')
+    elif cmd == 'extra':    # python sub5_all.py extra <prm|sa> <bench> <prm>  -> parts_extra/ (PRMG_N16, EQ_N16, HALF_N16)
+        (HERE / 'parts_extra').mkdir(exist_ok=True); m, b, p = sys.argv[2:5]
+        run_extra(m, b, p, HERE / 'parts_extra' / f'{m}_{b}_{p}.json')
     elif cmd == 'list':
         print('\n'.join(' '.join(j) for j in all_jobs()))
     elif cmd == 'assemble':

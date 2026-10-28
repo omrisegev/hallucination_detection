@@ -1,0 +1,89 @@
+{
+ "rows": [
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "qwen_prm_7b",
+   "arm": "PRMG_N16",
+   "metric": "avg_f1_NC",
+   "value": 64.84364045320052
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "qwen_prm_7b",
+   "arm": "PRMG_N16",
+   "metric": "within_auc",
+   "value": 0.9072665661685672
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "qwen_prm_7b",
+   "arm": "EQ_N16",
+   "metric": "avg_f1_NC",
+   "value": 63.145667355587065
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "qwen_prm_7b",
+   "arm": "EQ_N16",
+   "metric": "within_auc",
+   "value": 0.8725471146776944
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "qwen_prm_7b",
+   "arm": "HALF_N16",
+   "metric": "avg_f1_NC",
+   "value": 71.36147800724898
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "qwen_prm_7b",
+   "arm": "HALF_N16",
+   "metric": "within_auc",
+   "value": 0.9331786465059938
+  }
+ ],
+ "parity": [
+  {
+   "check": "extra processbench/prm/qwen_prm_7b TELE_N16 avg F1 NC",
+   "got": 61.89183953464728,
+   "ref": 61.89183953464728,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra processbench/prm/qwen_prm_7b PRMG_N16 avg F1 NC",
+   "got": 64.84364045320052,
+   "ref": 64.84364045320052,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra processbench/prm/qwen_prm_7b EQ_N16 avg F1 NC",
+   "got": 63.145667355587065,
+   "ref": 63.145667355587065,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "extra processbench/prm/qwen_prm_7b HALF_N16 avg F1 NC",
+   "got": 71.36147800724898,
+   "ref": 71.36147800724898,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "skipped": [],
+ "cells": {}
+}
