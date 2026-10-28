@@ -1,0 +1,148 @@
+{
+ "rows": [
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "arm": "PRM native",
+   "metric": "avg_f1_native",
+   "value": 29.16057155833608
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "arm": "PRM native",
+   "metric": "within_auc",
+   "value": 0.3291810508344628
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "arm": "PRM",
+   "metric": "avg_f1_NC",
+   "value": 29.16057155833608
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "arm": "PRM",
+   "metric": "within_auc",
+   "value": 0.3291810508344628
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "arm": "TELE_N16",
+   "metric": "avg_f1_NC",
+   "value": 33.9152484214054
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "arm": "TELE_N16",
+   "metric": "within_auc",
+   "value": 0.6701493592374286
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "arm": "MEAN_N16",
+   "metric": "avg_f1_NC",
+   "value": 33.65575230616668
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "arm": "MEAN_N16",
+   "metric": "within_auc",
+   "value": 0.6702084599622553
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "arm": "CHAIN_N16",
+   "metric": "avg_f1_NC",
+   "value": 33.04383955662229
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "arm": "CHAIN_N16",
+   "metric": "within_auc",
+   "value": 0.5580257415414962
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "arm": "SUB5 alone",
+   "metric": "avg_f1_NC",
+   "value": 34.624991679400466
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "arm": "SUB5 alone",
+   "metric": "within_auc",
+   "value": 0.6951641839985786
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "arm": "SUB5 +PRM",
+   "metric": "avg_f1_NC",
+   "value": 31.205909853515806
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "rlhflow_prm",
+   "arm": "SUB5 +PRM",
+   "metric": "within_auc",
+   "value": 0.5134144907363452
+  }
+ ],
+ "parity": [
+  {
+   "check": "gate1 processbench/prm/rlhflow_prm TELE_N16 avg F1 NC",
+   "got": 33.9152484214054,
+   "ref": 33.9152484214054,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "gate1 processbench/prm/rlhflow_prm TELE_N16 within-AUC",
+   "got": 0.6701493592374286,
+   "ref": 0.6701493592374286,
+   "abs_diff": 0.0,
+   "tol": 0.001,
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "skipped": [],
+ "cells": {
+  "processbench/prm/rlhflow_prm": {
+   "alone_K": 5,
+   "alone_valid": true,
+   "prm_K": 5,
+   "prm_valid": true,
+   "prm_share": 0.30262690307325135,
+   "prm_arm": "PRM",
+   "n_answers": 3400,
+   "mean_n16_alignment_maxdiff": 3.3610543681561467e-08
+  }
+ }
+}

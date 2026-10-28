@@ -1,0 +1,204 @@
+{
+ "rows": [
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_7b",
+   "metric": "macro_f1_native",
+   "value": 56.251629155889745,
+   "arm": "PRM native"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_7b",
+   "metric": "within_auc",
+   "value": 0.6560021257791521,
+   "arm": "PRM native"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_7b",
+   "metric": "pooled_auroc",
+   "value": 0.631281718726374,
+   "arm": "PRM native"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_7b",
+   "metric": "macro_f1_GAP",
+   "value": 58.5989873212913,
+   "arm": "PRM"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_7b",
+   "metric": "within_auc",
+   "value": 0.6560021257791521,
+   "arm": "PRM"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_7b",
+   "metric": "pooled_auroc",
+   "value": 0.631281718726374,
+   "arm": "PRM"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_7b",
+   "metric": "macro_f1_GAP",
+   "value": 56.93554514372546,
+   "arm": "TELE_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_7b",
+   "metric": "within_auc",
+   "value": 0.6550600124792468,
+   "arm": "TELE_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_7b",
+   "metric": "pooled_auroc",
+   "value": 0.6569846685279955,
+   "arm": "TELE_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_7b",
+   "metric": "macro_f1_GAP",
+   "value": 56.84466901784743,
+   "arm": "MEAN_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_7b",
+   "metric": "within_auc",
+   "value": 0.6579834247795942,
+   "arm": "MEAN_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_7b",
+   "metric": "pooled_auroc",
+   "value": 0.6582070973279069,
+   "arm": "MEAN_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_7b",
+   "metric": "macro_f1_GAP",
+   "value": 58.21620826203186,
+   "arm": "CHAIN_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_7b",
+   "metric": "within_auc",
+   "value": 0.671163678062587,
+   "arm": "CHAIN_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_7b",
+   "metric": "pooled_auroc",
+   "value": 0.6752779747719659,
+   "arm": "CHAIN_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_7b",
+   "metric": "macro_f1_GAP",
+   "value": 55.91772191262812,
+   "arm": "SUB5 alone"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_7b",
+   "metric": "within_auc",
+   "value": 0.6258043074082505,
+   "arm": "SUB5 alone"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_7b",
+   "metric": "pooled_auroc",
+   "value": 0.6243395370530095,
+   "arm": "SUB5 alone"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_7b",
+   "metric": "macro_f1_GAP",
+   "value": 57.122067465846925,
+   "arm": "SUB5 +PRM"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_7b",
+   "metric": "within_auc",
+   "value": 0.6498554609850679,
+   "arm": "SUB5 +PRM"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "qwen_prm_7b",
+   "metric": "pooled_auroc",
+   "value": 0.6504519153159254,
+   "arm": "SUB5 +PRM"
+  }
+ ],
+ "parity": [
+  {
+   "check": "gate1 deltabench/prm/qwen_prm_7b TELE_N16 macro_f1_GAP",
+   "got": 56.93554514372546,
+   "ref": 56.93554514372546,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "gate1 deltabench/prm/qwen_prm_7b TELE_N16 within-AUC",
+   "got": 0.6550600124792468,
+   "ref": 0.6550600124792468,
+   "abs_diff": 0.0,
+   "tol": 0.001,
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "skipped": [],
+ "cells": {
+  "deltabench/prm/qwen_prm_7b": {
+   "alone_K": 5,
+   "alone_valid": true,
+   "prm_K": 5,
+   "prm_valid": true,
+   "prm_share": 0.1940444448521352,
+   "prm_arm": "PRMPROB",
+   "n_answers": 447,
+   "mean_n16_alignment_maxdiff": 4.088763105869475e-08
+  }
+ }
+}

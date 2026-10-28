@@ -1,0 +1,120 @@
+{
+ "rows": [
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "arm": "PRM native",
+   "metric": "avg_f1_native",
+   "value": 52.57566072617236
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "arm": "PRM native",
+   "metric": "within_auc",
+   "value": 0.9250000729701858
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "arm": "PRM",
+   "metric": "avg_f1_NC",
+   "value": 52.57566072617236
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "arm": "PRM",
+   "metric": "within_auc",
+   "value": 0.9250000729701858
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "arm": "TELE_N16",
+   "metric": "avg_f1_NC",
+   "value": 36.84495730739049
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "arm": "TELE_N16",
+   "metric": "within_auc",
+   "value": 0.6810658115044981
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "arm": "MEAN_N16",
+   "metric": "avg_f1_NC",
+   "value": 38.74268388941922
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "arm": "MEAN_N16",
+   "metric": "within_auc",
+   "value": 0.7038484611278351
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "arm": "CHAIN_N16",
+   "metric": "avg_f1_NC",
+   "value": 40.032438256817336
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "arm": "CHAIN_N16",
+   "metric": "within_auc",
+   "value": 0.7252989613430866
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "arm": "SUB5 alone",
+   "metric": "avg_f1_NC",
+   "value": 35.98329976330828
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "arm": "SUB5 alone",
+   "metric": "within_auc",
+   "value": 0.6603501246202632
+  }
+ ],
+ "parity": [
+  {
+   "check": "gate1 processbench/sa/pure_prm TELE_N16 within-AUC (evaluate_cab definition)",
+   "got": 0.6810658115044981,
+   "ref": 0.6810658115044981,
+   "abs_diff": 0.0,
+   "tol": 0.001,
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "skipped": [],
+ "cells": {
+  "processbench/sa/pure_prm": {
+   "alone_K": 5,
+   "alone_valid": true,
+   "n_answers": 3400,
+   "mean_n16_alignment_maxdiff": 3.024299677356623e-08
+  }
+ }
+}

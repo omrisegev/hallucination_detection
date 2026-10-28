@@ -1,0 +1,176 @@
+{
+ "rows": [
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "macro_f1_native",
+   "value": 48.121973888264385,
+   "arm": "PRM native"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "within_auc",
+   "value": 0.5493180159448872,
+   "arm": "PRM native"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "pooled_auroc",
+   "value": 0.5791872531996667,
+   "arm": "PRM native"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "macro_f1_GAP",
+   "value": 50.38091491159397,
+   "arm": "PRM"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "within_auc",
+   "value": 0.5493180159448872,
+   "arm": "PRM"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "pooled_auroc",
+   "value": 0.5791872531996667,
+   "arm": "PRM"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "macro_f1_GAP",
+   "value": 62.45192745946253,
+   "arm": "TELE_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "within_auc",
+   "value": 0.6618402742568771,
+   "arm": "TELE_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "pooled_auroc",
+   "value": 0.6415489348763141,
+   "arm": "TELE_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "macro_f1_GAP",
+   "value": 61.39716290128433,
+   "arm": "MEAN_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "within_auc",
+   "value": 0.6528173012658761,
+   "arm": "MEAN_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "pooled_auroc",
+   "value": 0.6322935495852582,
+   "arm": "MEAN_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "macro_f1_GAP",
+   "value": 63.25549242679378,
+   "arm": "CHAIN_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "within_auc",
+   "value": 0.6687527627307746,
+   "arm": "CHAIN_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "pooled_auroc",
+   "value": 0.6448614392974776,
+   "arm": "CHAIN_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "macro_f1_GAP",
+   "value": 62.594160848272615,
+   "arm": "SUB5 alone"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "within_auc",
+   "value": 0.6556414567160538,
+   "arm": "SUB5 alone"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "metric": "pooled_auroc",
+   "value": 0.6358049671222401,
+   "arm": "SUB5 alone"
+  }
+ ],
+ "parity": [
+  {
+   "check": "gate1 socratic/sa/rlhflow_prm TELE_N16 macro_f1_GAP",
+   "got": 62.45192745946253,
+   "ref": 62.45192745946253,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "gate1 socratic/sa/rlhflow_prm TELE_N16 within-AUC",
+   "got": 0.6618402742568771,
+   "ref": 0.6618402742568771,
+   "abs_diff": 0.0,
+   "tol": 0.001,
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "skipped": [],
+ "cells": {
+  "socratic/sa/rlhflow_prm": {
+   "alone_K": 5,
+   "alone_valid": true,
+   "n_answers": 2995,
+   "mean_n16_alignment_maxdiff": 3.3550186184783115e-08
+  }
+ }
+}

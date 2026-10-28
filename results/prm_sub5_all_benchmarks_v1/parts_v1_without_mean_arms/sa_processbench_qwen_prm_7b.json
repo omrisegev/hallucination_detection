@@ -1,0 +1,120 @@
+{
+ "rows": [
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "arm": "PRM native",
+   "metric": "avg_f1_native",
+   "value": 72.9353724634484
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "arm": "PRM native",
+   "metric": "within_auc",
+   "value": 0.9388114806919322
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "arm": "PRM",
+   "metric": "avg_f1_NC",
+   "value": 72.9353724634484
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "arm": "PRM",
+   "metric": "within_auc",
+   "value": 0.9388114806919322
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "arm": "TELE_N16",
+   "metric": "avg_f1_NC",
+   "value": 54.11581777158004
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "arm": "TELE_N16",
+   "metric": "within_auc",
+   "value": 0.7730653047995275
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "arm": "MEAN_N16",
+   "metric": "avg_f1_NC",
+   "value": 54.22595296715291
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "arm": "MEAN_N16",
+   "metric": "within_auc",
+   "value": 0.7709879489702476
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "arm": "CHAIN_N16",
+   "metric": "avg_f1_NC",
+   "value": 63.23457202874866
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "arm": "CHAIN_N16",
+   "metric": "within_auc",
+   "value": 0.8508406877314009
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "arm": "SUB5 alone",
+   "metric": "avg_f1_NC",
+   "value": 50.493890007516946
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "qwen_prm_7b",
+   "arm": "SUB5 alone",
+   "metric": "within_auc",
+   "value": 0.7243710745955487
+  }
+ ],
+ "parity": [
+  {
+   "check": "gate1 processbench/sa/qwen_prm_7b TELE_N16 within-AUC (evaluate_cab definition)",
+   "got": 0.7730653047995275,
+   "ref": 0.7730653047995275,
+   "abs_diff": 0.0,
+   "tol": 0.001,
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "skipped": [],
+ "cells": {
+  "processbench/sa/qwen_prm_7b": {
+   "alone_K": 5,
+   "alone_valid": true,
+   "n_answers": 3400,
+   "mean_n16_alignment_maxdiff": 4.58253417434662e-08
+  }
+ }
+}

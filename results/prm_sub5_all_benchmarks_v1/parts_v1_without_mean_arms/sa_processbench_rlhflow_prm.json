@@ -1,0 +1,120 @@
+{
+ "rows": [
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "arm": "PRM native",
+   "metric": "avg_f1_native",
+   "value": 29.16057155833608
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "arm": "PRM native",
+   "metric": "within_auc",
+   "value": 0.3291810508344628
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "arm": "PRM",
+   "metric": "avg_f1_NC",
+   "value": 29.16057155833608
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "arm": "PRM",
+   "metric": "within_auc",
+   "value": 0.3291810508344628
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "arm": "TELE_N16",
+   "metric": "avg_f1_NC",
+   "value": 34.46955988154214
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "arm": "TELE_N16",
+   "metric": "within_auc",
+   "value": 0.6983304441578669
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "arm": "MEAN_N16",
+   "metric": "avg_f1_NC",
+   "value": 33.802408380748346
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "arm": "MEAN_N16",
+   "metric": "within_auc",
+   "value": 0.7062681788477823
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "arm": "CHAIN_N16",
+   "metric": "avg_f1_NC",
+   "value": 33.87746444225592
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "arm": "CHAIN_N16",
+   "metric": "within_auc",
+   "value": 0.6087355584820348
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "arm": "SUB5 alone",
+   "metric": "avg_f1_NC",
+   "value": 32.05022347413273
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "standalone",
+   "prm": "rlhflow_prm",
+   "arm": "SUB5 alone",
+   "metric": "within_auc",
+   "value": 0.6671990230549673
+  }
+ ],
+ "parity": [
+  {
+   "check": "gate1 processbench/sa/rlhflow_prm TELE_N16 within-AUC (evaluate_cab definition)",
+   "got": 0.6983304441578669,
+   "ref": 0.6983304441578669,
+   "abs_diff": 0.0,
+   "tol": 0.001,
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "skipped": [],
+ "cells": {
+  "processbench/sa/rlhflow_prm": {
+   "alone_K": 5,
+   "alone_valid": true,
+   "n_answers": 3400,
+   "mean_n16_alignment_maxdiff": 4.83001789675086e-08
+  }
+ }
+}

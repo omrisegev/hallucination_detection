@@ -19,6 +19,9 @@ Two arms:
 - **SUB5 +PRM**: the PRM enters as one more channel and as the DS-EM anchor (`stage1.CellData.evaluate`). Backbone
   cells only.
 
+- **SUB5 mean** / **SUB5 +PRM mean**: the plain average of the same six oriented answer-z channels (with the PRM's
+  answer-z as a seventh for +PRM). These controls show how much L-SML itself adds over equal weights.
+
 Both classes run unchanged and are refitted per cell without labels. The only redirection is of
 `E.load` / `E.channels` / `stage1.prm_arm` to the new cells.
 
@@ -44,7 +47,16 @@ Two cells have no SUB5 score because the six channels form fewer than 3 L-SML gr
 - CRV-Arith backbone, Qwen-72B, SUB5 +PRM (K = 2);
 - CRV-Arith standalone, Qwen-7B, SUB5 alone (K = 2).
 
-## Parity ([PARITY.json](PARITY.json)): 127 checks, all pass, largest difference 1.4e-14
+## Cells
+
+64 cells: 8 benchmarks x 4 PRMs x (backbone, standalone). The backbone cells of PRMBench and Socratic, which SUB5 was
+selected on, and of Hard2Verify were added on 2026-10-28 (second run), together with the two average arms.
+
+## Parity ([PARITY.json](PARITY.json)): 191 checks, all pass, largest difference 1.4e-14
+
+- **In-sample backbone cells**: SUB5 alone, SUB5 mean and SUB5 +PRM equal `stage2/NAMED_EXACT.csv` (s2_fused, s2_mean,
+  s1_fused) on all 8 PRMBench/Socratic backbone cells. On Hard2Verify backbone, all four SUB5 arms equal
+  `h2v_holdout/H2V_SUB4_SUB5.csv` for all 4 PRMs.
 
 - **Gate 2** (reproduces earlier SUB5 numbers):
   - PRMBench Qwen-7B: SUB5 alone 68.7782 and SUB5 +PRM 69.9031 PRMScore GAP (`stage2/COMPETITORS.csv`);
@@ -83,6 +95,20 @@ Two cells have no SUB5 score because the six channels form fewer than 3 L-SML gr
   `PRM native` is the PRM's own 0.5 threshold.
 - **Standalone cells.** In the standalone cells, CHAIN_N16 combines the PRM with the standalone model's telemetry.
   The PRM rows equal the backbone cell's PRM rows, because the rewards are grafted onto the same answers.
+
+## Dashboard
+
+`dashboard/` holds the interactive scorecard: `scores.csv` (made by `make_data.py` from SUB5_ALL.csv),
+`published.csv` (= PUBLISHED_COMPETITORS.csv) and the page `index.html`. Published claude.ai artifact:
+https://claude.ai/artifact/3bknWqmrPsYNycXfjmWpMb (private until shared).
+
+[PUBLISHED_COMPETITORS.csv](PUBLISHED_COMPETITORS.csv) lists published scores with their repo source:
+- PRMBench, Socratic and Hard2Verify leaderboards;
+- ProcessBench from Qwen PRM paper Table 7 (native threshold);
+- CROP Table 6 kept % and AUROC for PRMBench, CRV-Arith, CRV-GSM8K and PRM800K. Direct PRM and Trace+PRM use
+  Qwen-PRM-7B, so they are compared with that PRM only.
+
+DeltaBench has no published number on our metric. The ARES and DeltaBench papers report other metrics on other subsets.
 
 ## Files and reproduction
 

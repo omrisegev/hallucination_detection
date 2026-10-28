@@ -50,7 +50,9 @@ PRMS = ['qwen_prm_7b', 'qwen_prm_72b', 'pure_prm', 'rlhflow_prm']          # Mat
 PFILE = {'qwen_prm_7b': 'qwen_prm'}
 CAB_DIRS = [DATA / 'crop_ares_v1', DATA / 'sub5_all_v1']                    # sub5_all_v1: ProcessBench prm mode
 CHAN_DIRS = [DATA / 'crop_ares_v1' / 'channels', DATA / 'sub5_all_v1' / 'scores']
-BACKBONE = ['processbench', 'crv_arith', 'crv_gsm8k', 'prm800k', 'deltabench']
+BACKBONE = ['prmbench', 'socratic', 'hard2verify', 'processbench', 'crv_arith', 'crv_gsm8k', 'prm800k', 'deltabench']
+IN_SAMPLE = {'prmbench', 'socratic'}          # SUB5 was selected on the backbone cells of these two
+COLLECTION = {'prmbench', 'socratic', 'hard2verify'}   # backbone cells live in the evaluate_collection data
 STANDALONE = ['prmbench', 'socratic', 'hard2verify', 'processbench', 'crv_arith', 'crv_gsm8k', 'prm800k', 'deltabench']
 CROP_BENCHES = {'crv_arith', 'crv_gsm8k', 'prm800k'}
 TOL = 0.01
@@ -130,10 +132,12 @@ def sub5_scores(key, prm, with_prm):
     S2.PRM_ALONE.setdefault(f'{key}/{prm}', {'prm_exact': float('nan')})
     t = S2.TeleCell().build(key, prm); c = t.c
     o = t.evaluate(SUB5, want_detail=True); out = {'SUB5 alone': o['fused'] if o['valid'] else None}
+    out['SUB5 mean'] = t.Z[:, SUB5].mean(1)        # the 'average' control: same 6 channels, equal weights, no L-SML
     info = {'alone_K': int(o['K']), 'alone_valid': bool(o['valid'])}
     if with_prm:
         s1 = S1.CellData(key, prm); assert np.array_equal(s1.c.off, c.off)
         o1 = s1.evaluate(SUB5, want_detail=True); out['SUB5 +PRM'] = o1['fused'] if o1['valid'] else None
+        out['SUB5 +PRM mean'] = s1.Z[:, np.r_[0, np.asarray(SUB5) + 1]].mean(1)   # PRM + the 6 channels, equal weights
         info.update(prm_K=int(o1['K']), prm_valid=bool(o1['valid']), prm_share=o1.get('w_prm_share'), prm_arm=s1.arm)
     return c, out, info
 
@@ -251,6 +255,27 @@ def gate2(gate):
     del c
 
 
+def gate_collection(gate, tag, bench, prm, R):
+    """Backbone PRMBench / Socratic / Hard2Verify: TELE_N16 vs STATUS_MAIN, SUB5 vs the view-selection outputs."""
+    mn = {'prmbench': 'PRMScore_GAP', 'socratic': 'macro_f1_GAP', 'hard2verify': 'balanced_f1_GAP'}[bench]
+    get = lambda arm, m=mn: next(r['value'] for r in R if r['arm'] == arm and r['metric'] == m)
+    st = S1.STATUS[(bench, prm, 'TELE_N16')]
+    gate(f'gate1 {tag} TELE_N16 {mn}', get('TELE_N16'), st['GAP'])
+    gate(f'gate1 {tag} TELE_N16 within-AUC', get('TELE_N16', 'within_auc'), st['within_auc'], 1e-3)
+    if bench in IN_SAMPLE:      # stage2/NAMED_EXACT.csv: s2_fused / s2_mean / s1_fused of SUB5 on this cell
+        ne = next(r for r in E.read_csv(VS / 'stage2/NAMED_EXACT.csv') if r['subset'] == ' + '.join(SUB5_NAMES))
+        k = f'{bench}/{prm}'
+        gate(f'gate2 {tag} SUB5 alone', get('SUB5 alone'), ne[f's2_fused {k}'])
+        gate(f'gate2 {tag} SUB5 mean', get('SUB5 mean'), ne[f's2_mean {k}'])
+        gate(f'gate2 {tag} SUB5 +PRM', get('SUB5 +PRM'), ne[f's1_fused {k}'])
+    else:                       # h2v_holdout/H2V_SUB4_SUB5.csv
+        h = {r['version']: r for r in E.read_csv(VS / 'h2v_holdout/H2V_SUB4_SUB5.csv') if r['prm'] == prm and r['set'] == 'SUB5'}
+        gate(f'gate2 {tag} SUB5 alone', get('SUB5 alone'), h['alone']['fused_ps'])
+        gate(f'gate2 {tag} SUB5 mean', get('SUB5 mean'), h['alone']['mean_ps'])
+        gate(f'gate2 {tag} SUB5 +PRM', get('SUB5 +PRM'), h['+PRM']['fused_ps'])
+        gate(f'gate2 {tag} SUB5 +PRM mean', get('SUB5 +PRM mean'), h['+PRM']['mean_ps'])
+
+
 def all_jobs():
     return [(m, b, p) for m, bs in (('prm', BACKBONE), ('sa', STANDALONE)) for b in bs for p in PRMS]
 
@@ -260,7 +285,9 @@ def run_jobs(jobs, gate, rows, parity, info_all, fails, part, cab_ref, pb_ref, s
     for mode, bench, prm in (all_jobs() if jobs is None else jobs):
         if True:
             tag = f'{bench}/{mode}/{prm}'
-            if bench == 'prmbench':
+            if mode == 'prm' and bench in COLLECTION:
+                key, pname = bench, prm
+            elif bench == 'prmbench':
                 key, pname = 'prmbench', f'{prm}__standalone'
                 if not (DATA / 'prmbench_standalone' / f'ABL5_CHANNELS_{pname}.npz').exists():
                     skipped.append(dict(cell=tag, reason='no standalone PRMBench channel file')); continue
@@ -271,6 +298,7 @@ def run_jobs(jobs, gate, rows, parity, info_all, fails, part, cab_ref, pb_ref, s
                 REG[key] = dict(mode=mode, bench=bench, common=common_uids(bench))
             c, sc, info = sub5_scores(key, pname, mode == 'prm')
             info_all[tag] = dict(info, n_answers=int(len(c.ids)))
+            if not hasattr(c, 'n_gold'): c.n_gold = len(c.ids)
             # channel alignment: MEAN_N16 must be the plain mean of the loaded channels (float32 storage)
             X = E.channels(c, 'N16'); dmean = float(np.max(np.abs(X.mean(1) - c.arms['MEAN_N16'])))
             info_all[tag]['mean_n16_alignment_maxdiff'] = dmean
@@ -285,8 +313,11 @@ def run_jobs(jobs, gate, rows, parity, info_all, fails, part, cab_ref, pb_ref, s
             else:
                 arms = [('PRM native', 'PRM', 'native'), ('PRM', prm_scale_arm(bench, prm), 'GAP')]
             arms += [(a, a, 'GAP') for a in ('TELE_N16', 'MEAN_N16', 'CHAIN_N16')]
-            arms += [(k, k, 'GAP') for k in ('SUB5 alone', 'SUB5 +PRM') if k in c.arms]
-            if bench == 'prmbench':
+            arms += [(k, k, 'GAP') for k in ('SUB5 alone', 'SUB5 mean', 'SUB5 +PRM', 'SUB5 +PRM mean') if k in c.arms]
+            if mode == 'prm' and bench in COLLECTION:
+                R = rows_prmbench(c, arms) if bench == 'prmbench' else rows_cab(c, mode, bench, prm, arms)
+                gate_collection(gate, tag, bench, prm, R)
+            elif bench == 'prmbench':
                 R = rows_prmbench(c, arms)
                 gate(f'gate1 {tag} TELE_N16 PRMScore GAP', next(r['value'] for r in R if r['arm'] == 'TELE_N16' and r['metric'] == 'PRMScore_GAP'),
                      sa_ref[(prm, 'SA_TELE_N16')]['GAP'])

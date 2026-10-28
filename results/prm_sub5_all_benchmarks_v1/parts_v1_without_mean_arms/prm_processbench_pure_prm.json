@@ -1,0 +1,148 @@
+{
+ "rows": [
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "arm": "PRM native",
+   "metric": "avg_f1_native",
+   "value": 52.57566072617236
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "arm": "PRM native",
+   "metric": "within_auc",
+   "value": 0.9250000729701858
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "arm": "PRM",
+   "metric": "avg_f1_NC",
+   "value": 52.57566072617236
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "arm": "PRM",
+   "metric": "within_auc",
+   "value": 0.9250000729701858
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "arm": "TELE_N16",
+   "metric": "avg_f1_NC",
+   "value": 38.46449051472054
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "arm": "TELE_N16",
+   "metric": "within_auc",
+   "value": 0.6882885884425135
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "arm": "MEAN_N16",
+   "metric": "avg_f1_NC",
+   "value": 40.96495711945153
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "arm": "MEAN_N16",
+   "metric": "within_auc",
+   "value": 0.7166630480573528
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "arm": "CHAIN_N16",
+   "metric": "avg_f1_NC",
+   "value": 42.07072291773152
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "arm": "CHAIN_N16",
+   "metric": "within_auc",
+   "value": 0.7277333777333778
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "arm": "SUB5 alone",
+   "metric": "avg_f1_NC",
+   "value": 39.655577301301655
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "arm": "SUB5 alone",
+   "metric": "within_auc",
+   "value": 0.6956179588042082
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "arm": "SUB5 +PRM",
+   "metric": "avg_f1_NC",
+   "value": 42.428723182380146
+  },
+  {
+   "benchmark": "processbench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "arm": "SUB5 +PRM",
+   "metric": "within_auc",
+   "value": 0.7470190846152879
+  }
+ ],
+ "parity": [
+  {
+   "check": "gate1 processbench/prm/pure_prm TELE_N16 avg F1 NC",
+   "got": 38.46449051472054,
+   "ref": 38.46449051472054,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "gate1 processbench/prm/pure_prm TELE_N16 within-AUC",
+   "got": 0.6882885884425135,
+   "ref": 0.6882885884425135,
+   "abs_diff": 0.0,
+   "tol": 0.001,
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "skipped": [],
+ "cells": {
+  "processbench/prm/pure_prm": {
+   "alone_K": 5,
+   "alone_valid": true,
+   "prm_K": 5,
+   "prm_valid": true,
+   "prm_share": 0.08167676098517453,
+   "prm_arm": "PRMPROB",
+   "n_answers": 3400,
+   "mean_n16_alignment_maxdiff": 3.930853209599405e-08
+  }
+ }
+}

@@ -1,5 +1,66 @@
 # SUB5 on every benchmark (development data; see README for what is in-sample)
 
+### prmbench / backbone / PRMScore_GAP
+
+| arm | qwen_prm_7b | qwen_prm_72b | pure_prm | rlhflow_prm |
+|---|---|---|---|---|
+| PRM | 68.01 | 69.49 | 66.24 | 59.39 |
+| TELE_N16 | 69.26 | 69.68 | 68.71 | 66.17 |
+| MEAN_N16 | 68.60 | 68.11 | 67.98 | 65.57 |
+| CHAIN_N16 | 70.40 | 71.09 | 69.51 | 66.25 |
+| SUB5 alone | 68.78 | 68.96 | 67.33 | 66.16 |
+| SUB5 +PRM | 69.90 | 71.56 | 69.18 | 66.73 |
+
+### prmbench / backbone / PRMScore_sameTPR87.3
+
+| arm | qwen_prm_7b | qwen_prm_72b | pure_prm | rlhflow_prm |
+|---|---|---|---|---|
+| PRM | 68.26 | 69.22 | 66.41 | 55.26 |
+| TELE_N16 | 67.08 | 67.62 | 66.48 | 64.45 |
+| MEAN_N16 | 66.50 | 66.26 | 66.04 | 63.88 |
+| CHAIN_N16 | 68.20 | 68.94 | 67.43 | 64.18 |
+| SUB5 alone | 66.46 | 66.77 | 65.50 | 64.38 |
+| SUB5 +PRM | 68.80 | 70.45 | 67.33 | 64.91 |
+
+### prmbench / backbone / PRMScore_native
+
+| arm | qwen_prm_7b | qwen_prm_72b | pure_prm | rlhflow_prm |
+|---|---|---|---|---|
+| PRM native | 65.49 | 68.18 | 65.31 | 54.43 |
+
+### prmbench / backbone / within_auc
+
+| arm | qwen_prm_7b | qwen_prm_72b | pure_prm | rlhflow_prm |
+|---|---|---|---|---|
+| PRM | 0.801 | 0.795 | 0.763 | 0.662 |
+| TELE_N16 | 0.818 | 0.823 | 0.792 | 0.767 |
+| MEAN_N16 | 0.805 | 0.805 | 0.785 | 0.756 |
+| CHAIN_N16 | 0.838 | 0.843 | 0.816 | 0.775 |
+| SUB5 alone | 0.804 | 0.811 | 0.780 | 0.763 |
+| SUB5 +PRM | 0.829 | 0.846 | 0.811 | 0.778 |
+
+### prmbench / backbone / crop_kept_a05
+
+| arm | qwen_prm_7b | qwen_prm_72b | pure_prm | rlhflow_prm |
+|---|---|---|---|---|
+| PRM (1-reward) | 4.83 | 20.37 | 13.73 | 8.35 |
+| TELE_N16 | 20.84 | 19.96 | 18.39 | 17.05 |
+| MEAN_N16 | 19.66 | 19.29 | 18.30 | 16.80 |
+| CHAIN_N16 | 23.33 | 21.85 | 20.49 | 16.22 |
+| SUB5 alone | 18.93 | 19.08 | 18.28 | 18.66 |
+| SUB5 +PRM | 23.67 | 24.03 | 20.39 | 17.04 |
+
+### prmbench / backbone / crop_auroc
+
+| arm | qwen_prm_7b | qwen_prm_72b | pure_prm | rlhflow_prm |
+|---|---|---|---|---|
+| PRM (1-reward) | 0.800 | 0.784 | 0.781 | 0.631 |
+| TELE_N16 | 0.773 | 0.774 | 0.739 | 0.710 |
+| MEAN_N16 | 0.755 | 0.753 | 0.731 | 0.702 |
+| CHAIN_N16 | 0.794 | 0.795 | 0.766 | 0.717 |
+| SUB5 alone | 0.761 | 0.761 | 0.727 | 0.710 |
+| SUB5 +PRM | 0.795 | 0.807 | 0.767 | 0.721 |
+
 ### prmbench / standalone / PRMScore_GAP
 
 | arm | qwen_prm_7b | qwen_prm_72b | pure_prm | rlhflow_prm |
@@ -56,6 +117,35 @@
 | CHAIN_N16 | 0.762 | 0.771 | 0.750 | 0.739 |
 | SUB5 alone | 0.726 | 0.701 | 0.707 | 0.717 |
 
+### socratic / backbone / macro_f1_GAP
+
+| arm | qwen_prm_7b | qwen_prm_72b | pure_prm | rlhflow_prm |
+|---|---|---|---|---|
+| PRM | 70.10 | 71.72 | 70.59 | 50.38 |
+| TELE_N16 | 64.47 | 58.65 | 63.92 | 57.53 |
+| MEAN_N16 | 63.37 | 60.74 | 63.60 | 58.56 |
+| CHAIN_N16 | 66.89 | 57.43 | 64.99 | 57.06 |
+| SUB5 alone | 67.74 | 62.69 | 64.37 | 59.80 |
+| SUB5 +PRM | 70.72 | 72.02 | 70.73 | 50.80 |
+
+### socratic / backbone / macro_f1_native
+
+| arm | qwen_prm_7b | qwen_prm_72b | pure_prm | rlhflow_prm |
+|---|---|---|---|---|
+| PRM native | 68.09 | 71.96 | 63.71 | 48.12 |
+
+### socratic / backbone / within_auc
+
+| arm | qwen_prm_7b | qwen_prm_72b | pure_prm | rlhflow_prm |
+|---|---|---|---|---|
+| PRM native | 0.824 | 0.814 | 0.796 | 0.549 |
+| PRM | 0.824 | 0.814 | 0.796 | 0.549 |
+| TELE_N16 | 0.712 | 0.637 | 0.668 | 0.595 |
+| MEAN_N16 | 0.691 | 0.661 | 0.666 | 0.601 |
+| CHAIN_N16 | 0.776 | 0.613 | 0.698 | 0.590 |
+| SUB5 alone | 0.744 | 0.698 | 0.669 | 0.613 |
+| SUB5 +PRM | 0.823 | 0.822 | 0.800 | 0.555 |
+
 ### socratic / standalone / macro_f1_GAP
 
 | arm | qwen_prm_7b | qwen_prm_72b | pure_prm | rlhflow_prm |
@@ -82,6 +172,35 @@
 | MEAN_N16 | 0.681 | 0.680 | 0.658 | 0.653 |
 | CHAIN_N16 | 0.779 | 0.753 | 0.695 | 0.669 |
 | SUB5 alone | 0.749 | 0.694 | 0.669 | 0.656 |
+
+### hard2verify / backbone / balanced_f1_GAP
+
+| arm | qwen_prm_7b | qwen_prm_72b | pure_prm | rlhflow_prm |
+|---|---|---|---|---|
+| PRM | 45.82 | 35.52 | 50.76 | 5.11 |
+| TELE_N16 | 46.71 | 45.37 | 38.19 | 35.36 |
+| MEAN_N16 | 45.29 | 42.72 | 37.28 | 35.91 |
+| CHAIN_N16 | 44.27 | 43.37 | 39.96 | 33.06 |
+| SUB5 alone | 49.35 | 49.25 | 30.14 | 42.39 |
+| SUB5 +PRM | 47.51 | 46.51 | 46.96 | 21.64 |
+
+### hard2verify / backbone / balanced_f1_native
+
+| arm | qwen_prm_7b | qwen_prm_72b | pure_prm | rlhflow_prm |
+|---|---|---|---|---|
+| PRM native | 16.33 | 31.14 | 52.59 | 5.93 |
+
+### hard2verify / backbone / within_auc
+
+| arm | qwen_prm_7b | qwen_prm_72b | pure_prm | rlhflow_prm |
+|---|---|---|---|---|
+| PRM native | 0.638 | 0.513 | 0.763 | 0.185 |
+| PRM | 0.638 | 0.513 | 0.763 | 0.185 |
+| TELE_N16 | 0.561 | 0.562 | 0.480 | 0.500 |
+| MEAN_N16 | 0.552 | 0.549 | 0.468 | 0.505 |
+| CHAIN_N16 | 0.584 | 0.548 | 0.486 | 0.450 |
+| SUB5 alone | 0.593 | 0.574 | 0.462 | 0.521 |
+| SUB5 +PRM | 0.616 | 0.566 | 0.572 | 0.384 |
 
 ### hard2verify / standalone / balanced_f1_GAP
 
