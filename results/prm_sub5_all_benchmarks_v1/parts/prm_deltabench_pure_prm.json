@@ -1,0 +1,204 @@
+{
+ "rows": [
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "macro_f1_native",
+   "value": 53.86896041040268,
+   "arm": "PRM native"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "within_auc",
+   "value": 0.647504359440033,
+   "arm": "PRM native"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "pooled_auroc",
+   "value": 0.6233931663248551,
+   "arm": "PRM native"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "macro_f1_GAP",
+   "value": 57.73614002451279,
+   "arm": "PRM"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "within_auc",
+   "value": 0.647504359440033,
+   "arm": "PRM"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "pooled_auroc",
+   "value": 0.6233931663248551,
+   "arm": "PRM"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "macro_f1_GAP",
+   "value": 54.582293093417746,
+   "arm": "TELE_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "within_auc",
+   "value": 0.5906658657809841,
+   "arm": "TELE_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "pooled_auroc",
+   "value": 0.6027963591214698,
+   "arm": "TELE_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "macro_f1_GAP",
+   "value": 55.20794485174054,
+   "arm": "MEAN_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "within_auc",
+   "value": 0.6080765053583292,
+   "arm": "MEAN_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "pooled_auroc",
+   "value": 0.6080108485231824,
+   "arm": "MEAN_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "macro_f1_GAP",
+   "value": 48.70561264162874,
+   "arm": "CHAIN_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "within_auc",
+   "value": 0.3951822457092507,
+   "arm": "CHAIN_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "pooled_auroc",
+   "value": 0.3926525427157938,
+   "arm": "CHAIN_N16"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "macro_f1_GAP",
+   "value": 55.33718753784704,
+   "arm": "SUB5 alone"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "within_auc",
+   "value": 0.6003761685960093,
+   "arm": "SUB5 alone"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "pooled_auroc",
+   "value": 0.6064492702696371,
+   "arm": "SUB5 alone"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "macro_f1_GAP",
+   "value": 50.72092065757972,
+   "arm": "SUB5 +PRM"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "within_auc",
+   "value": 0.4380078491918742,
+   "arm": "SUB5 +PRM"
+  },
+  {
+   "benchmark": "deltabench",
+   "mode": "backbone",
+   "prm": "pure_prm",
+   "metric": "pooled_auroc",
+   "value": 0.43625747246873114,
+   "arm": "SUB5 +PRM"
+  }
+ ],
+ "parity": [
+  {
+   "check": "gate1 deltabench/prm/pure_prm TELE_N16 macro_f1_GAP",
+   "got": 54.582293093417746,
+   "ref": 54.582293093417746,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "gate1 deltabench/prm/pure_prm TELE_N16 within-AUC",
+   "got": 0.5906658657809841,
+   "ref": 0.5906658657809841,
+   "abs_diff": 0.0,
+   "tol": 0.001,
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "skipped": [],
+ "cells": {
+  "deltabench/prm/pure_prm": {
+   "alone_K": 5,
+   "alone_valid": true,
+   "prm_K": 5,
+   "prm_valid": true,
+   "prm_share": 0.0348435643263387,
+   "prm_arm": "PRMPROB",
+   "n_answers": 447,
+   "mean_n16_alignment_maxdiff": 3.974682982743616e-08
+  }
+ }
+}

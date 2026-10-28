@@ -1,0 +1,176 @@
+{
+ "rows": [
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "metric": "macro_f1_native",
+   "value": 63.70803990783204,
+   "arm": "PRM native"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "metric": "within_auc",
+   "value": 0.7956404223344,
+   "arm": "PRM native"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "metric": "pooled_auroc",
+   "value": 0.7377735372541362,
+   "arm": "PRM native"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "metric": "macro_f1_GAP",
+   "value": 70.57985397343613,
+   "arm": "PRM"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "metric": "within_auc",
+   "value": 0.7956404223344,
+   "arm": "PRM"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "metric": "pooled_auroc",
+   "value": 0.7377735372541362,
+   "arm": "PRM"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "metric": "macro_f1_GAP",
+   "value": 63.805042022422164,
+   "arm": "TELE_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "metric": "within_auc",
+   "value": 0.6632021742408418,
+   "arm": "TELE_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "metric": "pooled_auroc",
+   "value": 0.6425116890068843,
+   "arm": "TELE_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "metric": "macro_f1_GAP",
+   "value": 63.34090105828086,
+   "arm": "MEAN_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "metric": "within_auc",
+   "value": 0.6580722288288409,
+   "arm": "MEAN_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "metric": "pooled_auroc",
+   "value": 0.6378487807477532,
+   "arm": "MEAN_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "metric": "macro_f1_GAP",
+   "value": 64.79628328157277,
+   "arm": "CHAIN_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "metric": "within_auc",
+   "value": 0.6951784748518213,
+   "arm": "CHAIN_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "metric": "pooled_auroc",
+   "value": 0.6761712034867441,
+   "arm": "CHAIN_N16"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "metric": "macro_f1_GAP",
+   "value": 64.31898670078087,
+   "arm": "SUB5 alone"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "metric": "within_auc",
+   "value": 0.6690446956814909,
+   "arm": "SUB5 alone"
+  },
+  {
+   "benchmark": "socratic",
+   "mode": "standalone",
+   "prm": "pure_prm",
+   "metric": "pooled_auroc",
+   "value": 0.6510148878887119,
+   "arm": "SUB5 alone"
+  }
+ ],
+ "parity": [
+  {
+   "check": "gate1 socratic/sa/pure_prm TELE_N16 macro_f1_GAP",
+   "got": 63.805042022422164,
+   "ref": 63.805042022422164,
+   "abs_diff": 0.0,
+   "tol": 0.01,
+   "ok": true
+  },
+  {
+   "check": "gate1 socratic/sa/pure_prm TELE_N16 within-AUC",
+   "got": 0.6632021742408418,
+   "ref": 0.6632021742408418,
+   "abs_diff": 0.0,
+   "tol": 0.001,
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "skipped": [],
+ "cells": {
+  "socratic/sa/pure_prm": {
+   "alone_K": 5,
+   "alone_valid": true,
+   "n_answers": 2995,
+   "mean_n16_alignment_maxdiff": 3.49365600893492e-08
+  }
+ }
+}
