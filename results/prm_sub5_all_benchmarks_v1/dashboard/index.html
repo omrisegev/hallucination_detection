@@ -15,6 +15,7 @@
   .sb-preset { font-style: italic; }
   .sb-cands { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: var(--cds-gap-md); }
   .sb-cand ul { margin: var(--cds-gap-sm) 0 0; padding-left: 1.1rem; display: grid; gap: var(--cds-gap-xs); font-size: var(--cds-font-size-caption); line-height: 1.5; }
+  .sb-pbnote { margin: 0; padding: var(--cds-pad-sm) var(--cds-pad-md); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-panel); font-size: var(--cds-font-size-caption); max-width: 90ch; }
   .sb-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: var(--cds-gap-md); }
   .sb-tile { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); display: grid; gap: var(--cds-gap-xs); }
   .sb-tile .sb-lab { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
@@ -66,6 +67,8 @@
   </section>
 
 
+  <p class="sb-pbnote" id="processbench-limit"><b>ProcessBench is the known limit.</b> Its first-error metric is read out with the NC rule, which takes the gate (does the answer have an error at all) and the number of flagged steps from the PRM; the candidate only orders the steps. So ProcessBench numbers for "telemetry only" are not pure telemetry, and no telemetry-only rule is offered for it.</p>
+
   <section class="sb-cands" id="candidates" aria-label="The candidates">
     <article class="sb-card sb-cand" id="cand-sub5">
       <h2>SUB5: six telemetry channels</h2>
@@ -113,6 +116,7 @@
       <button type="button" data-param="cmp" data-value="pub:Trained PRM">Best published trained PRM</button>
       <button type="button" data-param="cmp" data-value="pub:Supervised on labels">Best published supervised</button>
       <button type="button" data-param="cmp" data-value="pub:Prompted LLM critic">Best published LLM critic</button>
+      <button type="button" data-param="cmp" data-value="pub:Label-free">Best published label-free</button>
     </div>
     <div class="sb-ctl" role="group" aria-label="Metric">
       <span>Metric</span>
@@ -195,7 +199,7 @@
   <section class="sb-defs" id="notes">
     <p>"Beats average, PRM and best published" keeps a cell only when the candidate is above all three at once: its own plain average, the PRM itself under the same rule, and the best published score of any kind for that benchmark and metric. Cells with no published score never pass this filter.</p>
     <p>Main metrics: PRMBench PRMScore; Socratic, CRV-Arith, CRV-GSM8K, PRM800K and DeltaBench step macro-F1; Hard2Verify official step balanced F1 (177 answers); ProcessBench average first-error F1. Every candidate and control uses the label-free GAP count rule; on ProcessBench the NC rule (the PRM's native gate and count, the arm's order). "The PRM itself" is that PRM under the same rule (ProcessBench: its native threshold).</p>
-    <p>Papers: PRMBench (arXiv 2501.03124, Table 3), PRISM (2606.09078), PathFinder-PRM (2505.19706), R-PRM (2503.21295), ActPRM (2504.10559), Socratic-PRMBench (2505.23474, Tables 3-4), Hard2Verify (2510.13744, Table 2), the Qwen PRM paper "The Lessons of Developing PRMs" (2501.07301, Table 7) for ProcessBench, and CROP (2605.30085, Table 6) for kept % and AUROC (its Direct PRM and Trace+PRM use Qwen2.5-Math-PRM-7B, so they are compared with that PRM only). PRM-specific published rows count only against the same PRM. DeltaBench has no published number on our metric. LLM critics and CROP's supervised rows use labels or many model calls that the candidates do not.</p>
+    <p>Papers: PRMBench (arXiv 2501.03124, Table 3), PRISM (2606.09078), PathFinder-PRM (2505.19706), R-PRM (2503.21295), ActPRM (2504.10559), Socratic-PRMBench (2505.23474, Tables 3-4), Hard2Verify (2510.13744, Table 2), the Qwen PRM paper "The Lessons of Developing PRMs" (2501.07301, Table 7) for ProcessBench, and CROP (2605.30085, Table 6) for kept % and AUROC (its Direct PRM and Trace+PRM use Qwen2.5-Math-PRM-7B, so they are compared with that PRM only). PRM-specific published rows count only against the same PRM. Label-free published rows: uPRM and its LLM-as-a-Judge control (arXiv 2605.10158, Section 5.1; averages of the printed subset F1s are our arithmetic), ScalePRM (2512.03244; trained on LLM-generated verdicts, no ground truth), and ARES on PRMBench (2507.12948, Table 1; approximate: unstated subset, threshold tuned by 5-fold CV on labels, many LLM calls). DeltaBench has no published number on our metric. LLM critics and CROP's supervised rows use labels or many model calls that the candidates do not.</p>
     <p>Two cells have no SUB5 score because the six channels form fewer than three L-SML groups: CRV-Arith backbone Qwen-72B (SUB5 + PRM) and CRV-Arith standalone Qwen-7B (SUB5 alone).</p>
   </section>
 </div>
@@ -211,7 +215,7 @@
     chain: {ours: 'CHAIN_N16', avg: 'EQ_N16', tuned: ['prmbench']},
   };
   window.sbCands = CANDS;
-  const COMPARATORS = ['PRM', 'TELE_N16', 'MEAN_N16', 'CHAIN_N16', 'SUB5 alone', 'pub:any', 'pub:Trained PRM', 'pub:Supervised on labels', 'pub:Prompted LLM critic'];
+  const COMPARATORS = ['PRM', 'TELE_N16', 'MEAN_N16', 'CHAIN_N16', 'SUB5 alone', 'pub:any', 'pub:Trained PRM', 'pub:Supervised on labels', 'pub:Prompted LLM critic', 'pub:Label-free'];
   dash.calc('comparisons', {
     title: 'Candidates against each comparator',
     description: 'For every cell and candidate, the candidate (L-SML) and its own plain average minus the comparator, per metric; published scores take the best printed value for the benchmark and metric.',
@@ -316,7 +320,7 @@
     const cmp = dash.params().cmp ?? 'PRM';
     const names = {PRM: 'the PRM itself', TELE_N16: 'TELE16', MEAN_N16: 'MEAN_N16', CHAIN_N16: 'CHAIN16', 'SUB5 alone': 'SUB5 (telemetry only)', 'pub:any': 'the best published score',
                    'pub:Trained PRM': 'the best published trained PRM', 'pub:Supervised on labels': 'the best published supervised method',
-                   'pub:Prompted LLM critic': 'the best published LLM critic'};
+                   'pub:Prompted LLM critic': 'the best published LLM critic', 'pub:Label-free': 'the best published label-free method'};
     put(el, names[cmp] ?? cmp);
   });
   dash.draw('cand-name', (el) => {
