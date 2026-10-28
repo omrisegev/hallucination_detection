@@ -99,14 +99,14 @@
 
   <section class="sb-card" id="chart">
     <h2>Margin over the comparator, per cell</h2>
-    <p class="sb-note">Each row is one benchmark, telemetry source and PRM. Right of zero means SUB5 is better. The ring is the plain average of the same channels, so the distance between dot and ring is what L-SML adds.</p>
+    <p class="sb-note">Each row is one benchmark, telemetry source and PRM. Right of zero means SUB5 is better. With a published comparator, each row ends with the competitor and the paper (and table) its score comes from. The ring is the plain average of the same channels, so the distance between dot and ring is what L-SML adds.</p>
     <div class="sb-legend"><span><i style="background: var(--color-ok)"></i>SUB5 (L-SML) wins</span><span><i style="background: var(--color-bad)"></i>SUB5 (L-SML) loses</span><span><i style="border: 2px solid var(--color-fg-muted)"></i>plain average of the same channels</span></div>
     <div class="sb-chart" data-draw="chart" data-source="comparisons"></div>
   </section>
 
   <section class="sb-card" id="cells">
     <h2>Values behind each row</h2>
-    <p class="sb-note">The comparator column names the published system when a published score is selected. Published scores are taken as printed; their protocols can differ from ours (see the notes below).</p>
+    <p class="sb-note">When a published score is selected, the comparator column names the system and the paper column names the paper and table it is printed in. Published scores are taken as printed; their protocols can differ from ours (see the notes below).</p>
     <div class="sb-tablewrap">
       <table class="sb-table" data-source="comparisons" data-row-key="key">
         <thead><tr>
@@ -118,6 +118,7 @@
           <th data-field="ours">SUB5</th>
           <th data-field="avg">Average</th>
           <th data-field="cmp_label">Comparator</th>
+          <th data-field="cmp_paper">Paper</th>
           <th data-field="cmp_value">Comparator value</th>
           <th data-field="d_ours">SUB5 margin</th>
           <th data-field="d_avg">Average margin</th>
@@ -129,7 +130,7 @@
 
   <section class="sb-defs" id="notes">
     <p>Main metrics: PRMBench PRMScore; Socratic, CRV-Arith, CRV-GSM8K, PRM800K and DeltaBench step macro-F1; Hard2Verify official step balanced F1 (177 answers); ProcessBench average first-error F1. Every SUB5 and TELE/CHAIN/MEAN number uses the label-free GAP count rule; on ProcessBench the NC rule (the PRM's native gate and count, the arm's order). "The PRM itself" is that PRM under the same rule (ProcessBench: its native threshold).</p>
-    <p>Published scores: PRMBench, Socratic and Hard2Verify leaderboards; ProcessBench from the Qwen PRM paper (Table 7) and R-PRM; CROP Table 6 for kept % and AUROC (its Direct PRM and Trace+PRM use Qwen2.5-Math-PRM-7B, so they are compared with that PRM only). PRM-specific published rows count only against the same PRM. DeltaBench has no published number on our metric. LLM critics and CROP's supervised rows use labels or many model calls that SUB5 does not.</p>
+    <p>Papers: PRMBench (arXiv 2501.03124, Table 3), PRISM (2606.09078), PathFinder-PRM (2505.19706), R-PRM (2503.21295), ActPRM (2504.10559), Socratic-PRMBench (2505.23474, Tables 3-4), Hard2Verify (2510.13744, Table 2), the Qwen PRM paper "The Lessons of Developing PRMs" (2501.07301, Table 7) for ProcessBench, and CROP (2605.30085, Table 6) for kept % and AUROC (its Direct PRM and Trace+PRM use Qwen2.5-Math-PRM-7B, so they are compared with that PRM only). PRM-specific published rows count only against the same PRM. DeltaBench has no published number on our metric. LLM critics and CROP's supervised rows use labels or many model calls that SUB5 does not.</p>
     <p>Two cells have no SUB5 score because the six channels form fewer than three L-SML groups: CRV-Arith backbone Qwen-72B (SUB5 + PRM) and CRV-Arith standalone Qwen-7B (SUB5 alone).</p>
   </section>
 </div>
@@ -158,13 +159,13 @@
             if (ours === undefined) continue;
             const avg = v.get([ck, avgArm, metric].join('|'));
             for (const cmp of COMPARATORS) {
-              let cv, label;
+              let cv, label, paper = 'Our run (same cell)', paperShort = '';
               if (cmp.startsWith('pub:')) {
                 const acc = cmp.slice(4);
                 const cand = published.filter((p) => p.benchmark === c.benchmark && p.metric === metric && (p.prm === 'any' || p.prm === c.prm) && (acc === 'any' || p.access === acc));
                 if (!cand.length) continue;
                 const best = cand.reduce((a, b) => (Number(b.value) > Number(a.value) ? b : a));
-                cv = Number(best.value); label = best.competitor;
+                cv = Number(best.value); label = best.competitor; paper = best.paper; paperShort = best.paper_short;
               } else {
                 const a = cmp === 'PRM' && c.benchmark === 'prmbench' && metric.startsWith('crop') ? 'PRM (1-reward)' : cmp;
                 cv = v.get([ck, a, metric].join('|'));
@@ -173,7 +174,7 @@
               }
               out.push({key: [ck, arm, mk, cmp].join('|'), benchmark: c.benchmark, benchmark_label: c.benchmark_label, bench_order: Number(c.bench_order),
                         mode: c.mode, prm: c.prm, prm_label: c.prm_label, sample: c.sample, arm, metric_key: mk, metric_label: c['label_' + mk] || metric,
-                        cmp, cmp_label: label, ours, avg: avg === undefined ? null : avg, cmp_value: cv,
+                        cmp, cmp_label: label, cmp_paper: paper, cmp_paper_short: paperShort, ours, avg: avg === undefined ? null : avg, cmp_value: cv,
                         d_ours: ours - cv, d_avg: avg === undefined ? null : avg - cv});
             }
           }
@@ -239,13 +240,13 @@
     for (const r of rows) {
       const tr = document.createElement('tr'); tr.dataset.key = r.key;
       const cells = [r.benchmark_label, r.mode, r.prm_label, r.sample, r.metric_label, sbFmt(r.ours, r.metric_key), sbFmt(r.avg, r.metric_key),
-                     r.cmp_label, sbFmt(r.cmp_value, r.metric_key), sbSigned(r.d_ours, r.metric_key), sbSigned(r.d_avg, r.metric_key)];
+                     r.cmp_label, r.cmp_paper, sbFmt(r.cmp_value, r.metric_key), sbSigned(r.d_ours, r.metric_key), sbSigned(r.d_avg, r.metric_key)];
       cells.forEach((t, i) => {
         const td = document.createElement('td'); td.textContent = t;
-        if (i >= 5 && i !== 7) td.className = 'sb-n';
+        if (i >= 5 && i !== 7 && i !== 8) td.className = 'sb-n';
         if (i === 3 || i === 4) td.classList.add('sb-hide-narrow');
-        if (i === 9) td.classList.add(r.d_ours > 0 ? 'sb-win' : 'sb-loss');
-        if (i === 10 && r.d_avg !== null) td.classList.add(r.d_avg > 0 ? 'sb-win' : 'sb-loss');
+        if (i === 10) td.classList.add(r.d_ours > 0 ? 'sb-win' : 'sb-loss');
+        if (i === 11 && r.d_avg !== null) td.classList.add(r.d_avg > 0 ? 'sb-win' : 'sb-loss');
         tr.append(td);
       });
       tb.append(tr);
@@ -271,12 +272,15 @@
     const narrow = W < 520;
     let left = 0;
     for (const r of rows) { probe.text(narrow ? `${r.benchmark_label} · ${r.prm_label}` : label(r)); left = Math.max(left, probe.node().getComputedTextLength()); }
-    probe.remove(); left = Math.min(left + 12, W * 0.55);
+    const pub = rows.some((r) => r.cmp_paper_short) && !narrow;
+    let right = 12;
+    if (pub) { for (const r of rows) { probe.text(`${r.cmp_label} · ${r.cmp_paper_short}`); right = Math.max(right, probe.node().getComputedTextLength() + 16); } right = Math.min(right, W * 0.32); }
+    probe.remove(); left = Math.min(left + 12, W * 0.45);
     const H = top + rows.length * rowH + bottom;
     svg.attr('viewBox', `0 0 ${W} ${H}`).attr('height', H);
     const vals = rows.flatMap((r) => [r.d_ours, r.d_avg]).filter((x) => x !== null);
     const ext = Math.max(1e-9, d3.max(vals, Math.abs));
-    const x = d3.scaleLinear([-ext * 1.08, ext * 1.08], [left, W - 12]).nice();
+    const x = d3.scaleLinear([-ext * 1.08, ext * 1.08], [left, W - right]).nice();
     const y = (i) => top + i * rowH + rowH / 2;
     const ax = svg.append('g').attr('transform', `translate(0,${top - 6})`).call(d3.axisTop(x).ticks(narrow ? 4 : 7).tickFormat(sbIsAuc(m) ? d3.format('+.2f') : d3.format('+.1f')))
       .attr('font-size', null).attr('font-family', null);
@@ -293,6 +297,14 @@
     svg.append('g').selectAll('text').data(rows).join('text').attr('x', left - 10).attr('y', (d, i) => y(i)).attr('dy', '0.35em').attr('text-anchor', 'end')
       .attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)')
       .text((d) => (narrow ? `${d.benchmark_label} · ${d.prm_label}` : label(d)));
+    if (pub) {
+      svg.append('text').attr('x', W - 4).attr('y', top - 12).attr('text-anchor', 'end').attr('fill', 'var(--color-fg-muted)')
+        .style('font-size', 'var(--cds-font-size-caption)').text('Competitor · paper');
+      svg.append('g').selectAll('text').data(rows).join('text').attr('x', W - 4).attr('y', (d, i) => y(i)).attr('dy', '0.35em').attr('text-anchor', 'end')
+        .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)')
+        .text((d) => `${d.cmp_label} · ${d.cmp_paper_short}`)
+        .each(function () { const n = this; while (n.getComputedTextLength() > right - 10 && n.textContent.length > 4) n.textContent = n.textContent.slice(0, -2) + '…'; });
+    }
     const g = svg.append('g');
     g.selectAll('line.sb-link').data(rows.filter((r) => r.d_avg !== null)).join('line').attr('class', 'sb-link')
       .attr('x1', (d) => x(d.d_avg)).attr('x2', (d) => x(d.d_ours)).attr('y1', (d) => y(rows.indexOf(d))).attr('y2', (d) => y(rows.indexOf(d)))
@@ -315,6 +327,7 @@
         tip.append('div').text(`SUB5 ${sbFmt(r.ours, m)} (${sbSigned(r.d_ours, m)})`);
         tip.append('div').text(`Average ${sbFmt(r.avg, m)} (${sbSigned(r.d_avg, m)})`);
         tip.append('div').text(`${r.cmp_label} ${sbFmt(r.cmp_value, m)}`);
+        if (r.cmp_paper_short) tip.append('div').attr('class', 'sb-tip-h').text(r.cmp_paper);
         const bw = el.clientWidth, tw = tip.node().offsetWidth;
         tip.style('left', `${Math.min(Math.max(0, mx + 12), bw - tw)}px`).style('top', `${my + 14}px`);
       })
