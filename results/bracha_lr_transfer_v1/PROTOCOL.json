@@ -1,0 +1,53 @@
+{
+ "name": "bracha_lr_transfer_v1",
+ "frozen_at": "2026-10-28T21:20:00Z (written before any LR score was computed)",
+ "question": "Does a supervised logistic regression trained on step-labelled data from OUTSIDE the test benchmark (PRM800K) weight the PRM and the telemetry better than label-free L-SML (AUTO)? In particular, does it give a strong PRM the weight it deserves?",
+ "origin": "Bracha Laufer, advisor email 2026-10-23; approved by Omri 2026-10-28",
+ "access": "CPU only, stored per-step scores and channels, no new inference",
+ "training_set": {
+  "data": "PRM800K, CROP's selection (8,000 answers, 70,698 steps), the cell of each PRM (backbone for (a)/(c), standalone base model for (b))",
+  "labels": "PRM800K human step labels (c.err), every step",
+  "groups": "problem = whitespace/case-normalized question text from inputs_text/prm800k/answers.json (5,049 distinct problems)",
+  "overlap_rule": "Problem-text overlap with the test sets measured before training: PRMBench 3,326 of 6,216 rows (436 distinct problems), ProcessBench 472 of 3,400 (all in its MATH subset), DeltaBench 14 of 1,236, CRV-Arith 0, CRV-GSM8K 0. Socratic and Hard2Verify: no local problem text, not checked. PRIMARY models ('clean') are trained on PRM800K with every problem that appears in any checked test set REMOVED. A secondary model on all of PRM800K ('all') shows the effect of the overlap for input set (a)."
+ },
+ "inputs": {
+  "a": "answer-z of the PRM risk (PRM_Q80 on PRMBench, PRM elsewhere, as AUTO) + answer-z of the 16 backbone channels (N16): AUTO's 17 inputs",
+  "b": "answer-z of the 16 STANDALONE base-model channels (telemetry-only control; no PRM)",
+  "c": "answer-z of the PRM risk only (a calibrated PRM threshold)"
+ },
+ "model": "StandardScaler (fitted on training steps) + LogisticRegression(penalty l2, class_weight balanced, lbfgs, max_iter 3000)",
+ "C_selection": "C in {0.01, 0.1, 1, 10}, GroupKFold(5) by problem on the training set only; criterion = mean over folds of the pooled step AUROC on the held-out fold (each fold scored separately; no cross_val_predict pooling or calibration). Refit on the whole training set with the chosen C.",
+ "test_sets": [
+  "prmbench",
+  "socratic",
+  "hard2verify",
+  "processbench",
+  "crv_arith",
+  "crv_gsm8k",
+  "deltabench"
+ ],
+ "test_population": "the existing populations: PRMBench 6,211 non-control answers; Hard2Verify the 177-answer common set; CRV/ProcessBench/DeltaBench the evaluate_cab common set; Socratic all",
+ "no_refit": "every LR is fitted once per PRM and applied unchanged to every test set",
+ "decision_rules": {
+  "GAP": "the same label-free per-answer GAP count rule as every other arm (ProcessBench: the NC rule)",
+  "THR05": "flag a step when the LR probability > 0.5; a threshold trained with labels (allowed: the method is supervised), labelled so; not on ProcessBench"
+ },
+ "metrics": [
+  "main metric (PRMBench PRMScore; Socratic/CRV/DeltaBench step macro-F1; Hard2Verify balanced F1; ProcessBench avg F1 NC)",
+  "within-answer AUC",
+  "pooled step AUROC",
+  "CROP kept % at alpha 0.05 (PRMBench, ProcessBench, CRV-Arith, CRV-GSM8K; crop protocol of sub5_all.rows_crop / competitors.crop_rows)"
+ ],
+ "comparators": [
+  "the PRM (native threshold and GAP)",
+  "AUTO_N16 (stage8 auto, refitted, parity-checked)",
+  "CHAIN_N16 (stored)",
+  "TELE16 standalone (stored)",
+  "backbone TELE16 and its plain mean (stored)",
+  "in-benchmark supervised LR ceiling on PRMBench CROP kept 25.1-25.4 (prm_boost_collection_v1, quoted, not recomputed)"
+ ],
+ "weights": "PRM share = |coef of the PRM input| / sum |coef| on standardized inputs, vs AUTO's PRM share on PRMBench (stage8 lstsq_prm_share 0.5-7%)",
+ "uncertainty": "LR(a, clean, GAP) minus AUTO on the main metric: paired bootstrap, 1,000 draws, resampling the cell's source groups (PRMBench source groups; elsewhere answers, the only grouping available offline). ProcessBench: point estimate only (its NC metric is not a sum of per-answer counts).",
+ "parity_first": "AUTO's main metric must reproduce stage8 (PRMBench, Socratic, Hard2Verify) and AUTO_NEW.csv (others) to 1e-6; the PRM GAP and native rows must reproduce SUB5_ALL.csv backbone rows; the bootstrap path's point estimate must equal the row function's metric",
+ "in_sample_note": "PRMBench is in sample for AUTO's channel bank; Socratic for nothing here; the LR never sees any test benchmark"
+}
