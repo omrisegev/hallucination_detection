@@ -89,6 +89,7 @@
       <button type="button" data-param="outcome" data-value="loss">SUB5 loses</button>
       <button type="button" data-param="outcome" data-value="lsml_only">Wins only with L-SML</button>
       <button type="button" data-param="outcome" data-value="avg_only">Average wins, L-SML loses</button>
+      <button type="button" data-param="outcome" data-value="beats_all">Beats average, PRM and best published</button>
     </div>
     <div class="sb-ctl" role="group" aria-label="Must also beat">
       <span>SUB5 must also beat</span>
@@ -141,6 +142,7 @@
   </section>
 
   <section class="sb-defs" id="notes">
+    <p>"Beats average, PRM and best published" keeps a cell only when SUB5 is above all three at once: the plain average of the same channels, the PRM itself under the same rule, and the best published score of any kind for that benchmark and metric. Cells with no published score never pass this filter.</p>
     <p>Main metrics: PRMBench PRMScore; Socratic, CRV-Arith, CRV-GSM8K, PRM800K and DeltaBench step macro-F1; Hard2Verify official step balanced F1 (177 answers); ProcessBench average first-error F1. Every SUB5 and TELE/CHAIN/MEAN number uses the label-free GAP count rule; on ProcessBench the NC rule (the PRM's native gate and count, the arm's order). "The PRM itself" is that PRM under the same rule (ProcessBench: its native threshold).</p>
     <p>Papers: PRMBench (arXiv 2501.03124, Table 3), PRISM (2606.09078), PathFinder-PRM (2505.19706), R-PRM (2503.21295), ActPRM (2504.10559), Socratic-PRMBench (2505.23474, Tables 3-4), Hard2Verify (2510.13744, Table 2), the Qwen PRM paper "The Lessons of Developing PRMs" (2501.07301, Table 7) for ProcessBench, and CROP (2605.30085, Table 6) for kept % and AUROC (its Direct PRM and Trace+PRM use Qwen2.5-Math-PRM-7B, so they are compared with that PRM only). PRM-specific published rows count only against the same PRM. DeltaBench has no published number on our metric. LLM critics and CROP's supervised rows use labels or many model calls that SUB5 does not.</p>
     <p>Two cells have no SUB5 score because the six channels form fewer than three L-SML groups: CRV-Arith backbone Qwen-72B (SUB5 + PRM) and CRV-Arith standalone Qwen-7B (SUB5 alone).</p>
@@ -170,6 +172,10 @@
             const ours = v.get([ck, oursArm, metric].join('|'));
             if (ours === undefined) continue;
             const avg = v.get([ck, avgArm, metric].join('|'));
+            const prmV = v.get([ck, c.benchmark === 'prmbench' && metric.startsWith('crop') ? 'PRM (1-reward)' : 'PRM', metric].join('|'));
+            const pubC = published.filter((p) => p.benchmark === c.benchmark && p.metric === metric && (p.prm === 'any' || p.prm === c.prm)).map((p) => Number(p.value));
+            const pubV = pubC.length ? Math.max(...pubC) : undefined;
+            const beatsAll = avg !== undefined && prmV !== undefined && pubV !== undefined && ours > avg && ours > prmV && ours > pubV;
             for (const cmp of COMPARATORS) {
               let cv, label, paper = 'Our run (same cell)', paperShort = '';
               if (cmp.startsWith('pub:')) {
@@ -187,7 +193,7 @@
               out.push({key: [ck, arm, mk, cmp].join('|'), benchmark: c.benchmark, benchmark_label: c.benchmark_label, bench_order: Number(c.bench_order),
                         mode: c.mode, prm: c.prm, prm_label: c.prm_label, sample: c.sample, arm, metric_key: mk, metric_label: c['label_' + mk] || metric,
                         cmp, cmp_label: label, cmp_paper: paper, cmp_paper_short: paperShort, ours, avg: avg === undefined ? null : avg, cmp_value: cv,
-                        d_ours: ours - cv, d_avg: avg === undefined ? null : avg - cv});
+                        d_ours: ours - cv, d_avg: avg === undefined ? null : avg - cv, beats_all: beatsAll});
             }
           }
         }
@@ -218,12 +224,13 @@
     const idx = new Map();
     for (const r of d.data) if (r.arm === p.arm && r.metric_key === p.metric) idx.set([r.benchmark, r.mode, r.prm, r.cmp].join('|'), r);
     const beats = (r, cmp) => { const o = idx.get([r.benchmark, r.mode, r.prm, cmp].join('|')); return !!o && o.d_ours > 0; };
-    const reqOk = (r) => (!p.req_prm || beats(r, 'PRM')) && (!p.req_mean16 || beats(r, 'MEAN_N16')) && (!p.req_pub || beats(r, p.cmp.startsWith('pub:') ? p.cmp : 'pub:any'))
-      && (!p.req_avg || (r.avg !== null && r.ours > r.avg));
+    const reqOk = (r) => (!p.req_prm || beats(r, 'PRM')) && (!p.req_mean16 || beats(r, 'MEAN_N16'))
+      && (!p.req_pub || beats(r, p.cmp.startsWith('pub:') ? p.cmp : 'pub:any')) && (!p.req_avg || (r.avg !== null && r.ours > r.avg));
     return d.data.filter((r) => reqOk(r) && r.arm === p.arm && r.cmp === p.cmp && r.metric_key === p.metric
       && (p.sample === 'all' || r.sample === p.sample) && (p.mode === 'all' || r.mode === p.mode)
       && (p.outcome === 'all' || (p.outcome === 'win' && r.d_ours > 0) || (p.outcome === 'loss' && r.d_ours <= 0)
           || (p.outcome === 'lsml_only' && r.d_ours > 0 && r.d_avg !== null && r.d_avg <= 0)
+          || (p.outcome === 'beats_all' && r.beats_all)
           || (p.outcome === 'avg_only' && r.d_ours <= 0 && r.d_avg !== null && r.d_avg > 0)))
       .sort((a, b) => a.bench_order - b.bench_order || a.mode.localeCompare(b.mode) || a.prm_label.localeCompare(b.prm_label));
   };
