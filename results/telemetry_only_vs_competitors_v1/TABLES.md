@@ -32,7 +32,7 @@ Our PRM-7B row also reproduces PRISM's published baseline (PRMScore 65.49 vs 65.
    threshold in 3 of 4 pairs (all but Qwen-PRM-72B, 68.18), above the PRM under the same rule in 3 of 4 (Qwen-PRM-72B
    69.49 wins), and at PRISM's 68.0 for two pairs (68.26 Qwen-7B, 68.20 Llama). The plain average is 0.4–1.1 lower in
    all 4 pairs. In-sample for TELE16.
-2. **At PRISM's operating point (TPR 87.3, threshold set with labels)** TELE16 is 65.5–66.3, below PRISM (68.0) and below
+2. **At PRISM's operating point (TPR 87.3, threshold set with labels)** TELE16 is 65.8–66.3, below PRISM (68.0) and below
    its paired PRM in 3 of 4 pairs (it beats only RLHFlow). Its gain in (1) is partly the decision rule.
 3. **Categories (PRISM Table 7).** Telemetry is strong on redundancy and circular logic (NR 73–74, NCL 69–72, vs NR 46–60 and NCL 47–65
    for every PRM and 52–54 / 64–66 for PRISM) and weak on empirical soundness, deception and multi-solution.
