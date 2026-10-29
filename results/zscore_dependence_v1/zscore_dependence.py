@@ -14,8 +14,9 @@ i.e. the class-conditional dependence that SML assumes is zero. Also by answer l
 Quality = within-answer AUC (mean over answers with both classes) and pooled step AUC, for MEAN16 (plain average),
 TELE16 (L-SML, free grouping, no PRM) and, on ProcessBench, AUTO (PRM + 16 channels, free grouping).
 
-Cells: PRMBench with the Qwen3-8B standalone telemetry (the PRM-backbone raw features are only on AIRCC, which was
-unreachable), ProcessBench with each of the 4 PRM backbones.
+Cells: PRMBench with each PRM's base LM as standalone telemetry (raw banks restored from Drive
+cluster_results/prm_standalone_telemetry_v1/bank_<prm>; the PRM-backbone PRMBench raw banks are only on AIRCC, which was
+unreachable), ProcessBench with each of the 4 PRM backbones (hd_collection_data/sub5_all_v1/pb_prm).
 
     python zscore_dependence.py
 """
@@ -33,7 +34,6 @@ E, S8 = L.E, L.S8
 from sklearn.metrics import roc_auc_score  # noqa: E402
 
 TAU = Path(r'C:\Users\omris\TAU')
-SRC = TAU / 'hd_collection_data/thinkfix_source_bank_mask1/FEATURES.npz'   # restored from Drive cluster_results/thinkfix_rescore_v1
 PB = {'qwen_prm_7b': 'bank_qwen_prm', 'qwen_prm_72b': 'bank_qwen_prm_72b', 'pure_prm': 'bank_pure_prm', 'rlhflow_prm': 'bank_rlhflow_prm'}
 N16 = json.loads((HERE.parents[1] / 'results/monday_nested_banks_v2/BANKS.json').read_text())['N16']
 DIG = ['digit_alternative', 'digit_spread', 'digit_alternative_innovation']
@@ -121,14 +121,13 @@ def run(tag, bench, c, X, act, prm=None):
 
 def main():
     dep, auc = [], []
-    F = np.load(SRC); cells = F['cells'].astype(str); off_all = F['offsets'].astype(np.int64)
-    c = L.load('prmbench', 'qwen_prm_7b', 'sa')
-    ans = np.flatnonzero(cells == 'prmbench_qwen3_8b'); rid = F['row_ids'].astype(str)[ans]
-    pos = {r: i for i, r in zip(ans, rid)}
-    rows = np.concatenate([np.arange(off_all[pos[u]], off_all[pos[u] + 1]) for u in c.ids])
-    assert len(rows) == c.off[-1]
-    X, act = raw_matrix(F, rows)
-    d, a = run('prmbench/qwen3_8b_standalone', 'prmbench', c, X, act); dep += d; auc += a
+    for prm in PB:                                                  # PRMBench, the PRM's own base LM as standalone telemetry
+        F = np.load(TAU / 'hd_collection_data/prm_standalone_banks' / f'bank_{prm}' / 'FEATURES.npz')
+        c = L.load('prmbench', prm, 'sa')
+        off_all = F['offsets'].astype(np.int64); rid = F['row_ids'].astype(str); pos = {r: i for i, r in enumerate(rid)}
+        rows = np.concatenate([np.arange(off_all[pos[u]], off_all[pos[u] + 1]) for u in c.ids]); assert len(rows) == c.off[-1]
+        X, act = raw_matrix(F, rows)
+        d, a = run(f'prmbench/{prm}_standalone', 'prmbench', c, X, act); dep += d; auc += a
     for prm, bank in PB.items():
         c = L.load('processbench', prm, 'prm')
         G = np.load(TAU / 'hd_collection_data/sub5_all_v1/pb_prm' / bank / 'FEATURES.npz')
