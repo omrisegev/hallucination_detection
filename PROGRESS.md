@@ -1,3 +1,12 @@
+## 2026-10-29: clean-answer gate from raw continuous scores, Step 484 (Claude, branch claude/answer-mixture-gate-2026-10-29)
+
+- **A two-component mixture on raw answer scores does not estimate the share of answers with an error:** 0 of 12
+  cells are within .05.
+  - The mixture invents a second component on unimodal heavy-tailed data.
+- **The raw PRM maximum does rank answers:** AUROC .78–.96 on ProcessBench. The label-free cut is what fails.
+- **Checked** by an independent subagent: 6/6.
+- **Source:** `results/answer_mixture_gate_v1/README.md`.
+
 ## 2026-10-28: between-group estimators and the next-step PRM view, Step 482 (Claude)
 
 - **Changing the estimator does not help.**

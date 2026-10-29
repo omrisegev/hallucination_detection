@@ -11269,6 +11269,45 @@ found by the PRM-features session (`docs/research_notes/PRM_MODEL_NEW_FEATURES_2
 
 ---
 
+### Step 484 [PRM boosting, clean-answer gate] — A two-component mixture on raw (not answer-standardized) answer-level scores does not estimate the share of answers with an error; the label-free clean-answer route fails here too (negative) (2026-10-29)
+
+**What**: Pre-registered (8d150169) CPU test, run by a subagent and checked by an independent subagent with its own
+code (6/6 checks pass, `results/answer_mixture_gate_v1/verification/VERIFY.json`).
+- **Answer score:** the highest step risk of each answer, adjusted for the number of steps (and tokens, where
+  available).
+- **Model:** a two-component Gaussian mixture, with the weight of the higher component read as the estimated share
+  of answers with an error.
+- **Track P:** the PRM's raw score on PRMBench (with the control answers), Hard2Verify (177) and ProcessBench ×
+  4 PRMs.
+- **Track T:** raw telemetry on ProcessBench × Qwen-7B.
+  - The raw telemetry was downloaded from Drive, and the bank was rebuilt locally.
+  - Parity: against AIRCC bank_v3, 2.7e-9; TELE/CHAIN against the stored scores, 4e-14.
+
+**Why**: Omri asked whether continuous scores, instead of binary GAP votes, could make the label-free clean-answer
+estimate work. The DS-gate experiments (`claude/ds-gate-2026-10-29`) had failed because per-answer votes and
+z-scores remove each answer's own level.
+
+**Result** (`results/answer_mixture_gate_v1/README.md`):
+- **Track P fails:** the estimate is within .05 of the truth in 0 of 12 cells.
+  - ProcessBench (truth .653): .41–.78.
+  - Hard2Verify (.768): .32–.54.
+  - PRMBench (.866): .50–.59.
+- **Track T fails:** .48–.55 against .653. Only T-CHAIN is closer than the PRM alone.
+- **Synthetic checks explain it.**
+  - On unimodal heavy-tailed data, BIC prefers two components in 20/20 replicates, so the mixture invents a group.
+  - With a real but moderate separation (d = 1), the estimate is pulled to about .5 whatever the truth.
+- **What does work is ranking.** The raw PRM maximum orders answers by "has an error" with AUROC .78–.96 on
+  ProcessBench (.54–.84 elsewhere).
+- **The secondary gate bar** (closes ≥30% of clean answers, keeps ≥85% of erroneous ones) is met in 2 of 15 rows:
+  ProcessBench Qwen-72B (.90 / .91) and RLHFlow (.45 / .91).
+- **Reading:** the ordering exists, but the label-free cut does not. This agrees with FRAMING_THEORY P6.
+
+**Files changed**:
+- `docs/experiments/ANSWER_MIXTURE_GATE_PREREG_2026-10-29.md`
+- `results/answer_mixture_gate_v1/`
+
+---
+
 ### Step 291 [prm-voters] — PRMBench step voters pilot execution and gate verification on AIRCC
 
 **What**: Executed and verified the PRMBench step voter pilots (N=30, 35 meta rows) on the `aircc` compute cluster (`power-gpu`, `owner_940`, NVIDIA B200 GPU).
