@@ -1,0 +1,44 @@
+{
+  "name": "ares_protocol_v1",
+  "frozen": "2026-10-29, written before any new score in this folder was computed",
+  "what_this_is": "ARES (arXiv 2507.12948v2, EMNLP 2025) READOUT protocol applied to our stored step scores. NOT a rerun of ARES's entailment-stability method (that needs many LLM calls per step). CPU only, no new inference.",
+  "prior_exposure": "Before freezing, the following existing numbers had already been seen: results/prm_boost_collection_v1/tables/COMP_ARES.csv (PRM_native, TELE_N16, CHAIN_N16 backbone under this readout), SUB5_ALL.csv GAP rows, stage8 AUTO GAP PRMScore. All data are development data.",
+  "readout": {
+    "threshold": "one global threshold per (cell, arm), chosen on the 4 training folds to maximize pooled Macro-F1, applied to the held-out fold",
+    "grid": "99 quantiles np.linspace(0.01, 0.99, 99) of the arm's score on the training-fold kept steps",
+    "score_swept": "PRM arm: its raw stored risk (PRM_native on PRMBench, PRM on DeltaBench). Fused arms: per-answer z (E.answer_z), as collection_competitors.thr_score",
+    "folds": "5 folds; groups assigned round-robin after rng=np.random.default_rng(20261021).permutation(unique groups of non-control answers)",
+    "seed_folds": 20261021,
+    "report": "pooled over all out-of-fold decisions on kept steps: Macro-F1, Macro-Precision, Macro-Recall (two classes: valid step and erroneous step, unweighted mean), plus the SD of the 5 per-fold Macro-F1 values",
+    "scale": "0-100 (ARES publishes 0-1; multiply theirs by 100 to compare)"
+  },
+  "prmbench": {
+    "cells": "E.load('prmbench', prm) = backbone cell; E.load('prmbench', prm + '__standalone') = standalone telemetry cell (loaded through results/prm_sub5_all_benchmarks_v1/sub5_all.py)",
+    "population": "all 6,969 answers; metric pool = steps of the non-control answers (c.keep), the official PRMBench pool",
+    "groups": "c.groups = the cell's source_group field (prmb_source_v2 ids; the v3 label release keeps these groups). This is what competitors.ares_rows already uses.",
+    "macro_f1_code": "results/prm_view_selection_v1/stage2/competitors.py::ares_rows, unchanged (official_from_counts 'prmbench' form)"
+  },
+  "deltabench": {
+    "status": "partial coverage: the 447-answer 'common' set of evaluate_cab (of 1,236 DeltaBench answers); units are the DeltaBench sections as segmented in crop_ares_v1 inputs",
+    "cells": "key 'cab|prm|deltabench' registered in A.REG with A.common_uids('deltabench') (backbone mode)",
+    "groups": "no source-group field exists (source_id is unique per answer); groups = exact whitespace-normalized lowercase question text (1,217 unique questions among 1,236 answers), else the answer",
+    "macro_f1_code": "same fold/grid/threshold loop as ares_rows, re-implemented with E.counts_by_answer so the metric equals evaluate_cab.row's macro_f1 form (0.5*(F1 valid + F1 error) x100)"
+  },
+  "prms": ["qwen_prm_7b", "qwen_prm_72b", "pure_prm", "rlhflow_prm"],
+  "arms": {
+    "prmbench_backbone": {"PRM": "PRM_native", "AUTO": "AUTO_N16", "CHAIN": "CHAIN_N16", "TELE16 backbone": "TELE_N16"},
+    "prmbench_standalone": {"TELE16 standalone (L-SML)": "TELE_N16", "TELE16 standalone mean": "MEAN_N16"},
+    "deltabench_backbone": {"PRM": "PRM", "AUTO": "AUTO_N16", "CHAIN": "CHAIN_N16", "TELE16 backbone": "TELE_N16"},
+    "auto_refit": "stage8_auto_forced_k.auto(E.channels(c,'N16'), E.answer_z(c.arms['PRM_Q80'] (PRMBench) or c.arms['PRM'] (DeltaBench), c.off))"
+  },
+  "label_free_contrast": "each arm also under our GAP rule on the same rows (PRMBench: E.official PRMScore of c.flags(arm,'GAP'); the PRM's GAP row uses its STATUS_META scale arm PRM_Q80 or PRM_Q80_PROB; DeltaBench: evaluate_cab.row macro_f1, PRM scale arm from A.prm_scale_arm), with Macro-P / Macro-R from the same pooled counts",
+  "bootstrap": {"what": "paired difference AUTO minus PRM in out-of-fold Macro-F1 under the ARES readout; the fold thresholds are held fixed (out-of-fold decisions resampled, threshold not re-tuned inside the bootstrap)", "draws": 1000, "unit": "source group (as the folds)", "seed": 20261029, "ci": "2.5 / 97.5 percentiles"},
+  "parity_checks": [
+    "PRMBench macro_f1_oof of every (prm, arm) present in COMP_ARES.csv (PRM_native, TELE_N16, CHAIN_N16) reproduced exactly (abs diff <= 1e-9)",
+    "own fold loop (used for P/R and bootstrap) reproduces ares_rows macro_f1_oof exactly for every PRMBench arm",
+    "AUTO GAP PRMScore vs stage8/AUTO_FORCEDK_RESULTS.json gap_prmscore, tol 1e-6",
+    "PRM GAP PRMScore and backbone/standalone TELE_N16, MEAN_N16, CHAIN_N16 GAP vs SUB5_ALL.csv, tol 1e-6",
+    "DeltaBench: AUTO GAP macro-F1 vs AUTO_NEW.csv; PRM, TELE_N16, CHAIN_N16 GAP vs SUB5_ALL.csv, tol 1e-6"
+  ],
+  "stop_rule": "any failed parity check: write PARITY.json and exit 3 without RESULTS"
+}
