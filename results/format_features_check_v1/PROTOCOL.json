@@ -1,0 +1,30 @@
+{
+ "name": "format_features_check_v1 (check F)",
+ "frozen_at": "2026-10-29, written before any result of this check was computed",
+ "approved_by": "Omri, 2026-10-29 ('מאושר'), follow-up F relayed by the coordinator",
+ "question": "Do CROP-style token/format counts per step carry within-answer error signal beyond position and length, and are they conditionally (given the step label) weakly dependent on the telemetry groups and the PRM, so that they could enter the DS gate as one extra group?",
+ "access": "CPU only, step texts from the benchmark sources, stored channels and PRM scores; no inference; labels used only for evaluation",
+ "text_sources": {
+  "prmbench": "spectral_utils.prmbench.load_prmbench() (HF hitsmy/prm_bench_preview, offline cache), steps by idx",
+  "processbench": "HF Qwen/ProcessBench (offline cache), splits gsm8k/math/olympiadbench/omnimath, steps by id",
+  "crv_arith, crv_gsm8k": "hd_collection_data/crop_ares_v1/inputs_text/<bench>/answers.json, steps by uid",
+  "alignment": "number of text steps must equal the cell's step count (np.diff(c.off)) for every answer, else stop"
+ },
+ "counts": "CROP App. B token/format family as listed in Omri's message (the CROP PDF is not in papers/): char length, whitespace tokens, digits, letters, '=', arithmetic operators + - * / ^ (summed), newlines, colons, parentheses ( ), angle brackets < >. No position or step-count features (those are the prior).",
+ "cleaning": "log1p of each count; char length and whitespace tokens regressed on [1, p, p^2, p^3] (p = (j+.5)/n); every other count regressed on [1, log1p(char length), p, p^2, p^3]; pooled least squares over all steps of answers with >= 2 steps; label-free",
+ "orientation": "each cleaned count's sign = sign of its pooled correlation with the plain average of the cell's stored answer-z N16 channels (MEAN16, higher = more likely error); no labels",
+ "format_block": "plain average of the 10 oriented, pooled-z cleaned counts; format_block(bench, prm) in format_features.py returns it per step",
+ "cells": "4 PRM backbones (qwen_prm_7b, qwen_prm_72b, pure_prm, rlhflow_prm) x prmbench, processbench, crv_arith, crv_gsm8k (lr_transfer.load(bench, prm, 'prm')); text is the same across PRMs, telemetry and PRM differ",
+ "evaluation_rows": "PRMBench: non-control answers; ProcessBench: prefix domain (keep_gold); CRV: all (as lr_transfer / e1_check)",
+ "reports": [
+  "R1 within-answer AUC (mean over answers with both classes) of each cleaned oriented count and of the format block",
+  "R2 within-class |Pearson r| (error steps, correct steps) between the answer-z format block and each TELE16 group score (groups from prm_anchored_lsml.groups_from_cov on the covariance of the position-cleaned answer-z N16 channels; group score = mean of its channels) and the position-cleaned answer-z PRM risk",
+  "R3 cluster test: groups_from_cov on [PRM, 16 channels, format block] (position-cleaned answer-z, continuous covariance) and on their GAP-vote covariance (as E1): is the format block a singleton group?",
+  "R4 PRMBench artifact check: format-block within-AUC by PRMBench classification, compared with ProcessBench/CRV natural errors"
+ ],
+ "verdict_rule": "format group is a candidate extra DS group if, on ProcessBench AND CRV (natural errors), its within-AUC > 0.55 in a majority of cells and its max within-class |r| with any telemetry group and the PRM is < 0.2; PRMBench alone cannot qualify it (perturbation artifacts). Otherwise report not a candidate. No tuning toward the rule.",
+ "deviation_declared": "The independent reviewer subagent could not be spawned from this worker (worker sessions cannot launch subagents); a written self-check against this protocol is recorded in README instead.",
+ "amendments": {
+  "A1_constant_count": "A count that is constant in a cell after cleaning (angle brackets in CRV) has an undefined orientation correlation; it gets sign +1 and contributes 0 to the block. Found as a crash on CRV before any CRV result existed; PRMBench/ProcessBench results unchanged."
+ }
+}
