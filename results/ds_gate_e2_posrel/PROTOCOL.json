@@ -1,0 +1,27 @@
+{
+ "name": "ds_gate_e2_posrel: position-dependent reliability in the hierarchical Dawid-Skene answer gate",
+ "frozen_at": "2026-10-29, written before any real-data result of this experiment was computed",
+ "approved_by": "Omri, 2026-10-29 (project thread, 'approved'), spec relayed by the coordinating session",
+ "motivation": "Step 359 (HISTORY.md, Renyi-order sweep): large-alpha views were best on early errors and small-alpha views on late ones, i.e. channel reliability depends on position. Steps 460/461: a position prior/channel gains on late errors and loses on early ones. A position prior pi(p) alone cannot express position-dependent channel accuracy; E2 lets the emissions depend on position.",
+ "access": "CPU only, stored per-step scores and channels, no new inference; labels only after both fits, for diagnostics",
+ "base": "results/ds_gate_v1b_fixed (the corrected E1): same cells (4 PRMs x PRMBench, ProcessBench, CRV-Arith, CRV-GSM8K), same arms (AUTO = PRM + N16 backbone; TELE16 and SUB5 = standalone telemetry, no PRM), stored channel orientation, every voter incl. the PRM answer-z'd and residualized on a pooled cubic in relative position, GAP votes, groups_from_cov grouping (K >= 3 else invalid), 10-bin position prior with the exact at-least-one normalizer. Code imported read-only (ds_gate_b.py, run_e1.py; sha256 prefixes recorded in E2_FITS_*.json).",
+ "model_change": "Emission probabilities psi[t,g] (error step), phi[t,g] (correct step of a has-error answer), phi0[t,g] (step of a clean answer) depend on the position third t of the step: t = 0 if (j+.5)/n < 1/3, 1 if < 2/3, else 2. Everything else unchanged. M-step: closed form per (third, group); rho and the 10 prior bins by ds_gate_b.m_step's exact Newton/backtracking update. 5 starts (vote-share posterior + 4 random), 500 iterations, tolerance 1e-8 per answer, clip 1e-4. Likelihood drops counted; label switch (mean psi < mean phi, overall and per third) reported, never flipped.",
+ "comparison": "For each arm x cell the same group votes are fitted by BASE (the corrected-E1 model) and E2, and both get identical diagnostics, so the difference isolates position-dependent reliability.",
+ "vote_types": {
+  "gap": "within-answer GAP votes, as the corrected E1",
+  "fuse": "E1b global-threshold votes from results/ds_gate_e1b_fuse/votes_e1b.py fuse_votes(bench, prm, arm), used unchanged once that experiment provides them; if they never appear this part is reported as not run"
+ },
+ "diagnostics": [
+  "D1 estimated (rho_hat) vs true share of answers with >= 1 error",
+  "D2 mean q vs true step error rate",
+  "D3 ECE of P(has-error), 10 equal-count bins",
+  "D4 at rho_hat, 0.5 and the expected-cost rule: share of clean answers closed, of has-error answers closed / kept",
+  "D5 sum q vs true count and vs length, against the GAP count of the arm score",
+  "metric: PRMScore (PRMBench, official) / F1 (ProcessBench official first-error F1, CRV per run_e1.metric) of GAP vs gated GAP (gated answers get k = 0)",
+  "within-answer AUC of the step posterior q (evaluated answers with both classes)",
+  "first error by position third (evaluated has-error answers): hit rate of top-1 q, of GAP's first flag and of gated GAP's first flag",
+  "E2 per-third mean psi / phi / phi0 (per group in E2_FITS)"
+ ],
+ "pass_criteria": "the frozen ds_gate_v1 D1-D5 criteria (run_e1.verdict), applied per model, vote type and arm; otherwise stop and report; no tuning toward the criteria. E2 is reported as better than BASE only where a diagnostic improves; no new threshold is introduced.",
+ "review": "The fork that runs this cannot spawn subagents, so the independent-reviewer step is replaced by: (1) brute-force enumeration check of the E-step (P(has-error), q, log-likelihood) on tiny answers, (2) an identity check that E2 with shared emissions reproduces ds_gate_b's E-step exactly, (3) synthetic recovery on data drawn from the model with position-dependent reliability (3 runs, incl. lengths 2..29). All must pass before the real run. Results in test_synthetic.log."
+}
