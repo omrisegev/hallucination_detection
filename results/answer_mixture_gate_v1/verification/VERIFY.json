@@ -1,0 +1,155 @@
+{
+ "verifier": "independent subagent, 2026-10-29; own code (verify_p.py, verify_t.py, verify_t2.py, verify_synth.py, check_tokens.py); no import of mixture.py/track_p.py/synthetic.py/trackT/* or prm_boost_collection_v1. Frozen package spectral_utils.fusion_utils.lsml_continuous_guarded used only for the optional L-SML parity re-run. sklearn 1.9.0, numpy 2.4.6.",
+ "check1_track_p_primary": {
+  "verdict": "PASS",
+  "cells": 12,
+  "max_abs_dev": {
+   "pi_true": 0.0,
+   "auroc": 1.1102230246251565e-16,
+   "pi_hat": 1.3322676295501878e-15,
+   "dbic": 8.36735125631094e-11,
+   "clean_closed": 0.0,
+   "err_kept": 0.0
+  },
+  "n_match": true,
+  "bic_sign_match": true,
+  "note": "Identical fits (same data order, sklearn seed); clean_closed/err_kept identical, so no fit differences to explain. Pass rule follows: |pi_hat-pi| <= .05 in 0/4 cells on ProcessBench (.125,.080,.246,.078), 0/4 on Hard2Verify (.449,.293,.286,.227), 0/4 on PRMBench; Track P FAILS its pre-registered rule, as reported. Gate-useful (>=30% clean closed, >=85% errors kept): ProcessBench qwen_prm_72b (.904/.908) and rlhflow_prm (.450/.911) only, as reported.",
+  "detail_csv": "VERIFY_TRACK_P.csv"
+ },
+ "check2_no_label_in_fit": {
+  "verdict": "PASS",
+  "findings": [
+   "mixture.py: labels enter only score() (evaluation of a finished fit) and auc().",
+   "track_p.py: fit_cell uses step risk (reward / score__PRM) and covariates only; the label loader lab() is a closure invoked in main() after all four fits of the cell. Note: for PRMBench/Hard2Verify, evaluate_collection.load() materializes per-step labels (c.err/c.keep) in the same Cell object at load time, but they are not read by check_raw, residualize or fit_mixture (confirmed by reading).",
+   "trackT/track_t.py: parity + all fits use FEATURES.npz, REWARDS[rewards] and token counts; processbench_gold.json is opened only after the fits dict is complete. REWARDS.npz also holds native_labels (the PRM native flags, not gold) and is not used. ext.Population/cell_bank use random keys and answer-z, no labels.",
+   "trackT/extract_answer_tokens.py reads only idx and step_token_spans; the raw records do contain error_steps (gold) but it is not read. build_bank_external.py manifest records labels_read: false (not re-audited line by line)."
+  ]
+ },
+ "check3_populations": {
+  "verdict": "PASS",
+  "prmbench": {
+   "n": 6969,
+   "n_clean": 934,
+   "pi_true": 0.865978,
+   "controls": 758,
+   "controls_with_error": 0,
+   "noncontrol_clean": 176,
+   "note": "176 non-control clean = 160 with empty error_steps + 16 whose only error steps are out of range (pre-registered in-range rule)."
+  },
+  "hard2verify": {
+   "n_common": 177,
+   "n_clean": 41,
+   "pi_true": 0.768362,
+   "empty_steps_in_score_files": 0
+  },
+  "processbench": {
+   "n": 3400,
+   "n_clean": 1179,
+   "pi_true": 0.653235
+  }
+ },
+ "check4_parity": {
+  "verdict": "PASS",
+  "rebuilt_vs_aircc_bank_v3": {
+   "values_max_abs_diff_all56": 2.7212081477046013e-09,
+   "names_equal": true,
+   "digit_active_equal": true,
+   "offsets_equal": true,
+   "uids_equal": true,
+   "nonempty_equal": true,
+   "nonempty_lengths_equal": true,
+   "rewards_max_abs_diff": 0.0,
+   "rewards_uids_equal": true,
+   "rewards_keys": [
+    "uids",
+    "rewards",
+    "native_labels",
+    "nonempty_lengths"
+   ],
+   "values_max_abs_diff_N16": 5.143688188389809e-14,
+   "values_max_rel_diff_N16": 0.04892056077749217
+  },
+  "stored_PRM_vs_risk_from_rebuilt_rewards_max_abs": 2.8755664516211255e-11,
+  "independent_lsml_rerun_vs_stored": {
+   "TELE_N16_max_abs": 3.9968028886505635e-14,
+   "CHAIN_N16_max_abs": 2.5561774918969604e-12,
+   "tele_groups": [
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    3,
+    3,
+    3,
+    3,
+    3,
+    1,
+    1,
+    2,
+    2,
+    2
+   ],
+   "K": 4
+  },
+  "non_circular": "track_t.py compares against STORED/SCORES_CHAIN_qwen_prm.npz = hd_collection_data/processbench_scores (file mtime 2026-10-20, AIRCC bank path in its JSON), which track_t.py never writes (it writes only PARITY.json/TRACK_T*). Verifier re-ran L-SML on its own answer-z N16 bank built from the rebuilt FEATURES and reproduced stored TELE_N16 to 4.0e-14 and CHAIN_N16 to 2.6e-12.",
+  "note": "N16 channels rebuilt vs bank_v3 differ by <= 5.1e-14 (all 56 channels <= 2.7e-9); rewards identical. digit_active is True on all 25,697 steps for all three digit channels, so the active-step masking is a no-op in this cell."
+ },
+ "check_tokens_covariate": {
+  "verdict": "PASS",
+  "raw_pickle_records": 3400,
+  "mismatch": 0,
+  "n_checked": 3400,
+  "note": "PB_QWEN_ANSWER_TOKENS.npz answer_tokens equal sum(hi-lo) of raw step_token_spans for 3400/3400 answers (pickle loaded with python -I from verification/)."
+ },
+ "check5_track_t": {
+  "verdict": "PASS",
+  "T_MEAN_rebuilt_abs_diff": {
+   "pi_true": 0.0,
+   "pi_hat": 8.881784197001252e-16,
+   "dbic": 2.1373125491663814e-11,
+   "clean_closed": 0.0,
+   "err_kept": 0.0,
+   "auroc": 0.0,
+   "per_answer_mean_sd": 0.0
+  },
+  "T_MEAN_bank_v3_abs_diff": {
+   "pi_true": 0.0,
+   "pi_hat": 1.4432899320127035e-15,
+   "dbic": 1.8189894035458565e-11,
+   "clean_closed": 0.0,
+   "err_kept": 0.0,
+   "auroc": 0.0,
+   "per_answer_mean_sd": 0.0
+  },
+  "T_LSML_abs_diff": {
+   "pi_hat": 2.275957200481571e-15,
+   "dbic": 4.9112713895738125e-11,
+   "clean_closed": 0.0,
+   "err_kept": 0.0,
+   "auroc": 0.0
+  },
+  "T_CHAIN_abs_diff": {
+   "pi_hat": 1.0658141036401503e-14,
+   "dbic": 1.7826096154749393e-10,
+   "clean_closed": 0.0,
+   "err_kept": 0.0,
+   "auroc": 1.1102230246251565e-16
+  },
+  "note": "All three arms reproduced (T-LSML/T-CHAIN from the verifier's own L-SML fit). |pi_hat-pi| = .172/.156/.105 vs Track P .125: only T-CHAIN is closer than Track P but none <= .05; Track T FAILS, as reported. No arm is gate-useful (err_kept .625/.667/.751 < .85)."
+ },
+ "check6_synthetic": {
+  "verdict": "PASS (qualitative; independent draws, seeds 777..781, 5 replicates)",
+  "detail": "verify_synth_summary.json",
+  "findings": [
+   "(a) No true mixture: BIC prefers 2 components in 5/5 replicates for t3 and log-normal, raw and Yeo-Johnson (reported 20/20). Log-normal raw pi_hat .205 (ref .205), YJ .460 (ref .476); t3 pi_hat unstable, .11-.82 raw (ref .21-.96).",
+   "(b) True mixture: pi_hat is not recovered within .05 except near d=2 with t5 noise/prev .65 (rep0 .607, err .04) and roughly prev .65 d=2 Gaussian (.566, err .08). d=1 collapses toward ~.5 (prev .20 -> .47-.50; prev .65 -> .50-.58), and BIC rejects 2 components for Gaussian d=1. prev .20, d=2 Gaussian gives .37 (ref .38). Replicate-0 values agree with the reported ones within normal sampling variation.",
+   "Reported conclusions (BIC invents a second group on unimodal heavy-tailed/skewed data; pi_hat poorly recovered unless separation is large) hold."
+  ]
+ },
+ "could_not_do": [
+  "Secondary variants (top-2 mean, Yeo-Johnson) of Track P/T were not re-derived; only primary rows (plus synthetic YJ).",
+  "build_bank_external.py / rebuild_source_bank_v4.py were not re-implemented; the rebuilt bank was checked only against the independent AIRCC bank_v3."
+ ]
+}

@@ -1,0 +1,47 @@
+prmbench     qwen_prm_7b  n=6969 pi=0.8660 auc=0.8215 pi_hat=0.5095 (ref 0.5095) dBIC=-51.52 (ref -51.52) cc=0.8448 ek=0.6111 | d_auc=0.0e+00 d_pi=0.0e+00 d_pihat=-2.2e-16 d_cc=0.0e+00 d_ek=0.0e+00
+prmbench     qwen_prm_72b n=6969 pi=0.8660 auc=0.8411 pi_hat=0.5894 (ref 0.5894) dBIC=-879.78 (ref -879.78) cc=0.8169 ek=0.7104 | d_auc=-1.1e-16 d_pi=0.0e+00 d_pihat=0.0e+00 d_cc=0.0e+00 d_ek=0.0e+00
+prmbench     pure_prm     n=6969 pi=0.8660 auc=0.6944 pi_hat=0.5013 (ref 0.5013) dBIC=-42.83 (ref -42.83) cc=0.7934 ek=0.4771 | d_auc=-1.1e-16 d_pi=0.0e+00 d_pihat=1.3e-15 d_cc=0.0e+00 d_ek=0.0e+00
+prmbench     rlhflow_prm  n=6969 pi=0.8660 auc=0.6373 pi_hat=0.5665 (ref 0.5665) dBIC=30.35 (ref 30.35) cc=0.6167 ek=0.6230 | d_auc=0.0e+00 d_pi=0.0e+00 d_pihat=-2.2e-16 d_cc=0.0e+00 d_ek=0.0e+00
+hard2verify  qwen_prm_7b  n=177 pi=0.7684 auc=0.6388 pi_hat=0.3189 (ref 0.3189) dBIC=-10.57 (ref -10.57) cc=0.7317 ek=0.1985 | d_auc=0.0e+00 d_pi=0.0e+00 d_pihat=2.8e-16 d_cc=0.0e+00 d_ek=0.0e+00
+hard2verify  qwen_prm_72b n=177 pi=0.7684 auc=0.6605 pi_hat=0.4750 (ref 0.4750) dBIC=12.80 (ref 12.80) cc=0.7073 ek=0.5074 | d_auc=0.0e+00 d_pi=0.0e+00 d_pihat=-1.0e-15 d_cc=0.0e+00 d_ek=0.0e+00
+hard2verify  pure_prm     n=177 pi=0.7684 auc=0.5386 pi_hat=0.4822 (ref 0.4822) dBIC=10.70 (ref 10.70) cc=0.5854 ek=0.5221 | d_auc=0.0e+00 d_pi=0.0e+00 d_pihat=8.3e-16 d_cc=0.0e+00 d_ek=0.0e+00
+hard2verify  rlhflow_prm  n=177 pi=0.7684 auc=0.6336 pi_hat=0.5416 (ref 0.5416) dBIC=10.34 (ref 10.34) cc=0.5122 ek=0.6397 | d_auc=0.0e+00 d_pi=0.0e+00 d_pihat=6.7e-16 d_cc=0.0e+00 d_ek=0.0e+00
+processbench qwen_prm_7b  n=3400 pi=0.6532 auc=0.9439 pi_hat=0.7782 (ref 0.7782) dBIC=-511.25 (ref -511.25) cc=0.2460 ek=0.9914 | d_auc=0.0e+00 d_pi=0.0e+00 d_pihat=1.2e-15 d_cc=0.0e+00 d_ek=0.0e+00
+processbench qwen_prm_72b n=3400 pi=0.6532 auc=0.9645 pi_hat=0.5730 (ref 0.5730) dBIC=-679.20 (ref -679.20) cc=0.9042 ek=0.9081 | d_auc=-1.1e-16 d_pi=0.0e+00 d_pihat=-1.1e-16 d_cc=0.0e+00 d_ek=0.0e+00
+processbench pure_prm     n=3400 pi=0.6532 auc=0.8602 pi_hat=0.4072 (ref 0.4072) dBIC=-133.68 (ref -133.68) cc=0.9381 ek=0.5169 | d_auc=0.0e+00 d_pi=0.0e+00 d_pihat=2.8e-16 d_cc=0.0e+00 d_ek=0.0e+00
+processbench rlhflow_prm  n=3400 pi=0.6532 auc=0.7805 pi_hat=0.7310 (ref 0.7310) dBIC=-303.03 (ref -303.03) cc=0.4504 ek=0.9113 | d_auc=0.0e+00 d_pi=0.0e+00 d_pihat=0.0e+00 d_cc=0.0e+00 d_ek=0.0e+00
+{
+ "pi_true": 0.0,
+ "auroc": 1.1102230246251565e-16,
+ "pi_hat": 1.3322676295501878e-15,
+ "dbic": 8.36735125631094e-11,
+ "clean_closed": 0.0,
+ "err_kept": 0.0,
+ "n_match": true,
+ "bic_sign_match": true,
+ "h2v_common_n": 177,
+ "h2v_qwen_prm_7b_empty_steps_in_file": 0,
+ "h2v_qwen_prm_72b_empty_steps_in_file": 0,
+ "h2v_pure_prm_empty_steps_in_file": 0,
+ "h2v_rlhflow_prm_empty_steps_in_file": 0,
+ "populations": {
+  "prmbench": [
+   [
+    6969,
+    0.865978
+   ]
+  ],
+  "hard2verify": [
+   [
+    177,
+    0.768362
+   ]
+  ],
+  "processbench": [
+   [
+    3400,
+    0.653235
+   ]
+  ]
+ }
+}
