@@ -1,0 +1,49 @@
+{
+ "name": "ds_gate_e1b_fuse, stage E1b: corrected-E1 gate on FUSE global-threshold votes",
+ "frozen_at": "2026-10-29, written before any real-data result of this stage was computed",
+ "approved_by": "Omri, 2026-10-29 (project thread, 'approved'), spec relayed by the coordinating session",
+ "question": "Do absolute votes (one global threshold per voter, chosen label-free by the FUSE S-hat criterion) let the hierarchical Dawid-Skene gate recover the share of answers that contain an error, where the per-answer GAP votes failed?",
+ "access": "CPU only, stored raw per-step features (restored from the project's Drive backup), no new inference; labels only in the diagnostics",
+ "base": "results/ds_gate_v1b_fixed (corrected E1), reused read-only: stored orientation, every voter incl. the PRM position-cleaned with the pooled cubic, 10-bin position prior with the exact at-least-one normalizer, grouping, EM, diagnostics D1-D5, decision rules, pass criteria",
+ "cells": {
+  "benchmarks": [
+   "prmbench",
+   "processbench",
+   "crv_arith",
+   "crv_gsm8k"
+  ],
+  "prms": [
+   "qwen_prm_7b",
+   "qwen_prm_72b",
+   "pure_prm",
+   "rlhflow_prm"
+  ],
+  "arms": {
+   "AUTO": "PRM (logit risk, tuned threshold) + N16 backbone telemetry",
+   "AUTO_NATIVE": "as AUTO but the PRM votes with its native flag reward < 0.5 (not cleaned, not tuned)",
+   "TELE16": "16 N16 channels of the standalone telemetry, no PRM",
+   "SUB5": "q15_H1, chosen_surprisal, top15_turnover, dominant_freq16, bocpd_p0, digit_spread of the standalone telemetry, no PRM"
+  }
+ },
+ "the_only_change": "votes",
+ "votes": {
+  "input": "raw step features (FEATURES.npz of the cell's telemetry), BEFORE any per-answer standardization; parity gate: per-answer standardization of them must reproduce the stored channel file (max abs diff < 1e-4) or the cell stops",
+  "cleaning": "each voter pooled-standardized (one mean/sd per cell), then residualized on a cubic in relative position (j+.5)/n by pooled least squares over answers with >= 2 steps (Step 481); PRM risk the same (AUTO)",
+  "orientation": "stored (higher = riskier), as the corrected E1",
+  "threshold": "vote = 1 iff cleaned value > tau_j; tau_j = pooled quantile of voter j over all steps of the cell, grid 0.50, 0.52, ..., 0.98; digit channels: digit-active steps only, inactive steps vote 0",
+  "criterion": "FUSE S-hat (Lee et al. arXiv 2604.18547, Prop. 2.4, Eq. 4), computed on the +-1 votes: sum over j3 of the sample variance over pairs j1 < j2 < j3 of T[j1,j2,j3] / Sigma[j1,j2] (population central second/third moments; denominators clipped below at 0.01). Voter order = PRM first, then the N16 order.",
+  "search": "coordinate descent from all thresholds at the median, accept a grid value if it lowers S-hat, up to 5 sweeps or until no change",
+  "label_free": "no label enters thresholds, cleaning, grouping or the fit"
+ },
+ "reported": [
+  "D1-D5 and the corrected-E1 pass criteria (unchanged)",
+  "decision rules vs plain GAP: gates at rho_hat, 0.5 and the expected-cost rule; PRMBench PRMScore, ProcessBench first-error F1, CRV macro F1",
+  "within-answer AUC of the step posterior q (and of the arm's fused score, reference)",
+  "S-hat of the FUSE votes vs of the corrected-E1 GAP votes of the same voters (pooled steps of answers with >= 2 steps)",
+  "chosen quantiles and vote rates per voter"
+ ],
+ "known_gap": "AUTO / AUTO_NATIVE on PRMBench cannot run: the PRM-backbone PRMBench raw features exist only on AIRCC, which was unreachable (ssh timeout, twice) and are not in the Drive backup. Those 8 cells are reported as missing (counted as invalid by the verdict).",
+ "deviation_from_relay": "The relay text wrote S-hat over all pairs (j1, j2) distinct from j3; the paper's Eq. 4 indexes pairs 1 <= j1 < j2 < j3. The paper's form is used, as the brief says to follow the paper.",
+ "review": "The brief asked for an independent reviewer subagent; this worker cannot spawn subagents. Replaced by a self-review against this spec plus unit checks (S-hat near 0 on simulated conditionally independent voters and clearly larger with a shared nuisance factor; the incremental moment update equals a full recomputation) recorded in REVIEW.md before the real run.",
+ "otherwise": "stop and report; no tuning toward the criteria"
+}
