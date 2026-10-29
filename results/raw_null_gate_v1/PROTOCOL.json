@@ -1,0 +1,17 @@
+{
+ "name": "raw_null_gate_v1",
+ "prereg": "docs/experiments/RAW_NULL_GATE_PREREG_2026-10-30.md",
+ "runbook": "docs/handoffs/RAW_NULL_GATE_RUNBOOK_2026-10-30.md",
+ "literature": "docs/research_notes/RAW_NULL_GATE_LITERATURE_2026-10-30.md",
+ "frozen_on": "2026-10-30",
+ "sha256": {
+  "spectral_utils/raw_null_gate.py": "bb7bfacd51ddd168eeb79ee54c275f2873d91d78ba47c07832f5dbba4c1218d3",
+  "spectral_utils/fusion_utils.py": "498e2b5859ecaba3dfa5bc6aba3dc384b74946c2c0038bc0fda8c3163d78ea66",
+  "spectral_utils/prm_anchored_lsml.py": "8250881eec994942d21c54fc82e72396d993e0b4027fbc38112552c2a64b1e22",
+  "tests/test_raw_null_gate.py": "c045b596bda6e24191367cb2e71adf48341596e34b26da089ff2bd94eb92f221",
+  "results/raw_null_gate_v1/run_raw_null_gate.py": "8676ed7b8739d20114a700ac0bf9d23a9ede3726b9f898509026ac2fa7b31e5d",
+  "results/raw_null_gate_v1/verify_raw_null_gate.py": "1885dd6e3806723ef4aeae6fc00f99db10a4efbd6268c3df8cf496a9d295d71b"
+ },
+ "pass_rule": "per (arm, mode, gate): on processbench, crv_arith and crv_gsm8k, >= 3 of 4 PRMs with closed_clean >= .30 and kept_error >= .85 (gate valid); PRMBench (where cells exist) gated metric >= GAP_ONLY - 0.5 in >= 3 cells; < 4 cells on a required benchmark -> incomplete",
+ "note": "Do not edit. The runner refuses to run if any frozen file hash differs."
+}

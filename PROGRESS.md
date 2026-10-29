@@ -1,3 +1,20 @@
+## 2026-10-30: raw-null clean-answer gate, ready to run on the Windows machine (Claude, branch claude/raw-null-gate-2026-10-30)
+
+- **What it tests:** a label-free rule that calls an answer clean when its worst step is plausible as a correct step
+  on the raw scale. It uses Efron's empirical null / local fdr.
+- **Arms:** AUTO, TELE16 and SUB5 (backbone and standalone).
+- **Gates:**
+  - G1: the fused score;
+  - G1b: conformal;
+  - G2: an SML / L-SML product of group likelihood ratios;
+  - G3: answer-level Dawid–Skene over the groups.
+- **Code and checks:** the code is frozen by hashes. It passed an independent code review, all of whose findings
+  were fixed, and an independent verifier (synthetic 1,374/0; mock full run 7,459/0).
+- **Not run on real data yet:** the data are on the Windows machine.
+- **To run:** follow `docs/handoffs/RAW_NULL_GATE_RUNBOOK_2026-10-30.md`.
+- **Design and sources:** `docs/experiments/RAW_NULL_GATE_PREREG_2026-10-30.md`,
+  `docs/research_notes/RAW_NULL_GATE_LITERATURE_2026-10-30.md`.
+
 ## 2026-10-28: between-group estimators and the next-step PRM view, Step 482 (Claude)
 
 - **Changing the estimator does not help.**
