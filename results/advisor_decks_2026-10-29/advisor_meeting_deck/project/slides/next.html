@@ -1,0 +1,18 @@
+<section id="next" data-transition="fade" style="background:#1B2430;color:#F7F6F2;font-family:'IBM Plex Sans', Arial, sans-serif;padding:112px 128px 128px;display:flex;flex-direction:column;gap:48px">
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:64px;font-weight:600;line-height:1.1;color:#F7F6F2">Where it stands, and what to try next</h2>
+<div style="display:flex;gap:32px;flex:1">
+<div style="flex:1;display:flex;flex-direction:column;gap:20px;background:#243142;padding:40px;border-radius:16px">
+<p style="font-size:26px;letter-spacing:2px;text-transform:uppercase;color:#E3A563">Claim we can make</p>
+<p style="font-size:30px;line-height:1.45;color:#DCE3EA">One label-free recipe beats every PRM, PRISM and R-PRM on PRMBench, and matches CROP’s supervised fusion there. It is strongest on redundancy and circular errors.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:20px;background:#243142;padding:40px;border-radius:16px">
+<p style="font-size:26px;letter-spacing:2px;text-transform:uppercase;color:#E3A563">Limit</p>
+<p style="font-size:30px;line-height:1.45;color:#DCE3EA">Out of domain it loses to a strong PRM; a supervised LR does not fix that. The flag rule can never say “no error”, which costs most on ProcessBench and CRV.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:20px;background:#243142;padding:40px;border-radius:16px">
+<p style="font-size:26px;letter-spacing:2px;text-transform:uppercase;color:#E3A563">Next</p>
+<p style="font-size:30px;line-height:1.45;color:#DCE3EA">A “no error” decision from the raw, unnormalized signal; a label-free test of PRM strength; ARES and Mind the Gap protocols.</p>
+</div>
+</div>
+<aside>Why raw signals for the no-error decision: we standardize every answer by itself, which deletes the answer-level level of uncertainty — exactly what an “is there any error” decision needs. In September the no-error gate was the weakest component (3–5 points lost on every ProcessBench cell), and our original final-answer work detected wrong answers from raw answer-level features (AUROC 0.76–0.90). Controls needed: answer length, and PRMBench (96% of answers have an error) is not the place to measure it.</aside>
+</section>

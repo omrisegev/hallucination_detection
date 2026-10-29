@@ -1,0 +1,21 @@
+<section id="since" data-transition="fade" style="background:#F7F6F2;color:#1B2430;font-family:'IBM Plex Sans', Arial, sans-serif;padding:112px 128px 128px;display:flex;flex-direction:column;gap:48px">
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:64px;font-weight:600;line-height:1.1">Three things changed since the last email</h2>
+<div style="display:flex;gap:32px;flex:1">
+<div style="flex:1;display:flex;flex-direction:column;gap:20px;background:#FDFCF9;padding:40px;border:1px solid #E3E1DA;border-radius:16px">
+<p style="font-size:26px;letter-spacing:2px;text-transform:uppercase;color:#2F6DB5">1 · Method</p>
+<h3 style="font-size:40px;font-weight:600;line-height:1.2">AUTO replaces CHAIN</h3>
+<p style="font-size:28px;line-height:1.45;color:#4A5563">The PRM is simply the 17th channel; L-SML groups all channels without being told where the PRM goes. No prior knowledge, at a cost of 0.3–0.9 PRMScore on PRMBench.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:20px;background:#FDFCF9;padding:40px;border:1px solid #E3E1DA;border-radius:16px">
+<p style="font-size:26px;letter-spacing:2px;text-transform:uppercase;color:#2F6DB5">2 · Competitors</p>
+<h3 style="font-size:40px;font-weight:600;line-height:1.2">Their protocols, their metrics</h3>
+<p style="font-size:28px;line-height:1.45;color:#4A5563">PRISM (rates, 9 categories, ProcessBench), CROP (kept prefix, AUROC, cross-domain) and SLIDER (redundancy), recomputed on stored scores. Parity with every stored number: exact.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:20px;background:#FDFCF9;padding:40px;border:1px solid #E3E1DA;border-radius:16px">
+<p style="font-size:26px;letter-spacing:2px;text-transform:uppercase;color:#2F6DB5">3 · Bracha’s question</p>
+<h3 style="font-size:40px;font-weight:600;line-height:1.2">Supervised weights instead?</h3>
+<p style="font-size:28px;line-height:1.45;color:#4A5563">A logistic regression trained on PRM800K labels, applied to 7 benchmarks. It does not give the strong PRM more weight, and loses to AUTO on PRMBench.</p>
+</div>
+</div>
+<aside>The scores sent on 21 October were CHAIN. AUTO is the more principled method: no assumption that the PRM deserves its own group. Everything below uses the label-free GAP flag rule unless stated.</aside>
+</section>

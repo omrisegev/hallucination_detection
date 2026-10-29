@@ -1,0 +1,17 @@
+<section id="generalization" data-transition="fade" style="background:#F7F6F2;color:#1B2430;font-family:'IBM Plex Sans', Arial, sans-serif;padding:112px 128px 128px;display:flex;flex-direction:column;gap:20px">
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:64px;font-weight:600;line-height:1.1">Off PRMBench: AUTO helps weak PRMs, hurts strong ones</h2>
+<p style="font-size:30px;color:#4A5563;width:1600px">AUTO minus the PRM under the same rule, main metric of each benchmark (points). Blue = AUTO better, orange = PRM better.</p>
+<x-embed style="position:absolute;left:128px;top:300px;width:1100px;height:650px"><style>body{margin:0;font-family:Helvetica,Arial,sans-serif;color:#1B2430}</style><div id="c"></div><script>
+const C=['Qwen-7B','Qwen-72B','PURE','RLHFlow'],R=[['PRMBench (in sample)',[1.9,0.7,2.8,6.5]],['Socratic-PRMBench',[-4.6,-11.3,-7.1,7.3]],['Hard2Verify',[-0.2,10.5,-12.1,30.4]],['ProcessBench',[-9.7,-10.9,-14.9,4.0]],['CRV-Arithmetic',[-2.1,-6.3,-8.2,0.1]],['CRV-GSM8K',[-5.6,-10.3,-7.5,-1.9]],['DeltaBench',[-1.4,0.1,-8.2,3.3]]];
+const W=1100,H=640,lw=330,top=60,cw=(W-lw)/4,rh=(H-top)/R.length;let s=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">`;
+const col=v=>{const a=Math.min(Math.abs(v)/12,1);return v>=0?`rgba(47,109,181,${0.12+0.78*a})`:`rgba(217,130,43,${0.12+0.78*a})`};
+C.forEach((c,j)=>s+=`<text x="${lw+j*cw+cw/2}" y="38" font-size="28" font-weight="bold" text-anchor="middle">${c}</text>`);
+R.forEach(([n,v],i)=>{const y0=top+i*rh;s+=`<text x="${lw-16}" y="${y0+rh/2+9}" font-size="27" text-anchor="end">${n}</text>`;v.forEach((x,j)=>{const a=Math.min(Math.abs(x)/12,1);s+=`<rect x="${lw+j*cw+3}" y="${y0+3}" width="${cw-6}" height="${rh-6}" rx="6" fill="${col(x)}"/><text x="${lw+j*cw+cw/2}" y="${y0+rh/2+10}" font-size="28" text-anchor="middle" fill="${a>0.55?'#FDFCF9':'#1B2430'}">${x>0?'+':''}${x.toFixed(1)}</text>`})});
+document.getElementById('c').innerHTML=s+'</svg>';</script></x-embed>
+<div style="position:absolute;left:1290px;top:330px;width:502px;display:flex;flex-direction:column;gap:28px">
+<div style="display:flex;flex-direction:column;gap:8px"><h3 style="font-size:34px;font-weight:600;color:#2F6DB5">RLHFlow (weak PRM)</h3><p style="font-size:26px;line-height:1.4;color:#4A5563">AUTO is ahead on 6 of 7 benchmarks.</p></div>
+<div style="display:flex;flex-direction:column;gap:8px"><h3 style="font-size:34px;font-weight:600;color:#B5651D">Qwen and PURE (strong)</h3><p style="font-size:26px;line-height:1.4;color:#4A5563">Outside PRMBench, AUTO is behind in 16 of 18 cells.</p></div>
+<div style="display:flex;flex-direction:column;gap:8px"><h3 style="font-size:34px;font-weight:600">Why</h3><p style="font-size:26px;line-height:1.4;color:#4A5563">L-SML merges the PRM into a telemetry group; its effective weight is 0.5–7%.</p></div>
+</div>
+<aside>Same recipe, fixed on PRMBench, applied unchanged to six more benchmarks (ProcessBench: the NC rule, compared with the PRM’s native rule). The pattern is consistent: when the PRM is weak, adding telemetry helps a lot; when it is strong, the fusion dilutes it. Counts: RLHFlow positive on PRMBench, Socratic, Hard2Verify, ProcessBench, CRV-Arith (+0.1), DeltaBench; negative on CRV-GSM8K.</aside>
+</section>
