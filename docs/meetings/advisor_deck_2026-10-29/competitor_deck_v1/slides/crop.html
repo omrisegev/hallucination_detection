@@ -1,0 +1,24 @@
+<section id="crop" data-transition="fade" style="background:#F7F6F1;color:#17212B;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:72px;font-weight:400;line-height:1.1">CROP: share of each answer kept at 5% risk</h2>
+<x-embed style="position:absolute;left:128px;top:250px;width:1180px;height:660px"><!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:transparent;font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif}</style></head><body><svg id="c" width="1180" height="660" viewBox="0 0 1180 660"></svg><script>
+const P=[{t:"PRMBench",u:"Qwen-PRM-7B, in sample",x:90,w:640,b:[["CROP","Trace+PRM",21.8,"#B85C22"],["Direct PRM","",17.2,"#7C8592"],["AUTO","",21.6,"#2F5DA8"],["TELE16","no PRM",18.2,"#2F5DA8"]],ceil:25.1},{t:"ProcessBench",u:"out of domain",x:820,w:350,b:[["PRM","",44.2,"#7C8592"],["AUTO","",13.8,"#2F5DA8"]]}];
+const T=90,B=540,ymax=50,ns="http://www.w3.org/2000/svg",s=document.getElementById("c");
+const sy=v=>B-v/ymax*(B-T);
+function e(t,a,txt){const n=document.createElementNS(ns,t);for(const k in a)n.setAttribute(k,a[k]);if(txt!=null)n.textContent=txt;s.appendChild(n);return n}
+for(let v=0;v<=50;v+=10){e("line",{x1:76,x2:1176,y1:sy(v),y2:sy(v),stroke:v?"#E6E3DA":"#9AA3AD","stroke-width":v?1:2});e("text",{x:64,y:sy(v)+8,"font-size":24,fill:"#6B7280","text-anchor":"end"},v+"%")}
+P.forEach(p=>{e("text",{x:p.x,y:28,"font-size":28,"font-weight":700,fill:"#17212B"},p.t);e("text",{x:p.x,y:60,"font-size":24,fill:"#6B7280"},p.u);
+const n=p.b.length,bw=110,gap=(p.w-n*bw)/(n);
+p.b.forEach((b,i)=>{const x=p.x+gap/2+i*(bw+gap),y=sy(b[2]);
+e("rect",{x:x,y:y,width:bw,height:B-y,rx:4,fill:b[3]});
+e("text",{x:x+bw/2,y:y+38,"font-size":28,"font-weight":700,fill:"#FFFFFC","text-anchor":"middle"},b[2].toFixed(1));
+e("text",{x:x+bw/2,y:B+36,"font-size":24,fill:"#17212B","text-anchor":"middle"},b[0]);
+if(b[1])e("text",{x:x+bw/2,y:B+66,"font-size":24,fill:"#6B7280","text-anchor":"middle"},b[1])});
+if(p.ceil){const y=sy(p.ceil);e("line",{x1:p.x,x2:p.x+p.w,y1:y,y2:y,stroke:"#B85C22","stroke-width":2,"stroke-dasharray":"8 6"});e("text",{x:p.x+p.w,y:y-12,"font-size":24,fill:"#4A5563","text-anchor":"end"},"LR on PRMBench’s own labels: 25.1")}});
+</script></body></html></x-embed>
+<div style="position:absolute;left:1360px;top:280px;width:432px;display:flex;flex-direction:column;gap:28px">
+<p style="font-size:32px;line-height:1.4"><b>On PRMBench, label-free AUTO keeps as much as CROP’s supervised proxy</b> (21.6 vs 21.8).</p>
+<p style="font-size:28px;line-height:1.4;color:#4A5563">Out of domain it does not: on ProcessBench the PRM alone keeps 3 times more. Per-answer scaling loses the PRM’s global calibration.</p>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#6B7280">CROP: arXiv 2605.30085, Table 6 (α = 0.05). Every arm calibrates its threshold with labels. Direct PRM on a quantile grid; the paper’s 4.8 is a grid artifact.</p>
+<aside>AUTO on the other PRMs: 20.5 (Qwen-72B), 18.9 (PURE), 15.1 (RLHFlow). CROP reports only Qwen-PRM-7B. The conformal guarantee: the kept prefix contains an error in at most 5% of answers.</aside>
+</section>

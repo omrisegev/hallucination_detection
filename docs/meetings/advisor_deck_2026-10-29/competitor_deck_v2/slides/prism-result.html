@@ -1,0 +1,31 @@
+<section id="prism-result" data-transition="fade" style="display:flex; flex-direction:column; gap:40px; padding:128px 128px 160px; background:#f7f6f1">
+  <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:64px; font-weight:400; line-height:1.1; color:#17212b">PRISM: AUTO wins on TPR and FPR, no labels</h2>
+  <x-embed style="position:absolute; top:240px; left:128px; width:1100px; height:680px"><!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:transparent;font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif}</style></head><body><svg id="c" width="1100" height="680" viewBox="0 0 1100 680"></svg><script>
+const D=[["PRM, own threshold",95.40,69.42,"#7C8592","65.5","l"],["PRM, our rule",92.14,58.45,"#7C8592","68.0","r"],["PRISM",87.30,47.13,"#B85C22","68.0",[89.6,58.0]],["AUTO at PRISM’s TPR",87.28,49.68,"#2F5DA8","67.5",[89.6,55.8]],["PRM at PRISM’s TPR",87.31,47.70,"#7C8592","68.3",[89.6,53.6]],["TELE16 at PRISM’s TPR",87.29,47.18,"#0E7C7B","66.2",[89.6,51.4]],["TELE16",88.50,49.71,"#0E7C7B","68.3","r"],["AUTO",88.83,47.02,"#2F5DA8","69.9","b"]];
+const L=110,R=1060,T=30,B=590,x0=86,x1=97,y0=44,y1=72,ns="http://www.w3.org/2000/svg",s=document.getElementById("c");
+const sx=v=>L+(v-x0)/(x1-x0)*(R-L),sy=v=>B-(v-y0)/(y1-y0)*(B-T);
+function e(t,a,txt){const n=document.createElementNS(ns,t);for(const k in a)n.setAttribute(k,a[k]);if(txt!=null)n.textContent=txt;s.appendChild(n);return n}
+for(let v=86;v<=97;v+=2){e("line",{x1:sx(v),x2:sx(v),y1:T,y2:B,stroke:"#E6E3DA"});e("text",{x:sx(v),y:B+34,"font-size":24,fill:"#6B7280","text-anchor":"middle"},v)}
+for(let v=45;v<=70;v+=5){e("line",{x1:L,x2:R,y1:sy(v),y2:sy(v),stroke:"#E6E3DA"});e("text",{x:L-14,y:sy(v)+8,"font-size":24,fill:"#6B7280","text-anchor":"end"},v)}
+e("text",{x:(L+R)/2,y:B+74,"font-size":24,fill:"#17212B","text-anchor":"middle"},"TPR: correct steps passed (higher is better) →");
+e("text",{x:24,y:(T+B)/2,"font-size":24,fill:"#17212B","text-anchor":"middle",transform:`rotate(-90 24 ${(T+B)/2})`},"FPR: wrong steps passed (lower better) →");
+e("line",{x1:sx(87.3),x2:sx(87.3),y1:T,y2:B,stroke:"#B85C22","stroke-width":2,"stroke-dasharray":"8 6"});
+D.forEach(d=>{const x=sx(d[1]),y=sy(d[2]),big=d[0]==="AUTO"||d[0]==="TELE16";
+e("circle",{cx:x,cy:y,r:big?15:11,fill:d[3],stroke:"#F7F6F1","stroke-width":2});
+let tx=x+22,ty=y+8,an="start";if(d[5]==="l"){tx=x-22;an="end"}if(d[5]==="b"){tx=x+22;ty=y+40}if(Array.isArray(d[5])){tx=sx(d[5][0]);ty=sy(d[5][1])+8;e("line",{x1:x,y1:y,x2:tx-8,y2:ty-8,stroke:d[3],"stroke-width":1.5})}
+e("text",{x:tx,y:ty,"font-size":26,"font-weight":big?700:400,fill:"#17212B","text-anchor":an},d[0]+" · "+d[4])});
+</script></body></html></x-embed>
+  <div style="position:absolute;left:1270px;top:250px;width:522px;font-family:'IBM Plex Sans', Arial, sans-serif;color:#17212B;display:flex;flex-direction:column;gap:22px">
+<p style="font-size:28px;line-height:1.35"><b>Same rule for both sides:</b></p>
+<div style="display:grid;grid-template-columns:1fr 90px 100px 80px;gap:10px 8px;font-size:24px;align-items:baseline">
+<span style="color:#6B7280">Decision rule</span><b style="color:#2F5DA8;text-align:right">AUTO</b><b style="color:#0E7C7B;text-align:right">TELE16</b><b style="color:#7C8592;text-align:right">PRM</b>
+<span style="border-top:1px solid #C9C5B9;padding-top:8px">GAP, per answer, no labels</span><b style="border-top:1px solid #C9C5B9;padding-top:8px;text-align:right;color:#2F5DA8">69.9</b><b style="border-top:1px solid #C9C5B9;padding-top:8px;text-align:right;color:#0E7C7B">68.3</b><span style="border-top:1px solid #C9C5B9;padding-top:8px;text-align:right">68.0</span>
+<span style="border-top:1px solid #C9C5B9;padding-top:8px">One global threshold at TPR 87.3, labels</span><b style="border-top:1px solid #C9C5B9;padding-top:8px;text-align:right;color:#2F5DA8">67.5</b><b style="border-top:1px solid #C9C5B9;padding-top:8px;text-align:right;color:#0E7C7B">66.2</b><span style="border-top:1px solid #C9C5B9;padding-top:8px;text-align:right">68.3</span>
+</div>
+<p style="font-size:22px;line-height:1.4;color:#4A5563"><b>GAP:</b> in each answer, sort the steps by score and flag those above the largest gap in the top half. Every answer gets its own cut.</p>
+<p style="font-size:22px;line-height:1.4;color:#4A5563"><b>Global threshold:</b> GAP is not used. One cut for all steps of all answers, chosen with labels so 87.3% of correct steps pass, as PRISM reports.</p>
+<p style="font-size:24px;line-height:1.4"><b>AUTO vs PRISM: TPR 88.8 vs 87.3, FPR 47.0 vs 47.1</b> (Qwen-72B: 88.6 / 45.8). Not with PURE or RLHFlow. The win belongs to fusion + per-answer rule, both label-free. No CI: PRISM published one point, no checkpoint.</p>
+</div>
+  <p style="position:absolute; bottom:64px; left:128px; width:1664px; font-family:'IBM Plex Sans', Arial, sans-serif; font-size:24px; color:#6b7280">Qwen-PRM-7B, PRMBench, 6,211 answers. PRISM: Table 2. Ours: telemetry_only_vs_competitors_v1/TABLES.md. The two “at PRISM’s TPR” points set their threshold with labels.</p>
+  <aside>Other PRMs, AUTO PRMScore: Qwen-72B 70.2, PURE 69.1, RLHFlow 65.9. At PRISM's TPR AUTO is 64.2 to 68.0, at or below PRISM in all 4. R-PRM, another PRM800K-trained verifier, reports 66.8 on PRMBench.</aside>
+</section>

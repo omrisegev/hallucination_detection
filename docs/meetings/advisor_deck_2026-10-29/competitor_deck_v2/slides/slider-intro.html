@@ -1,0 +1,15 @@
+<section id="slider-intro" data-transition="fade" style="background:#ECEAE2;color:#17212B;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;letter-spacing:3px;text-transform:uppercase;color:#2F5DA8">The paper · arXiv 2610.00571, ICLR 2026 workshop</p>
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:72px;font-weight:400;line-height:1.1">SLIDER: find steps that only repeat what was said</h2>
+</div>
+<div style="display:grid;grid-template-columns:320px 1fr;gap:22px 40px">
+<p style="font-size:28px;font-weight:600">What it does</p><p style="font-size:28px;line-height:1.4">Splits the information each step adds about the final answer into new, repeated and combined parts (Step-RRI)</p>
+<p style="font-size:28px;font-weight:600">Inputs</p><p style="font-size:28px;line-height:1.4">MiniLM sentence embeddings, plus up to 50 GPT-4o-mini answer variants per problem</p>
+<p style="font-size:28px;font-weight:600">Labels</p><p style="font-size:28px;line-height:1.4">Score is training-free; the threshold is a classifier fitted on labelled data</p>
+<p style="font-size:28px;font-weight:600">Benchmark</p><p style="font-size:28px;line-height:1.4">Only PRMBench’s redundancy class (about 750 answers). Metric: accuracy</p>
+<p style="font-size:28px;font-weight:600">Code</p><p style="font-size:28px;line-height:1.4">None released; split and class balance not stated</p>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#6B7280">A redundant step is not wrong, it adds nothing. A correctness score such as a PRM is not built to catch it.</p>
+<aside>Because the protocol is under-specified, this comparison is approximate. About 87% of steps in this class are not redundant, so plain accuracy rewards never flagging (86.8%). We report balanced accuracy.</aside>
+</section>

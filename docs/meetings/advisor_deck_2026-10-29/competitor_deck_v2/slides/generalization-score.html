@@ -1,0 +1,24 @@
+<section id="generalization-score" data-transition="fade" style="background:#F7F6F1;color:#17212B;font-family:'IBM Plex Sans', Arial, sans-serif;padding:112px 128px 160px;display:flex;flex-direction:column;gap:32px">
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:60px;font-weight:400;line-height:1.1">Same picture in PRMScore, on every benchmark</h2>
+<x-embed style="position:absolute;left:128px;top:280px;width:1160px;height:640px"><!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:transparent;font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif}</style></head><body><svg id="c" width="1160" height="640" viewBox="0 0 1160 640"></svg><script>
+const R=[["PRMBench", [1.9, 0.7, 2.8, 6.5], [0.3, -1.7, 1.4, 8.8]], ["Socratic", [-4.6, -11.3, -7.1, 7.3], [-6.8, -6.4, -6.8, 12.1]], ["Hard2Verify", [-1.6, 5.0, -8.6, 13.0], [0.0, 4.1, -7.9, 16.7]], ["ProcessBench", [-10.7, -12.4, -7.8, 4.6], [-14.8, -17.5, -7.9, 7.4]], ["DeltaBench", [-1.4, 0.1, -8.2, 3.3], [-0.7, -2.3, -3.6, 3.1]], ["CRV-GSM8K", [-5.6, -10.3, -7.5, -1.9], [-7.2, -12.1, -7.5, -2.2]], ["CRV-Arith", [-2.1, -6.3, -8.2, 0.1], [-4.7, -9.7, -6.1, 1.1]]];const P=["7B","72B","PURE","RLHF"];
+const ns="http://www.w3.org/2000/svg",s=document.getElementById("c");
+function e(t,a,txt){const n=document.createElementNS(ns,t);for(const k in a)n.setAttribute(k,a[k]);if(txt!=null)n.textContent=txt;s.appendChild(n);return n}
+function col(v){const a=Math.min(Math.abs(v)/12,1);const c=v>=0?[47,93,168]:[184,92,34];const b=[247,246,241];const m=c.map((x,i)=>Math.round(b[i]+(x-b[i])*(0.15+0.85*a)));return "rgb("+m.join(",")+")"}
+const L=330,CW=92,CH=70,T=80,GAP=40;
+[["AUTO − PRM","#2F5DA8"],["TELE16 − PRM","#0E7C7B"]].forEach((h,k)=>{const x0=L+k*(4*CW+GAP);
+e("text",{x:x0+2*CW,y:30,"font-size":26,"font-weight":700,fill:h[1],"text-anchor":"middle"},h[0]);
+P.forEach((p,j)=>e("text",{x:x0+j*CW+CW/2,y:66,"font-size":22,fill:"#6B7280","text-anchor":"middle"},p));
+R.forEach((r,i)=>{r[k+1].forEach((v,j)=>{const x=x0+j*CW,y=T+i*CH;e("rect",{x:x+2,y:y+2,width:CW-4,height:CH-4,rx:4,fill:col(v)});
+e("text",{x:x+CW/2,y:y+CH/2+8,"font-size":22,"font-weight":600,fill:Math.abs(v)>7?"#FFFFFC":"#17212B","text-anchor":"middle"},(v>0?"+":v<0?"−":"")+Math.abs(v).toFixed(1))})})});
+R.forEach((r,i)=>e("text",{x:L-16,y:T+i*CH+CH/2+8,"font-size":24,"font-weight":i===0?700:400,fill:"#17212B","text-anchor":"end"},r[0]));
+e("line",{x1:20,x2:L+8*CW+GAP,y1:T+CH,y2:T+CH,stroke:"#17212B","stroke-width":2});
+</script></body></html></x-embed>
+<div style="position:absolute;left:1330px;top:290px;width:462px;display:flex;flex-direction:column;gap:26px">
+<p style="font-size:30px;line-height:1.4"><b>PRMScore points above the PRM, same GAP rule for all three.</b></p>
+<p style="font-size:26px;line-height:1.4;color:#4A5563">Out of sample, AUTO beats the PRM in 7 of 24 cells and TELE16 in 6, mostly with RLHFlow. Against the strong PRMs: at most 2 of 18. Head to head: <b style="color:#2F5DA8">AUTO</b> 13, <b style="color:#0E7C7B">TELE16</b> 11.</p>
+<p style="font-size:26px;line-height:1.4;color:#4A5563">On CRV the PRM’s own 0.5 threshold is far better than GAP (e.g. 77 vs 52 PRMScore), so there GAP itself is the bottleneck.</p>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:22px;color:#6B7280">PRMScore = 0.5·F1(correct steps) + 0.5·F1(wrong steps), over all steps. It is the official metric of PRMBench and the main metric of Socratic, DeltaBench and CRV; for Hard2Verify and ProcessBench (steps up to the first error) we computed it in the same form. Sources: bracha_lr_transfer_v1, generalization_prmscore_form_v1.</p>
+<aside>Threshold-based version of the previous slide. The conclusion does not change: outside PRMBench, label-free fusion helps a weak PRM and does not beat a strong one.</aside>
+</section>

@@ -1,0 +1,21 @@
+<section id="bracha" data-transition="fade" style="background:#F7F6F1;color:#17212B;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:64px;font-weight:400;line-height:1.1">Bracha’s question: a supervised LR trained on PRM800K does not fix it</h2>
+<x-embed style="position:absolute;left:128px;top:250px;width:1100px;height:720px"><!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:transparent;font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif}</style></head><body><svg id="c" width="1100" height="720" viewBox="0 0 1100 720"></svg><script>
+const G=[["Qwen-PRM-7B",68.0,67.1,69.9,68.3],["Qwen-PRM-72B",69.5,68.0,70.2,67.8],["PURE",66.2,64.9,69.1,67.6],["RLHFlow",59.4,56.4,65.9,68.2]];
+const S=[["PRM alone","#7C8592"],["LR, trained on PRM800K","#B85C22"],["AUTO","#2F5DA8"],["TELE16, no PRM","#0E7C7B"]];
+const LB=230,R=1000,T=60,GH=150,BH=28,x0=50,x1=72,ns="http://www.w3.org/2000/svg",s=document.getElementById("c"),sx=v=>LB+(v-x0)/(x1-x0)*(R-LB);
+function e(t,a,txt){const n=document.createElementNS(ns,t);for(const k in a)n.setAttribute(k,a[k]);if(txt!=null)n.textContent=txt;s.appendChild(n);return n}
+let lx=0;S.forEach(z=>{e("rect",{x:lx,y:8,width:24,height:24,rx:4,fill:z[1]});e("text",{x:lx+34,y:29,"font-size":24,fill:"#17212B"},z[0]);lx+=z[0].length*12+60});
+const B=T+G.length*GH;[50,55,60,65,70].forEach(v=>{e("line",{x1:sx(v),x2:sx(v),y1:T,y2:B,stroke:v===50?"#9AA3AD":"#E6E3DA","stroke-width":v===50?2:1});e("text",{x:sx(v),y:B+32,"font-size":24,fill:"#6B7280","text-anchor":"middle"},v)});
+G.forEach((g,i)=>{const y=T+i*GH+8;e("text",{x:0,y:y+BH*2+18,"font-size":26,"font-weight":700,fill:"#17212B"},g[0]);
+[1,2,3,4].forEach(k=>{const by=y+(k-1)*(BH+4);e("rect",{x:sx(x0),y:by,width:sx(g[k])-sx(x0),height:BH,rx:4,fill:S[k-1][1]});
+e("text",{x:sx(g[k])+10,y:by+BH-7,"font-size":24,"font-weight":k>=3?700:400,fill:"#17212B"},g[k].toFixed(1))})});
+</script></body></html></x-embed>
+<div style="position:absolute;left:1280px;top:270px;width:512px;display:flex;flex-direction:column;gap:28px">
+<p style="font-size:32px;line-height:1.4"><b>On PRMBench the LR is below even the PRM alone,</b> for all 4 PRMs. <span style="color:#0E7C7B">TELE16, with no PRM and no labels, beats the LR on 3 of 4 (72B: 67.8 vs 68.0).</span></p>
+<p style="font-size:28px;line-height:1.4;color:#4A5563">It gives the Qwen PRMs only 3–5% of the weight, like AUTO. Out of domain it wins 11 of 24 cells, AUTO 8, ties 5.</p>
+<p style="font-size:28px;line-height:1.4;color:#4A5563">CROP is the same idea with the target’s own labels: then the LR wins (kept 25.1 vs 21.6).</p>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#6B7280">PRMScore, same per-answer rule for every arm. 823 PRM800K problems shared with the test sets removed. PRM800K is not the Qwen PRMs’ own (private) training data. Source: bracha_lr_transfer_v1.</p>
+<aside>Answer to Bracha: labels from another dataset do not give the strong PRM its weight. The problem is distribution shift, and it hits both methods. Supervision helps only with labels from the target benchmark, which is exactly the case a label-free method is for.</aside>
+</section>

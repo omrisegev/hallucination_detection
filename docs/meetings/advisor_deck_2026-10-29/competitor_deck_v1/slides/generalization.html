@@ -1,0 +1,21 @@
+<section id="generalization" data-transition="fade" style="background:#ECEAE2;color:#17212B;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:72px;font-weight:400;line-height:1.1">How widely each method was tested</h2>
+<x-embed style="position:absolute;left:128px;top:240px;width:1664px;height:600px"><!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:transparent;font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif}</style></head><body><svg id="c" width="1664" height="600" viewBox="0 0 1664 600"></svg><script>
+const D=[["PRISM",2,1,"trained on PRM800K; ProcessBench F1 flat"],["CROP",6,1,"labels recalibrated per set; cross-domain fails"],["SLIDER",1,1,"one error class only"],["ARES",4,2,"threshold tuned on each set"],["R-PRM",2,1,"trained on PRM800K"],["Mind the Gap",1,2,"ProcessBench, exact first error only"],["BR2-PRM",1,7,"own multimodal benchmark; judges"],["uPRM",1,1,"label-free training"],["Ours",8,8,"4 PRMs + 4 base models; one fixed recipe"]];
+const LB=200,RH=60,T=50,ns="http://www.w3.org/2000/svg",s=document.getElementById("c");
+const P=[{x:LB,w:420,t:"Step-error benchmarks"},{x:LB+480,w:420,t:"Models tested"}];
+function e(t,a,txt){const n=document.createElementNS(ns,t);for(const k in a)n.setAttribute(k,a[k]);if(txt!=null)n.textContent=txt;s.appendChild(n);return n}
+P.forEach(p=>e("text",{x:p.x,y:28,"font-size":26,"font-weight":700,fill:"#17212B"},p.t));
+e("text",{x:LB+960,y:28,"font-size":26,"font-weight":700,fill:"#17212B"},"Out-of-domain evidence");
+D.forEach((d,i)=>{const y=T+i*RH,ours=d[0]==="Ours",c=ours?"#2F5DA8":"#7C8592";
+if(ours)e("rect",{x:0,y:y+2,width:1664,height:RH-4,rx:8,fill:"#DCE6F4"});
+e("text",{x:12,y:y+RH/2+9,"font-size":28,"font-weight":ours?700:400,fill:"#17212B"},d[0]);
+[1,2].forEach(k=>{const p=P[k-1],w=d[k]/8*(p.w-60);
+e("rect",{x:p.x,y:y+14,width:Math.max(w,4),height:RH-28,rx:4,fill:c});
+e("text",{x:p.x+w+12,y:y+RH/2+9,"font-size":26,"font-weight":700,fill:"#17212B"},d[k])});
+e("text",{x:LB+960,y:y+RH/2+9,"font-size":24,fill:ours?"#17212B":"#4A5563"},d[3])});
+</script></body></html></x-embed>
+<p style="position:absolute;left:128px;top:860px;width:1664px;font-size:30px;line-height:1.35"><b>No competitor tests more than one PRM, and none beats a strong PRM across benchmarks without labels from each dataset.</b></p>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#6B7280">Counts from the papers (COMPETITOR_GENERALIZATION.md, competitor primer); not re-checked against the PDFs. BR2-PRM’s 7 are MLLM judges on its own benchmark.</p>
+<aside>CROP is the broadest competitor: 6 sets, but 1 PRM, and each set is calibrated on its own labels; its cross-domain test reaches 14.8% risk against a 5% target. PRISM and R-PRM transfer from PRM800K, with one model each.</aside>
+</section>

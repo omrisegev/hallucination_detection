@@ -1,0 +1,343 @@
+<meta name="dash-one-writer">
+<style>
+  .sb-page { display: grid; gap: var(--cds-gap-lg); font-family: var(--font-anthropic-sans); }
+  .sb-head h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; text-wrap: balance; }
+  .sb-head p { margin: var(--cds-gap-xs) 0 0; color: var(--color-fg-muted); max-width: 70ch; }
+  .sb-take { font-size: var(--cds-font-size-body); color: var(--color-fg) !important; }
+  .sb-page b { font-weight: 600; }
+  .sb-controls { display: grid; gap: var(--cds-gap-sm); }
+  .sb-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: var(--cds-gap-xs); }
+  .sb-ctl > span { min-width: 9.5rem; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); letter-spacing: .02em; }
+  .sb-ctl button { font: inherit; font-size: var(--cds-font-size-caption); padding: var(--cds-pad-xs) var(--cds-pad-sm); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-bg); color: var(--color-fg); cursor: pointer; }
+  .sb-ctl button[aria-pressed="true"] { background: var(--color-fg); color: var(--color-bg); border-color: var(--color-fg); }
+  .sb-ctl button:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+  .sb-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: var(--cds-gap-md); }
+  .sb-tile { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); display: grid; gap: var(--cds-gap-xs); }
+  .sb-tile .sb-lab { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .sb-tile .sb-num { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; }
+  .sb-tile .sb-sub { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .sb-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); min-width: 0; }
+  .sb-card h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; }
+  .sb-card .sb-note { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: var(--cds-gap-xs) 0 var(--cds-gap-md); max-width: 80ch; }
+  .sb-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-bottom: var(--cds-gap-sm); }
+  .sb-legend i { display: inline-block; width: .7rem; height: .7rem; border-radius: 50%; margin-right: .35rem; vertical-align: -.05rem; }
+  .sb-chart { position: relative; min-height: 12rem; }
+  .sb-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); max-width: 20rem; z-index: 2; }
+  .sb-tip .sb-tip-h { color: var(--cds-text-secondary); margin-bottom: 2px; }
+  .sb-tablewrap { max-height: 32rem; overflow: auto; }
+  .sb-table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+  .sb-table th { position: sticky; top: 0; background: var(--color-panel); text-align: left; font-weight: var(--cds-font-weight-medium); color: var(--color-fg-muted); padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); white-space: nowrap; }
+  .sb-table td { padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); white-space: nowrap; }
+  .sb-table td.sb-n { text-align: right; }
+  .sb-win { color: var(--color-ok); }
+  .sb-loss { color: var(--color-bad); }
+  .sb-defs { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); display: grid; gap: var(--cds-gap-xs); max-width: 85ch; }
+  .sb-defs p { margin: 0; }
+  @media (max-width: 40rem) { .sb-ctl > span { min-width: 100%; } .sb-hide-narrow { display: none; } }
+  [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+</style>
+
+<div class="sb-page">
+  <header class="sb-head" id="top">
+    <h1>SUB5 benchmark scorecard</h1>
+    <p class="sb-take">SUB5 wins <b data-draw="n-lsml" data-source="comparisons">—</b> of <b data-draw="n-total" data-source="comparisons">—</b> cells against <b data-draw="cmp-name">—</b>. The plain average of the same channels wins <b data-draw="n-avg" data-source="comparisons">—</b>.</p>
+    <p>SUB5 is six of the 16 telemetry channels (q15_H1, chosen_surprisal, top15_turnover, dominant_freq16, bocpd_p0, digit_spread), fused label-free with L-SML. The channels were chosen with PRMBench and Socratic labels, so only the other benchmarks are out of sample. Development data, Math-Shepherd PRM excluded.</p>
+  </header>
+
+  <div class="sb-controls" id="filters">
+    <div class="sb-ctl" role="group" aria-label="Our method">
+      <span>Our method</span>
+      <button type="button" data-param="arm" data-value="alone">SUB5 alone (telemetry only)</button>
+      <button type="button" data-param="arm" data-value="prm">SUB5 + PRM</button>
+    </div>
+    <div class="sb-ctl" role="group" aria-label="Compared with">
+      <span>Compared with</span>
+      <button type="button" data-param="cmp" data-value="PRM">The PRM itself (same rule)</button>
+      <button type="button" data-param="cmp" data-value="TELE_N16">TELE_N16 (all 16, L-SML)</button>
+      <button type="button" data-param="cmp" data-value="MEAN_N16">MEAN_N16 (all 16, average)</button>
+      <button type="button" data-param="cmp" data-value="CHAIN_N16">CHAIN_N16 (PRM + 16)</button>
+      <button type="button" data-param="cmp" data-value="pub:any">Best published, any</button>
+      <button type="button" data-param="cmp" data-value="pub:Trained PRM">Best published trained PRM</button>
+      <button type="button" data-param="cmp" data-value="pub:Supervised on labels">Best published supervised</button>
+      <button type="button" data-param="cmp" data-value="pub:Prompted LLM critic">Best published LLM critic</button>
+    </div>
+    <div class="sb-ctl" role="group" aria-label="Metric">
+      <span>Metric</span>
+      <button type="button" data-param="metric" data-value="main">Main metric of each benchmark</button>
+      <button type="button" data-param="metric" data-value="within_auc">Within-answer AUC</button>
+      <button type="button" data-param="metric" data-value="crop_kept_a05">CROP kept % at α 0.05</button>
+      <button type="button" data-param="metric" data-value="crop_auroc">CROP step AUROC</button>
+    </div>
+    <div class="sb-ctl" role="group" aria-label="Benchmarks">
+      <span>Benchmarks</span>
+      <button type="button" data-param="sample" data-value="all">All</button>
+      <button type="button" data-param="sample" data-value="Out of sample">Out of sample</button>
+      <button type="button" data-param="sample" data-value="Used to choose SUB5">Used to choose SUB5</button>
+    </div>
+    <div class="sb-ctl" role="group" aria-label="Telemetry source">
+      <span>Telemetry source</span>
+      <button type="button" data-param="mode" data-value="all">Both</button>
+      <button type="button" data-param="mode" data-value="backbone">PRM backbone</button>
+      <button type="button" data-param="mode" data-value="standalone">Standalone base model</button>
+    </div>
+    <div class="sb-ctl" role="group" aria-label="Outcome">
+      <span>Show</span>
+      <button type="button" data-param="outcome" data-value="all">Every cell</button>
+      <button type="button" data-param="outcome" data-value="win">SUB5 wins</button>
+      <button type="button" data-param="outcome" data-value="loss">SUB5 loses</button>
+      <button type="button" data-param="outcome" data-value="lsml_only">Wins only with L-SML</button>
+      <button type="button" data-param="outcome" data-value="avg_only">Average wins, L-SML loses</button>
+      <button type="button" data-param="outcome" data-value="beats_all">Beats average, PRM and best published</button>
+    </div>
+  </div>
+
+  <section class="sb-tiles" id="summary" aria-label="Summary">
+    <div class="sb-tile"><span class="sb-lab">SUB5 (L-SML) wins</span><span class="sb-num" data-draw="t-lsml" data-source="comparisons">—</span><span class="sb-sub">cells where SUB5 is above the comparator</span></div>
+    <div class="sb-tile"><span class="sb-lab">Plain average wins</span><span class="sb-num" data-draw="t-avg" data-source="comparisons">—</span><span class="sb-sub">same six channels, equal weights, no L-SML</span></div>
+    <div class="sb-tile"><span class="sb-lab">Wins that need L-SML</span><span class="sb-num" data-draw="t-only" data-source="comparisons">—</span><span class="sb-sub">SUB5 wins and the average loses</span></div>
+    <div class="sb-tile"><span class="sb-lab">L-SML minus average</span><span class="sb-num" data-draw="t-gap" data-source="comparisons">—</span><span class="sb-sub">mean over the cells shown, metric points</span></div>
+  </section>
+
+  <section class="sb-card" id="chart">
+    <h2>Margin over the comparator, per cell</h2>
+    <p class="sb-note">Each row is one benchmark, telemetry source and PRM. Right of zero means SUB5 is better. With a published comparator, each row ends with the competitor and the paper (and table) its score comes from. The ring is the plain average of the same channels, so the distance between dot and ring is what L-SML adds.</p>
+    <div class="sb-legend"><span><i style="background: var(--color-ok)"></i>SUB5 (L-SML) wins</span><span><i style="background: var(--color-bad)"></i>SUB5 (L-SML) loses</span><span><i style="border: 2px solid var(--color-fg-muted)"></i>plain average of the same channels</span></div>
+    <div class="sb-chart" data-draw="chart" data-source="comparisons"></div>
+  </section>
+
+  <section class="sb-card" id="cells">
+    <h2>Values behind each row</h2>
+    <p class="sb-note">When a published score is selected, the comparator column names the system and the paper column names the paper and table it is printed in. Published scores are taken as printed; their protocols can differ from ours (see the notes below).</p>
+    <div class="sb-tablewrap">
+      <table class="sb-table" data-source="comparisons" data-row-key="key">
+        <thead><tr>
+          <th data-field="benchmark_label">Benchmark</th>
+          <th data-field="mode">Telemetry</th>
+          <th data-field="prm_label">PRM</th>
+          <th data-field="sample" class="sb-hide-narrow">Benchmarks</th>
+          <th data-field="metric_label" class="sb-hide-narrow">Metric</th>
+          <th data-field="ours">SUB5</th>
+          <th data-field="avg">Average</th>
+          <th data-field="cmp_label">Comparator</th>
+          <th data-field="cmp_paper">Paper</th>
+          <th data-field="cmp_value">Comparator value</th>
+          <th data-field="d_ours">SUB5 margin</th>
+          <th data-field="d_avg">Average margin</th>
+        </tr></thead>
+        <tbody data-draw="rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="sb-defs" id="notes">
+    <p>"Beats average, PRM and best published" keeps a cell only when SUB5 is above all three at once: the plain average of the same channels, the PRM itself under the same rule, and the best published score of any kind for that benchmark and metric. Cells with no published score never pass this filter.</p>
+    <p>Main metrics: PRMBench PRMScore; Socratic, CRV-Arith, CRV-GSM8K, PRM800K and DeltaBench step macro-F1; Hard2Verify official step balanced F1 (177 answers); ProcessBench average first-error F1. Every SUB5 and TELE/CHAIN/MEAN number uses the label-free GAP count rule; on ProcessBench the NC rule (the PRM's native gate and count, the arm's order). "The PRM itself" is that PRM under the same rule (ProcessBench: its native threshold).</p>
+    <p>Papers: PRMBench (arXiv 2501.03124, Table 3), PRISM (2606.09078), PathFinder-PRM (2505.19706), R-PRM (2503.21295), ActPRM (2504.10559), Socratic-PRMBench (2505.23474, Tables 3-4), Hard2Verify (2510.13744, Table 2), the Qwen PRM paper "The Lessons of Developing PRMs" (2501.07301, Table 7) for ProcessBench, and CROP (2605.30085, Table 6) for kept % and AUROC (its Direct PRM and Trace+PRM use Qwen2.5-Math-PRM-7B, so they are compared with that PRM only). PRM-specific published rows count only against the same PRM. DeltaBench has no published number on our metric. LLM critics and CROP's supervised rows use labels or many model calls that SUB5 does not.</p>
+    <p>Two cells have no SUB5 score because the six channels form fewer than three L-SML groups: CRV-Arith backbone Qwen-72B (SUB5 + PRM) and CRV-Arith standalone Qwen-7B (SUB5 alone).</p>
+  </section>
+</div>
+
+<script>
+  const MAIN = {prmbench: 'PRMScore_GAP', socratic: 'macro_f1_GAP', hard2verify: 'balanced_f1_GAP', processbench: 'avg_f1_NC',
+                crv_arith: 'macro_f1_GAP', crv_gsm8k: 'macro_f1_GAP', prm800k: 'macro_f1_GAP', deltabench: 'macro_f1_GAP'};
+  const COMPARATORS = ['PRM', 'TELE_N16', 'MEAN_N16', 'CHAIN_N16', 'pub:any', 'pub:Trained PRM', 'pub:Supervised on labels', 'pub:Prompted LLM critic'];
+  dash.calc('comparisons', {
+    title: 'SUB5 against each comparator',
+    description: 'For every cell, SUB5 (L-SML) and the plain average of the same channels minus the comparator, per metric; published scores take the best printed value for the benchmark and metric.',
+    inputs: ['scores', 'published'],
+    fn: (scores, published) => {
+      const v = new Map();
+      for (const r of scores) v.set([r.benchmark, r.mode, r.prm, r.arm, r.metric].join('|'), Number(r.value));
+      const cells = new Map();
+      for (const r of scores) cells.set([r.benchmark, r.mode, r.prm].join('|'), r);
+      const out = [];
+      for (const [ck, c] of cells) {
+        for (const arm of ['alone', 'prm']) {
+          const oursArm = arm === 'alone' ? 'SUB5 alone' : 'SUB5 +PRM';
+          const avgArm = arm === 'alone' ? 'SUB5 mean' : 'SUB5 +PRM mean';
+          for (const mk of ['main', 'within_auc', 'crop_kept_a05', 'crop_auroc']) {
+            const metric = mk === 'main' ? MAIN[c.benchmark] : mk;
+            const ours = v.get([ck, oursArm, metric].join('|'));
+            if (ours === undefined) continue;
+            const avg = v.get([ck, avgArm, metric].join('|'));
+            const prmV = v.get([ck, c.benchmark === 'prmbench' && metric.startsWith('crop') ? 'PRM (1-reward)' : 'PRM', metric].join('|'));
+            const pubC = published.filter((p) => p.benchmark === c.benchmark && p.metric === metric && (p.prm === 'any' || p.prm === c.prm)).map((p) => Number(p.value));
+            const pubV = pubC.length ? Math.max(...pubC) : undefined;
+            const beatsAll = avg !== undefined && prmV !== undefined && pubV !== undefined && ours > avg && ours > prmV && ours > pubV;
+            for (const cmp of COMPARATORS) {
+              let cv, label, paper = 'Our run (same cell)', paperShort = '';
+              if (cmp.startsWith('pub:')) {
+                const acc = cmp.slice(4);
+                const cand = published.filter((p) => p.benchmark === c.benchmark && p.metric === metric && (p.prm === 'any' || p.prm === c.prm) && (acc === 'any' || p.access === acc));
+                if (!cand.length) continue;
+                const best = cand.reduce((a, b) => (Number(b.value) > Number(a.value) ? b : a));
+                cv = Number(best.value); label = best.competitor; paper = best.paper; paperShort = best.paper_short;
+              } else {
+                const a = cmp === 'PRM' && c.benchmark === 'prmbench' && metric.startsWith('crop') ? 'PRM (1-reward)' : cmp;
+                cv = v.get([ck, a, metric].join('|'));
+                if (cv === undefined) continue;
+                label = cmp === 'PRM' ? 'The PRM itself' : cmp;
+              }
+              out.push({key: [ck, arm, mk, cmp].join('|'), benchmark: c.benchmark, benchmark_label: c.benchmark_label, bench_order: Number(c.bench_order),
+                        mode: c.mode, prm: c.prm, prm_label: c.prm_label, sample: c.sample, arm, metric_key: mk, metric_label: c['label_' + mk] || metric,
+                        cmp, cmp_label: label, cmp_paper: paper, cmp_paper_short: paperShort, ours, avg: avg === undefined ? null : avg, cmp_value: cv,
+                        d_ours: ours - cv, d_avg: avg === undefined ? null : avg - cv, beats_all: beatsAll});
+            }
+          }
+        }
+      }
+      return out;
+    },
+  });
+
+  const DEFAULTS = {arm: 'alone', cmp: 'TELE_N16', metric: 'main', sample: 'all', mode: 'all', outcome: 'all'};
+  const P = () => ({...DEFAULTS, ...dash.params()});
+  document.querySelectorAll('.sb-ctl button[data-param]').forEach((b) => b.addEventListener('click', () => dash.setParams({[b.dataset.param]: b.dataset.value})));
+  dash.onData(() => {
+    const p = P();
+    document.querySelectorAll('.sb-ctl button[data-param]').forEach((b) => b.setAttribute('aria-pressed', String(p[b.dataset.param] === b.dataset.value)));
+  });
+
+  window.sbRows = () => {
+    const d = dash.data('comparisons');
+    if (d.status !== 'ok') return null;
+    const p = P();
+    return d.data.filter((r) => r.arm === p.arm && r.cmp === p.cmp && r.metric_key === p.metric
+      && (p.sample === 'all' || r.sample === p.sample) && (p.mode === 'all' || r.mode === p.mode)
+      && (p.outcome === 'all' || (p.outcome === 'win' && r.d_ours > 0) || (p.outcome === 'loss' && r.d_ours <= 0)
+          || (p.outcome === 'lsml_only' && r.d_ours > 0 && r.d_avg !== null && r.d_avg <= 0)
+          || (p.outcome === 'beats_all' && r.beats_all)
+          || (p.outcome === 'avg_only' && r.d_ours <= 0 && r.d_avg !== null && r.d_avg > 0)))
+      .sort((a, b) => a.bench_order - b.bench_order || a.mode.localeCompare(b.mode) || a.prm_label.localeCompare(b.prm_label));
+  };
+  window.sbIsAuc = (m) => m === 'within_auc' || m === 'crop_auroc';
+  window.sbFmt = (x, m) => (x === null || x === undefined || Number.isNaN(x) ? '—' : d3.format(sbIsAuc(m) ? '.3f' : '.2f')(x));
+  window.sbSigned = (x, m) => (x === null || x === undefined ? '—' : (x > 0 ? '+' : '') + d3.format(sbIsAuc(m) ? '.3f' : '.2f')(x));
+</script>
+
+<script>
+  const counts = () => {
+    const rows = sbRows();
+    if (!rows) return null;
+    const withAvg = rows.filter((r) => r.d_avg !== null);
+    return {n: rows.length, lsml: rows.filter((r) => r.d_ours > 0).length, avg: withAvg.filter((r) => r.d_avg > 0).length,
+            only: withAvg.filter((r) => r.d_ours > 0 && r.d_avg <= 0).length,
+            gap: withAvg.length ? d3.mean(withAvg, (r) => r.ours - r.avg) : null, m: dash.params().metric ?? 'main'};
+  };
+  const put = (el, text) => { el.textContent = text; };
+  dash.draw('n-lsml', (el) => { const c = counts(); put(el, c ? String(c.lsml) : '—'); });
+  dash.draw('n-total', (el) => { const c = counts(); put(el, c ? String(c.n) : '—'); });
+  dash.draw('n-avg', (el) => { const c = counts(); put(el, c ? String(c.avg) : '—'); });
+  dash.draw('cmp-name', (el) => {
+    const cmp = dash.params().cmp ?? 'TELE_N16';
+    const names = {PRM: 'the PRM itself', TELE_N16: 'TELE_N16', MEAN_N16: 'MEAN_N16', CHAIN_N16: 'CHAIN_N16', 'pub:any': 'the best published score',
+                   'pub:Trained PRM': 'the best published trained PRM', 'pub:Supervised on labels': 'the best published supervised method',
+                   'pub:Prompted LLM critic': 'the best published LLM critic'};
+    put(el, names[cmp] ?? cmp);
+  });
+  dash.draw('t-lsml', (el) => { const c = counts(); put(el, c ? `${c.lsml} of ${c.n}` : '—'); });
+  dash.draw('t-avg', (el) => { const c = counts(); put(el, c ? `${c.avg} of ${c.n}` : '—'); });
+  dash.draw('t-only', (el) => { const c = counts(); put(el, c ? String(c.only) : '—'); });
+  dash.draw('t-gap', (el) => { const c = counts(); put(el, c && c.gap !== null ? sbSigned(c.gap, c.m) : '—'); });
+
+  dash.draw('rows', (tb) => {
+    const rows = sbRows();
+    tb.replaceChildren();
+    if (!rows) return;
+    for (const r of rows) {
+      const tr = document.createElement('tr'); tr.dataset.key = r.key;
+      const cells = [r.benchmark_label, r.mode, r.prm_label, r.sample, r.metric_label, sbFmt(r.ours, r.metric_key), sbFmt(r.avg, r.metric_key),
+                     r.cmp_label, r.cmp_paper, sbFmt(r.cmp_value, r.metric_key), sbSigned(r.d_ours, r.metric_key), sbSigned(r.d_avg, r.metric_key)];
+      cells.forEach((t, i) => {
+        const td = document.createElement('td'); td.textContent = t;
+        if (i >= 5 && i !== 7 && i !== 8) td.className = 'sb-n';
+        if (i === 3 || i === 4) td.classList.add('sb-hide-narrow');
+        if (i === 10) td.classList.add(r.d_ours > 0 ? 'sb-win' : 'sb-loss');
+        if (i === 11 && r.d_avg !== null) td.classList.add(r.d_avg > 0 ? 'sb-win' : 'sb-loss');
+        tr.append(td);
+      });
+      tb.append(tr);
+    }
+  });
+</script>
+
+<script>
+  dash.draw('chart', (el) => {
+    const rows = sbRows();
+    el.replaceChildren();
+    if (!rows) return;
+    const m = dash.params().metric ?? 'main';
+    const W = Math.max(280, el.clientWidth), rowH = 20, top = 26, bottom = 10;
+    const svg = d3.select(el).append('svg').attr('width', '100%');
+    if (!rows.length) {
+      svg.attr('viewBox', `0 0 ${W} 60`).attr('height', 60).append('text').attr('x', W / 2).attr('y', 34).attr('text-anchor', 'middle')
+        .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text('No cells match these filters.');
+      return;
+    }
+    const label = (r) => `${r.benchmark_label} · ${r.mode === 'backbone' ? 'backbone' : 'standalone'} · ${r.prm_label}`;
+    const probe = svg.append('text').style('font-size', 'var(--cds-font-size-caption)');
+    const narrow = W < 520;
+    let left = 0;
+    for (const r of rows) { probe.text(narrow ? `${r.benchmark_label} · ${r.prm_label}` : label(r)); left = Math.max(left, probe.node().getComputedTextLength()); }
+    const pub = rows.some((r) => r.cmp_paper_short) && !narrow;
+    let right = 12;
+    if (pub) { for (const r of rows) { probe.text(`${r.cmp_label} · ${r.cmp_paper_short}`); right = Math.max(right, probe.node().getComputedTextLength() + 16); } right = Math.min(right, W * 0.32); }
+    probe.remove(); left = Math.min(left + 12, W * 0.45);
+    const H = top + rows.length * rowH + bottom;
+    svg.attr('viewBox', `0 0 ${W} ${H}`).attr('height', H);
+    const vals = rows.flatMap((r) => [r.d_ours, r.d_avg]).filter((x) => x !== null);
+    const ext = Math.max(1e-9, d3.max(vals, Math.abs));
+    const x = d3.scaleLinear([-ext * 1.08, ext * 1.08], [left, W - right]).nice();
+    const y = (i) => top + i * rowH + rowH / 2;
+    const ax = svg.append('g').attr('transform', `translate(0,${top - 6})`).call(d3.axisTop(x).ticks(narrow ? 4 : 7).tickFormat(sbIsAuc(m) ? d3.format('+.2f') : d3.format('+.1f')))
+      .attr('font-size', null).attr('font-family', null);
+    ax.selectAll('text').attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)');
+    ax.selectAll('line,path').attr('stroke', 'var(--cds-chart-axis)');
+    svg.append('g').selectAll('line').data(x.ticks(narrow ? 4 : 7)).join('line').attr('x1', (d) => x(d)).attr('x2', (d) => x(d))
+      .attr('y1', top - 6).attr('y2', H - bottom).attr('stroke', 'var(--cds-chart-grid)');
+    svg.append('line').attr('x1', x(0)).attr('x2', x(0)).attr('y1', top - 6).attr('y2', H - bottom).attr('stroke', 'var(--cds-chart-reference)').attr('stroke-width', 1.5);
+    let prev = null;
+    rows.forEach((r, i) => {
+      if (prev !== null && prev !== r.benchmark) svg.append('line').attr('x1', 0).attr('x2', W).attr('y1', top + i * rowH).attr('y2', top + i * rowH).attr('stroke', 'var(--color-border-line)');
+      prev = r.benchmark;
+    });
+    svg.append('g').selectAll('text').data(rows).join('text').attr('x', left - 10).attr('y', (d, i) => y(i)).attr('dy', '0.35em').attr('text-anchor', 'end')
+      .attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)')
+      .text((d) => (narrow ? `${d.benchmark_label} · ${d.prm_label}` : label(d)));
+    if (pub) {
+      svg.append('text').attr('x', W - 4).attr('y', top - 12).attr('text-anchor', 'end').attr('fill', 'var(--color-fg-muted)')
+        .style('font-size', 'var(--cds-font-size-caption)').text('Competitor · paper');
+      svg.append('g').selectAll('text').data(rows).join('text').attr('x', W - 4).attr('y', (d, i) => y(i)).attr('dy', '0.35em').attr('text-anchor', 'end')
+        .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)')
+        .text((d) => `${d.cmp_label} · ${d.cmp_paper_short}`)
+        .each(function () { const n = this; while (n.getComputedTextLength() > right - 10 && n.textContent.length > 4) n.textContent = n.textContent.slice(0, -2) + '…'; });
+    }
+    const g = svg.append('g');
+    g.selectAll('line.sb-link').data(rows.filter((r) => r.d_avg !== null)).join('line').attr('class', 'sb-link')
+      .attr('x1', (d) => x(d.d_avg)).attr('x2', (d) => x(d.d_ours)).attr('y1', (d) => y(rows.indexOf(d))).attr('y2', (d) => y(rows.indexOf(d)))
+      .attr('stroke', 'var(--cds-chart-muted)').attr('stroke-width', 2).attr('stroke-linecap', 'round');
+    g.selectAll('circle.sb-avg').data(rows.filter((r) => r.d_avg !== null)).join('circle').attr('class', 'sb-avg')
+      .attr('cx', (d) => x(d.d_avg)).attr('cy', (d) => y(rows.indexOf(d))).attr('r', 4.5).attr('fill', 'var(--color-panel)')
+      .attr('stroke', 'var(--color-fg-muted)').attr('stroke-width', 1.5);
+    g.selectAll('circle.sb-ours').data(rows).join('circle').attr('class', 'sb-ours')
+      .attr('cx', (d) => x(d.d_ours)).attr('cy', (d, i) => y(i)).attr('r', 5)
+      .attr('fill', (d) => (d.d_ours > 0 ? 'var(--color-ok)' : 'var(--color-bad)'));
+    const tip = d3.select(el).append('div').attr('class', 'sb-tip').style('display', 'none');
+    svg.append('rect').attr('x', 0).attr('y', top).attr('width', W).attr('height', rows.length * rowH).attr('fill', 'transparent')
+      .on('mousemove', (event) => {
+        const [mx, my] = d3.pointer(event, el);
+        const i = Math.floor((d3.pointer(event, svg.node())[1] - top) / rowH);
+        const r = rows[i];
+        if (!r) { tip.style('display', 'none'); return; }
+        tip.style('display', null).html('');
+        tip.append('div').attr('class', 'sb-tip-h').text(`${label(r)} · ${r.metric_label}`);
+        tip.append('div').text(`SUB5 ${sbFmt(r.ours, m)} (${sbSigned(r.d_ours, m)})`);
+        tip.append('div').text(`Average ${sbFmt(r.avg, m)} (${sbSigned(r.d_avg, m)})`);
+        tip.append('div').text(`${r.cmp_label} ${sbFmt(r.cmp_value, m)}`);
+        if (r.cmp_paper_short) tip.append('div').attr('class', 'sb-tip-h').text(r.cmp_paper);
+        const bw = el.clientWidth, tw = tip.node().offsetWidth;
+        tip.style('left', `${Math.min(Math.max(0, mx + 12), bw - tw)}px`).style('top', `${my + 14}px`);
+      })
+      .on('mouseleave', () => tip.style('display', 'none'));
+  });
+</script>
