@@ -1,0 +1,58 @@
+{
+ "name": "ds_gate_v1, stage E1 (condition check)",
+ "frozen_at": "2026-10-29, written before any result of this stage was computed",
+ "approved_by": "Omri, 2026-10-29 (project thread): hierarchical Dawid-Skene gate on GAP votes; GAP inside answers kept",
+ "question": "Can a label-free hierarchical Dawid-Skene model on binary GAP votes give calibrated probabilities that an ANSWER contains an error (and that each step is an error), so that a gate can mark answers clean (k = 0) before GAP?",
+ "access": "CPU only, stored per-step scores and channels, no new inference; labels used only by the E1 diagnostics",
+ "cells": {
+  "benchmarks": [
+   "prmbench",
+   "processbench",
+   "crv_arith",
+   "crv_gsm8k"
+  ],
+  "prms": [
+   "qwen_prm_7b",
+   "qwen_prm_72b",
+   "pure_prm",
+   "rlhflow_prm"
+  ],
+  "telemetry": "PRM backbone (the AUTO setting): 16 channels N16 + the PRM",
+  "populations": "PRMBench: all 6,969 answers enter the fit, the 6,211 non-control answers are evaluated; ProcessBench/CRV: the evaluate_cab common set (cells loaded as in results/bracha_lr_transfer_v1/lr_transfer.py)"
+ },
+ "pipeline": {
+  "step0_cleaning": "answer-z of each channel, then remove a cubic in relative step position ((j+.5)/n) by pooled least squares over steps of answers with >= 2 steps, label-free; the procedure of results/prm_view_selection_v1/position_probe/probe.py (Step 481). The PRM is not residualized. Each cleaned channel is oriented by the sign of its pooled correlation with the PRM's answer-z risk.",
+  "step1_votes": "GAP binarization per answer (evaluate_collection.topk_flags with gap_counts) on the answer-z of every cleaned channel and of the PRM risk; a channel constant inside an answer votes 0 there. Votes in {0,1}.",
+  "step2_grouping": "prm_anchored_lsml.groups_from_cov on the covariance of the +-1 votes of the 17 voters (PRM + 16 channels), pooled steps; the PRM is an ordinary voter (no group of its own is imposed). Group vote = sign of the votes weighted by sml_weights_nonneg within the group (ties -> 0); singleton = its own vote. Requires K >= 3, else the cell is reported invalid.",
+  "step3_model": {
+   "latent": "answer state z in {clean, has-error}, P(has-error) = rho; inside a has-error answer, step label y ~ Bernoulli(pi(p)), pi(p) = logistic(a + b*p) of relative position p, conditioned on at least one error in the answer (exact likelihood); in a clean answer all y = 0",
+   "emissions": "groups conditionally independent given (z, y): P(vote=1) = psi_g on an error step, phi_g on a correct step of a has-error answer, phi0_g on a step of a clean answer (GAP forces votes in clean answers; phi0 absorbs that)",
+   "fit": "EM; M-step closed form for rho, psi, phi, phi0; a, b by 10 Newton steps of weighted logistic regression (the at-least-one normalizer is ignored in that M-step: generalized EM, likelihood monitored); probabilities clipped to [1e-4, 1-1e-4]; 5 starts (one from the vote-share posterior, four random), best final log-likelihood kept; 500 iterations max, tolerance 1e-8 on mean log-likelihood; a fit with mean(psi) < mean(phi) is reported as label-switched, never flipped after the fact",
+   "outputs": "P(has-error | votes) per answer; q_i = P(y_i = 1 | votes) per step"
+  }
+ },
+ "E1_diagnostics_labels_used": [
+  "D1 answer-level prevalence: rho_hat vs the true share of evaluated answers with >= 1 error",
+  "D2 step-level prevalence: mean q vs true step error rate (ProcessBench: prefix domain, steps up to the first error)",
+  "D3 calibration of P(has-error): 10 equal-count bins, expected calibration error (ECE)",
+  "D4 gate quality at the frozen thresholds: share of has-error answers kept and share of clean answers closed; thresholds = rho_hat (ProcessBench rule) and 0.5; on PRMBench also the share of answers closed",
+  "D5 count: Spearman of sum_i q_i with the true error count, with the GAP count of the AUTO score as reference, and Spearman of sum_i q_i with answer length (number of steps)"
+ ],
+ "pass_criteria_for_moving_to_E2": {
+  "D1": "|rho_hat - truth| <= 0.05 on ProcessBench and CRV for at least 3 of 4 PRMs",
+  "D3": "ECE <= 0.05 on ProcessBench and CRV for at least 3 of 4 PRMs",
+  "D4": "on ProcessBench at threshold rho_hat: closes >= 30% of clean answers while keeping >= 85% of has-error answers, for at least 3 of 4 PRMs; on PRMBench closes <= 5% of has-error answers",
+  "D5": "|Spearman(sum q, length)| below the GAP count's in the same cell, and Spearman(sum q, true count) above the GAP count's, in every valid cell (amendment A3)",
+  "otherwise": "stop and report; no tuning toward the criteria"
+ },
+ "not_in_E1": "the decision rules (ProcessBench: rho_hat threshold, 0.5 alongside; PRMScore: the expected-cost rule P(error)*(correct flags lost) < P(clean)*(wrong flags saved), 0.5 alongside) and every comparison with GAP / k=2 / the PRM are E2, run only if E1 passes, with their own frozen protocol",
+ "amendments_before_any_real_run": {
+  "date": "2026-10-29, after the independent code review (REVIEW.md) and before E1 touched real data",
+  "A1_exact_prior_update": "The (a, b) update now maximizes the exact expected objective, including the at-least-one normalizer, with backtracking; the log-likelihood is monitored and drops are reported (review B1: the frozen approximation biased rho by ~0.02 and doubled ECE on synthetic data).",
+  "A2_stable_estep": "Stable log forms for log(e^M - e^N), the constraint correction and the normalizer (review S1). Same model.",
+  "A3_D5_reference": "D5 compares with the GAP count of the AUTO score in the same cell (both length Spearman and true-count Spearman); the constant 0.78 is dropped because it could not be traced to a stored file and is a PRMBench number (review S3).",
+  "A4_pool": "Cleaning/orientation/grouping pool = all answers with >= 2 steps on every benchmark; the PRMBench control classification is no longer used anywhere before the diagnostics (review S4).",
+  "A5_verdict": "An invalid (K < 3) cell counts as a failure; ECE bins are equal-count by rank; degenerate fits (rho at clip, mean phi0 > mean psi) and label switches are reported (review S2, N4, N9).",
+  "A6_declared": "PRM vote uses the logit risk arm for every PRM, as AUTO does (N1); the PRM column is masked when constant within an answer (N2). On PRMBench rho is fitted over all 6,969 answers (758 controls are clean), so D1 there compares with the truth over all answers; D4 PRMBench = share of has-error answers closed (N6). ProcessBench D5 true count is 0/1 (prefix domain) (N8)."
+ }
+}
