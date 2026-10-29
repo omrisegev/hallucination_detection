@@ -1648,16 +1648,16 @@ Created `Spectral_Analysis_Phase1.ipynb` for Colab. Structure:
 - **Cells 23–24**: Decision gates with automatic pass/fail + recommended next steps
 - **Cell 26**: Save `phase1_summary.json` to Drive
 
-Checkpoint dir: `epr_spectral_phase1/` on Google Drive.  
+Checkpoint dir: `epr_spectral_phase1/` on Google Drive.
 If Unified experiment cache exists, Phase 1 can bootstrap without new inference.
 
 ---
 
 ### Step 47 — Spectral Analysis Phase 1 Results
 
-**File**: `Spectral_Analysis_Phase1_res.ipynb` | **Run date**: April 19, 2026  
-**Data source**: Bootstrapped from Unified experiment cache (no new inference needed)  
-**Samples**: 50 GSM8K | **Accuracy**: 76.0% (38/50 correct)  
+**File**: `Spectral_Analysis_Phase1_res.ipynb` | **Run date**: April 19, 2026
+**Data source**: Bootstrapped from Unified experiment cache (no new inference needed)
+**Samples**: 50 GSM8K | **Accuracy**: 76.0% (38/50 correct)
 **Avg trace length**: 235 tokens (min=116, max=384)
 
 #### AUC results — all 7 signals
@@ -1688,7 +1688,7 @@ The 5 bad pairs (ρ ≥ 0.75) are all within the cluster {low_band_power, high_b
 
 EPR, spectral_entropy, and dominant_freq have no bad pair with anything (max ρ = 0.474).
 
-**Maximum valid Nadler set** (all 10 pairwise ρ < 0.75):  
+**Maximum valid Nadler set** (all 10 pairwise ρ < 0.75):
 `{EPR, spectral_entropy, dominant_freq, low_band_power, high_band_power}` — **5 signals**
 
 spectral_centroid and hl_ratio cannot join because they conflict with high_band_power and low_band_power. But either can replace one of them in a 4-signal variant. Phase 2 will enumerate all valid subsets programmatically.
@@ -1711,7 +1711,7 @@ Scale to 200 samples. Try ALL valid subsets (all pairwise ρ < 0.75) via combina
 
 ### Step 48 — Spectral Analysis Phase 2 Notebook Created
 
-**File**: `Spectral_Analysis_Phase2.ipynb` | **Date**: April 19, 2026  
+**File**: `Spectral_Analysis_Phase2.ipynb` | **Date**: April 19, 2026
 **Goal**: Scale Phase 1 findings to 200 samples + full combinatorial Nadler fusion search
 
 #### Key changes from Phase 1
@@ -1724,7 +1724,7 @@ Scale to 200 samples. Try ALL valid subsets (all pairwise ρ < 0.75) via combina
 
 #### Maximum valid signal set (from Phase 1 ρ structure)
 
-`{EPR, spectral_entropy, dominant_freq, low_band_power, high_band_power}` — 5 signals, all 10 pairwise ρ < 0.75.  
+`{EPR, spectral_entropy, dominant_freq, low_band_power, high_band_power}` — 5 signals, all 10 pairwise ρ < 0.75.
 `spectral_centroid` and `hl_ratio` each conflict with `low_band_power` and `high_band_power` (ρ > 0.75), so they appear only in 4-signal variants.
 
 #### Decision gates for Phase 3
@@ -1740,9 +1740,9 @@ Scale to 200 samples. Try ALL valid subsets (all pairwise ρ < 0.75) via combina
 
 ### Step 49 — Spectral Analysis Phase 2 Results + Research Summary Document
 
-**File**: `Spectral_Analysis_Phase2.ipynb` (results) + `Spectral_Analysis_Summary.md` (summary)  
-**Run date**: April 20, 2026 | **Samples**: 200 GSM8K | **Accuracy**: 82.0% (164/200)  
-**Data**: Phase 1 cache (50) + Unified bootstrap (50) + fresh inference (100 new)  
+**File**: `Spectral_Analysis_Phase2.ipynb` (results) + `Spectral_Analysis_Summary.md` (summary)
+**Run date**: April 20, 2026 | **Samples**: 200 GSM8K | **Accuracy**: 82.0% (164/200)
+**Data**: Phase 1 cache (50) + Unified bootstrap (50) + fresh inference (100 new)
 **Avg trace length**: 268 tokens (min=107, max=512)
 
 #### Single-signal AUC at 200 samples
@@ -1958,7 +1958,7 @@ MATH-500 at T=1.5 was chosen to force enough wrong answers. GPQA at T=1.5 alread
 
 ### Step 51 — Spectral Analysis Phase 3 Results: All Three Models
 
-**File**: `Spectral_Analysis_Phase3_model_1/2/3.ipynb` (results notebooks)  
+**File**: `Spectral_Analysis_Phase3_model_1/2/3.ipynb` (results notebooks)
 **Summary document**: `Spectral_Analysis_Phase3_Summary.md`
 
 #### Model overview
@@ -2548,7 +2548,7 @@ Output saved to Drive: `/content/drive/MyDrive/meeting_plots_apr27/`
 
 **Gates: 5/7 passed** — G5 (CI lower > 75%) and G6 (beat supervised) failed.
 
-**Important discrepancy — model accuracy:** We observed 79.1% accuracy vs LapEigvals' reported ~65% for the same model on the same dataset. LapEigvals filtered ~300 rejected responses (23%); we only observed 40 no-format responses (3%). Most likely explanation: Llama-3.1-8B-Instruct has been updated on HuggingFace since LapEigvals ran their experiments (~late 2024). The current model is significantly better at GSM8K. 
+**Important discrepancy — model accuracy:** We observed 79.1% accuracy vs LapEigvals' reported ~65% for the same model on the same dataset. LapEigvals filtered ~300 rejected responses (23%); we only observed 40 no-format responses (3%). Most likely explanation: Llama-3.1-8B-Instruct has been updated on HuggingFace since LapEigvals ran their experiments (~late 2024). The current model is significantly better at GSM8K.
 
 Implication: detecting hallucinations at 79% accuracy (fewer wrong examples, imbalanced 79:21 split) is harder than at 65% accuracy. Our 76.0% AUC is arguably stronger than the raw number suggests relative to their 87.2%.
 
@@ -2872,7 +2872,7 @@ Let me think step by step:
 
 #### AgentHallu benchmark assessment
 
-**Paper**: "AgentHallu: Benchmarking Automated Hallucination Attribution of LLM-based Agents"  
+**Paper**: "AgentHallu: Benchmarking Automated Hallucination Attribution of LLM-based Agents"
 **Website**: liuxuannan.github.io/AgentHallu.github.io
 
 **Dataset structure**:
@@ -5797,7 +5797,8 @@ Updated papers/index.md so all 20 rows reflect status: digested with clear one-l
 ### Step 177 — Corrected all 20 paper digest cards to enforce strict text-grounding
 
 **What**: Rebuilt all 20 structured paper digest cards under papers/digests/<slug>.md and updated papers/index.md to strictly enforce the Step 3 grounding rules defined in skills/paper-digest/SKILL.md:
-- Replaced fabricated/placeholder frontmatter (uthors, rxiv_id, enue, year) with verbatim strings extracted directly from page 1 of each paper's papers/extracted/<slug>.md text (e.g., correcting unsupervised-ensemble-regression to list authors Omer Dror, Boaz Nadler, Erhan Bilal, Yuval Kluger and year 2017).
+- Replaced fabricated/placeholder frontmatter (uthors, rxiv_id,
+enue, year) with verbatim strings extracted directly from page 1 of each paper's papers/extracted/<slug>.md text (e.g., correcting unsupervised-ensemble-regression to list authors Omer Dror, Boaz Nadler, Erhan Bilal, Yuval Kluger and year 2017).
 - Replaced generic/incorrect benchmark lists with literal benchmark and dataset names grepped from the papers' abstracts and text (e.g., correcting FUSE to list GPQA Diamond, Humanity's Last Exam / HLE, and IMO Shortlist questions).
 - Grounded numerical scores tables in literal metrics from each paper's experimental results sections.
 
@@ -11266,6 +11267,33 @@ found by the PRM-features session (`docs/research_notes/PRM_MODEL_NEW_FEATURES_2
 - `spectral_utils/prm_anchored_lsml.py`: `spectral_vote_weights`, and `ds_em_votes(init=...)`; the default is unchanged
 - `results/prm_view_selection_v1/estimators/`
 - `results/prm_view_selection_v1/h2v_holdout/`
+
+---
+
+### Step 483 [PRM boosting, ProcessBench SLA] — TELEM16 with GAP decision rule decisively beats Mind the Gap Table 3 SLA (2026-10-29)
+
+**What**: Evaluated TELEM16 (`TELE_N16`, 16-channel telemetry-only L-SML fusion) and baseline arms (`MEAN_N16`, `CHAIN_N16`, `PRM`, `TELE_N13`, `HALF_N16`) under the GAP decision rule against published results from "Mind the Gap" (Chen et al., ICML 2026, Table 3) on the 2,221 erroneous answers of ProcessBench across all 4 subsets (GSM8K: 207, MATH: 594, OlympiadBench: 661, Omni-MATH: 759).
+- Decision rule: Within each answer, the GAP rule flags the top-$k$ steps. Predicted first error is the chronologically first flagged step: $\min \{ i : \text{step } i \text{ is flagged} \}$.
+- Compared against Mind the Gap Table 3 (Shannon Drop) on both Qwen-7B and Qwen-72B backbones.
+
+**Why**: Previous project leaderboards reported ProcessBench using `avg_f1_NC` (which requires predicting clean vs error for the whole answer, penalizing telemetry without an answer-level gate). However, Mind the Gap's Table 3 evaluates **SLA** (Step-level Localization Accuracy) strictly on erroneous answers, where clean answers are un-scored. Since adopting GAP as the final decision rule, the project had not benchmarked TELEM16 against Mind the Gap on its native SLA metric.
+
+**Result** (`results/processbench_gap_sla_v1/RESULTS.csv`, `README.md`):
+- **TELEM16 outperforms Mind the Gap by a large margin:**
+  - On Qwen-7B backbone: Macro SLA **47.23%** (vs MtG Qwen-8B **39.39%**, **+7.84 pp**; vs MtG Qwen-4B **39.14%**, **+8.09 pp**). Overall SLA **44.35%** (vs MtG **38.11%**, **+6.24 pp**).
+  - On Qwen-72B backbone: Macro SLA **50.64%** (**+11.25 pp** over MtG-8B). Overall SLA **49.08%** (**+10.97 pp** over MtG-8B).
+  - By subset (Qwen-7B vs MtG-8B): GSM8K **59.90%** vs 46.11% (+13.79 pp), MATH **46.46%** vs 32.90% (+13.56 pp), OlympiadBench **42.36%** vs 41.52% (+0.84 pp), Omni-MATH **40.18%** vs 37.04% (+3.14 pp).
+  - By subset (Qwen-72B vs MtG-8B): GSM8K **57.49%** (+11.38 pp), MATH **51.52%** (+18.62 pp), OlympiadBench **45.99%** (+4.47 pp), Omni-MATH **47.56%** (+10.52 pp).
+- **Chronological first-flag vs Argmax:** Chronological first-flag under GAP achieves **47.23%** Macro SLA on Qwen-7B vs **43.78%** for Argmax (top-1) (**+3.45 pp** gain), successfully isolating the earliest premise deviation before downstream error explosion.
+- **L-SML weights:** `TELE_N16` beats unweighted `MEAN_N16` (46.26% on 7B, 48.60% on 72B) by +0.97 pp and +2.04 pp respectively.
+- **Combined with PRM:** `HALF_N16` reaches **61.32%** (7B) and **68.23%** (72B) Macro SLA; `CHAIN_N16` reaches **54.25%** (7B) and **56.96%** (72B).
+
+**Files created/changed**:
+- `results/processbench_gap_sla_v1/evaluate_sla.py`
+- `results/processbench_gap_sla_v1/RESULTS.csv`
+- `results/processbench_gap_sla_v1/README.md`
+- `PROGRESS.md`
+- `HISTORY.md`
 
 ---
 

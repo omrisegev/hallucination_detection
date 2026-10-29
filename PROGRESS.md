@@ -1,3 +1,14 @@
+## 2026-10-29: ProcessBench SLA under GAP decision rule vs Mind the Gap Table 3, Step 483 (Codex/Antigravity)
+
+- **ProcessBench SLA under GAP rule:** Evaluated TELEM16 (`TELE_N16`) with the GAP decision rule (predicting the first chronological flagged step) against published results from "Mind the Gap" (Chen et al., ICML 2026, Table 3) on the 2,221 erroneous answers of ProcessBench.
+- **TELEM16 decisively outperforms Mind the Gap across all 4 subsets:**
+  - On Qwen-7B backbone: Macro SLA **47.23%** (vs MtG Qwen-8B **39.39%**, **+7.84 pp**; vs MtG Qwen-4B **39.14%**, **+8.09 pp**). Overall SLA **44.35%** (vs MtG **38.11%**, **+6.24 pp**).
+  - On Qwen-72B backbone: Macro SLA **50.64%** (**+11.25 pp** over MtG-8B). Overall SLA **49.08%** (**+10.97 pp** over MtG-8B).
+  - Subset breakdown (Qwen-7B vs MtG-8B): GSM8K **59.90%** vs 46.11% (+13.79 pp), MATH **46.46%** vs 32.90% (+13.56 pp), OlympiadBench **42.36%** vs 41.52% (+0.84 pp), Omni-MATH **40.18%** vs 37.04% (+3.14 pp).
+- **Why this was previously missed:** The project's ProcessBench scorecard previously reported `avg_f1_NC` (which requires predicting clean vs error for the whole answer, penalizing lack of a clean/error gate), whereas Mind the Gap Table 3 evaluated pure **SLA** on wrong answers only.
+- **Chronological first-flag advantage:** Taking the earliest flagged step under GAP beats Argmax (top-1) by **+3.45 pp** Macro on 7B (47.23% vs 43.78%), catching earlier root-cause premise deviations before downstream collapse.
+- **Artifacts:** `results/processbench_gap_sla_v1/evaluate_sla.py`, `RESULTS.csv`, `README.md`.
+
 ## 2026-10-28: between-group estimators and the next-step PRM view, Step 482 (Claude)
 
 - **Changing the estimator does not help.**
@@ -266,7 +277,7 @@
 **START HERE:** [docs/reports/ADVISOR_MEETING_EXTERNAL_AND_PRM_BOOSTING_FINDINGS_20261015.md](docs/reports/ADVISOR_MEETING_EXTERNAL_AND_PRM_BOOSTING_FINDINGS_20261015.md).
 
 - **Advisor preparation complete:** Verified that the material is ready for the advisors and strongly recommended for presentation.
-- **Section 5 External Transfer (Socratic & Hard2Verify):** 
+- **Section 5 External Transfer (Socratic & Hard2Verify):**
   - On Socratic (math), supervised PRM leads with Within-AUC 0.824 and PRMScore 0.680; PRMBench-trained LR transfer reaches 0.717/0.729 AUC and 0.635/0.640 PRMScore.
   - On Hard2Verify, PRMBench-trained LR outperforms the supervised PRM! LR transfer achieves Within-AUC 0.684 (8B) / 0.674 (4B) and Balanced F1 0.428 (8B) / 0.448 (4B), while Qwen-PRM-7B achieves 0.634 AUC and its native 0.5 threshold fails (Balanced F1 0.234; 0.391 under ANSWER_Z_Q80). Unsupervised IU-PCR achieves 0.415 Balanced F1.
 - **PRM Boosting on Qwen2.5-Math-PRM-7B (PRMBench):**
