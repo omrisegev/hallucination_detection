@@ -1,0 +1,15 @@
+<section id="crop-intro" data-transition="fade" style="background:#ECEAE2;color:#17212B;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:36px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;letter-spacing:3px;text-transform:uppercase;color:#2F5DA8">The paper · arXiv 2605.30085, EMNLP 2026 oral</p>
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:72px;font-weight:400;line-height:1.1">CROP: certify the longest error-free start of a solution</h2>
+</div>
+<div style="display:grid;grid-template-columns:320px 1fr;gap:16px 40px">
+<p style="font-size:28px;font-weight:600">What it does</p><p style="font-size:28px;line-height:1.4">Scores each step’s risk, then a conformal threshold keeps the longest prefix with at most 5% risk of holding an error</p>
+<p style="font-size:28px;font-weight:600">Risk scores</p><p style="font-size:28px;line-height:1.4">Random, text format, Llama-8B telemetry LR, Qwen-PRM-7B, LR on telemetry + PRM</p>
+<p style="font-size:28px;font-weight:600">Labels</p><p style="font-size:28px;line-height:1.4">Yes: LRs trained on 60% of each dataset; every threshold calibrated on 20%</p>
+<p style="font-size:28px;font-weight:600">Benchmarks</p><p style="font-size:28px;line-height:1.4">6, incl. PRMBench, ProcessBench. Metrics: pooled step AUROC, % kept. Code released</p>
+<p style="font-size:28px;font-weight:600">How we run it</p><p style="font-size:28px;line-height:1.4">CROP’s own protocol for every arm, GAP not used: split 60/20/20; on the 20%, pick with labels the highest threshold so that ≤5% of kept prefixes hold an error; on test, keep each answer up to its first step above it. Only the score is ours</p>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#6B7280">“Kept” = average share of each answer’s steps that is certified, at risk ≤ 5%.</p>
+<aside>CROP's Trace+PRM LR is close to Bracha's suggestion: a supervised LR on PRM + telemetry. The difference: CROP trains on labels from the same benchmark. Their Table 17 shows calibration does not transfer across datasets (14.8% risk against a 5% target).</aside>
+</section>

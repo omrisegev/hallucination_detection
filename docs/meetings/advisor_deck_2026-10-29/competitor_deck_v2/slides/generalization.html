@@ -1,0 +1,24 @@
+<section id="generalization" data-transition="fade" style="background:#F7F6F1;color:#17212B;font-family:'IBM Plex Sans', Arial, sans-serif;padding:112px 128px 160px;display:flex;flex-direction:column;gap:32px">
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:60px;font-weight:400;line-height:1.1">Generalization: outside PRMBench both lose to a strong PRM; both beat a weak one, except on CRV</h2>
+<x-embed style="position:absolute;left:128px;top:280px;width:1160px;height:640px"><!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:transparent;font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif}</style></head><body><svg id="c" width="1160" height="640" viewBox="0 0 1160 640"></svg><script>
+const R=[["PRMBench (in sample)", [0.023, 0.033, 0.036, 0.103], [-0.008, -0.014, 0.007, 0.126]], ["Socratic-PRMBench", [-0.102, -0.153, -0.136, 0.046], [-0.128, -0.119, -0.133, 0.113]], ["Hard2Verify", [-0.068, 0.05, -0.292, 0.301], [-0.098, 0.047, -0.274, 0.343]], ["ProcessBench", [-0.05, -0.037, -0.252, 0.265], [-0.166, -0.205, -0.244, 0.369]], ["DeltaBench", [0.004, 0.024, -0.232, 0.048], [0.01, -0.011, -0.058, 0.065]], ["CRV-GSM8K", [-0.122, -0.139, -0.256, -0.116], [-0.165, -0.205, -0.289, -0.098]], ["CRV-Arith", [-0.146, -0.192, -0.6, -0.336], [-0.219, -0.423, -0.581, -0.207]]];const P=["7B","72B","PURE","RLHF"];
+const ns="http://www.w3.org/2000/svg",s=document.getElementById("c");
+function e(t,a,txt){const n=document.createElementNS(ns,t);for(const k in a)n.setAttribute(k,a[k]);if(txt!=null)n.textContent=txt;s.appendChild(n);return n}
+function col(v){const a=Math.min(Math.abs(v)/0.3,1);const c=v>=0?[47,93,168]:[184,92,34];const b=[247,246,241];const m=c.map((x,i)=>Math.round(b[i]+(x-b[i])*(0.15+0.85*a)));return "rgb("+m.join(",")+")"}
+const L=300,CW=96,CH=70,T=80,GAP=40;
+[["AUTO − PRM","#2F5DA8"],["TELE16 − PRM","#0E7C7B"]].forEach((h,k)=>{const x0=L+k*(4*CW+GAP);
+e("text",{x:x0+2*CW,y:30,"font-size":26,"font-weight":700,fill:h[1],"text-anchor":"middle"},h[0]);
+P.forEach((p,j)=>e("text",{x:x0+j*CW+CW/2,y:66,"font-size":22,fill:"#6B7280","text-anchor":"middle"},p));
+R.forEach((r,i)=>{r[k+1].forEach((v,j)=>{const x=x0+j*CW,y=T+i*CH;e("rect",{x:x+2,y:y+2,width:CW-4,height:CH-4,rx:4,fill:col(v)});
+e("text",{x:x+CW/2,y:y+CH/2+8,"font-size":22,"font-weight":600,fill:Math.abs(v)>0.2?"#FFFFFC":"#17212B","text-anchor":"middle"},(v>0?"+":v<0?"−":"")+Math.abs(v).toFixed(2))})})});
+R.forEach((r,i)=>e("text",{x:L-16,y:T+i*CH+CH/2+8,"font-size":24,"font-weight":i===0?700:400,fill:"#17212B","text-anchor":"end"},r[0]));
+e("line",{x1:20,x2:L+8*CW+GAP,y1:T+CH,y2:T+CH,stroke:"#17212B","stroke-width":2});
+</script></body></html></x-embed>
+<div style="position:absolute;left:1330px;top:290px;width:462px;display:flex;flex-direction:column;gap:26px">
+<p style="font-size:30px;line-height:1.4"><b>Blue = better than the PRM.</b> Outside PRMBench, blue appears almost only in the RLHFlow column.</p>
+<p style="font-size:26px;line-height:1.4;color:#4A5563">Head to head, out of sample: <b style="color:#0E7C7B">TELE16</b> beats <b style="color:#2F5DA8">AUTO</b> in 13 of 24 cells, AUTO in 11. Neither generalizes better overall.</p>
+<p style="font-size:26px;line-height:1.4;color:#4A5563">AUTO follows its PRM: close to it when the PRM is strong, but it can lose much of the PRM’s signal (CRV-Arith, PURE). TELE16 does not depend on any PRM, but is near chance on CRV.</p>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:22px;color:#6B7280">Within-answer AUC minus the PRM’s, per benchmark × PRM. One recipe, fixed on PRMBench, applied unchanged. TELE16 = standalone base model paired with each PRM. Source: bracha_lr_transfer_v1/RESULTS.csv.</p>
+<aside>Within-answer AUC is threshold-free, so this compares the scores themselves. The story for the thesis: label-free fusion adds value when the PRM is weak or absent; it does not improve a strong PRM out of domain.</aside>
+</section>

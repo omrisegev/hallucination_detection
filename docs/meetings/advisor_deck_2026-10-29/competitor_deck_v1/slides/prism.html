@@ -1,0 +1,26 @@
+<section id="prism" data-transition="fade" style="background:#F7F6F1;color:#17212B;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:72px;font-weight:400;line-height:1.1">PRMBench PRMScore: published methods and ours</h2>
+<x-embed style="position:absolute;left:128px;top:260px;width:1100px;height:640px"><!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:transparent;font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif}</style></head><body><svg id="c" width="1100" height="640" viewBox="0 0 1100 640"></svg><script>
+const D=[["PRM, its own threshold","no labels",65.5,"#7C8592"],["R-PRM-7B-DPO (paper)","PRM800K, 10 critiques per step",66.8,"#B85C22"],["AUTO at PRISM’s TPR","threshold set with labels",67.5,"#2F5DA8"],["PRISM (paper)","retrained on PRM800K",68.0,"#B85C22"],["PRM, threshold at PRISM’s TPR","threshold set with labels",68.3,"#7C8592"],["TELE16, no PRM","no labels",68.3,"#2F5DA8"],["AUTO","no labels",69.9,"#2F5DA8"]];
+const L=480,R=1040,x0=64,x1=71,RH=80,T=10,ns="http://www.w3.org/2000/svg",s=document.getElementById("c");
+const sx=v=>L+(v-x0)/(x1-x0)*(R-L);
+function e(t,a,txt){const n=document.createElementNS(ns,t);for(const k in a)n.setAttribute(k,a[k]);if(txt!=null)n.textContent=txt;s.appendChild(n);return n}
+const B=T+D.length*RH;
+for(let v=x0;v<=x1;v++){e("line",{x1:sx(v),x2:sx(v),y1:T,y2:B,stroke:"#DCD9CE","stroke-width":1});e("text",{x:sx(v),y:B+36,"font-size":24,fill:"#6B7280","text-anchor":"middle"},v)}
+D.forEach((d,i)=>{const y=T+i*RH+RH/2,bold=d[0]==="AUTO";
+e("text",{x:0,y:y-4,"font-size":28,"font-weight":bold?700:400,fill:"#17212B"},d[0]);
+e("text",{x:0,y:y+26,"font-size":24,fill:"#6B7280"},d[1]);
+e("line",{x1:L,x2:sx(d[2]),y1:y,y2:y,stroke:"#E6E3DA","stroke-width":2});
+e("circle",{cx:sx(d[2]),cy:y,r:bold?14:11,fill:d[3],stroke:"#F7F6F1","stroke-width":2});
+e("text",{x:sx(d[2])+24,y:y+9,"font-size":28,"font-weight":700,fill:"#17212B"},d[2].toFixed(1))});
+</script></body></html></x-embed>
+<div style="position:absolute;left:1280px;top:280px;width:512px;display:flex;flex-direction:column;gap:28px">
+<p style="font-size:32px;line-height:1.4"><b>AUTO is the highest, with no labels and no retraining:</b> 1.9 above PRISM, 3.1 above R-PRM.</p>
+<p style="font-size:28px;line-height:1.4;color:#4A5563">Caveat: at PRISM’s TPR, AUTO drops to 67.5. Part of every gain on this metric comes from the decision rule.</p>
+<div style="display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;color:#4A5563"><span style="color:#2F5DA8">●</span> ours <span style="color:#B85C22">●</span> published, supervised <span style="color:#7C8592">●</span> PRM alone</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#6B7280">Qwen-PRM-7B pairing. PRISM: arXiv 2606.09078, Table 2. R-PRM: arXiv 2503.21295, Table 2 (metric not defined as PRMScore). Ours: bracha_lr_transfer_v1/TABLES.md.</p>
+<aside>PRISM retrains Qwen-PRM-7B on PRM800K. R-PRM trains a generative verifier and samples 10 critiques per step. Both use labels; AUTO uses none. Our PRM row reproduces PRISM's baseline (65.49). The two matched-TPR rows set the threshold with labels: they are a fairness check, not a method.</aside>
+</section>

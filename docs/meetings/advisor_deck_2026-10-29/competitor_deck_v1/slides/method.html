@@ -1,0 +1,23 @@
+<section id="method" data-transition="fade" style="background:#F7F6F1;color:#17212B;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:56px">
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:72px;font-weight:400;line-height:1.1">The arms we compare</h2>
+<div style="display:flex;gap:32px">
+<div style="flex:1;display:flex;flex-direction:column;gap:20px;background:#FFFFFC;padding:44px;border:2px solid #2F5DA8;border-radius:16px">
+<p style="font-size:24px;letter-spacing:2px;text-transform:uppercase;color:#2F5DA8">Main arm</p>
+<h3 style="font-size:44px;font-weight:600">AUTO</h3>
+<p style="font-size:32px;line-height:1.4;color:#4A5563">The PRM is one of 17 channels, with 16 telemetry channels from its own backbone. L-SML finds the groups and weights with no labels.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:20px;background:#FFFFFC;padding:44px;border:1px solid #DCD9CE;border-radius:16px">
+<p style="font-size:24px;letter-spacing:2px;text-transform:uppercase;color:#6B7280">Telemetry only</p>
+<h3 style="font-size:44px;font-weight:600">TELE16</h3>
+<p style="font-size:32px;line-height:1.4;color:#4A5563">The same 16 channels, read from the standalone base model. No PRM is used at all.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:20px;background:#FFFFFC;padding:44px;border:1px solid #DCD9CE;border-radius:16px">
+<p style="font-size:24px;letter-spacing:2px;text-transform:uppercase;color:#6B7280">Reference</p>
+<h3 style="font-size:44px;font-weight:600">CHAIN</h3>
+<p style="font-size:32px;line-height:1.4;color:#4A5563">The PRM is forced into its own group. This is prior knowledge, so it is shown only for reference.</p>
+</div>
+</div>
+<p style="font-size:32px;line-height:1.4;color:#4A5563">Every arm uses the same rule: per answer, flag the steps above the largest gap in the sorted scores. On ProcessBench we use its first-error rule.</p>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#6B7280">4 PRMs: Qwen-PRM-7B, Qwen-PRM-72B, PURE, RLHFlow. Math-Shepherd is left out.</p>
+<aside>Why AUTO and not CHAIN: CHAIN tells the algorithm that the PRM is special. That breaks the no-prior-knowledge principle. In AUTO the data merged the PRM into a telemetry group in 32 of 32 cases.</aside>
+</section>

@@ -1,0 +1,331 @@
+<meta name="dash-one-writer">
+<style>
+  .pv { display: grid; gap: var(--cds-gap-lg); font-family: var(--font-anthropic-sans); }
+  .pv-head { display: grid; gap: var(--cds-gap-xs); max-width: 70ch; }
+  .pv-title { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; text-wrap: balance; }
+  .pv-lede { margin: 0; color: var(--color-fg); font-size: var(--cds-font-size-body); line-height: 1.5; }
+  .pv .pv-lede b { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .pv-filters { display: flex; flex-wrap: wrap; gap: var(--cds-gap-md) var(--cds-gap-lg); align-items: flex-end; }
+  .pv-filter { display: grid; gap: var(--cds-gap-xs); min-width: 0; }
+  .pv-filter-label { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); letter-spacing: .02em; }
+  .pv-seg { display: flex; flex-wrap: wrap; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); overflow: hidden; }
+  .pv-seg button { font: inherit; font-size: var(--cds-font-size-caption); padding: var(--cds-pad-xs) var(--cds-pad-sm); background: var(--color-bg); color: var(--color-fg); border: 0; border-right: 1px solid var(--color-border-line); cursor: pointer; }
+  .pv-seg button:last-child { border-right: 0; }
+  .pv-seg button[aria-pressed="true"] { background: var(--color-fg); color: var(--color-bg); }
+  .pv-seg button:focus-visible { outline: 2px solid var(--color-fg); outline-offset: -2px; }
+  .pv-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs) var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .pv-legend span { display: inline-flex; align-items: center; gap: var(--cds-gap-xs); }
+  .pv-sw { width: .75rem; height: .75rem; border-radius: 2px; display: inline-block; background: var(--cds-chart-muted); }
+  .pv-sw-line { width: 1.25rem; height: 0; border-top: 2px dashed var(--color-bad); border-radius: 0; background: none; }
+  .pv-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr)); gap: var(--cds-gap-md); }
+  .pv-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: grid; gap: var(--cds-gap-sm); position: relative; min-width: 0; }
+  .pv-card h3 { margin: 0; font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); }
+  .pv-card p { margin: 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .pv-tag { display: inline-block; font-size: var(--cds-font-size-caption); padding: 0 var(--cds-pad-xs); border-radius: var(--cds-radius); border: 1px solid var(--color-border-line); color: var(--color-fg-muted); margin-left: var(--cds-gap-xs); font-weight: 400; }
+  .pv-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); white-space: nowrap; z-index: 2; }
+  .pv-tip .k { color: var(--cds-text-secondary); }
+  .pv-empty { color: var(--color-fg-muted); font-size: var(--cds-font-size-body); margin: 0; }
+  .pv-tablecard { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: grid; gap: var(--cds-gap-sm); min-width: 0; }
+  .pv-tablecard h2, .pv-notes h2 { margin: 0; font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); }
+  .pv-tablewrap { overflow: auto; max-height: 36rem; }
+  .pv-table { border-collapse: collapse; width: 100%; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+  .pv-table th { position: sticky; top: 0; background: var(--color-panel); text-align: left; font-weight: var(--cds-font-weight-medium); color: var(--color-fg-muted); padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); white-space: nowrap; }
+  .pv-table td { padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); white-space: nowrap; }
+  .pv-table td.num, .pv-table th.num { text-align: right; }
+  .pv-pill { display: inline-block; padding: 0 var(--cds-pad-xs); border-radius: 999px; border: 1px solid currentColor; }
+  .pv-win { color: var(--color-ok); }
+  .pv-mean { color: var(--color-warn); }
+  .pv-lose { color: var(--color-bad); }
+  .pv-none { color: var(--color-fg-muted); }
+  .pv-notes { display: grid; gap: var(--cds-gap-xs); max-width: 75ch; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.5; }
+  .pv-notes ul { margin: 0; padding-left: 1.2em; display: grid; gap: var(--cds-gap-xs); }
+  [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+</style>
+
+<div class="pv">
+  <header class="pv-head" id="top">
+    <h1 class="pv-title">PRM telemetry vs competitors</h1>
+    <p class="pv-lede"><span data-draw="summary">—</span></p>
+  </header>
+
+  <div class="pv-filters" id="filters">
+    <div class="pv-filter">
+      <span class="pv-filter-label">Benchmarks</span>
+      <div class="pv-seg" role="group" aria-label="Benchmarks">
+        <button type="button" data-param="sample" data-value="all">All</button>
+        <button type="button" data-param="sample" data-value="Selection">Used to choose SUB5</button>
+        <button type="button" data-param="sample" data-value="Out-of-sample">Out of sample</button>
+      </div>
+    </div>
+    <div class="pv-filter">
+      <span class="pv-filter-label">Result against the competitor</span>
+      <div class="pv-seg" role="group" aria-label="Result against the competitor">
+        <button type="button" data-param="outcome" data-value="all">All</button>
+        <button type="button" data-param="outcome" data-value="win">We beat it</button>
+        <button type="button" data-param="outcome" data-value="lose">We do not</button>
+      </div>
+    </div>
+    <div class="pv-filter">
+      <span class="pv-filter-label">Telemetry from</span>
+      <div class="pv-seg" role="group" aria-label="Telemetry from">
+        <button type="button" data-param="telemetry" data-value="all">Both</button>
+        <button type="button" data-param="telemetry" data-value="Backbone">PRM backbone</button>
+        <button type="button" data-param="telemetry" data-value="Standalone">Standalone base model</button>
+      </div>
+    </div>
+    <div class="pv-filter">
+      <span class="pv-filter-label">Metric</span>
+      <div class="pv-seg" role="group" aria-label="Metric">
+        <button type="button" data-param="metric" data-value="headline">Benchmark's own metric</button>
+        <button type="button" data-param="metric" data-value="crop_kept">CROP: % kept at 5% risk</button>
+        <button type="button" data-param="metric" data-value="same_tpr">PRMBench at PRISM's TPR</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="pv-legend" aria-label="Legend">
+    <span><i class="pv-sw" data-arm="PRM_native"></i>PRM, its own threshold</span>
+    <span><i class="pv-sw" data-arm="PRM"></i>PRM, our label-free rule</span>
+    <span><i class="pv-sw" data-arm="MEAN"></i>Telemetry, plain mean</span>
+    <span><i class="pv-sw" data-arm="TELE"></i>Telemetry, L-SML (TELE_N16)</span>
+    <span><i class="pv-sw" data-arm="SUB5"></i>SUB5, L-SML</span>
+    <span><i class="pv-sw" data-arm="CHAIN"></i>PRM + telemetry (CHAIN)</span>
+    <span><i class="pv-sw" data-arm="SUB5_PRM"></i>SUB5 + PRM</span>
+    <span><i class="pv-sw pv-sw-line"></i>Competitor's published number</span>
+  </div>
+
+  <p class="pv-empty" id="pv-empty" hidden>No results match these filters. CRV, PRM800K and DeltaBench have no published competitor number for their own metric, so they show only under "All".</p>
+
+  <section class="pv-grid" id="charts" data-draw="grid" data-source="results competitors cells"></section>
+
+  <section class="pv-tablecard" id="table">
+    <h2>Every result, one row per benchmark, telemetry source and PRM</h2>
+    <p class="pv-empty">"Best of ours" is the highest of TELE_N16, SUB5, CHAIN and SUB5 + PRM. "L-SML makes the win" means the plain mean of the same telemetry does not beat the competitor, so the weighting is what gets us over the line.</p>
+    <div class="pv-tablewrap">
+      <table class="pv-table" data-source="cells" data-row-key="key">
+        <thead>
+          <tr>
+            <th data-field="benchmark">Benchmark</th>
+            <th data-field="sample">Set</th>
+            <th data-field="telemetry">Telemetry</th>
+            <th data-field="prm">PRM</th>
+            <th class="num" data-field="competitor_value">Competitor</th>
+            <th class="num" data-field="best_value">Best of ours</th>
+            <th data-field="best_arm">Method</th>
+            <th class="num" data-field="mean_value">Plain mean</th>
+            <th class="num" data-field="prm_value">PRM, our rule</th>
+            <th data-field="verdict">Result</th>
+          </tr>
+        </thead>
+        <tbody data-draw="rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="pv-notes" id="notes">
+    <h2>How to read this</h2>
+    <ul>
+      <li>"Used to choose SUB5" are PRMBench and Socratic-PRMBench. SUB5, and most choices behind CHAIN and TELE_N16, were tuned on them, so wins there are in-sample.</li>
+      <li>Competitor numbers are copied from each paper. PRISM, CROP and the Hard2Verify row used Qwen2.5-Math-PRM-7B, so the same line is drawn for all four PRMs as a reference.</li>
+      <li>CROP's numbers use its own fixed threshold grid; ours use a quantile grid, which alone raises the PRM from 4.8% to 17.2% on PRMBench.</li>
+      <li>PRM800K's CROP line is the best row CROP reports there (a supervised token/format model). The paper's text gives no Trace+PRM value for it.</li>
+      <li>"Label-free rule" (GAP) chooses how many steps to flag per answer without labels. On CRV and PRM800K, where only 3 to 7% of steps are wrong, the PRM's own threshold beats every method under this rule.</li>
+      <li>Hard2Verify has 177 answers, DeltaBench 447 (the answers that fit in 4,096 tokens). All numbers are development data.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+  const ARMS = ['PRM_native', 'PRM', 'MEAN', 'TELE', 'SUB5', 'CHAIN', 'SUB5_PRM'];
+  const OURS = ['TELE', 'SUB5', 'CHAIN', 'SUB5_PRM'];
+  window.pvArmLabel = { PRM_native: 'PRM, its own threshold', PRM: 'PRM, our label-free rule', MEAN: 'Telemetry, plain mean', TELE: 'Telemetry, L-SML', SUB5: 'SUB5, L-SML', CHAIN: 'PRM + telemetry (CHAIN)', SUB5_PRM: 'SUB5 + PRM' };
+  window.pvColor = (arm) => {
+    const c = dash.colors;
+    return { PRM_native: 'var(--cds-chart-muted)', PRM: c[7] || c[6], MEAN: c[2], TELE: c[0], SUB5: c[3], CHAIN: c[1], SUB5_PRM: c[4] }[arm];
+  };
+
+  dash.calc('cells', {
+    title: 'One verdict per result',
+    description: 'For each benchmark, telemetry source, PRM and metric: the best of our methods against the competitor, and whether the plain mean also beats it.',
+    inputs: ['results', 'competitors'],
+    fn: (results, competitors) => {
+      const ours = ['TELE', 'SUB5', 'CHAIN', 'SUB5_PRM'];
+      const names = { TELE: 'Telemetry, L-SML', SUB5: 'SUB5, L-SML', CHAIN: 'PRM + telemetry (CHAIN)', SUB5_PRM: 'SUB5 + PRM' };
+      const comp = new Map(competitors.map((c) => [c.benchmark + '|' + c.metric, c]));
+      const groups = new Map();
+      for (const r of results) {
+        const k = [r.benchmark, r.telemetry, r.prm, r.metric].join('|');
+        if (!groups.has(k)) groups.set(k, { key: k, benchmark: r.benchmark, sample: r.sample, telemetry: r.telemetry, prm: r.prm, metric: r.metric, v: {} });
+        groups.get(k).v[r.arm] = Number(r.value);
+      }
+      return [...groups.values()].map((g) => {
+        const c = comp.get(g.benchmark + '|' + g.metric);
+        let best = null;
+        for (const a of ours) if (g.v[a] != null && (best == null || g.v[a] > g.v[best])) best = a;
+        const bv = best == null ? null : g.v[best];
+        const mv = g.v.MEAN ?? null;
+        let verdict, outcome;
+        if (!c) { verdict = 'No published number'; outcome = 'none'; }
+        else if (bv != null && bv > c.value) {
+          outcome = 'win';
+          verdict = mv == null ? 'Beats it (no mean to compare)' : (mv > c.value ? 'Beats it, the mean does too' : 'Beats it, L-SML makes the win');
+        } else { verdict = 'Does not beat it'; outcome = 'lose'; }
+        return { key: g.key, benchmark: g.benchmark, sample: g.sample, telemetry: g.telemetry, prm: g.prm, metric: g.metric,
+          competitor: c ? c.competitor : null, competitor_value: c ? c.value : null, best_arm: best ? names[best] : null,
+          best_value: bv, mean_value: mv, prm_value: g.v.PRM ?? null, verdict, outcome };
+      });
+    },
+  });
+
+  dash.calc('summary', {
+    title: 'Counts for each filter choice',
+    description: 'How many results beat the competitor, and in how many the plain mean does not, for every choice of benchmark set, telemetry source and metric.',
+    inputs: ['cells'],
+    fn: (cells) => {
+      const out = [];
+      for (const sample of ['all', 'Selection', 'Out-of-sample'])
+        for (const telemetry of ['all', 'Backbone', 'Standalone'])
+          for (const metric of ['headline', 'crop_kept', 'same_tpr']) {
+            const s = cells.filter((c) => (sample === 'all' || c.sample === sample) && (telemetry === 'all' || c.telemetry === telemetry) && c.metric === metric && c.outcome !== 'none');
+            out.push({ sample, telemetry, metric, compared: s.length,
+              wins: s.filter((c) => c.outcome === 'win').length,
+              lsml: s.filter((c) => c.verdict === 'Beats it, L-SML makes the win').length,
+              mean_too: s.filter((c) => c.verdict === 'Beats it, the mean does too').length });
+          }
+      return out;
+    },
+  });
+
+  const DEFAULTS = { sample: 'all', outcome: 'all', telemetry: 'all', metric: 'headline' };
+  window.pvParams = () => ({ ...DEFAULTS, ...Object.fromEntries(Object.entries(dash.params()).filter(([, v]) => v != null)) });
+  window.pvKeep = (c, p) => (p.sample === 'all' || c.sample === p.sample) && (p.telemetry === 'all' || c.telemetry === p.telemetry) && c.metric === p.metric && (p.outcome === 'all' || c.outcome === p.outcome);
+
+  document.querySelectorAll('.pv-seg button').forEach((b) => b.addEventListener('click', () => dash.setParams({ [b.dataset.param]: b.dataset.value })));
+
+  dash.onData(() => {
+    const p = window.pvParams();
+    document.querySelectorAll('.pv-seg button').forEach((b) => b.setAttribute('aria-pressed', String(p[b.dataset.param] === b.dataset.value)));
+    document.querySelectorAll('.pv-sw[data-arm]').forEach((s) => { s.style.background = window.pvColor(s.dataset.arm); });
+    const cells = dash.data('cells');
+    const any = cells.status === 'ok' && cells.data.some((c) => window.pvKeep(c, p));
+    document.querySelectorAll('#pv-empty').forEach((e) => { e.hidden = cells.status !== 'ok' || any; });
+  });
+
+  dash.draw('summary', (el) => {
+    const s = dash.data('summary');
+    if (s.status !== 'ok') { el.textContent = '—'; return; }
+    const p = window.pvParams();
+    const row = s.data.find((r) => r.sample === p.sample && r.telemetry === p.telemetry && r.metric === p.metric);
+    if (!row) { el.textContent = '—'; return; }
+    const where = `sample=${encodeURIComponent(p.sample)}&telemetry=${encodeURIComponent(p.telemetry)}&metric=${encodeURIComponent(p.metric)}`;
+    const num = (field) => {
+      const b = document.createElement('b');
+      b.dataset.source = 'summary'; b.dataset.field = field; b.dataset.where = where;
+      b.textContent = String(row[field]);
+      return b;
+    };
+    el.replaceChildren(
+      'Of ', num('compared'), ' results that have a published competitor number, ', num('wins'),
+      ' beat it. In ', num('lsml'), ' of those wins the plain mean of the same telemetry does not, so L-SML makes the difference; in ',
+      num('mean_too'), ' the mean beats it too. Use the filters to split by benchmark set and telemetry source.');
+  });
+
+  dash.draw('grid', (el) => {
+    const res = dash.data('results'), comp = dash.data('competitors'), cells = dash.data('cells');
+    if (res.status !== 'ok' || comp.status !== 'ok' || cells.status !== 'ok') { el.textContent = '—'; return; }
+    const p = window.pvParams();
+    const keep = new Set(cells.data.filter((c) => window.pvKeep(c, p)).map((c) => c.key));
+    const compMap = new Map(comp.data.map((c) => [c.benchmark + '|' + c.metric, c]));
+    const order = ['PRMBench', 'Socratic-PRMBench', 'Hard2Verify', 'ProcessBench', 'CRV Arithmetic', 'CRV GSM8K', 'PRM800K', 'DeltaBench'];
+    const prms = ['Qwen-7B', 'Qwen-72B', 'PURE', 'RLHFlow'];
+    const panels = [];
+    for (const b of order) for (const t of ['Backbone', 'Standalone']) {
+      const rows = res.data.filter((r) => r.benchmark === b && r.telemetry === t && r.metric === p.metric && keep.has([b, t, r.prm, p.metric].join('|')));
+      if (rows.length) panels.push({ b, t, rows, comp: compMap.get(b + '|' + p.metric) });
+    }
+    el.replaceChildren();
+    const fmt = d3.format('.1f');
+    for (const pn of panels) {
+      const card = document.createElement('article');
+      card.className = 'pv-card';
+      card.id = ('chart-' + pn.b + '-' + pn.t).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const h = document.createElement('h3');
+      h.textContent = pn.b;
+      const tag = document.createElement('span'); tag.className = 'pv-tag'; tag.textContent = pn.t === 'Backbone' ? 'PRM backbone' : 'Standalone base model';
+      const tag2 = document.createElement('span'); tag2.className = 'pv-tag'; tag2.textContent = pn.rows[0].sample === 'Selection' ? 'used to choose SUB5' : 'out of sample';
+      h.append(tag, tag2);
+      const note = document.createElement('p');
+      note.textContent = pn.rows[0].metric_label + (pn.comp ? ` · competitor: ${pn.comp.competitor}, ${fmt(pn.comp.value)}` : ' · no published competitor number for this metric');
+      card.append(h, note);
+      const tip = document.createElement('div'); tip.className = 'pv-tip'; tip.hidden = true;
+      el.append(card);
+      const W = Math.max(280, card.clientWidth - 2 * 16), H = 230;
+      const arms = ARMS.filter((a) => pn.rows.some((r) => r.arm === a));
+      const groups = prms.filter((x) => pn.rows.some((r) => r.prm === x));
+      const vals = pn.rows.map((r) => r.value).concat(pn.comp ? [pn.comp.value] : []);
+      const lo0 = d3.min(vals), hi = d3.max(vals);
+      const lo = pn.rows[0].metric === 'crop_kept' || lo0 < 25 ? 0 : Math.max(0, Math.floor((lo0 - 6) / 5) * 5);
+      const svg = d3.select(card).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', pn.b + ' chart');
+      const y = d3.scaleLinear([lo, hi + (hi - lo) * 0.08], [H - 24, 10]).nice();
+      const yAxis = svg.append('g');
+      yAxis.call(d3.axisLeft(y).ticks(5).tickSize(0)).attr('font-size', null).attr('font-family', null);
+      yAxis.select('.domain').remove();
+      yAxis.selectAll('text').style('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)');
+      let ml = 0; yAxis.selectAll('text').each(function () { ml = Math.max(ml, this.getComputedTextLength()); });
+      ml += 10; yAxis.attr('transform', `translate(${ml},0)`);
+      svg.insert('g', ':first-child').selectAll('line').data(y.ticks(5)).join('line')
+        .attr('x1', ml).attr('x2', W).attr('y1', (d) => y(d)).attr('y2', (d) => y(d)).style('stroke', 'var(--cds-chart-grid)');
+      const x0 = d3.scaleBand(groups, [ml + 4, W - 4]).paddingInner(0.18).paddingOuter(0.05);
+      const x1 = d3.scaleBand(arms, [0, x0.bandwidth()]).padding(0.08);
+      const xa = svg.append('g').attr('transform', `translate(0,${H - 24})`).call(d3.axisBottom(x0).tickSize(0)).attr('font-size', null).attr('font-family', null);
+      xa.select('.domain').style('stroke', 'var(--cds-chart-axis)');
+      xa.selectAll('text').attr('dy', '1.1em').style('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)');
+      svg.append('g').selectAll('rect').data(pn.rows.filter((r) => groups.includes(r.prm))).join('rect')
+        .attr('x', (r) => x0(r.prm) + x1(r.arm)).attr('width', x1.bandwidth())
+        .attr('y', (r) => y(Math.max(r.value, lo))).attr('height', (r) => Math.max(0, y(lo) - y(Math.max(r.value, lo))))
+        .attr('rx', 2).style('fill', (r) => window.pvColor(r.arm))
+        .on('pointerenter pointermove', (ev, r) => {
+          tip.hidden = false;
+          tip.replaceChildren();
+          const a = document.createElement('div'); a.className = 'k'; a.textContent = r.prm;
+          const b = document.createElement('div'); b.textContent = `${window.pvArmLabel[r.arm]}: ${fmt(r.value)}`;
+          tip.append(a, b);
+          if (pn.comp) { const c = document.createElement('div'); c.className = 'k'; c.textContent = `${r.value > pn.comp.value ? 'Above' : 'Below'} the competitor by ${fmt(Math.abs(r.value - pn.comp.value))}`; tip.append(c); }
+          const box = card.getBoundingClientRect();
+          let left = ev.clientX - box.left + 12; const top = ev.clientY - box.top - 10;
+          if (left + 220 > box.width) left = Math.max(4, ev.clientX - box.left - 230);
+          tip.style.left = left + 'px'; tip.style.top = top + 'px';
+        })
+        .on('pointerleave', () => { tip.hidden = true; });
+      if (pn.comp) {
+        const yc = y(pn.comp.value);
+        svg.append('line').attr('x1', ml).attr('x2', W).attr('y1', yc).attr('y2', yc).style('stroke', 'var(--color-bad)').style('stroke-width', 2).style('stroke-dasharray', '6 4');
+        const lab = svg.append('text').attr('x', W - 2).attr('y', yc - 5).attr('text-anchor', 'end').style('fill', 'var(--color-bad)').style('font-size', 'var(--cds-font-size-caption)').text(`competitor ${fmt(pn.comp.value)}`);
+        if (yc - 18 < 0) lab.attr('y', yc + 14);
+      }
+      card.append(tip);
+    }
+  });
+
+  dash.draw('rows', (tb) => {
+    const cells = dash.data('cells');
+    tb.replaceChildren();
+    if (cells.status !== 'ok') return;
+    const p = window.pvParams();
+    const fmt = (v) => (v == null ? '' : d3.format('.1f')(v));
+    const rank = { win: 0, lose: 1, none: 2 };
+    const rows = cells.data.filter((c) => window.pvKeep(c, p))
+      .sort((a, b) => rank[a.outcome] - rank[b.outcome] || a.benchmark.localeCompare(b.benchmark) || a.telemetry.localeCompare(b.telemetry) || a.prm.localeCompare(b.prm));
+    for (const c of rows) {
+      const tr = document.createElement('tr');
+      tr.dataset.key = c.key;
+      const cols = [c.benchmark, c.sample === 'Selection' ? 'Selection' : 'Out-of-sample', c.telemetry, c.prm, fmt(c.competitor_value), fmt(c.best_value), c.best_arm ?? '', fmt(c.mean_value), fmt(c.prm_value)];
+      cols.forEach((v, i) => { const td = document.createElement('td'); if (i >= 4 && i !== 6) td.className = 'num'; td.textContent = v; tr.append(td); });
+      const td = document.createElement('td');
+      const pill = document.createElement('span');
+      pill.className = 'pv-pill ' + (c.outcome === 'none' ? 'pv-none' : c.outcome === 'lose' ? 'pv-lose' : c.verdict.includes('L-SML') ? 'pv-win' : 'pv-mean');
+      pill.textContent = c.verdict;
+      td.append(pill); tr.append(td); tb.append(tr);
+    }
+  });
+</script>

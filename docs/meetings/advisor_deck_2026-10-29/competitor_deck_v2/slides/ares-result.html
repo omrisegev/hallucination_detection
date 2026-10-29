@@ -1,0 +1,24 @@
+<section id="ares-result" data-transition="fade" style="background:#F7F6F1;color:#17212B;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:64px;font-weight:400;line-height:1.1">ARES protocol: strong PRMs match us, the weak PRM gains 8 points</h2>
+<x-embed style="position:absolute;left:128px;top:250px;width:1664px;height:640px"><!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:transparent;font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif}</style></head><body><svg id="c" width="1664" height="640" viewBox="0 0 1664 640"></svg><script>
+const A=[["ReCEval",56.8],["ROSCOE",57.0],["Entail-Prev",59.6],["ARES",64.0],["LLM-Judge",64.3]];
+const O=[["Qwen-PRM-7B",68.2,67.6,"−0.6",66.2],["Qwen-PRM-72B",69.2,68.0,"−1.3",65.7],["PURE",66.2,66.8,"+0.6 (ns)",65.7],["RLHFlow",55.8,64.2,"+8.4",66.3]];
+const T=80,B=520,y0=40,y1=75,ns="http://www.w3.org/2000/svg",s=document.getElementById("c"),sy=v=>B-(v-y0)/(y1-y0)*(B-T);
+function e(t,a,txt){const n=document.createElementNS(ns,t);for(const k in a)n.setAttribute(k,a[k]);if(txt!=null)n.textContent=txt;s.appendChild(n);return n}
+function axis(x,w){for(let v=40;v<=75;v+=5){e("line",{x1:x,x2:x+w,y1:sy(v),y2:sy(v),stroke:v===40?"#9AA3AD":"#E6E3DA","stroke-width":v===40?2:1});e("text",{x:x-12,y:sy(v)+8,"font-size":24,fill:"#6B7280","text-anchor":"end"},v)}}
+axis(70,560);e("text",{x:70,y:30,"font-size":26,"font-weight":700,fill:"#17212B"},"ARES paper, Table 1");e("text",{x:70,y:60,"font-size":24,fill:"#6B7280"},"GPT-4o-mini, unstated PRMBench subset");
+A.forEach((a,i)=>{const x=86+i*110,y=sy(a[1]),c=a[0]==="ARES"?"#B85C22":"#C99A78";e("rect",{x:x,y:y,width:84,height:B-y,rx:4,fill:c});
+e("text",{x:x+42,y:y-12,"font-size":24,"font-weight":700,fill:"#17212B","text-anchor":"middle"},a[1].toFixed(1));
+e("text",{x:x+42,y:B+34,"font-size":24,fill:"#17212B","text-anchor":"middle"},a[0].length>8?a[0].slice(0,7)+"…":a[0])});
+axis(800,860);e("text",{x:800,y:30,"font-size":26,"font-weight":700,fill:"#17212B"},"Ours, ARES protocol");e("text",{x:800,y:60,"font-size":24,fill:"#6B7280"},"all of PRMBench, 5-fold CV threshold, grouped folds");
+O.forEach((o,i)=>{const gx=820+i*210;[[o[1],"#7C8592"],[o[2],"#2F5DA8"],[o[4],"#0E7C7B"]].forEach((b,k)=>{const x=gx+k*62,y=sy(b[0]);e("rect",{x:x,y:y,width:56,height:B-y,rx:4,fill:b[1]});
+e("text",{x:x+28,y:y-12-(k===2?0:0),"font-size":22,"font-weight":700,fill:"#17212B","text-anchor":"middle"},b[0].toFixed(1))});
+e("text",{x:gx+90,y:B+34,"font-size":24,fill:"#17212B","text-anchor":"middle"},o[0]);
+e("text",{x:gx+90,y:B+68,"font-size":24,"font-weight":700,fill:o[3][0]==="+"&&o[3].indexOf("ns")<0?"#2F5DA8":"#4A5563","text-anchor":"middle"},"AUTO "+o[3])});
+e("rect",{x:1200,y:4,width:22,height:22,rx:4,fill:"#7C8592"});e("text",{x:1230,y:23,"font-size":24,fill:"#17212B"},"PRM");
+e("rect",{x:1310,y:4,width:22,height:22,rx:4,fill:"#2F5DA8"});e("text",{x:1340,y:23,"font-size":24,fill:"#17212B"},"AUTO");e("rect",{x:1430,y:4,width:22,height:22,rx:4,fill:"#0E7C7B"});e("text",{x:1460,y:23,"font-size":24,fill:"#17212B"},"TELE16");
+</script></body></html></x-embed>
+<p style="position:absolute;left:128px;top:910px;width:1664px;font-size:26px;line-height:1.3"><b>Our PRMBench gain over strong PRMs comes mostly from our label-free decision rule.</b> With a labelled threshold the PRM catches up. <span style="color:#0E7C7B">TELE16 (no PRM) holds 65.7–66.3 for every pairing.</span></p>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#6B7280">Macro-F1 × 100. The two panels use different subsets: compare within a panel only. ns = 95% interval includes 0. Ours: results/ares_protocol_v1.</p>
+<aside>AUTO minus PRM with 95% CIs: −0.6 [−1.3, +0.1], −1.3 [−2.0, −0.6], +0.6 [−0.2, +1.3], +8.4 [+7.6, +9.2]. TELE16 without any PRM reaches 65.7 to 66.3. DeltaBench (partial coverage): AUTO +4.7 with RLHFlow, Qwen +1.1 and +1.2 not significant, PURE −6.9.</aside>
+</section>

@@ -1,0 +1,27 @@
+<section id="other-benchmarks" data-transition="fade" style="background:#F7F6F1;color:#17212B;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:72px;font-weight:400;line-height:1.1">Outside PRMBench, AUTO helps mainly the weak PRM</h2>
+<x-embed style="position:absolute;left:128px;top:230px;width:1664px;height:650px"><!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:transparent;font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif}</style></head><body><svg id="c" width="1664" height="650" viewBox="0 0 1664 650"></svg><script>
+const C=["Qwen-PRM-7B","Qwen-PRM-72B","PURE","RLHFlow"];
+const D=[["PRMBench",[[69.9,68.0],[70.2,69.5],[69.1,66.2],[65.9,59.4]]],["Socratic",[[65.5,70.1],[60.4,71.7],[63.5,70.6],[57.7,50.4]]],["Hard2Verify",[[45.6,45.8],[46.0,35.5],[38.7,50.8],[35.5,5.1]]],["ProcessBench",[[63.2,72.9],[67.3,78.2],[37.7,52.6],[33.2,29.2]]],["CRV-GSM8K",[[50.0,55.6],[49.1,59.4],[47.5,55.0],[48.0,49.9]]],["DeltaBench",[[57.2,58.6],[57.9,57.8],[49.5,57.7],[54.2,50.9]]]];
+const LB=220,CW=360,PAD=24,T=96,RH=86,x0=0,x1=80,ns="http://www.w3.org/2000/svg",s=document.getElementById("c");
+function e(t,a,txt){const n=document.createElementNS(ns,t);for(const k in a)n.setAttribute(k,a[k]);if(txt!=null)n.textContent=txt;s.appendChild(n);return n}
+const sx=(j,v)=>LB+j*CW+PAD+(v-x0)/(x1-x0)*(CW-2*PAD);
+e("circle",{cx:12,cy:22,r:10,fill:"#7C8592"});e("text",{x:30,y:30,"font-size":24,fill:"#17212B"},"PRM alone");
+e("circle",{cx:180,cy:22,r:10,fill:"#2F5DA8"});e("text",{x:198,y:30,"font-size":24,fill:"#17212B"},"AUTO");
+e("text",{x:320,y:30,"font-size":24,fill:"#4A5563"},"Number = AUTO minus PRM. Bold = AUTO higher by 1 point or more.");
+C.forEach((c,j)=>{e("text",{x:LB+j*CW+CW/2,y:80,"font-size":26,"font-weight":700,fill:"#17212B","text-anchor":"middle"},c);
+const B=T+D.length*RH;[0,40,80].forEach(v=>{e("line",{x1:sx(j,v),x2:sx(j,v),y1:T,y2:B,stroke:"#E6E3DA","stroke-width":1});e("text",{x:sx(j,v),y:B+30,"font-size":24,fill:"#6B7280","text-anchor":"middle"},v)})});
+D.forEach((r,i)=>{const y=T+i*RH;
+if(i===0)e("rect",{x:0,y:y+2,width:1664,height:RH-4,rx:8,fill:"#ECEAE2"});
+e("text",{x:12,y:y+RH/2+16,"font-size":28,fill:"#17212B"},r[0]);
+if(i===0)e("text",{x:12,y:y+RH/2-14,"font-size":24,fill:"#6B7280"},"in sample");
+r[1].forEach((v,j)=>{const a=v[0],p=v[1],d=a-p,win=d>=1,ly=y+RH/2+14;
+e("line",{x1:sx(j,p),x2:sx(j,a),y1:ly,y2:ly,stroke:win?"#2F5DA8":"#B8BEC6","stroke-width":4});
+e("circle",{cx:sx(j,p),cy:ly,r:10,fill:"#7C8592",stroke:"#F7F6F1","stroke-width":2});
+e("circle",{cx:sx(j,a),cy:ly,r:10,fill:"#2F5DA8",stroke:"#F7F6F1","stroke-width":2});
+e("text",{x:(sx(j,a)+sx(j,p))/2,y:ly-20,"font-size":24,"font-weight":win?700:400,fill:win?"#17212B":"#6B7280","text-anchor":"middle"},(d>0?"+":"")+d.toFixed(1))})});
+</script></body></html></x-embed>
+<p style="position:absolute;left:128px;top:892px;width:1664px;font-size:28px;line-height:1.3"><b>Out of domain AUTO wins 5 of 20 cells, 4 of them with RLHFlow.</b> A strong PRM alone is usually better.</p>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#6B7280">Main metric under the same per-answer rule; ProcessBench uses its first-error F1. Source: results/bracha_lr_transfer_v1/TABLES.md.</p>
+<aside>PRMBench is in sample for the recipe. On CRV the PRM's own threshold (63 to 84) beats every per-answer arm, because our rule always flags at least one step. That is the motivation for the no-error gate on the last slide.</aside>
+</section>

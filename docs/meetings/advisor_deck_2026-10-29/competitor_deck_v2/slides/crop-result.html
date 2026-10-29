@@ -1,0 +1,21 @@
+<section id="crop-result" data-transition="fade" style="background:#F7F6F1;color:#17212B;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:64px;font-weight:400;line-height:1.1">CROP: tie on PRMBench, loss on ProcessBench</h2>
+<x-embed style="position:absolute;left:128px;top:300px;width:1664px;height:600px"><!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:transparent;font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif}</style></head><body><svg id="c" width="1664" height="600" viewBox="0 0 1664 600"></svg><script>
+const P=[{t:"PRMBench (in sample)",x:90,w:700,x0:.45,x1:.85,y1:30,pts:[["Random",.4994,8.7,"#B85C22","r"],["Text format",.7751,16.2,"#B85C22","l"],["Llama telemetry",.7812,15.9,"#B85C22","lb"],["PRM",.7999,17.2,"#7C8592","r"],["CROP Trace+PRM",.8336,21.8,"#B85C22","lt"],["TELE16",.744,18.2,"#0E7C7B","l"],["AUTO",.7806,21.6,"#2F5DA8","l"]]},{t:"ProcessBench (out of domain)",x:930,w:700,x0:.70,x1:.95,y1:55,pts:[["PRM (paper)",.880,46.7,"#B85C22","lt"],["PRM (ours)",.8834,44.2,"#7C8592","l"],["CROP Trace+PRM",.894,42.4,"#B85C22","b"],["AUTO",.7714,13.8,"#2F5DA8","r"],["TELE16",.7352,10.8,"#0E7C7B","b"]]}];
+const T=50,B=520,ns="http://www.w3.org/2000/svg",s=document.getElementById("c");
+function e(t,a,txt){const n=document.createElementNS(ns,t);for(const k in a)n.setAttribute(k,a[k]);if(txt!=null)n.textContent=txt;s.appendChild(n);return n}
+P.forEach(p=>{const sx=v=>p.x+(v-p.x0)/(p.x1-p.x0)*p.w,sy=v=>B-v/p.y1*(B-T);
+e("text",{x:p.x,y:26,"font-size":28,"font-weight":700,fill:"#17212B"},p.t);
+const st=(p.x1-p.x0)/4;for(let i=0;i<=4;i++){const v=p.x0+i*st;e("line",{x1:sx(v),x2:sx(v),y1:T,y2:B,stroke:"#E6E3DA"});e("text",{x:sx(v),y:B+32,"font-size":24,fill:"#6B7280","text-anchor":"middle"},v.toFixed(2))}
+const ys=p.y1>40?10:10;for(let v=0;v<=p.y1;v+=ys){e("line",{x1:p.x,x2:p.x+p.w,y1:sy(v),y2:sy(v),stroke:"#E6E3DA"});e("text",{x:p.x-12,y:sy(v)+8,"font-size":24,fill:"#6B7280","text-anchor":"end"},v+"%")}
+e("text",{x:p.x+p.w/2,y:B+70,"font-size":24,fill:"#17212B","text-anchor":"middle"},"pooled step AUROC →   ·   ↑ % of each answer kept at 5% risk");
+p.pts.forEach(d=>{const x=sx(d[1]),y=sy(d[2]),big=d[0]==="AUTO"||d[0]==="TELE16";
+e("circle",{cx:x,cy:y,r:big?14:10,fill:d[3],stroke:"#F7F6F1","stroke-width":2});
+let tx=x+20,ty=y+8,an="start";if(d[4][0]==="l"){tx=x-20;an="end"}if(d[4]==="lb")ty=y+36;if(d[4]==="lt")ty=y-18;if(d[4]==="b"){tx=x;an="middle";ty=y+42}
+e("text",{x:tx,y:ty,"font-size":24,"font-weight":big?700:400,fill:"#17212B","text-anchor":an},d[0]+" "+d[2].toFixed(1))})});
+</script></body></html></x-embed>
+<p style="position:absolute;left:128px;top:250px;width:1664px;font-size:26px;color:#4A5563"><span style="color:#B85C22">●</span> CROP paper (score trained on labels)   <span style="color:#7C8592">●</span> PRM alone   <span style="color:#2F5DA8">●</span> AUTO (label-free score)   <span style="color:#0E7C7B">●</span> TELE16 (label-free, no PRM)</p>
+<p style="position:absolute;left:128px;top:905px;width:1664px;font-size:23px;line-height:1.4;color:#17212B"><b>Pooled step AUROC</b> ranks all steps of all answers together, so scores must be comparable across answers. Our usual <b>within-answer AUC</b> ranks steps only inside each answer, then averages. Our per-answer standardization removes each answer’s level: that lowers pooled AUROC and hurts CROP’s single global threshold.</p>
+<p style="position:absolute;left:128px;bottom:48px;width:1664px;font-size:20px;color:#6B7280">Qwen-PRM-7B. CROP Table 6, α = 0.05. Same protocol and same label-calibrated threshold for every row; only the step score differs. Ours: telemetry_only_vs_competitors_v1/TABLES.md.</p>
+<aside>On PRMBench, label-free AUTO keeps 21.6% and TELE16 18.2% (no PRM) against CROP's supervised Trace+PRM 21.8%, and above their Llama telemetry LR (15.9%). An LR on PRMBench's own labels reaches 25.1%, the supervised ceiling. On ProcessBench, our per-answer standardization loses the PRM's global calibration: AUTO keeps 13.8% and TELE16 10.8% against the PRM's 44.2%. Other PRMs on PRMBench: AUTO 20.5 (Qwen-72B), 18.9 (PURE), 15.1 (RLHFlow).</aside>
+</section>
