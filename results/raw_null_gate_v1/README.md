@@ -47,7 +47,8 @@ All 20 entries have the status `complete` and `passes=false`. Each cell shows `n
 ## Deviation from the runbook
 
 The runbook says: after a verify FAIL, commit only `CHECK.json` and the logs. Omri gave explicit approval on
-2026-10-31 to commit the full results, so `RESULTS.csv`, `FITS.json`, `VERDICT.json` and `labelfree/` are committed.
+2026-10-31 to commit the full results, so `RESULTS.csv`, `FITS.json` and `VERDICT.json` are committed. `labelfree/*.npz`
+is NOT committed: `.gitignore` excludes `results/**/*.npz`, so these files stay on the PC.
 An earlier commit (`aeef7a28`) has the logs and `VERIFY.json`.
 
 ## The 3 verify mismatches
@@ -56,9 +57,9 @@ All 3 mismatches are `G2.ece_step` on SUB5 standalone cells. The tolerance is 1e
 
 | Cell | Runner | Verifier | Difference |
 |---|---|---|---|
-| SUB5, standalone, PRMBench, qwen_prm_7b | 0.139077 | 0.136894 | 0.0022 |
-| SUB5, standalone, PRMBench, rlhflow_prm | 0.129713 | 0.129785 | 0.00007 |
-| SUB5, standalone, ProcessBench, rlhflow_prm | 0.085404 | 0.086129 | 0.0007 |
+| SUB5, standalone, PRMBench, qwen_prm_7b | 0.136894 | 0.139077 | 0.0022 |
+| SUB5, standalone, PRMBench, rlhflow_prm | 0.129785 | 0.129713 | 0.00007 |
+| SUB5, standalone, ProcessBench, rlhflow_prm | 0.086129 | 0.085404 | 0.0007 |
 
 All other fields of these 3 cells match. `ece_step` is a secondary reading and is not part of the pass rule.
 Thus the verdict does not depend on it.
@@ -90,4 +91,4 @@ identified (raw pi0 > 1 in about half of all fits) and threshold placement, not 
 Review B also found: a validity bug in the PRMBench no-harm count (`run_raw_null_gate.py:285`, does not
 change the outcome); the G2 formula uses the shared median pi0 inside each group's LR; and two errors in
 this README (the runner/verifier columns of the mismatch table are swapped; `labelfree/*.npz` is NOT
-committed, it is excluded by `.gitignore` and stays on the PC). These are not yet corrected above.
+committed, it is excluded by `.gitignore` and stays on the PC). Both were corrected above on 2026-10-31 (Runner = RESULTS.csv, Verifier = VERIFY.json "mine").
