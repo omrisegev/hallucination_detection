@@ -78,3 +78,16 @@ cells and counted the ties in the evaluated steps. It did not change files and i
 
 Thus the bin membership of these steps depends on how ties are ordered. This agrees with the hypothesis. It does
 not show that ties are the only cause.
+
+## Independent reviews (2026-10-31)
+
+Two independent read-only reviews, after the run:
+- `REVIEW_A_PC_2026-10-31.md` (reviewer on the Windows PC, with access to the saved arrays).
+- `REVIEW_B_CLOUD_2026-10-31.md` (reviewer without real data; output files, code, synthetic probes).
+
+Both agree: the FAIL is real for the frozen gates, but its main cause is an empirical null that is not
+identified (raw pi0 > 1 in about half of all fits) and threshold placement, not absence of signal.
+Review B also found: a validity bug in the PRMBench no-harm count (`run_raw_null_gate.py:285`, does not
+change the outcome); the G2 formula uses the shared median pi0 inside each group's LR; and two errors in
+this README (the runner/verifier columns of the mismatch table are swapped; `labelfree/*.npz` is NOT
+committed, it is excluded by `.gitignore` and stays on the PC). These are not yet corrected above.
