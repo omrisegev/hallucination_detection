@@ -222,3 +222,37 @@ reported with that breakdown, and is not rounded up to a general claim.
   stronger check. Its scores have been seen before in other studies, though not with these readouts.
 - **The headroom is small.** The oracle count is 75.40 against 70.40 for GAP on the CHAIN_N16 Qwen-7B PRMBench boosting
   line (`results/error_count_label_free_v1/RESULTS.csv`), so a realistic gain is a fraction of 5 points.
+
+## 7. Amendments and implementation notes (2026-11-01, written after the synthetic tests, BEFORE any label was read)
+
+**A1 (correction): the Wiener weight.** Section 3.3 gives w = β_0/β_1. The Wiener estimate of x_t is
+β_side·(r_{t−1} + r_{t+1}) + β_center·r_t, which is proportional to r_t + (2β_side/β_center)·mean(neighbors). SYM is
+defined with the neighbor MEAN, so the weight that matches it is **w = 2β_side/β_center**. The declared formula is off
+by a factor of 2. `test_wiener_weight_matches_regression` checks the corrected value against a direct regression on
+simulated data.
+
+**A2 (clarification): GCV at λ = 0.** At λ = 0 both the numerator and the denominator of GCV are 0. The value used is
+the λ → 0 limit, Σ||L s||² / (Σ tr L)². `test_gcv_zero_is_small_lambda_limit` checks it against λ = 1e-5. Ties go to the
+smaller λ.
+
+**A3 (implementation definitions, no change of intent).**
+- **Stationary share.** Entry varies with position, so the chain has no single stationary law. The share used for
+  validity is the model-implied prior marginal P(error state) averaged over the cell's own steps:
+  q_1 = e_1, q_t = q_{t−1}ρ + (1 − q_{t−1})e_t.
+- **Label switch.** States are not relabeled after EM, because the model is asymmetric: only state 0 has
+  position-dependent entry. The error state is whichever fitted state has the larger μ, and p_t is its posterior.
+  Validity uses that state.
+- **H1a ranking.** H1a ranks by the posterior log-odds, which is monotone in p_t. It is computed from forward/backward
+  mixtures, so it stays finite where p_t rounds to 1. H1b flags log-odds > 0, which is the same as p_t > .5.
+- **Variance floor.** EM has σ_j ≥ 1e-3. Answers of 1 or 2 steps take only the values 0 or ±1 after answer-z.
+- **No neighbors.** For a one-step answer, SYM and LIFT leave the score unchanged.
+- **P3 without headroom.** If a stage-1 peak gain is ≤ 0, the P3 ratio is undefined. It is reported as NA and does not
+  count as a pass.
+- **0.5-point margin on 0-1 metrics.** The margin is .005 on 0-1 metrics (Socratic, Hard2Verify).
+- **Count MAE.** It is computed over metric steps (`c.keep`): non-controls on PRMBench, all answers on the external
+  sets.
+
+**N1 (observed on synthetic data, recorded and not acted on).** On pure N(0,1) noise, the declared validity rules
+accept
+a spurious second state, with μ gap .4–.8 and share .05–.12. This is the section 6 risk in concrete form. The rules
+are not changed. H1b counts from a valid fit must therefore not be read as evidence that a second state exists.
