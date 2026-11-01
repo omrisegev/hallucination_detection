@@ -1,0 +1,212 @@
+<title>Markov DS Error Count</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Assistant:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/*__STYLE__*/
+/* Additions for this study: per-cell readout tables with inline MAE bars, CI cells. */
+.cells4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px }
+.cellp { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 10px 12px; display: grid; gap: 8px; min-width: 0 }
+.cellp h3 { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; justify-content: space-between }
+.tw { overflow-x: auto }
+table { border-collapse: collapse; width: 100%; font-size: .86rem }
+th, td { padding: 3px 6px; text-align: start; border-bottom: 1px solid var(--rule); white-space: nowrap }
+th { color: var(--muted); font-weight: 600; font-size: .78rem }
+td.n { font-family: var(--mono); font-variant-numeric: tabular-nums; direction: ltr; text-align: end }
+tr.cand td:first-child { font-weight: 700 }
+tr.ref td { color: var(--muted) }
+.barc { width: 90px; min-width: 60px }
+.barc span { display: block; height: 8px; border-radius: 3px; background: var(--c-ref) }
+tr.cand .barc span { background: var(--accent) }
+.ci { font-family: var(--mono); font-size: .8rem; direction: ltr; display: inline-block; padding: 1px 6px; border-radius: 4px }
+.ci.good { background: var(--good-soft); color: var(--good) } .ci.bad { background: var(--bad-soft); color: var(--bad) }
+.ci.na { background: var(--none-soft); color: var(--muted) }
+.matrix td, .matrix th { text-align: center }
+.matrix td:first-child, .matrix th:first-child { text-align: start }
+.kv { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .86rem; color: var(--muted) }
+.kv b { color: var(--ink); font-family: var(--mono); font-weight: 500 }
+</style>
+
+<div class="wrap" dir="rtl" lang="he">
+<header style="display:grid;gap:12px;padding-block:8px 24px">
+  <div class="eyebrow">ספירת שגיאות ברמת הצעד · Step 486 · 2026-11-01</div>
+  <h1>כמה צעדים שגויים יש בתשובה? Dawid-Skene מרקובי עם כמה מצביעים</h1>
+  <p class="lede">המודל מנסה להעריך את מספר הצעדים השגויים בתשובה בלי תוויות. הוא מתבסס על ההסכמה בין קבוצות ה-L-SML של כל זרוע, ומניח ששגיאות מגיעות ברצפים. במבחן הסינתטי הוא עבד. בנתונים אמיתיים הייתה הצלחה חלקית: ב-3 תאים (Socratic TELE16 Qwen-7B, ו-PRMBench PURE ב-AUTO וב-TELE16) הספירה שלו העלתה את ה-PRMScore הרשמי מעל GAP, מעל הקבוע 2 ומעל SHARE. המדד הראשי, טעות הספירה ב-Socratic, לא עבר: תנאי ההצלחה (E1) התקיים ב-0 מתוך 4 מודלי ה-PRM בכל אחת מ-3 הזרועות.</p>
+  <div class="scope">
+    <div><div class="eyebrow">מודלי PRM (4)</div><ul>
+      <li>Qwen2.5-Math-PRM-7B</li><li>Qwen2.5-Math-PRM-72B</li><li>PURE-PRM-7B</li><li>RLHFlow-PRM (Llama-3.1-8B)</li></ul></div>
+    <div><div class="eyebrow">Benchmarks (3)</div><ul>
+      <li>Socratic-PRMBench: <span class="num">2,995</span> תשובות. ההכרעה כאן. חושב מדויק עד 16 צעדים (<span class="num">2,991</span> תשובות)</li>
+      <li>Hard2Verify: <span class="num">181</span> תשובות, תיאורי בלבד</li>
+      <li>PRMBench: <span class="num">6,969</span> תשובות, תיאורי בלבד. חושב מדויק עד 12 צעדים (60% מהתשובות). בתשובות ארוכות יותר הספירה נלקחת מ-GAP</li></ul></div>
+    <div><div class="eyebrow">זרועות</div><ul>
+      <li><b>AUTO</b>: PRM ו-16 ערוצי טלמטריה, שהקיבוץ שלהם נקבע ב-L-SML</li>
+      <li><b>SUB5</b>: 6 ערוצי טלמטריה, בלי PRM</li>
+      <li><b>TELE16</b>: 16 ערוצי טלמטריה, בלי PRM</li></ul>
+      <p class="note">המצביעים הם קבוצות ה-L-SML של הזרוע, 4 עד 6 בכל תא. הסימון לוקח תמיד את k̂ הצעדים העליונים לפי הציון של הזרוע, כך שכל הבדל מ-GAP נובע מהספירה בלבד.</p></div>
+  </div>
+</header>
+
+<section id="wins">
+  <div class="eyebrow">מה הצליח</div>
+  <h2>ב-3 תאים הספירה של המודל מעלה את ה-PRMScore הרשמי מעל כל כלל ספירה אחר שלא משתמש בתוויות</h2>
+  <p>בשלושת התאים האלה, הספירה של המודל נותנת PRMScore גבוה יותר מ-GAP, מהקבוע 2 ומ-SHARE. בכל ההשוואות רווח הסמך של 95% כולו מעל 0. הסימון זהה בכל הכללים (הצעדים העליונים לפי הציון של הזרוע), כך שכל הרווח נובע מהספירה.</p>
+  <div class="tw"><table class="matrix">
+    <tr><th>תא</th><th>PRMScore של המודל</th><th>מול GAP</th><th>מול K2</th><th>מול SHARE</th><th>ORACLE (תקרה)</th></tr>
+    <tr><td><b>Socratic · TELE16 · Qwen-7B</b></td><td class="n">65.07</td><td><span class="ci good">+0.61 [+0.07, +1.15]</span></td><td><span class="ci good">+1.44 [+0.93, +1.95]</span></td><td><span class="ci good">+0.98 [+0.49, +1.48]</span></td><td class="n">70.33</td></tr>
+    <tr><td><b>PRMBench · AUTO · PURE</b></td><td class="n">69.70</td><td><span class="ci good">+0.64 [+0.43, +0.86]</span></td><td><span class="ci good">+0.68 [+0.34, +1.03]</span></td><td><span class="ci good">+6.57 [+6.05, +7.10]</span></td><td class="n">72.84</td></tr>
+    <tr><td><b>PRMBench · TELE16 · PURE</b></td><td class="n">69.38</td><td><span class="ci good">+0.67 [+0.44, +0.89]</span></td><td><span class="ci good">+0.73 [+0.39, +1.08]</span></td><td><span class="ci good">+6.32 [+5.82, +6.84]</span></td><td class="n">72.49</td></tr>
+    <tr><td>Hard2Verify · AUTO · RLHFlow</td><td class="n">45.45</td><td><span class="ci good">+7.53 [+4.50, +10.67]</span></td><td><span class="ci good">+7.24 [+4.80, +9.62]</span></td><td><span class="ci bad">−3.46 [−6.20, −0.82]</span></td><td class="n">68.39</td></tr>
+    <tr><td>Hard2Verify · TELE16 · RLHFlow</td><td class="n">46.15</td><td><span class="ci good">+8.61 [+5.70, +11.65]</span></td><td><span class="ci good">+7.78 [+5.19, +10.32]</span></td><td><span class="ci bad">−3.52 [−6.32, −0.84]</span></td><td class="n">68.84</td></tr>
+  </table></div>
+  <ul class="concl">
+    <li><b>בסימולציה המודל עובד במלואו.</b> הוא משחזר את הפרמטרים, וטעות הספירה שלו (0.89) נמוכה מזו של GAP ‏(1.17) ומזו של SHARE ‏(1.03).</li>
+    <li><b>המודל מזהה מי מהמצביעים טוב,</b> בלי תוויות. ההפרדה שהוא מייחס לכל קבוצה מתואמת עם איכות הקבוצה בפועל: 0.6–1.0 ב-5 מתוך 6 התאים התקפים ב-Socratic.</li>
+    <li><b>המדד שהוגדר מראש כראשי לא עבר.</b> לפי טעות הספירה (MAE), הקבוע 2 ו-SHARE ניצחו את המודל ב-Socratic. כלומר, המודל משפר את ה-PRMScore בתאים האלה בלי לספור מדויק יותר בממוצע. ה-PRMScore היה מדד מוצהר בפרוטוקול, אבל ההדגשה של התאים האלה נעשתה אחרי קריאת התוצאות. Socratic כבר נחשף בעבר, ולכן זו ראיית פיתוח. Hard2Verify קטן (181 תשובות) ותיאורי בלבד.</li>
+  </ul>
+</section>
+
+<section id="verdict">
+  <div class="eyebrow">שורה תחתונה</div>
+  <h2>תנאי ההחלטה ב-Socratic, לכל זרוע ולכל PRM</h2>
+  <div class="tw"><table class="matrix" id="verdictTable"></table></div>
+  <p class="note"><b>E1</b>: ההתאמה תקפה, טעות הספירה (MAE) נמוכה מזו של GAP ומזו של SHARE (רווחי סמך של 95% מתחת ל-0), וה-PRMScore לא יורד ביותר מחצי נקודה. נדרשים 3 מתוך 4 מודלי PRM.
+  <b>E2</b>: השרשרת המרקובית עוזרת (MDS מול IND).
+  <b>E3</b>: כמה מצביעים עוזרים (MDS מול SINGLE). ב-4 מתוך 6 התאים התקפים SINGLE נפסל ונפל ל-GAP, כך ש-"עבר" שם פירושו בפועל MDS מול GAP.</p>
+</section>
+
+<div class="bar" role="toolbar" aria-label="בחירת זרוע ו-benchmark">
+  <span class="eyebrow">זרוע:</span><div class="seg" id="armSeg"></div>
+  <span class="eyebrow">Benchmark:</span><div class="seg" id="benchSeg"></div>
+</div>
+
+<section id="cells">
+  <div class="eyebrow">ניסוי ראשי</div>
+  <h2>טעות הספירה לכל מודל PRM</h2>
+  <p class="note">MAE: ההפרש הממוצע בין מספר הצעדים שסומנו למספר הצעדים השגויים בפועל. נמוך יותר טוב יותר. הטיה חיובית פירושה ספירת יתר. PRMScore הוא המדד הרשמי (ב-Socratic וב-Hard2Verify מוצג פי 100). ORACLE מקבל את המספר האמיתי ומשמש כתקרה. שורות שהשיטה שלהן נפסלה מסומנות "→ GAP".</p>
+  <div class="cells4" id="cellGrid"></div>
+</section>
+
+<section id="contrasts">
+  <div class="eyebrow">השוואות מזווגות</div>
+  <h2>MDS מול כל רפרנס: הפרש ב-MAE, עם רווח סמך של 95%</h2>
+  <div class="tw"><table class="matrix" id="conTable"></table></div>
+  <p class="note">ערך שלילי פירושו ש-MDS סופר טוב יותר. ירוק: כל רווח הסמך מתחת ל-0. אדום: כל רווח הסמך מעל 0. אפור: כולל 0, או ששני הצדדים נפלו לאותה ספירה של GAP. ה-bootstrap הוא לפי קבוצות מקור, ומשתמש באותם משקלים כמו המעריך הרשמי.</p>
+</section>
+
+<section id="mech">
+  <div class="eyebrow">מנגנון (E4, תיאורי)</div>
+  <h2>מה המודל למד</h2>
+  <div class="tw"><table class="matrix" id="mechTable"></table></div>
+  <p class="note">ŝ הוא שיעור הצעדים השגויים שההתאמה מניחה. e ו-ρ הם הסיכויים לשגיאה אחרי צעד נכון ואחרי צעד שגוי. "δ↔AUC" הוא מתאם הדירוג בין ההפרדה שהמודל ייחס לכל מצביע לבין איכות המצביע בפועל (within-AUC; חושב אחרי ההקפאה). "מיקום" הוא המתאם בין הסתברות השגיאה של המודל למיקום הצעד בתשובה, ולצידו המתאם האמיתי. העמודה האחרונה נוספה POST HOC: האם הסתברות השגיאה של המודל מדרגת צעדים בתוך תשובה טוב יותר מהציון של הזרוע.</p>
+</section>
+
+<section id="design">
+  <div class="eyebrow">מה נבדק</div>
+  <h2>המודל, העצירה לפני התוויות, והתיקון</h2>
+  <div class="axes">
+    <div><h3>המודל</h3><p>לכל קבוצה יש ציון שמנורמל בתוך התשובה, ולכל קבוצה הפרדה δ משלה. התוויות הן שרשרת מרקוב, מותנית בכך שיש לפחות שגיאה אחת. הנרמול בתוך התשובה מטופל במדויק: הנראות מחושבת על כיוון הווקטור בלבד. כך הערך של צעד שגוי לא נקבע מראש, גם כשהוא תלוי במספר השגיאות.</p></div>
+    <div><h3>עצירה לפני תוויות</h3><p>הקירוב שהוצהר במקור, קונפיגורציה אחת לכל k, לא שחזר את הפרמטרים על נתונים סינתטיים: e יצא 0.00–0.05 במקום 0.10–0.15. גם שני תיקונים שלו נכשלו. הסכום המדויק על כל הקונפיגורציות כן שחזר את הפרמטרים. עמרי אישר לעבור אליו (תיקון A), ושום תווית עוד לא נקראה באותו שלב.</p></div>
+    <div><h3>בדיקות</h3><p id="integrity"></p></div>
+  </div>
+</section>
+
+<section id="concl">
+  <div class="eyebrow">מסקנות</div>
+  <h2>מה אפשר לומר, ומה לא</h2>
+  <ul class="concl">
+    <li><b>הספירה לא עברה.</b> ב-Socratic, בכל זרוע, תנאי ההצלחה (E1) התקיים ב-0 מתוך 4 מודלי ה-PRM. ההתאמה תקפה רק ב-Qwen-7B וב-PURE. ב-Qwen-72B וב-RLHFlow היא בחרה בפתרון "כמעט כל הצעדים שגויים", עם ŝ של 0.87–0.91, ונפסלה.</li>
+    <li><b>הניצחונות על GAP הם אפקט של שיעור, לא ספירה ספציפית לתשובה.</b> ב-3 התאים שבהם MDS ניצח את GAP (TELE16 Qwen-7B ו-PURE, AUTO PURE), SHARE, שמכפיל את השיעור של המודל באורך התשובה, ניצח אותו שוב. הקבוע 2 (K2) ניצח את MDS בכל 6 התאים התקפים ב-Socratic.</li>
+    <li><b>השרשרת המרקובית לא תרמה.</b> בתאים שבהם גם MDS וגם IND תקפים, ההפרש היה ±0.003.</li>
+    <li><b>המודל כן מזהה מצביעים טובים.</b> ב-5 מתוך 6 התאים התקפים, הדירוג של δ תואם את איכות המצביעים (מתאם 0.6–1.0). זה מתיישב עם הטענה התאורטית: הסכמה בין מצביעים מזהה את איכותם, אבל לא את כמות השגיאות.</li>
+    <li><b>מה זה סוגר.</b> רק את המימוש הזה: התאמה משותפת לכל תא, מצביעים לפי קבוצות L-SML, בלי עוגן. זה לא סוגר את הכיוון. כדי לפתוח אותו מחדש צריך עוגן לספירה שאינו ההסכמה עצמה, למשל השער של חלק 1, או מצביעים שהאי-תלות שלהם בהינתן התווית נבדקה.</li>
+    <li><b>תצפית POST HOC, לא תוצאה.</b> בתאים התקפים של AUTO ו-TELE16 ב-Socratic, הסתברות השגיאה של המודל מדרגת צעדים קצת טוב יותר מהציון של הזרוע: within-AUC גבוה ב-0.013 עד 0.047. ב-PRMBench היא ברוב התאים גרועה יותר. כדי לטעון לשיפור כזה נדרש ניסוי עם רישום מראש.</li>
+  </ul>
+</section>
+</div>
+
+<script>
+const D = /*__DATA__*/null;
+const ARMS = D.arms, BENCHES = D.benches, PRMS = D.prms;
+const PL = {qwen_prm_7b: 'Qwen-7B', qwen_prm_72b: 'Qwen-72B', pure_prm: 'PURE', rlhflow_prm: 'RLHFlow'};
+const BL = {socratic: 'Socratic', hard2verify: 'Hard2Verify', prmbench: 'PRMBench'};
+const READ = [['MDS', 'cand', 'המודל המלא (מועמד)'], ['IND', 'cand', 'בלי שרשרת מרקוב'], ['SINGLE', 'cand', 'מצביע אחד: ציון הזרוע'],
+  ['SHARE', 'cand', 'השיעור של MDS כפול האורך'], ['TOPK', 'cand', 'הקירוב המקורי (משני)'], ['GAP', 'ref', 'רפרנס'],
+  ['K2', 'ref', 'קבוע 2'], ['H1b', 'ref', 'ניסוי השכנים (היסטורי)'], ['ORACLE', 'ref', 'תקרה']];
+const CON = ['MDS - GAP', 'MDS - SHARE', 'MDS - K2', 'MDS - IND', 'MDS - SINGLE', 'MDS - TOPK'];
+let arm = 'TELE16', bench = 'socratic';
+try { arm = localStorage.getItem('mds_arm') || arm; bench = localStorage.getItem('mds_bench') || bench } catch (e) {}
+if (!ARMS.includes(arm)) arm = 'TELE16'; if (!BENCHES.includes(bench)) bench = 'socratic';
+const f = (x, d = 3) => x == null ? '—' : (+x).toFixed(d);
+const sgn = (x, d = 3) => x == null ? '—' : ((x > 0 ? '+' : x < 0 ? '−' : '') + Math.abs(x).toFixed(d));
+const el = (t, a = {}, h = '') => { const e = document.createElement(t); Object.assign(e, a); if (h) e.innerHTML = h; return e };
+
+function seg(id, items, cur, label, set) {
+  const s = document.getElementById(id); s.innerHTML = '';
+  items.forEach(it => { const b = el('button', {type: 'button'}, label(it)); b.setAttribute('aria-pressed', it === cur);
+    b.onclick = () => set(it); s.appendChild(b) });
+}
+function ciClass(c) { if (!c) return 'na'; if (c[1] === 0 && c[2] === 0) return 'na'; return c[2] < 0 ? 'good' : c[1] > 0 ? 'bad' : 'na' }
+
+function verdictTable() {
+  const t = document.getElementById('verdictTable');
+  let h = '<tr><th>זרוע</th>' + PRMS.map(p => `<th>${PL[p]}<br><span class="note">E1 · E2 · E3</span></th>`).join('') + '<th>E1 (≥3/4)</th></tr>';
+  ARMS.forEach(a => { const v = D.verdict[a];
+    h += `<tr><td><b>${a}</b></td>` + PRMS.map((p, i) => { const e1 = v.E1.per_prm[i];
+      const chip = (ok, lab) => `<span class="chip ${ok ? 'ok' : 'fail'}">${lab}</span>`;
+      const why = !e1.mds_valid ? '<span class="chip na">לא תקף</span>' : chip(e1.pass, e1.pass ? 'עבר' : 'נכשל');
+      return `<td>${why} ${chip(v.E2.per_prm[i], 'E2')} ${chip(v.E3.per_prm[i], 'E3')}</td>` }).join('') +
+      `<td><span class="chip ${v.E1.pass_ ? 'ok' : 'fail'}">${v.E1.per_prm.filter(x => x.pass).length}/4</span></td></tr>` });
+  t.innerHTML = h;
+}
+
+function cellGrid() {
+  const g = document.getElementById('cellGrid'); g.innerHTML = '';
+  PRMS.forEach(p => { const C = D.cells[`${arm}|${bench}|${p}`]; if (!C) return;
+    const mx = Math.max(...READ.map(r => C.readouts[r[0]] ? C.readouts[r[0]].mae : 0), .01);
+    const m = C.fit.MDS;
+    const valid = m.valid ? '<span class="chip ok">התאמה תקפה</span>' : `<span class="chip fail">לא תקף → GAP</span>`;
+    const box = el('div', {className: 'cellp'});
+    box.innerHTML = `<h3><span>${PL[p]}</span>${valid}</h3>
+      <div class="kv"><span>מצביעים <b>${C.fit.K}</b></span><span>ŝ <b>${f(m.implied_share)}</b></span><span>שיעור אמיתי <b>${f(C.truth.step_share)}</b></span>
+      <span>e <b>${f(m.e)}</b></span><span>ρ <b>${f(m.rho)}</b></span><span>נפל ל-GAP (ארוכות) <b>${C.fit.n_long}</b></span></div>
+      <div class="tw"><table><tr><th>שיטה</th><th>MAE</th><th class="barc"></th><th>הטיה</th><th>PRMScore</th><th>ρ ספירה</th></tr>${
+      READ.filter(r => C.readouts[r[0]]).map(([k, cls, lab]) => { const r = C.readouts[k];
+        const fb = (r.valid === false) ? ' <span class="note">→ GAP</span>' : '';
+        return `<tr class="${cls}" title="${lab}"><td>${k}${fb}</td><td class="n">${f(r.mae)}</td><td class="barc"><span style="width:${100 * r.mae / mx}%"></span></td>
+          <td class="n">${sgn(r.bias, 2)}</td><td class="n">${f(r.official, 2)}</td><td class="n">${f(r.sp, 2)}</td></tr>` }).join('')}</table></div>`;
+    g.appendChild(box) });
+}
+
+function conTable() {
+  const t = document.getElementById('conTable');
+  let h = '<tr><th>השוואה</th>' + PRMS.map(p => `<th>${PL[p]}</th>`).join('') + '</tr>';
+  [...CON.map(c => [c, 'mae']), ['MDS - GAP', 'off']].forEach(([c, mt]) => {
+    h += `<tr><td>${c}${mt === 'off' ? ' (PRMScore)' : ''}</td>` + PRMS.map(p => { const C = D.cells[`${arm}|${bench}|${p}`];
+      const x = C && C.contrasts[c] ? C.contrasts[c][mt] : null; if (!x) return '<td>—</td>';
+      let cls = ciClass(x); if (mt === 'off') cls = (x[1] === 0 && x[2] === 0) ? 'na' : x[1] > 0 ? 'good' : x[2] < 0 ? 'bad' : 'na';
+      const d = mt === 'off' ? 2 : 3;
+      return `<td><span class="ci ${cls}">${sgn(x[0], d)} [${sgn(x[1], d)}, ${sgn(x[2], d)}]</span></td>` }).join('') + '</tr>' });
+  t.innerHTML = h;
+}
+
+function mechTable() {
+  const t = document.getElementById('mechTable');
+  let h = '<tr><th>Benchmark · PRM</th><th>תקף</th><th>ŝ</th><th>אמיתי</th><th>e</th><th>ρ</th><th>δ↔AUC</th><th>מיקום: מודל / אמת</th><th>within-AUC: מודל / זרוע</th></tr>';
+  BENCHES.forEach(b => PRMS.forEach(p => { const C = D.cells[`${arm}|${b}|${p}`]; if (!C) return; const M = C.mech, m = C.fit.MDS;
+    const ph = C.posthoc ? `${f(C.posthoc.post)} / ${f(C.posthoc.fused)}` : '—';
+    h += `<tr><td>${BL[b]} · ${PL[p]}</td><td><span class="chip ${m.valid ? 'ok' : 'fail'}">${m.valid ? 'כן' : 'לא'}</span></td>
+      <td class="n">${f(m.implied_share)}</td><td class="n">${f(C.truth.step_share)}</td><td class="n">${f(m.e)}</td><td class="n">${f(m.rho)}</td>
+      <td class="n">${f(M.spearman_delta_auc, 2)}</td><td class="n">${f(M.spearman_posterior_position, 2)} / ${f(M.spearman_truth_position, 2)}</td><td class="n">${ph}</td></tr>` }));
+  t.innerHTML = h;
+}
+
+function render() {
+  try { localStorage.setItem('mds_arm', arm); localStorage.setItem('mds_bench', bench) } catch (e) {}
+  seg('armSeg', ARMS, arm, a => a, a => { arm = a; render() });
+  seg('benchSeg', BENCHES, bench, b => BL[b] + (b === 'socratic' ? '<span class="tag">קובע</span>' : '<span class="tag">תיאורי</span>'), b => { bench = b; render() });
+  cellGrid(); conTable(); mechTable();
+}
+document.getElementById('integrity').innerHTML = D.integrity;
+verdictTable(); render();
+</script>

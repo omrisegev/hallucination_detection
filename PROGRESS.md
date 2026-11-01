@@ -1,3 +1,24 @@
+## 2026-11-01: error-count line, neighbor readout (Step 485) and Markov DS count (Step 486): primary endpoints negative, PRMScore partial success in Step 486 (Claude, branch claude/raw-null-gate-2026-10-30)
+
+- **Neighbor readout, Step 485.**
+  - Adjacency improves the ranking but not PRMScore at a fixed count.
+  - The HMM count overcounts.
+  - Source: `results/neighbor_readout_v1/NEGATIVE_RESULT.md`.
+- **Markov DS count, Step 486.** The model:
+  - **voters:** the L-SML groups;
+  - **labels:** a Markov chain;
+  - **likelihood:** exact and invariant, for answer-z inputs.
+  - **Socratic:** E1 passes in 0 of 4 PRMs in AUTO, SUB5 and TELE16. The fit is valid only on Qwen-7B and PURE.
+    Where it beats GAP, SHARE beats it, and K2 beats it in every valid cell.
+  - **Partial success:** in 3 cells the count raises the official PRMScore above GAP, K2 and SHARE, with every CI
+    above 0: Socratic TELE16 Qwen-7B (+0.61 / +1.44 / +0.98), and PRMBench PURE in AUTO and TELE16 (+0.64–0.73 over
+    GAP and K2).
+  - **Report:** `results/markov_ds_count_v1/REPORT.html`, artifact https://claude.ai/artifact/L1BZotSRsfCG3kMRs3K974.
+- **Next for this line (Omri's decision):** a count anchor that is not agreement, for example combining the part-1
+  raw-null gate (still unrun, Windows machine) with the count. Alternatively, test the post hoc lead that the exact
+  posterior ranks better than the fused score on Socratic, which needs its own pre-registration.
+- **Nothing committed.**
+
 ## 2026-10-30: raw-null clean-answer gate, ready to run on the Windows machine (Claude, branch claude/raw-null-gate-2026-10-30)
 
 - **What it tests:** a label-free rule that calls an answer clean when its worst step is plausible as a correct step

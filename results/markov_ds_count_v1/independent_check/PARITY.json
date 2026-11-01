@@ -1,0 +1,23 @@
+{
+  "cell": "socratic__qwen_prm_7b__TELE16",
+  "n_compared": 2991,
+  "n_match": 2991,
+  "mismatches": [],
+  "max_abs_marginal_diff": 9.455769500732458e-12,
+  "degenerate_voter_answer_pairs": 0,
+  "params": {
+    "delta": [
+      1.0745652736165638,
+      0.3534390699154164,
+      4.4526948632016214,
+      0.06819495848511649
+    ],
+    "e": 0.1539694726390398,
+    "rho": 0.44939150193463756
+  },
+  "J_method": "log J_d(tau) = lgamma(d) + tau^2/4 + log D_{-d}(-tau) via scipy.special.pbdv; cross-checked against scipy.integrate.quad (max |diff| 1.44e-10 over 915 points, d=1..15, tau in [-20,20])",
+  "J_check_max_abs_diff": 1.4354117894299634e-10,
+  "enumeration": "all 2^n-1 configurations with >=1 error, 3<=n<=16; k-hat = smallest k with CDF>=0.5, clipped to [1, ceil(n/2)]",
+  "script": "/Users/osegev/Desktop/hallucination_detection/results/markov_ds_count_v1/independent_check/independent_count.py",
+  "seconds": 3.0
+}

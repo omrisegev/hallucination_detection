@@ -1,0 +1,53 @@
+/Users/osegev/Desktop/hallucination_detection/spectral_utils/markov_ds_count.py:128: RuntimeWarning: divide by zero encountered in log1p
+  prior = (B.y1 * le + (1 - B.y1) * l1e + B.n01 * le + B.n00 * l1e + B.n11 * lr + B.n10 * l1r - np.log1p(-q))
+/Users/osegev/Desktop/hallucination_detection/spectral_utils/markov_ds_count.py:137: RuntimeWarning: divide by zero encountered in divide
+  dq = B.n * np.power(1 - e, B.n - 1) / (1 - q)                            # d/de of -log(1 - (1-e)^n)
+/Users/osegev/Desktop/hallucination_detection/spectral_utils/markov_ds_count.py:149: RuntimeWarning: invalid value encountered in subtract
+  ex = np.exp(L - lse[B.seg_id]); Z = np.add.reduceat(ex, B.seg)
+/Users/osegev/Desktop/hallucination_detection/spectral_utils/markov_ds_count.py:126: RuntimeWarning: divide by zero encountered in log
+  le, l1e, lr, l1r = np.log(e), np.log1p(-e), np.log(rho), np.log1p(-rho)
+/Users/osegev/Desktop/hallucination_detection/spectral_utils/markov_ds_count.py:128: RuntimeWarning: invalid value encountered in multiply
+  prior = (B.y1 * le + (1 - B.y1) * l1e + B.n01 * le + B.n00 * l1e + B.n11 * lr + B.n10 * l1r - np.log1p(-q))
+/Users/osegev/Desktop/hallucination_detection/spectral_utils/markov_ds_count.py:128: RuntimeWarning: invalid value encountered in subtract
+  prior = (B.y1 * le + (1 - B.y1) * l1e + B.n01 * le + B.n00 * l1e + B.n11 * lr + B.n10 * l1r - np.log1p(-q))
+/Users/osegev/Desktop/hallucination_detection/spectral_utils/markov_ds_count.py:138: RuntimeWarning: divide by zero encountered in divide
+  de_core = (B.y1 + B.n01) / e - (1 - B.y1 + B.n00) / (1 - e) - dq
+/Users/osegev/Desktop/hallucination_detection/spectral_utils/markov_ds_count.py:138: RuntimeWarning: invalid value encountered in subtract
+  de_core = (B.y1 + B.n01) / e - (1 - B.y1 + B.n00) / (1 - e) - dq
+/Users/osegev/Desktop/hallucination_detection/spectral_utils/markov_ds_count.py:139: RuntimeWarning: divide by zero encountered in divide
+  dr_core = B.n11 / rho - B.n10 / (1 - rho)
+/Users/osegev/Desktop/hallucination_detection/spectral_utils/markov_ds_count.py:139: RuntimeWarning: invalid value encountered in divide
+  dr_core = B.n11 / rho - B.n10 / (1 - rho)
+/Users/osegev/Desktop/hallucination_detection/spectral_utils/markov_ds_count.py:141: RuntimeWarning: invalid value encountered in multiply
+  G[:, K] = de_core * e * (1 - e); G[:, K + 1] = dr_core * rho * (1 - rho)
+/Users/osegev/Desktop/hallucination_detection/spectral_utils/markov_ds_count.py:40: RuntimeWarning: divide by zero encountered in divide
+  sd = 1 / np.sqrt(1 + (dd - 1) / np.maximum(rm, 1e-300) ** 2)
+/Users/osegev/Desktop/hallucination_detection/spectral_utils/markov_ds_count.py:44: RuntimeWarning: divide by zero encountered in log
+  lw = np.concatenate([np.log(h1 * _GW + 1e-300), np.log(h2 * _GW)], 1)
+/Users/osegev/Desktop/hallucination_detection/spectral_utils/markov_ds_count.py:124: RuntimeWarning: overflow encountered in exp
+  ld = theta[:K]; dl = np.exp(ld)
+/Users/osegev/Desktop/hallucination_detection/spectral_utils/markov_ds_count.py:39: RuntimeWarning: overflow encountered in multiply
+  rm = (tt + np.sqrt(tt * tt + 4 * (dd - 1))) / 2
+/Users/osegev/Desktop/hallucination_detection/spectral_utils/markov_ds_count.py:39: RuntimeWarning: invalid value encountered in add
+  rm = (tt + np.sqrt(tt * tt + 4 * (dd - 1))) / 2
+/Users/osegev/Desktop/hallucination_detection/spectral_utils/markov_ds_count.py:42: RuntimeWarning: invalid value encountered in subtract
+  h1, h2 = (rm - lo) / 2, (hi - rm) / 2
+/Users/osegev/Desktop/hallucination_detection/spectral_utils/markov_ds_count.py:132: RuntimeWarning: overflow encountered in square
+  em = (-dl[None] ** 2 * B.kk[:, None] + lj - lj0[:, None]) * B.mask
+/Users/osegev/Desktop/hallucination_detection/spectral_utils/markov_ds_count.py:136: RuntimeWarning: overflow encountered in square
+  G[:, :K] = (-2 * dl[None] ** 2 * B.kk[:, None] + psi * tau) * B.mask     # d/d log delta
+/Users/osegev/Desktop/hallucination_detection/spectral_utils/markov_ds_count.py:126: RuntimeWarning: divide by zero encountered in log1p
+  le, l1e, lr, l1r = np.log(e), np.log1p(-e), np.log(rho), np.log1p(-rho)
+/Users/osegev/Desktop/hallucination_detection/spectral_utils/markov_ds_count.py:138: RuntimeWarning: invalid value encountered in divide
+  de_core = (B.y1 + B.n01) / e - (1 - B.y1 + B.n00) / (1 - e) - dq
+--- e=0.15 rho=0.5 delta=[1.5 1.  0.8 0.6] share=0.274 GAP 1.414
+ viterbi fit delta [1.51 1.24 1.1  0.96] e 0.045 rho 0.244 share 0.153 MAE true-th 1.121 MDS 1.393 IND 1.519 SHARE 1.340
+ mult fit delta [1.31 1.15 1.02 0.9 ] e 0.335 rho 0.408 share 0.369 MAE true-th 1.195 MDS 1.469 IND 1.504 SHARE 1.529
+--- e=0.1 rho=0.3 delta=[1.  0.8 0.6] share=0.189 GAP 1.240
+ viterbi fit delta [1.25 1.21 1.14] e 0.000 rho 0.011 share 0.104 MAE true-th 0.763 MDS 0.833 IND 0.833 SHARE 0.833
+ mult fit delta [1.18 1.14 1.09] e 0.388 rho 0.356 share 0.383 MAE true-th 0.973 MDS 2.037 IND 2.025 SHARE 1.971
+--- e=0.25 rho=0.6 delta=[1.2 1.  0.7 0.5 0.4] share=0.393 GAP 2.044
+ viterbi fit delta [1.24 1.13 1.   0.87 0.79] e 0.043 rho 0.197 share 0.147 MAE true-th 1.677 MDS 2.502 IND 2.633 SHARE 2.328
+ mult fit delta [1.17 1.06 0.93 0.82 0.74] e 0.352 rho 0.423 share 0.386 MAE true-th 1.431 MDS 1.415 IND 1.421 SHARE 1.475
+
+[exited with code 0]

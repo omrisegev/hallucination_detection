@@ -24883,3 +24883,93 @@ and GPQA/old LCiteEval RAG as negative-scope panels. Canonical files:
 `docs/research_notes/multi_population_benchmark_working_synthesis_2026-08-23.md`,
 and `configs/multi_population_benchmark_v1_{method_registry,population_registry,compatibility}.csv`.
 
+
+### Step 485 [Error count, neighbor readout] — Adjacency improves the ranking but not PRMScore at a fixed count; the label-free HMM count overcounts by 2-3x (2026-11-01)
+
+**What**: Pre-registered study (`docs/experiments/NEIGHBOR_READOUT_PREREG_2026-11-01.md`, commit 56d3d69f). The
+pre-label amendments A1-A3 and N1, and the hashes frozen in `results/neighbor_readout_v1/PROTOCOL.json`, are in commit
+3b635009.
+- **Question.** Omri's question: should a step next to a flagged error also be flagged?
+- **Cells.** 24: PRMBench, Socratic and Hard2Verify, × Qwen-7B, Qwen-72B, PURE and RLHFlow, × CHAIN_N16 and TELE_N16.
+- **Stage 1.** Label-using curves of SYM, LIFT and LAP at count k_GAP, plus SYM-RECOUNT.
+- **Stage 2.** Label-free candidates:
+  - H1, a 2-state HMM with position-dependent entry, read two ways: H1a ranks by the posterior at k_GAP, and H1b
+    flags p > .5;
+  - V1, SYM with a variogram Wiener weight;
+  - G1, Laplacian smoothing with λ chosen by GCV.
+- **Checks.** 9 synthetic tests. An independent re-implementation of H1, written from the protocol text alone,
+  matches 94,203 / 94,203 flags.
+
+**Why**: Errors on PRMBench come in runs (P(error | previous error) .417 against .123). An unflagged neighbor of a GAP
+flag is wrong in .190 of cases, against .075 for other unflagged steps.
+
+**Result**: Every pre-registered rule fails (`VERDICT.json`).
+- **H1a vs GAP** (PRMBench PRMScore, CHAIN): −.24 / +.14 / +.03 / −.25. That is 1 win, 2 losses and 1 inconclusive.
+- **H1b** loses 6–16 points. Its count error is 2.9–5.2, against GAP's 1.3–1.5. The HMM error state takes .40–.55
+  of the steps, against a true error rate of .158. This is declared risk N1.
+- **V1 and G1** lose .6–4.2 points. Both over-smooth: GCV picks the grid edge, λ = 2.
+- **Mechanism, from the stage-1 curves.** Adjacency raises within-AUC: LIFT's peak is .850 / .859 / .833 / .785,
+  against .838 / .843 / .816 / .775. At a fixed count it adds at most +.08 PRMScore. The gain only appears when the
+  count also changes: SYM-RECOUNT reaches up to +.57, as a label-using diagnostic.
+- **Verdict.** This closes the fixed-count and Gaussian-HMM implementation, not the direction.
+- **Next.** A pre-registered, label-free adjacency-aware COUNT rule, judged on Socratic.
+
+**Scope correction (Omri, same day):** CHAIN_N16 is out of scope; the in-scope arms are AUTO, SUB5 and TELE16.
+- **What was run.** AUTO and SUB5 were run POST HOC through the frozen code (`arms_extension.py`).
+- **Rules.** P1, P2 and P3 fail on all three arms.
+- **Small H1a gains on PRMBench.** SUB5: Qwen-7B +.11 and PURE +.12. AUTO: PURE +.08.
+- **SUB5 count outside PRMBench.** The H1b count helps in Socratic Qwen-7B (+1.49) and in two Hard2Verify cells. The likely reason is a higher true error count there, not detection.
+- **Socratic collapses.** Where H1a collapses on Socratic, the HMM locked onto answer position (b ≈ −8 to −11).
+- **Report.** `results/neighbor_readout_v1/REPORT.html` shows every model × benchmark cell separately.
+
+Negative result recorded: results/neighbor_readout_v1/NEGATIVE_RESULT.md
+
+---
+
+### Step 486 [Error count, Markov DS] — Exact multi-voter Markov Dawid-Skene count: raises the official PRMScore above GAP, K2 and SHARE in 3 cells, but the primary count-MAE endpoint fails (E1 0 of 4 in every arm) (2026-11-01)
+
+**What**: Pre-registered count model (`docs/experiments/MARKOV_DS_COUNT_PREREG_2026-11-01.md`), part 2 of the hurdle
+design: given at least one error, how many?
+- **Voters:** the arm's L-SML groups (AUTO, SUB5, TELE16; 4–6 per cell).
+- **Labels:** a Markov label chain.
+- **Likelihood:** an exact invariant likelihood for answer-z inputs. The stored channels are answer-z, so an error
+  step's value depends on k.
+- **Count:** the posterior median of the number of errors.
+- **Flags:** the arm's own top k̂.
+- **Controls:** IND (no chain), SINGLE (one voter), SHARE (pooled share × n), plus GAP and K2.
+- **Pre-label stop:** the declared one-configuration-per-k approximation failed its own synthetic recovery test (e
+  0.00–0.05 against 0.15). The exact sum over all configurations passed: δ, e and ρ were recovered, with MAE 0.89 vs
+  GAP 1.17 and SHARE 1.03. Omri approved Amendment A (the exact sum; n ≤ 16 on Socratic and Hard2Verify, n ≤ 12 on
+  PRMBench). Record: `results/markov_ds_count_v1/prelabel_synthetic/PRELABEL_STOP.md`.
+**Why**: Omri asked whether the DS/SML/Jaffe statistics can say how many steps are wrong. The neighbor HMM (Step
+485) had a single voter, so it could not use agreement.
+**Result**: Hashes frozen before any label; 36 of 36 label-free fits.
+- **Integrity:** an independent re-implementation matches 2,991 of 2,991 counts, with a marginal difference of
+  9.5e-12.
+- **Valid fits on Socratic:** in every arm the fit is valid only on Qwen-7B and PURE. On Qwen-72B and RLHFlow it
+  moves to "almost every step is wrong" (ŝ .87–.91) and is invalid.
+- **MDS against GAP:** better in 3 of 6 valid cells (TELE16 Qwen-7B −.229, TELE16 PURE −.116, AUTO PURE −.118).
+- **The same 3 cells against SHARE:** SHARE beats MDS in all three (+.175 to +.271), so the gain is a prevalence
+  effect.
+- **MDS against the constant K2:** K2 (MAE 1.236) beats MDS in all 6 valid Socratic cells (+.09 to +.44).
+- **Mechanism:** the Markov chain adds nothing (±.003 against IND). The fitted δ do track voter quality: Spearman with
+  voter within-AUC is .6–1.0 in 5 of the 6 valid cells. Agreement identifies voter quality, not error quantity.
+- **PRMBench:** overcounts as predicted (ŝ .21–.29 against a true .157).
+- **Hard2Verify:** mostly invalid.
+- **POST HOC, descriptive:** in the valid AUTO/TELE16 Socratic cells the posterior marginal ranks errors within an
+  answer +.013 to +.047 within-AUC better than the fused score. On PRMBench it is mostly worse. Not a result.
+- **Partial success (official PRMScore, flags identical, so the gain comes from the count alone).** In 3 cells MDS
+  beats GAP, K2 and SHARE, with every CI above 0:
+  - Socratic TELE16 Qwen-7B: 65.07; +0.61 / +1.44 / +0.98.
+  - PRMBench AUTO PURE: 69.70; +0.64 / +0.68 / +6.57.
+  - PRMBench TELE16 PURE: 69.38; +0.67 / +0.73 / +6.32.
+  - Hard2Verify RLHFlow, AUTO and TELE16: +7.5 / +8.6 over GAP and +7.2 / +7.8 over K2; SHARE is better there.
+  - Caveat: these cells were highlighted after the results were read.
+- **Verdict:** closes this implementation, not the direction. Reopening needs a count anchor other than agreement
+  (for example the part-1 gate), or voters whose conditional independence has been checked.
+- **Sources:** report `results/markov_ds_count_v1/REPORT.html` (published as an artifact); `RESULTS.csv`,
+  `CONTRASTS.csv`, `MECHANISM.csv`, `VERDICT.json`.
+
+Negative result recorded: results/markov_ds_count_v1/NEGATIVE_RESULT.md
+
+---

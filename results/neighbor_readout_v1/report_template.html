@@ -1,0 +1,435 @@
+<title>Neighbor Readout Study</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Assistant:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: lab notebook. One reading column; experiments as numbered sections (real order of the study); charts in small-multiple grids. */
+:root {
+  --bg: #f5f6f3; --panel: #ffffff; --ink: #1d2433; --muted: #5d6576; --rule: #dde0e6;
+  --accent: #2446b8; --accent-soft: #e4e9fb;
+  --good: #1f7a4a; --good-soft: #e1f2e8; --bad: #b8432b; --bad-soft: #f8e5e0; --none: #8a90a0; --none-soft: #eceef2;
+  --c-sym: #2446b8; --c-lift: #c2741d; --c-lap: #7a3fb0; --c-rec: #1f7a4a; --c-ref: #8a90a0;
+  --display: "Frank Ruhl Libre", "Times New Roman", serif;
+  --body: "Assistant", "Segoe UI", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12151c; --panel: #1a1e27; --ink: #e6e8ee; --muted: #9aa1b2; --rule: #2c3240;
+  --accent: #8aa4ff; --accent-soft: #232c4a;
+  --good: #5cc48b; --good-soft: #17301f; --bad: #f08a70; --bad-soft: #3a211b; --none: #8a90a0; --none-soft: #252a35;
+  --c-sym: #8aa4ff; --c-lift: #f0a64a; --c-lap: #c08cf0; --c-rec: #5cc48b; --c-ref: #8a90a0; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #12151c; --panel: #1a1e27; --ink: #e6e8ee; --muted: #9aa1b2; --rule: #2c3240;
+  --accent: #8aa4ff; --accent-soft: #232c4a;
+  --good: #5cc48b; --good-soft: #17301f; --bad: #f08a70; --bad-soft: #3a211b; --none: #8a90a0; --none-soft: #252a35;
+  --c-sym: #8aa4ff; --c-lift: #f0a64a; --c-lap: #c08cf0; --c-rec: #5cc48b; --c-ref: #8a90a0; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.6; margin: 0 }
+.wrap { max-width: 1120px; margin: 0 auto; padding-block: 28px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; line-height: 1.25; margin: 0 }
+h1 { font-size: 2.1rem } h2 { font-size: 1.55rem } h3 { font-size: 1.15rem }
+p { margin: 0; max-width: 72ch }
+.mono, .num { font-family: var(--mono); font-variant-numeric: tabular-nums }
+.eyebrow { font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700 }
+section { display: grid; gap: 14px; padding-block: 30px; border-top: 1px solid var(--rule) }
+.lede { font-size: 1.08rem; color: var(--muted) }
+.scope { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px }
+.scope > div { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 12px 14px; min-width: 0 }
+.scope ul { margin: 6px 0 0; padding-inline-start: 18px }
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 10px;
+  border-bottom: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: 10px; align-items: center }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg) }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; background: var(--panel) }
+.seg button { font: inherit; border: 0; background: transparent; color: var(--ink); padding: 6px 14px; cursor: pointer }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--panel) }
+.seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px }
+.seg button .tag { font-size: .72rem; opacity: .8; margin-inline-start: 6px }
+.note { font-size: .9rem; color: var(--muted) }
+.chip { display: inline-block; font-size: .78rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; white-space: nowrap }
+.chip.ok { background: var(--good-soft); color: var(--good) } .chip.fail { background: var(--bad-soft); color: var(--bad) }
+.chip.na { background: var(--none-soft); color: var(--muted) }
+.variants { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px }
+.var { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; min-width: 0 }
+.var h3 { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap }
+.var .kind { font-family: var(--body); font-size: .75rem; color: var(--muted); font-weight: 600 }
+.var dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font-size: .92rem }
+.var dt { color: var(--muted) } .var dd { margin: 0 }
+.axes { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px }
+.axes > div { border-inline-start: 3px solid var(--accent); padding-inline-start: 12px; min-width: 0 }
+.exp-head { display: grid; gap: 6px }
+.hyp { background: var(--accent-soft); border-radius: 8px; padding: 10px 14px; display: grid; gap: 4px }
+.grid12 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px }
+.grid12 .rowlab { grid-column: 1 / -1; font-weight: 700; margin-top: 6px }
+.mini { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 6px 6px 2px; min-width: 0 }
+.mini .t { font-size: .8rem; color: var(--muted); display: flex; justify-content: space-between; gap: 6px; flex-wrap: wrap }
+svg { display: block; width: 100%; height: auto; overflow: visible; direction: ltr }
+svg text { fill: var(--muted); font-family: var(--mono); font-size: 10px }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: .88rem; color: var(--muted) }
+.legend i { display: inline-block; width: 18px; height: 3px; vertical-align: middle; margin-inline-end: 6px; border-radius: 2px }
+.forest { overflow-x: auto }
+.tally { display: flex; flex-wrap: wrap; gap: 8px }
+.tally .t1 { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 8px 12px; font-size: .9rem; min-width: 0 }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px }
+.panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 10px 12px; min-width: 0 }
+.validity { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px }
+.vcell { display: grid; grid-template-columns: auto repeat(4, 1fr); gap: 3px; font-size: .8rem; align-items: center }
+.vcell .h { color: var(--muted); text-align: center }
+.dot { height: 18px; border-radius: 4px; display: grid; place-items: center; font-family: var(--mono); font-size: .7rem }
+.dot.v { background: var(--good-soft); color: var(--good) } .dot.f { background: var(--bad-soft); color: var(--bad) }
+.concl li { margin-bottom: 6px; max-width: 80ch }
+@media (max-width: 760px) { .grid12 { grid-template-columns: repeat(2, minmax(0, 1fr)) } h1 { font-size: 1.6rem } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important } }
+</style>
+
+<div class="wrap" dir="rtl" lang="he">
+<header style="display:grid;gap:12px;padding-block:8px 24px">
+  <div class="eyebrow">ספירת שגיאות ברמת הצעד · Step 485 · 2026-11-01</div>
+  <h1>האם צעד שכן לשגיאה צריך להיות מסומן?</h1>
+  <p class="lede">שגיאות ב-PRMBench מגיעות ברצפים: אחרי צעד שגוי, הצעד הבא שגוי ב-41.7% מהמקרים, ואחרי צעד נכון רק ב-12.3%. GAP, שיטת הסימון הנוכחית, שופטת כל צעד לבד. בדקנו כאן אם קריאה שמתחשבת בשכנים בזמן משפרת את בחירת הצעדים לסימון או את מספרם, ואם אפשר לבחור את משקל השכנים בלי תוויות.</p>
+  <div class="scope">
+    <div><div class="eyebrow">מודלי PRM (4)</div><ul>
+      <li>Qwen2.5-Math-PRM-7B</li><li>Qwen2.5-Math-PRM-72B</li><li>PURE-PRM-7B</li><li>RLHFlow-PRM (Llama-3.1-8B)</li></ul>
+      <p class="note">Math-Shepherd לא נכלל, לפי ההחלטה מ-2026-10-26.</p></div>
+    <div><div class="eyebrow">Benchmarks (3)</div><ul>
+      <li>PRMBench: <span class="num">6,969</span> תשובות, <span class="num">94,203</span> צעדים (פיתוח, ראשי)</li>
+      <li>Socratic-PRMBench: <span class="num">2,995</span> תשובות (העברה)</li>
+      <li>Hard2Verify: <span class="num">181</span> תשובות (תיאורי בלבד)</li></ul>
+      <p class="note">ProcessBench לא נכלל: התוויות שלו מסמנות רק את השגיאה הראשונה.</p></div>
+    <div><div class="eyebrow">ציוני fusion (זרועות)</div><ul>
+      <li><b>AUTO</b>: PRM ו-16 ערוצי טלמטריה, שהקיבוץ שלהם נקבע ב-L-SML</li>
+      <li><b>SUB5</b>: 6 ערוצי טלמטריה, בלי PRM</li>
+      <li><b>TELE16</b>: 16 ערוצי טלמטריה, בלי PRM</li>
+      <li><b>CHAIN16</b>: מחוץ לתחום. מוצג רק כרפרנס היסטורי.</li></ul>
+      <p class="note">TELE16 ו-CHAIN16 רצו בפרוטוקול שהוקפא מראש. AUTO ו-SUB5 נוספו אחר כך (POST HOC), עם אותו קוד קפוא. בכל הזרועות הטלמטריה היא של ה-backbone.</p></div>
+  </div>
+</header>
+
+<div class="bar" role="toolbar" aria-label="בחירת זרוע">
+  <span class="eyebrow">זרוע:</span>
+  <div class="seg" id="armSeg"></div>
+  <span class="note" id="armNote"></span>
+</div>
+
+<section id="verdict">
+  <div class="eyebrow">שורה תחתונה</div>
+  <h2>מה הצליח ומה נכשל, בזרוע שנבחרה</h2>
+  <div class="tally" id="tally"></div>
+  <p class="note">כל שורה סופרת תאים, כלומר צירופים של benchmark ו-PRM. "מובהק" פירושו שרווח הסמך של 95% (bootstrap מזווג על אותן תשובות) לא כולל 0. "לא מכריע" פירושו שהוא כולל 0. "נפל ל-GAP" פירושו שההתאמה נפסלה בכללי התקפות, והשיטה החזירה בדיוק את GAP.</p>
+</section>
+
+<section id="axes">
+  <div class="eyebrow">איך לקרוא את הגרפים</div>
+  <h2>מערכות הצירים</h2>
+  <div class="axes">
+    <div><h3>עקומת משקל (ניסוי 1, ניסוי 4)</h3><p>ציר <b>x</b> הוא עוצמת ההתחשבות בשכנים: w בין 0 ל-1 ב-SYM, LIFT ו-RECOUNT, ו-λ בין 0 ל-2 ב-LAP. ציר <b>y</b> הוא ההפרש ב-PRMScore מול GAP, בנקודות, על סולם 0–100 בכל ה-benchmarks. הקו האופקי ב-0 הוא GAP עצמו. נקודה מעל 0 היא שיפור. בפינה מופיע ההפרש של ORACLE, כלומר כמה אפשר להרוויח אם יודעים את מספר השגיאות האמיתי.</p></div>
+    <div><h3>עקומת AUC בתוך התשובה</h3><p>אותו ציר <b>x</b>. ציר <b>y</b> הוא ההפרש ב-AUC הממוצע בתוך כל תשובה: האם הדירוג מציב צעדים שגויים מעל צעדים נכונים באותה תשובה. המדד בודק דירוג בלבד, לא כמה צעדים מסומנים. לכן הוא יכול לעלות גם כש-PRMScore לא זז.</p></div>
+    <div><h3>Forest plot (ניסויים 2, 3, 4, 5)</h3><p>כל שורה היא תא אחד של benchmark ו-PRM. הנקודה היא ההפרש מול GAP, והקו האופקי הוא רווח סמך של 95%. הציר חתוך ב-±3 נקודות PRMScore (או ±0.06 AUC), כדי שאפקטים קטנים יהיו גלויים. ערך מחוץ לטווח מוצג כמשולש בקצה, והערך המדויק מופיע בעמודה הימנית. ירוק: שיפור מובהק. אדום: הרעה מובהקת. אפור: לא מכריע. נקודה חלולה: ההתאמה נפסלה, והשיטה נפלה ל-GAP (הפרש 0 בהגדרה).</p></div>
+    <div><h3>ספירה (ניסוי 3)</h3><p>ציר <b>x</b> הוא מספר הצעדים המסומנים בממוצע לתשובה. לכל תא מופיעים שלושה סימנים: הספירה האמיתית, הספירה של GAP והספירה של מודל ה-HMM. ככל שהסימן קרוב יותר לספירה האמיתית, הספירה טובה יותר. ההשוואה לצידו: חלק הצעדים שה-HMM משייך ל"מצב שגיאה", מול שיעור השגיאות האמיתי.</p></div>
+  </div>
+</section>
+
+<section id="variants">
+  <div class="eyebrow">הווריאנטים</div>
+  <h2>מה נבדק, ובאיזו הנחה</h2>
+  <div class="variants" id="variantCards"></div>
+</section>
+
+<section id="exp1">
+  <div class="exp-head"><div class="eyebrow">ניסוי 1 · אבחון עם תוויות · לא שיטה</div>
+  <h2>האם יש בכלל אות של שכנות, כשמספר הסימונים קבוע?</h2>
+  <div class="hyp"><b>הנחה:</b><span>אם שגיאות מגיעות ברצפים, הוספת ציון השכנים צריכה להעלות צעדים שגויים בדירוג. בודקים זאת על כל רשת המשקלים, עם התוויות, כדי לדעת אם יש בכלל מה למצוא. מספר הצעדים המסומנים נשאר של GAP, חוץ מ-RECOUNT, שמחשב את GAP מחדש.</span></div></div>
+  <div class="legend"><span><i style="background:var(--c-sym)"></i>SYM</span><span><i style="background:var(--c-lift)"></i>LIFT</span><span><i style="background:var(--c-rec)"></i>SYM-RECOUNT (גם הספירה משתנה)</span></div>
+  <h3>PRMScore מול GAP</h3><div class="grid12" id="g1off"></div>
+  <h3>AUC בתוך התשובה מול GAP</h3><div class="grid12" id="g1w"></div>
+  <p class="note" id="exp1note"></p>
+</section>
+
+<section id="exp2">
+  <div class="exp-head"><div class="eyebrow">ניסוי 2 · ללא תוויות · השערה P1</div>
+  <h2>H1a: מודל מרקובי בוחר אילו צעדים לסמן</h2>
+  <div class="hyp"><b>הנחה:</b><span>הציון של כל צעד מגיע מאחד משני מצבים נסתרים, "נכון" או "שגוי". המעבר ביניהם מרקובי: הסיכוי להיכנס לשגיאה תלוי במיקום היחסי בתשובה, והסיכוי להישאר בשגיאה קבוע. מדרגים לפי ההסתברות הפוסטריורית לשגיאה, ומסמנים את אותו מספר צעדים כמו GAP. <b>כלל ההצלחה:</b> שיפור מובהק ב-PRMScore ב-3 מתוך 4 מודלי PRM, בלי הרעה מובהקת ב-AUC.</span></div></div>
+  <div class="two"><div class="panel"><h3>הפרש PRMScore מול GAP</h3><div class="forest" id="f2off"></div></div>
+  <div class="panel"><h3>הפרש AUC בתוך התשובה מול GAP</h3><div class="forest" id="f2w"></div></div></div>
+</section>
+
+<section id="exp3">
+  <div class="exp-head"><div class="eyebrow">ניסוי 3 · ללא תוויות · השערה P2</div>
+  <h2>H1b: אותו מודל קובע גם כמה צעדים לסמן</h2>
+  <div class="hyp"><b>הנחה:</b><span>אם המצב הנסתר באמת מייצג שגיאה, מסמנים כל צעד שההסתברות שלו לשגיאה גבוהה מ-0.5, בלי תקרה. <b>כלל ההצלחה:</b> PRMScore לפחות כמו K2 פחות חצי נקודה, וטעות ספירה קטנה מזו של GAP, ב-3 מתוך 4 מודלים.</span></div></div>
+  <div class="two"><div class="panel"><h3>ספירה ממוצעת לתשובה</h3><div class="legend"><span><i style="background:var(--ink)"></i>אמיתית</span><span><i style="background:var(--c-ref)"></i>GAP</span><span><i style="background:var(--bad)"></i>H1b</span></div><div class="forest" id="f3count"></div></div>
+  <div class="panel"><h3>הפרש PRMScore: H1b מול GAP</h3><div class="forest" id="f3off"></div></div></div>
+  <div class="panel"><h3>חלק הצעדים ב"מצב שגיאה" לפי המודל, מול שיעור השגיאות האמיתי</h3><div class="forest" id="f3share"></div>
+  <p class="note">המודל מוצא "חצי עליון של הציונים", לא שגיאות. זה הסיכון N1 שהוצהר מראש: פליטות גאוסיות על ציונים מנורמלים (answer-z) מקבלות מחלקה שנייה מזויפת. הבדיקות הסינתטיות הראו זאת כבר על רעש טהור.</p></div>
+</section>
+
+<section id="exp4">
+  <div class="exp-head"><div class="eyebrow">ניסוי 4 · ללא תוויות · השערה P3</div>
+  <h2>V1 ו-G1: בחירת משקל השכנים בלי תוויות</h2>
+  <div class="hyp"><b>הנחה:</b><span><b>V1:</b> הציון הוא אות מרקובי ועוד רעש. מתוך ה-variogram של הציונים מעריכים את ההתמדה λ, ומקבלים משקל Wiener ל-SYM. <b>G1:</b> מחליקים על גרף השרשרת, ובוחרים את עוצמת ההחלקה λ ב-GCV. <b>כלל ההצלחה:</b> המשקל שנבחר משיג לפחות חצי מהרווח של המשקל הטוב ביותר בעקומה המסומנת, ב-3 מתוך 4 מודלים.</span></div></div>
+  <div class="two"><div class="panel"><h3>V1 (SYM עם משקל Wiener): הפרש PRMScore מול GAP</h3><div class="forest" id="f4v"></div></div>
+  <div class="panel"><h3>G1 (החלקת Laplacian): הפרש PRMScore מול GAP</h3><div class="forest" id="f4g"></div></div></div>
+  <h3>איפה המשקל שנבחר נופל על העקומה</h3>
+  <div class="legend"><span><i style="background:var(--c-sym)"></i>SYM (ציר w)</span><span><i style="background:var(--c-lap)"></i>LAP (ציר λ/2)</span><span>◆ המשקל ש-V1 או G1 בחרו</span></div>
+  <div class="grid12" id="g4"></div>
+</section>
+
+<section id="exp5">
+  <div class="exp-head"><div class="eyebrow">ניסוי 5 · ללא תוויות · בדיקת ביטול</div>
+  <h2>האם המיקום בתשובה עוזר למודל?</h2>
+  <div class="hyp"><b>הנחה:</b><span>שגיאות שכיחות יותר בסוף התשובה (2% בעשירון הראשון, 26% בעשירון האחרון). לכן מודל שבו הסיכוי להיכנס לשגיאה תלוי במיקום צריך לנצח מודל עם סיכוי כניסה קבוע (H1-NOPOS).</span></div></div>
+  <div class="two"><div class="panel"><h3>H1a מול H1-NOPOS: PRMScore</h3><div class="forest" id="f5off"></div></div>
+  <div class="panel"><h3>H1a מול H1-NOPOS: AUC בתוך התשובה</h3><div class="forest" id="f5w"></div></div></div>
+</section>
+
+<section id="validity">
+  <div class="eyebrow">תקפות ההתאמות</div>
+  <h2>באילו תאים מודל ה-HMM עבר את כללי התקפות</h2>
+  <p class="note">ירוק: ההתאמה תקפה, והשיטה רצה. אדום: ההתאמה נפסלה, והשיטה נפלה ל-GAP. הסיבה מופיעה במעבר עכבר. ברוב התאים החיצוניים חלק מצב השגיאה עולה על 60%.</p>
+  <div class="validity" id="valid"></div>
+  <p class="note" id="parity"></p>
+</section>
+
+<section id="concl">
+  <div class="eyebrow">מסקנות</div>
+  <h2>מה אפשר לומר, ומה לא</h2>
+  <ul class="concl" id="conclList"></ul>
+</section>
+</div>
+
+<script>
+const D = /*__DATA__*/null;
+const BN = {prmbench: 'PRMBench', socratic: 'Socratic', hard2verify: 'Hard2Verify'};
+const PN = {qwen_prm_7b: 'Qwen-7B', qwen_prm_72b: 'Qwen-72B', pure_prm: 'PURE', rlhflow_prm: 'RLHFlow'};
+const AN = {AUTO: 'AUTO', SUB5: 'SUB5', TELE_N16: 'TELE16', CHAIN_N16: 'CHAIN16'};
+const ATAG = {AUTO: 'post hoc', SUB5: 'post hoc', TELE_N16: 'קפוא', CHAIN_N16: 'מחוץ לתחום'};
+let ARM = 'AUTO';
+try { const s = localStorage.getItem('nr_arm'); if (s && D.arms.includes(s)) ARM = s } catch (e) {}
+const NS = 'http://www.w3.org/2000/svg';
+const el = (t, a = {}, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e };
+const cell = (b, p) => D.cells[`${ARM}|${b}|${p}`];
+const f2 = (x, d = 2) => x == null ? '—' : (x > 0 ? '+' : '') + x.toFixed(d);
+const sig = ci => !ci ? 'na' : ci[1] > 0 ? 'good' : ci[2] < 0 ? 'bad' : 'none';
+const COL = {good: 'var(--good)', bad: 'var(--bad)', none: 'var(--none)', na: 'var(--none)'};
+
+/* ---------- variants ---------- */
+const VARS = [
+  ['GAP', 'רפרנס נוכחי', 'ממיינים את ציוני התשובה, ובוחרים k לפי הפער הגדול ביותר בין ציונים סמוכים במיון (עד תקרה של מחצית הצעדים). מסמנים את k הצעדים הגבוהים.', 'כל צעד נשפט לבד. סדר הזמן לא משנה.', 'רפרנס'],
+  ['K2', 'רפרנס עם prior', 'מסמנים בדיוק 2 צעדים בכל תשובה.', 'משתמש בידע שבנייה של PRMBench מכניסה כ-2 שגיאות לתשובה. אינו שיטה.', 'רפרנס'],
+  ['ORACLE', 'תקרה עם תוויות', 'מסמנים את k הצעדים הגבוהים, כש-k הוא מספר השגיאות האמיתי.', 'משתמש בתוויות. מראה כמה אפשר להרוויח מספירה מושלמת.', 'תקרה'],
+  ['SYM(w)', 'אבחון, ניסוי 1', 'ציון חדש: הציון של הצעד ועוד w כפול ממוצע הציונים של השכנים (הצעד הקודם והבא).', 'החלקה סימטרית: שכן חזק מרים, ושכן חלש מוריד.', 'אבחון'],
+  ['LIFT(w)', 'אבחון, ניסוי 1', 'ציון חדש: הציון של הצעד ועוד w כפול הפער עד השכן החזק ביותר, אם השכן חזק יותר. אחרת הציון לא משתנה.', 'אסימטרי: שכן חזק מרים, אבל שיא מבודד לא יורד. בבדיקה המקדימה צעד מסומן מבודד לא היה פחות שגוי.', 'אבחון'],
+  ['LAP(λ)', 'אבחון, ניסוי 4', 'החלקת Tikhonov על גרף השרשרת של התשובה, (I+λL)⁻¹s. משפיעה גם מעבר לשכן אחד.', 'ההשפעה דועכת עם המרחק בגרף.', 'אבחון'],
+  ['SYM-RECOUNT(w)', 'אבחון, ניסוי 1', 'כמו SYM, אבל GAP מחושב מחדש על הציון החדש. לכן גם מספר הסימונים משתנה.', 'בודק אם האות עובר דרך הספירה.', 'אבחון'],
+  ['H1a', 'מועמד ללא תוויות (P1)', 'מודל HMM עם 2 מצבים: פליטות גאוסיות, כניסה לשגיאה כ-sigmoid של המיקום, והישארות בשגיאה בהסתברות ρ. Baum-Welch מאוגד על כל תשובות התא. מדרגים לפי הפוסטריור, ומסמנים k_GAP צעדים.', 'הציונים מגיעים משני מצבים, והשגיאה היא שרשרת מרקוב שתלויה במיקום.', 'מועמד'],
+  ['H1b', 'מועמד ללא תוויות (P2)', 'אותו מודל. מסמנים כל צעד שהפוסטריור שלו גדול מ-0.5, כך שהספירה באה מהמודל.', 'בנוסף: המצב הנסתר הוא באמת "שגיאה", לא מצב אחר של הציון.', 'מועמד'],
+  ['H1-NOPOS', 'ביטול', 'כמו H1, בלי תלות של הכניסה במיקום (b=0).', 'בודק את תרומת המיקום.', 'ביטול'],
+  ['V1', 'מועמד ללא תוויות (P3)', 'משערכים את ה-variogram של הציון, אחרי הסרת הממוצע של כל עשירון מיקום, בפיגורים 1 עד 3. מתוכו מקבלים λ, Vx ו-σ², ובונים משקל Wiener: w = 2β_side/β_center (תיקון A1).', 'הציון הוא אות AR(1) ועוד רעש לבן. ההתמדה של האות היא ההתמדה של השגיאה.', 'מועמד'],
+  ['G1', 'מועמד ללא תוויות (P3)', 'בוחרים את λ של LAP מתוך הרשת לפי GCV מאוגד.', 'ההחלקה שמנבאת את הציון הכי טוב היא גם הכי טובה לזיהוי שגיאות.', 'מועמד']
+];
+function variantStatus(name) {
+  const t = tallies();
+  const m = {'H1a': t.H1a, 'H1b': t.H1b, 'H1-NOPOS': t.H1_NOPOSa, 'V1': t.V1, 'G1': t.G1};
+  if (!m[name]) return null;
+  const pb = m[name].prmbench;
+  return pb.g >= 3 ? ['ok', 'עבר ב-PRMBench'] : ['fail', `PRMBench: ${pb.g} שיפורים, ${pb.b} הרעות, ${pb.n} לא מכריע, ${pb.f} נפל ל-GAP`];
+}
+function renderVariants() {
+  const box = document.getElementById('variantCards'); box.innerHTML = '';
+  for (const [n, kind, what, assume, role] of VARS) {
+    const st = variantStatus(n);
+    const d = document.createElement('div'); d.className = 'var';
+    d.innerHTML = `<h3>${n} <span class="kind">${kind}</span>${st ? ` <span class="chip ${st[0]}">${st[1]}</span>` : ''}</h3>
+      <dl><dt>מה עושים</dt><dd>${what}</dd><dt>הנחה</dt><dd>${assume}</dd></dl>`;
+    box.appendChild(d);
+  }
+}
+
+/* ---------- tallies ---------- */
+function tallies() {
+  const out = {};
+  for (const c of ['H1a', 'H1b', 'H1_NOPOSa', 'V1', 'G1']) {
+    out[c] = {};
+    for (const b of D.benches) {
+      const t = {g: 0, b: 0, n: 0, f: 0};
+      for (const p of D.prms) {
+        const x = cell(b, p); if (!x) continue; const k = x.cand[c];
+        if (k.fallback) t.f++; else { const s = sig(k.d_off); t[s === 'good' ? 'g' : s === 'bad' ? 'b' : 'n']++ }
+      }
+      out[c][b] = t;
+    }
+  }
+  return out;
+}
+function renderTally() {
+  const t = tallies(), box = document.getElementById('tally'); box.innerHTML = '';
+  const lab = {H1a: 'H1a · בחירת צעדים', H1b: 'H1b · ספירה', H1_NOPOSa: 'H1-NOPOS · בלי מיקום', V1: 'V1 · משקל Wiener', G1: 'G1 · החלקת GCV'};
+  for (const c in lab) {
+    const d = document.createElement('div'); d.className = 't1';
+    d.innerHTML = `<b>${lab[c]}</b><br>` + D.benches.map(b => {
+      const x = t[c][b];
+      return `<span class="mono">${BN[b]}</span>: <span style="color:var(--good)">${x.g}↑</span> <span style="color:var(--bad)">${x.b}↓</span> <span style="color:var(--muted)">${x.n}≈ ${x.f}↺</span>`;
+    }).join('<br>');
+    box.appendChild(d);
+  }
+  const k = document.createElement('div'); k.className = 't1 note';
+  k.innerHTML = '↑ שיפור מובהק · ↓ הרעה מובהקת · ≈ לא מכריע · ↺ נפל ל-GAP<br>הכלל המוצהר: 3 מתוך 4 PRMs ב-PRMBench.';
+  box.appendChild(k);
+}
+
+/* ---------- mini line charts ---------- */
+function mini(host, series, opts) {
+  const W = 220, H = 120, L = 40, R = 6, T = 8, B = 18;
+  const s = el('svg', {viewBox: `0 0 ${W} ${H}`, role: 'img'}, host);
+  let ys = [0]; series.forEach(sr => sr.pts.forEach(p => ys.push(p[1])));
+  if (opts.marks) opts.marks.forEach(m => ys.push(m[1]));
+  let lo = Math.min(...ys), hi = Math.max(...ys); if (hi - lo < 1e-9) { hi += .5; lo -= .5 }
+  const pad = (hi - lo) * .08; lo -= pad; hi += pad;
+  const X = x => L + (x - opts.x0) / (opts.x1 - opts.x0) * (W - L - R), Y = y => T + (hi - y) / (hi - lo) * (H - T - B);
+  [lo + pad, 0, hi - pad].forEach(v => { if (v < lo || v > hi) return;
+    el('line', {x1: L, x2: W - R, y1: Y(v), y2: Y(v), stroke: v === 0 ? 'var(--ink)' : 'var(--rule)', 'stroke-width': v === 0 ? 1 : .6, 'stroke-dasharray': v === 0 ? '' : '2 2'}, s);
+    const tx = el('text', {x: L - 3, y: Y(v) + 3, 'text-anchor': 'end'}, s); tx.textContent = opts.fmt(v); });
+  opts.xt.forEach(v => { const tx = el('text', {x: X(v), y: H - 4, 'text-anchor': 'middle'}, s); tx.textContent = v; });
+  series.forEach(sr => {
+    el('polyline', {points: sr.pts.map(p => `${X(p[0])},${Y(p[1])}`).join(' '), fill: 'none', stroke: sr.color, 'stroke-width': 1.6}, s);
+    sr.pts.forEach(p => el('circle', {cx: X(p[0]), cy: Y(p[1]), r: 1.8, fill: sr.color}, s));
+  });
+  (opts.marks || []).forEach(m => el('path', {d: `M${X(m[0])} ${Y(m[1]) - 5}l4 5l-4 5l-4 -5z`, fill: m[2], stroke: 'var(--panel)', 'stroke-width': 1}, s));
+}
+function grid12(id, draw) {
+  const box = document.getElementById(id); box.innerHTML = '';
+  for (const b of D.benches) {
+    const r = document.createElement('div'); r.className = 'rowlab'; r.textContent = BN[b]; box.appendChild(r);
+    for (const p of D.prms) {
+      const m = document.createElement('div'); m.className = 'mini'; box.appendChild(m);
+      const x = cell(b, p); if (!x) { m.innerHTML = `<div class="t">${PN[p]}</div><p class="note">אין נתונים</p>`; continue }
+      draw(m, x, b, p);
+    }
+  }
+}
+function renderExp1() {
+  const forms = [['SYM', 'var(--c-sym)'], ['LIFT', 'var(--c-lift)'], ['SYM_RECOUNT', 'var(--c-rec)']];
+  grid12('g1off', (m, x, b, p) => {
+    const g = x.ref.GAP.official, best = Math.max(...forms.flatMap(([f]) => x.curves[f].map(r => r[1] - g)));
+    m.innerHTML = `<div class="t"><span>${PN[p]}</span><span class="mono">שיא ${f2(best)} · ORACLE ${f2(x.ref.ORACLE.official - g, 1)}</span></div>`;
+    mini(m, forms.map(([f, c]) => ({color: c, pts: x.curves[f].map(r => [r[0], r[1] - g])})), {x0: 0, x1: 1, xt: [0, .5, 1], fmt: v => v.toFixed(1)});
+  });
+  grid12('g1w', (m, x, b, p) => {
+    const g = x.ref.GAP.within, best = Math.max(...forms.map(([f]) => Math.max(...x.curves[f].map(r => r[2] - g))));
+    m.innerHTML = `<div class="t"><span>${PN[p]}</span><span class="mono">שיא ${f2(best, 3)}</span></div>`;
+    mini(m, forms.slice(0, 2).map(([f, c]) => ({color: c, pts: x.curves[f].map(r => [r[0], r[2] - g])})), {x0: 0, x1: 1, xt: [0, .5, 1], fmt: v => v.toFixed(3)});
+  });
+  // note: count cells where fixed-count peak > +0.1 vs recount peak
+  let fixed = 0, rec = 0, wup = 0, n = 0;
+  for (const b of D.benches) for (const p of D.prms) { const x = cell(b, p); if (!x) continue; n++;
+    const g = x.ref.GAP.official, gw = x.ref.GAP.within;
+    if (Math.max(...['SYM', 'LIFT'].flatMap(f => x.curves[f].map(r => r[1] - g))) > .1) fixed++;
+    if (Math.max(...x.curves.SYM_RECOUNT.map(r => r[1] - g)) > .1) rec++;
+    if (Math.max(...['SYM', 'LIFT'].flatMap(f => x.curves[f].map(r => r[2] - gw))) > .005) wup++; }
+  document.getElementById('exp1note').innerHTML = `ב-${AN[ARM]}: AUC בתוך התשובה עולה ביותר מ-0.005 ב-<b>${wup}</b> מתוך ${n} תאים. PRMScore עולה ביותר מ-0.1 נקודה, כשהספירה קבועה, רק ב-<b>${fixed}</b> מתוך ${n}. כש-GAP מחושב מחדש (RECOUNT), הוא עולה ב-<b>${rec}</b> מתוך ${n}. אלה עקומות שנבחרו עם תוויות, ולכן הן מראות רק אם האות קיים. הן אינן תוצאה.`;
+}
+
+/* ---------- forest plots ---------- */
+function forest(id, getter, opts = {}) {
+  const box = document.getElementById(id); box.innerHTML = '';
+  const rows = []; for (const b of D.benches) for (const p of D.prms) { const x = cell(b, p); if (x) rows.push([b, p, getter(x, b, p)]) }
+  const W = 440, rh = 20, T = 6, H = T + rows.length * rh + 26, L = 118, R = 64;
+  const s = el('svg', {viewBox: `0 0 ${W} ${H}`, role: 'img'}, box);
+  const vals = rows.flatMap(r => r[2] ? (r[2].ci ? r[2].ci.slice(0, 3) : [r[2].v]) : []).concat(opts.extra || [0]).filter(v => v != null);
+  let lo = Math.min(...vals), hi = Math.max(...vals);
+  if (opts.clip) { lo = Math.max(lo, -opts.clip); hi = Math.min(hi, opts.clip) }
+  if (hi - lo < 1e-9) { hi += .5; lo -= .5 } const pad = (hi - lo) * .06; lo -= pad; hi += pad;
+  const X0 = v => L + (v - lo) / (hi - lo) * (W - L - R), X = v => X0(Math.max(lo, Math.min(hi, v)));
+  if (lo <= 0 && hi >= 0) el('line', {x1: X(0), x2: X(0), y1: T, y2: H - 22, stroke: 'var(--ink)', 'stroke-width': .8}, s);
+  const ticks = opts.ticks || 4; for (let i = 0; i <= ticks; i++) { const v = lo + pad + (hi - lo - 2 * pad) * i / ticks;
+    el('line', {x1: X(v), x2: X(v), y1: T, y2: H - 22, stroke: 'var(--rule)', 'stroke-width': .5}, s);
+    const tx = el('text', {x: X(v), y: H - 8, 'text-anchor': 'middle'}, s); tx.textContent = (opts.fmt || (v => v.toFixed(1)))(v); }
+  let prevB = null;
+  rows.forEach(([b, p, r], i) => { const y = T + i * rh + rh / 2;
+    if (b !== prevB && i) el('line', {x1: 0, x2: W, y1: y - rh / 2, y2: y - rh / 2, stroke: 'var(--rule)'}, s); prevB = b;
+    const lb = el('text', {x: 4, y: y + 3}, s); lb.textContent = `${BN[b]} · ${PN[p]}`;
+    if (!r) return;
+    if (r.marks) { r.marks.forEach(([v, c, shape]) => { if (v == null) return;
+        if (shape === 'bar') el('line', {x1: X(v), x2: X(v), y1: y - 6, y2: y + 6, stroke: c, 'stroke-width': 2.5}, s);
+        else el('circle', {cx: X(v), cy: y, r: 4, fill: c}, s); });
+      const tx = el('text', {x: W - 2, y: y + 3, 'text-anchor': 'end'}, s); tx.textContent = r.label || ''; return; }
+    const c = r.fallback ? 'var(--none)' : COL[sig(r.ci)];
+    if (r.ci && !r.fallback) el('line', {x1: X(r.ci[1]), x2: X(r.ci[2]), y1: y, y2: y, stroke: c, 'stroke-width': 2}, s);
+    const pv = r.ci ? r.ci[0] : r.v;
+    if (pv < lo || pv > hi) el('path', {d: pv < lo ? `M${X(pv)} ${y}l7 -5v10z` : `M${X(pv)} ${y}l-7 -5v10z`, fill: c}, s);
+    else el('circle', {cx: X(pv), cy: y, r: 4, fill: r.fallback ? 'var(--panel)' : c, stroke: c, 'stroke-width': 1.5}, s);
+    const tx = el('text', {x: W - 2, y: y + 3, 'text-anchor': 'end'}, s);
+    tx.textContent = r.fallback ? 'נפל ל-GAP' : (r.label || f2(r.ci[0], opts.dp ?? 2));
+  });
+}
+const CLIP = {clip: 3}, CLIPW = {clip: .06, fmt: v => v.toFixed(3), dp: 3};
+const dOff = c => x => ({ci: x.cand[c].d_off, fallback: x.cand[c].fallback});
+const dW = c => x => ({ci: x.cand[c].d_w, fallback: x.cand[c].fallback});
+function renderForests() {
+  forest('f2off', dOff('H1a'), CLIP); forest('f2w', dW('H1a'), CLIPW);
+  forest('f3off', dOff('H1b'));
+  forest('f3count', x => ({marks: [[x.truth.mean_true_count, 'var(--ink)', 'bar'], [x.ref.GAP.flags, 'var(--c-ref)'], [x.cand.H1b.fallback ? null : x.cand.H1b.flags, 'var(--bad)']],
+    label: x.cand.H1b.fallback ? 'נפל ל-GAP' : `MAE ${x.ref.GAP.mae.toFixed(2)}→${x.cand.H1b.mae.toFixed(2)}`}), {fmt: v => v.toFixed(1), extra: [0]});
+  forest('f3share', x => ({marks: [[x.truth.step_error_rate, 'var(--ink)', 'bar'], [x.fit.H1.implied_share, x.fit.H1.valid ? 'var(--bad)' : 'var(--none)']],
+    label: `${(x.fit.H1.implied_share * 100).toFixed(0)}% מול ${(x.truth.step_error_rate * 100).toFixed(0)}%`}), {fmt: v => (v * 100).toFixed(0) + '%', extra: [0, .7]});
+  forest('f4v', x => ({ci: x.cand.V1.d_off, fallback: x.cand.V1.fallback, label: x.cand.V1.fallback ? null : `${f2(x.cand.V1.d_off[0])} (w=${x.fit.V1.w.toFixed(2)})`}), CLIP);
+  forest('f4g', x => ({ci: x.cand.G1.d_off, fallback: false, label: `${f2(x.cand.G1.d_off[0])} (λ=${x.fit.G1.lam})`}), CLIP);
+  const nop = k => x => ({ci: x.pos_vs_nopos[k], fallback: x.cand.H1a.fallback || x.cand.H1_NOPOSa.fallback});
+  forest('f5off', nop('a_off'), CLIP); forest('f5w', nop('a_w'), CLIPW);
+}
+function renderExp4() {
+  grid12('g4', (m, x, b, p) => {
+    const g = x.ref.GAP.official;
+    m.innerHTML = `<div class="t"><span>${PN[p]}</span><span class="mono">w=${x.fit.V1.valid ? x.fit.V1.w.toFixed(2) : '—'} · λ=${x.fit.G1.lam}</span></div>`;
+    const marks = [];
+    if (x.fit.V1.valid) marks.push([Math.min(x.fit.V1.w, 1.2), x.cand.V1.official - g, 'var(--c-sym)']);
+    marks.push([x.fit.G1.lam / 2, x.cand.G1.official - g, 'var(--c-lap)']);
+    mini(m, [{color: 'var(--c-sym)', pts: x.curves.SYM.map(r => [r[0], r[1] - g])}, {color: 'var(--c-lap)', pts: x.curves.LAP.map(r => [r[0] / 2, r[1] - g])}],
+      {x0: 0, x1: Math.max(1, ...marks.map(q => q[0])), xt: [0, .5, 1], fmt: v => v.toFixed(1), marks});
+  });
+}
+
+/* ---------- validity ---------- */
+function renderValidity() {
+  const box = document.getElementById('valid'); box.innerHTML = '';
+  for (const a of D.arms) {
+    const d = document.createElement('div'); d.className = 'panel';
+    let h = `<h3>${AN[a]} <span class="kind note">${ATAG[a]}</span></h3><div class="vcell"><span></span>` + D.prms.map(p => `<span class="h">${PN[p]}</span>`).join('');
+    for (const b of D.benches) { h += `<span>${BN[b]}</span>`;
+      for (const p of D.prms) { const x = D.cells[`${a}|${b}|${p}`]; if (!x) { h += '<span></span>'; continue }
+        const v = x.fit.H1.valid; h += `<span class="dot ${v ? 'v' : 'f'}" title="${v ? 'תקף' : x.fit.H1.reason}">${(x.fit.H1.implied_share * 100).toFixed(0)}%</span>` } }
+    d.innerHTML = h + '</div>'; box.appendChild(d);
+  }
+  const P = D.parity;
+  document.getElementById('parity').innerHTML = `בדיקת מימוש עצמאית: סוכן נפרד מימש את H1 ואת H1-NOPOS מתוך טקסט הפרוטוקול בלבד, בלי לראות את הקוד, על ${P.cell}. מספר הסימונים שונים: ${P.H1.H1a_flag_diffs} מתוך ${P.n_steps.toLocaleString()} צעדים. הפרש מרבי ב-log-odds: ${P.H1.max_abs_logit_diff.toExponential(1)}. המספר בתוך כל ריבוע הוא חלק הצעדים שהמודל משייך למצב שגיאה.`;
+}
+
+/* ---------- conclusions ---------- */
+function renderConcl() {
+  const t = tallies(), list = document.getElementById('conclList');
+  const line = (c, b) => { const x = t[c][b]; return `${x.g} שיפורים מובהקים, ${x.b} הרעות מובהקות, ${x.n} לא מכריעים, ${x.f} נפלו ל-GAP` };
+  list.innerHTML = `
+  <li><b>האות של שכנות קיים, ומשפיע על הדירוג.</b> ברוב התאים AUC בתוך התשובה עולה כשמוסיפים את השכנים (ניסוי 1).</li>
+  <li><b>כשמספר הסימונים קבוע, האות כמעט לא משנה את PRMScore.</b> GAP מסמן כ-2.2 עד 2.5 צעדים לתשובה. השכנות משנה את הסדר בעיקר מתחת לקו הסימון, ו-PRMScore תלוי רק במה שמסומן. לכן כאן H1a ב-${AN[ARM]}, ב-PRMBench: ${line('H1a', 'prmbench')}.</li>
+  <li><b>כשה-HMM מתמוטט ב-Socratic, הוא למד מיקום ולא שגיאה.</b> בכל התאים שבהם H1a מפסיד 10 עד 25 נקודות, מקדם המיקום שלילי מאוד (b בין −8 ל-−11), והפער בין ממוצעי המצבים קטן (0.2 עד 0.4). "מצב השגיאה" של המודל הוא בפועל תחילת התשובה, הפוך ממקום השגיאות האמיתי. זה הסיכון של מצב מטרד, שהוצהר מראש בסעיף 6 בפרוטוקול. המקור: <span class="mono">fits*/socratic__*.json</span>.</li>
+  <li><b>הרווחים הקטנים מוגבלים ל-PRMBench.</b> ב-SUB5, H1a משפר מובהקות ב-Qwen-7B (+0.11) וב-PURE (+0.12). ב-AUTO הוא משפר ב-PURE (+0.08). אף אחד מהם לא מגיע לכלל של 3 מתוך 4, ואף אחד לא עובר ל-Socratic.</li>
+  <li><b>הצלחה חלקית אחת, עם הסתייגות: הספירה של SUB5 מחוץ ל-PRMBench.</b> ב-Socratic עם Qwen-7B, H1b משפר את PRMScore ב-+1.49 (רווח סמך +0.99 עד +1.98), וטעות הספירה יורדת מ-1.32 ל-1.15. ב-Hard2Verify הוא משפר ב-Qwen-7B (+5.2) וב-PURE (+14.0). שם יש רק 181 תשובות, והתוצאה תיאורית בלבד. אבל באותה זרוע הוא מפסיד 19 עד 27 נקודות ב-Socratic עם PURE ועם RLHFlow. ההסבר הסביר: בשני הסטים האלה יש בממוצע 3 עד 3.9 שגיאות לתשובה, לעומת 2.1 ב-PRMBench, ולכן מודל שמסמן "חצי מהצעדים" קרוב יותר במקרה. ב-Hard2Verify עם PURE טעות הספירה דווקא גדלה, מ-3.18 ל-3.57. זה ממצא POST HOC בתאים בודדים, ולא שיטה.</li>
+  <li><b>הספירה של ה-HMM לא שמישה ב-PRMBench.</b> המודל משייך למצב השגיאה 40% עד 55% מהצעדים, כששיעור השגיאות האמיתי הוא כ-16%. לכן הוא מסמן פי 2 עד 3 יותר מדי. H1b ב-${AN[ARM]}, ב-PRMBench: ${line('H1b', 'prmbench')}.</li>
+  <li><b>שני כללי המשקל בלי תוויות מחליקים יותר מדי.</b> ה-variogram מעריך התמדה של 0.5 עד 0.7, ו-GCV בוחר את קצה הרשת. V1 ב-PRMBench: ${line('V1', 'prmbench')}. G1 ב-PRMBench: ${line('G1', 'prmbench')}.</li>
+  <li><b>הרווח מופיע רק כשגם הספירה משתנה.</b> זה כיוון פתוח. הדרך מכאן היא כלל ספירה בלי תוויות שמשתמש בשכנות, למשל GAP על ציון שמשוקלל לפי השכנים. צריך להצהיר עליו מראש ולבחון אותו על Socratic, כי PRMBench כבר נחשף.</li>
+  <li><b>מה לא נבדק:</b> טלמטריה מהמודלים העצמאיים (standalone), כי הנתונים לא במכונה הזו. AUTO ו-SUB5 נוספו אחרי שתוצאות CHAIN ו-TELE16 נקראו (POST HOC). הקוד נשאר קפוא, ולא שונה אף פרמטר.</li>`;
+}
+
+/* ---------- arm switch ---------- */
+function renderAll() {
+  document.querySelectorAll('#armSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.arm === ARM)));
+  document.getElementById('armNote').textContent = ARM === 'CHAIN_N16' ? 'CHAIN16 מחוץ לתחום: הוא כופה על ה-PRM קבוצה משלו. מוצג רק להשוואה היסטורית.'
+    : ARM === 'TELE_N16' ? 'רץ בפרוטוקול שהוקפא מראש.' : 'POST HOC: אותו קוד קפוא, זרוע שנוספה אחרי קריאת התוצאות של CHAIN ו-TELE16.';
+  renderTally(); renderVariants(); renderExp1(); renderForests(); renderExp4(); renderConcl();
+}
+const seg = document.getElementById('armSeg');
+for (const a of D.arms) { const b = document.createElement('button'); b.type = 'button'; b.dataset.arm = a;
+  b.innerHTML = `${AN[a]}<span class="tag">${ATAG[a]}</span>`;
+  b.addEventListener('click', () => { ARM = a; try { localStorage.setItem('nr_arm', a) } catch (e) {} renderAll() }); seg.appendChild(b); }
+renderValidity(); renderAll();
+</script>
