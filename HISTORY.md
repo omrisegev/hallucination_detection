@@ -24973,3 +24973,37 @@ design: given at least one error, how many?
 Negative result recorded: results/markov_ds_count_v1/NEGATIVE_RESULT.md
 
 ---
+
+### Step 487 [Supervised fusion, Bracha's suggestion] — In-domain labels: ~50 labelled answers let a supervised LR beat label-free AUTO on PRMBench; the Socratic win over strong PRMs is mostly step position (2026-11-01)
+
+**What**: First three steps of a supervised/calibrated work plan, after Bracha's suggestion (emails 2026-10-23 and
+2026-10-29) to learn the fusion weights from labelled error-detection data. Each step had a protocol frozen before
+any new score. CPU only, stored per-step scores, no new inference.
+- **Stage 1** (`results/supervised_anchor_v1/`): keep the telemetry direction label-free (TELE_N16) and learn only
+  the PRM/telemetry ratio (ANCH, 2 coefficients), against a full LR on [PRM, 16 channels] (LR17), AUTO and the PRM.
+  In-domain cross-fit (GroupKFold 5) and transfer PRMBench ↔ Socratic → Hard2Verify. Amendment A1 dropped the SUB5
+  arm before any score (its score is stored only on PRMBench).
+- **Stage 2** (`results/supervised_budget_v1/`): label-budget curve. 20 repetitions, groups split 50/50 into a
+  labelled pool and a test half; k ∈ {5 … 1000, all} labelled answers; C = 1 fixed. Socratic groups are the source
+  problem parsed from the answer id (1,773 problems).
+- **Position control** (`results/supervised_position_v1/`): the same splits and draws, plus LR on [PRM, relative
+  position] (POS2) and LR17 + position (LR18).
+**Why**: The advisors asked for the labelled route; the project had drifted to label-free count/gate work.
+**Result**: Parity: AUTO reproduces stage 8 exactly (24 checks in stage 1, 8 in stage 2); LR17 in the position run
+reproduces stage 2 in all 1,440 checks.
+- **Stage 1.** LR17 beats AUTO in-domain in 8/8 cells (CI above 0; PRMBench +1.2 to +2.5). Learning only the ratio
+  is not enough: H1 2/4, H2 1/4, H3 1/4, none met. Labels from another benchmark do not transfer (Socratic →
+  PRMBench: AUTO best for all 4 PRMs), in line with `bracha_lr_transfer_v1`.
+- **Stage 2.** On PRMBench LR17 beats AUTO from k = 50 / 50 / 100 / 50 labelled answers (Qwen-7B / Qwen-72B / PURE /
+  RLHFlow; B1 met 4/4), reaching +1.3 to +2.6 PRMScore with the full pool. Below about 20 labels AUTO is better. On
+  Socratic LR17 beats the PRM from 50 / 50 / never (PURE ties) (B2 met 2/3). Problem-grouped recheck matches stage 1.
+- **Position control.** On Socratic POS2 (2 weights) beats the strong PRMs from k = 5, and LR17 − POS2 with all
+  labels is only +0.39 / +0.03 / +0.13 (P1 not met, 1/3). So stage 2's Socratic win is mostly position, a property
+  of the benchmark's construction. On PRMBench position adds nothing and LR17 − POS2 is +5.3 to +6.1 in 20/20
+  repetitions for every PRM (P3 met 4/4). Post hoc: LR18 − POS2 on Socratic +0.85 / +1.70 (Qwen, 20/20), −0.19 (PURE).
+- **Verdict:** the PRMBench claim stands: about 50 in-domain labelled answers suffice for a supervised telemetry
+  weighting to beat label-free AUTO. The Socratic claim must not be reported as a telemetry result. Caveats: linear
+  position only; repetition spread is not a CI; development data already inspected.
+- **Sources:** each directory's `SUMMARY.md`, `PROTOCOL.json`, `SUMMARY.json`, `run.log`.
+
+---

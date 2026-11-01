@@ -1,0 +1,29 @@
+{
+ "name": "supervised_position_v1 (position control for stage 2 of the supervised/calibrated work plan, 2026-11-01)",
+ "frozen_at": "2026-11-01, before any score of the new arms was computed",
+ "origin": "Stage 2 (results/supervised_budget_v1): LR17 beat AUTO on PRMBench from ~50 labels and the Qwen PRMs on Socratic from ~50 labels. Its Socratic within-answer gain over AUTO was +.11 to +.17, and step position alone has within-AUC .731 on Socratic (Step 481). Omri approved this check on 2026-11-01.",
+ "question": "Is the supervised gain explained by step position? Does an LR on [PRM, position] match LR17, and does LR17 gain from adding position?",
+ "access": "CPU only, stored per-step scores, no new inference. Same k-label in-domain access as stage 2.",
+ "prms": ["qwen_prm_7b", "qwen_prm_72b", "pure_prm", "rlhflow_prm"],
+ "benchmarks": ["prmbench", "socratic"],
+ "design": "Identical to stage 2: same groups, the same R = 20 splits and label draws (seed 20261101 + rep), same budgets, same LR (C = 1 fixed, balanced). The stage-2 module budget.py is imported unchanged.",
+ "position_feature": "relative position within the answer, (i + 0.5) / n_steps (common.relative_position). A single linear term; a non-linear position shape is not tested here.",
+ "arms": {
+  "PRM": "as stage 2",
+  "AUTO_N16": "as stage 2",
+  "LR17": "as stage 2, refitted; must reproduce stage 2's BUDGET.csv exactly (parity gate)",
+  "POS2": "LR on [zp, relpos]",
+  "LR18": "LR on [zp, Z16, relpos]",
+  "POSONLY": "relpos itself as a score (no labels), reported as a reference"
+ },
+ "metrics": "on the test half: PRMScore under GAP and mean within-answer AUC",
+ "contrasts": ["LR17 - POS2", "LR18 - LR17", "POS2 - PRM", "POS2 - AUTO_N16"],
+ "summary": "as stage 2: per bench x PRM x k mean, 2.5/97.5 percentiles across repetitions and count of positive repetitions; k* as stage 2.",
+ "predeclared_readings": {
+  "P1": "Socratic, all of the pool: LR17 - POS2 PRMScore mean > 0 and positive in >= 16/20 repetitions, in >= 2 of the 3 strong PRMs. Met = LR17's Socratic gain is not explained by linear position alone.",
+  "P2": "Socratic, all of the pool: LR18 - LR17 PRMScore mean <= +0.5 in >= 2 of the 3 strong PRMs. Met = the channels already carry what linear position adds.",
+  "P3": "PRMBench, all of the pool: LR17 - POS2 PRMScore mean > 0 and positive in >= 16/20 repetitions in >= 3 of 4 PRMs.",
+  "note": "Readings, not method gates. If P1 fails, the Socratic claim of stage 2 must be reported as possibly a position effect of the benchmark's construction."
+ },
+ "caveats": ["Development data already inspected.", "Variation across repetitions is not a CI for one fixed test set.", "Linear relative position only."]
+}

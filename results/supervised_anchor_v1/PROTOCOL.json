@@ -1,0 +1,76 @@
+{
+ "name": "supervised_anchor_v1 (stage 1 of the supervised/calibrated work plan, 2026-11-01)",
+ "frozen_at": "2026-11-01, written before any score of the new arms was computed",
+ "origin": "Bracha Laufer (emails 2026-10-23, 2026-10-29): use labelled data to find the weighting instead of label-free weights. Follow-up to bracha_lr_transfer_v1. Approved by Omri 2026-11-01 ('Yes, start stage 1').",
+ "question": "If the telemetry direction stays the label-free L-SML one and labels learn only the PRM-vs-telemetry mixing ratio (2 coefficients), does this beat (i) label-free AUTO, (ii) the PRM alone, and (iii) a full 17-input supervised LR trained on the same labels? Especially: does it give a strong PRM its due weight on Socratic?",
+ "access": "CPU only, stored per-step scores, no new inference. Every new arm uses correctness labels and is labelled supervised.",
+ "prms": [
+  "qwen_prm_7b",
+  "qwen_prm_72b",
+  "pure_prm",
+  "rlhflow_prm"
+ ],
+ "benchmarks": {
+  "prmbench": "primary",
+  "socratic": "secondary",
+  "hard2verify": "secondary, evaluated on the 177-answer common set (stage8 eval_rows); never a training source"
+ },
+ "inputs": {
+  "zp": "answer-z of the PRM risk (PRM_Q80 on PRMBench, PRM elsewhere), as AUTO and stage8",
+  "zT16": "answer-z of the stored label-free TELE_N16 score (L-SML over the 16 backbone channels)",
+  "zS5": "answer-z of the stored label-free TELE_S5 score (SUB5)",
+  "Z16": "answer-z of the 16 backbone channels (E.channels N16)"
+ },
+ "arms": {
+  "PRM": "PRM risk alone (reference)",
+  "AUTO_N16": "label-free L-SML on [zp, Z16]; recomputed with stage8 auto() and parity-checked",
+  "TELE_N16": "stored, label-free, telemetry only",
+  "TELE_S5": "stored, label-free, SUB5 telemetry only",
+  "ANCH_T16": "LR on [zp, zT16]: label-free telemetry direction, learned PRM/telemetry ratio",
+  "ANCH_S5": "LR on [zp, zS5]",
+  "LR17": "LR on [zp, Z16]: full supervised weighting (CROP-style)"
+ },
+ "model": "StandardScaler + LogisticRegression(l2, class_weight balanced, lbfgs, max_iter 3000); C in {0.01, 0.1, 1, 10} by inner GroupKFold(5) on the training rows only, criterion mean held-out pooled step AUROC (same as bracha_lr_transfer_v1); refit on all training rows. Score = decision_function.",
+ "regimes": {
+  "IN": "in-domain cross-fit: GroupKFold(5) over the benchmark's source groups (c.groups); each answer is scored by a model that never saw its group. PRMBench and Socratic only.",
+  "XFER": "trained once on all of one benchmark, applied unchanged to another, same PRM: prmbench->socratic, prmbench->hard2verify, socratic->prmbench, socratic->hard2verify"
+ },
+ "training_rows": "PRMBench: steps with c.keep (non-control answers); Socratic: all steps",
+ "decision_rule": "GAP for every arm (stage7 gap_flags), as in stage8",
+ "metrics": [
+  "main metric under GAP (PRMBench/Socratic PRMScore, Hard2Verify balanced F1; stage8 point())",
+  "mean within-answer AUC (stage8 stats())",
+  "learned PRM share |w_zp| / sum|w| on standardized inputs"
+ ],
+ "uncertainty": "paired bootstrap with evaluate_collection boot_weights (source groups; DRAWS 2000), stage8 boot(): delta and 95% CI on both metrics",
+ "contrasts": [
+  "ANCH_T16 - AUTO_N16",
+  "ANCH_T16 - PRM",
+  "ANCH_T16 - LR17",
+  "ANCH_S5 - AUTO_N16",
+  "ANCH_S5 - PRM",
+  "LR17 - AUTO_N16",
+  "LR17 - PRM"
+ ],
+ "predeclared_readings": {
+  "H1": "IN, PRMBench: ANCH_T16 - AUTO_N16 main-metric CI above 0 in >= 3 of 4 PRMs",
+  "H2": "IN, Socratic: ANCH_T16 - PRM main-metric CI above 0 in >= 3 of 4 PRMs (the strong-PRM problem)",
+  "H3": "XFER prmbench->socratic: ANCH_T16 - LR17 main metric > 0 (point) in >= 3 of 4 PRMs (fewer learned parameters transfer better)",
+  "note": "Readings, not pass/fail gates for a method; all results are reported per PRM x benchmark regardless."
+ },
+ "parity_first": "AUTO_N16 gap_prmscore and within_auc must reproduce stage8/AUTO_FORCEDK_RESULTS.json to 1e-6 in every cell before any new arm is reported",
+ "caveats": [
+  "All three benchmarks are development data already inspected; no untouched confirmation.",
+  "Problem overlap between PRMBench and Socratic cannot be checked offline (no Socratic problem text); XFER may be optimistic if they share source problems.",
+  "Hard2Verify common set is 177 answers."
+ ],
+ "amendments": [
+  {
+   "id": "A1",
+   "date": "2026-11-01",
+   "before_any_new_arm_score": true,
+   "change": "ANCH_S5 and TELE_S5 removed, with their contrasts.",
+   "why": "TELE_S5 is stored only for PRMBench cells (not Socratic/Hard2Verify), and a direct L-SML rebuild over the six SUB5 channels does not reproduce the stored PRMBench score (r=.83). The first run stopped with KeyError before parity; no new-arm score was computed."
+  }
+ ]
+}

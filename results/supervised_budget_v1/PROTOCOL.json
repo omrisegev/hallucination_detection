@@ -1,0 +1,28 @@
+{
+ "name": "supervised_budget_v1 (stage 2 of the supervised/calibrated work plan, 2026-11-01)",
+ "frozen_at": "2026-11-01, before any stage-2 score was computed",
+ "origin": "Stage 1 (results/supervised_anchor_v1): with in-domain labels the full LR beat AUTO in 8/8 cells, but labels from another benchmark did not transfer. Omri approved stage 2 on 2026-11-01.",
+ "question": "How many labelled in-domain answers does a supervised weighting need to beat label-free AUTO and the PRM alone?",
+ "access": "CPU only, stored per-step scores, no new inference. LR arms use k labelled answers of the target benchmark; labelled so.",
+ "prms": ["qwen_prm_7b", "qwen_prm_72b", "pure_prm", "rlhflow_prm"],
+ "benchmarks": ["prmbench", "socratic"],
+ "groups": {"prmbench": "c.groups (707 source groups, as stage 8)", "socratic": "source problem parsed from the answer id (text after the last ':', e.g. OlympiadBench#1008); 1,773 problems. Stage 1 used per-answer groups."},
+ "design": "R = 20 repetitions. Each repetition splits the groups at random 50/50 into a labelled pool and a test half (seed 20261101 + rep). From the pool, k answers are drawn at random (PRMBench: non-control answers only); the LR is fitted on their steps (PRMBench: c.keep steps) and scored on all test-half answers. Budgets k in {5, 10, 20, 50, 100, 200, 500, 1000, all of the pool}. The same draw of k answers is used for both LR arms.",
+ "arms": {
+  "PRM": "answer-z of the PRM risk (as stage 1 and stage 8)",
+  "AUTO_N16": "label-free L-SML on [zp, Z16], fitted once transductively on the whole benchmark (stage 8 auto), evaluated on the test half",
+  "LR17_k": "LR on [zp, Z16] from k labelled answers",
+  "ANCH_k": "LR on [zp, z(TELE_N16)] from k labelled answers"
+ },
+ "model": "StandardScaler + LogisticRegression(l2, C = 1.0 fixed at every budget, class_weight balanced, lbfgs, max_iter 3000). C is fixed because inner cross-validation is not possible at k = 5; 1.0 is the middle of stage 1's grid and was not tuned on stage-1 results.",
+ "decision_rule": "GAP (stage 8)",
+ "metrics": "on the test half only: main metric under GAP (PRMScore), mean within-answer AUC",
+ "summary": "per bench x PRM x k: mean over repetitions and 2.5/97.5 percentiles across repetitions of LR17 - AUTO, LR17 - PRM, ANCH - AUTO, ANCH - PRM; fraction of repetitions with a positive difference. k* = smallest budget at which the mean difference is > 0 AND it is positive in >= 16/20 repetitions (and stays so at every larger budget).",
+ "stage1_recheck": "Stage 1's Socratic in-domain cross-fit (GroupKFold 5, C grid as stage 1) is repeated with the problem groups above, for LR17 and ANCH; reported beside the stage-1 numbers.",
+ "predeclared_readings": {
+  "B1": "PRMBench: k*(LR17 vs AUTO) <= 200 answers in >= 3 of 4 PRMs",
+  "B2": "Socratic: k*(LR17 vs PRM) exists (<= all of the pool) for >= 2 of the 3 strong PRMs (Qwen-7B, Qwen-72B, PURE)",
+  "note": "Readings, not method gates; everything is reported per PRM x benchmark."
+ },
+ "caveats": ["Development data already inspected.", "Variation across repetitions mixes the label draw and the test split; it is not a CI for one fixed test set.", "AUTO sees the test-half answers unlabelled (transductive), as in all earlier stages."]
+}

@@ -1,3 +1,16 @@
+## 2026-11-01: supervised fusion with in-domain labels (Bracha's suggestion), Step 487 (Claude, branch claude/raw-null-gate-2026-10-30)
+
+- **PRMBench result:** about 50 labelled answers from the same benchmark let a full LR on [PRM, 16 channels] beat
+  label-free AUTO in 4/4 PRMs (+1.3 to +2.6 PRMScore with all labels). Below about 20 labels AUTO is better.
+  Position plays no part there. Source: `results/supervised_budget_v1/SUMMARY.md`.
+- **Socratic result is mostly position:** an LR on just [PRM, step position] beats the strong PRMs from 5 labels and
+  matches the full LR. Source: `results/supervised_position_v1/SUMMARY.md`.
+- **Learning only the PRM/telemetry ratio is not enough, and labels from another benchmark do not transfer.** Source:
+  `results/supervised_anchor_v1/SUMMARY.md`.
+- **Next (plan stages not started):** a calibrated decision rule instead of GAP (conformal, CROP-style); a
+  within-answer ranking loss; training on each PRM's own data (needs new inference and Omri's authorization).
+  Possibly a nonlinear position control on Socratic.
+
 ## 2026-11-01: error-count line, neighbor readout (Step 485) and Markov DS count (Step 486): primary endpoints negative, PRMScore partial success in Step 486 (Claude, branch claude/raw-null-gate-2026-10-30)
 
 - **Neighbor readout, Step 485.**
