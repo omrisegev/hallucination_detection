@@ -19,6 +19,7 @@ from scipy.special import expit
 from scipy.stats import norm
 
 Q_NODES = 20
+ADAPTIVE = True   # amendment candidate (2026-11-02): v1 used False (prior-centred nodes)
 
 
 def pad(x, off):
@@ -56,9 +57,19 @@ def _forward(X, M, P, mu0, s0, need_backward=False):
     A, L = X.shape
     tk, wk = np.polynomial.hermite.hermgauss(Q_NODES)
     tau = np.sqrt(P['f']) * s0; sig0 = np.sqrt(1 - P['f']) * s0
-    b = np.sqrt(2) * tau * tk
-    lw = np.log(wk / np.sqrt(np.pi))
-    Xq = X[:, None, :] - b[None, :, None]                        # (A,Q,L)
+    if ADAPTIVE:
+        # adaptive Gauss-Hermite: centre and scale the nodes on the clean-only posterior of b per answer;
+        # the weights carry the prior/proposal ratio, so the integral is unchanged in exact arithmetic.
+        nn = M.sum(1); prec = nn / sig0 ** 2 + 1 / tau ** 2
+        bc = ((np.where(M, X, 0).sum(1) - nn * mu0) / sig0 ** 2) / prec; bs = 1 / np.sqrt(prec)
+        b2 = bc[:, None] + np.sqrt(2) * bs[:, None] * tk[None]                  # (A,Q)
+        lw = (np.log(wk)[None] + tk[None] ** 2 + np.log(np.sqrt(2) * bs)[:, None]
+              - 0.5 * (b2 / tau) ** 2 - np.log(tau) - 0.9189385332046727)
+        Xq = X[:, None, :] - b2[:, :, None]
+    else:
+        b = np.sqrt(2) * tau * tk
+        lw = np.broadcast_to(np.log(wk / np.sqrt(np.pi)), (A, Q_NODES))
+        Xq = X[:, None, :] - b[None, :, None]                    # (A,Q,L)
     l0 = np.where(M[:, None, :], _lnorm(Xq, mu0, sig0), 0.0)
     l1 = np.where(M[:, None, :], _lnorm(Xq, mu0 + P['delta'], P['sig1']), 0.0)
     c = np.maximum(l0, l1)
@@ -81,7 +92,7 @@ def _forward(X, M, P, mu0, s0, need_backward=False):
     chainL = ls + np.log(np.maximum(acc, 1e-300))                 # log numerator (A,Q)
     logL1 = chainL - logpe[:, None]
     lj0 = np.log(1 - P['pi']) + logL0; lj1 = np.log(P['pi']) + logL1
-    lq = lw[None] + np.logaddexp(lj0, lj1)
+    lq = lw + np.logaddexp(lj0, lj1)
     mx = lq.max(1); ll = mx + np.log(np.exp(lq - mx[:, None]).sum(1))
     if not need_backward:
         return ll

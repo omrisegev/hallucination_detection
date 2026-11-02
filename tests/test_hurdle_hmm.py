@@ -32,6 +32,8 @@ def brute(x):
 
 
 def test_exact_small():
+    """Algebra check: same prior-centred quadrature as the brute force."""
+    H.ADAPTIVE = False
     rng = np.random.default_rng(1)
     lens = [1, 2, 3, 5, 6]
     x = rng.normal(0.5, 1.2, sum(lens)); off = np.concatenate([[0], np.cumsum(lens)])
@@ -42,6 +44,7 @@ def test_exact_small():
         assert abs(ll[a] - bl) < 1e-8, (a, ll[a], bl)
         assert abs(pA[a] - bA) < 1e-8
         assert np.allclose(py[a, :n[a]], by, atol=1e-8)
+    H.ADAPTIVE = True
 
 
 def test_padding_invariance():
@@ -53,5 +56,25 @@ def test_padding_invariance():
     assert abs(ll_all[0] - ll_one[0]) < 1e-10
 
 
+def test_adaptive_vs_dense_integral():
+    """Long answer: adaptive 20-node rule vs a dense trapezoid integral over b (log-likelihood and P(A=1|x))."""
+    from scipy.special import logsumexp
+    rng = np.random.default_rng(3); n = 107
+    x = rng.normal(0.4, 1.0, n); off = np.array([0, n]); X, M, _ = H.pad(x, off)
+    ll, pA, _ = H._forward(X, M, P, MU0, S0, need_backward=True)
+    tau = np.sqrt(P['f']) * S0; grid = np.linspace(-8 * tau, 8 * tau, 4001); db = grid[1] - grid[0]
+    lls, l1s = [], []
+    for bb in grid:
+        Pz = dict(P, f=1e-12)  # tau -> 0: likelihood at a fixed b, by shifting x
+        old = H.ADAPTIVE; H.ADAPTIVE = False
+        l, pa, _ = H._forward(X - bb, M, dict(P, f=1e-12), MU0, S0 * np.sqrt((1 - P['f']) / (1 - 1e-12)), need_backward=True)
+        H.ADAPTIVE = old
+        lp = -0.5 * (bb / tau) ** 2 - np.log(tau * np.sqrt(2 * np.pi))
+        lls.append(l[0] + lp); l1s.append(l[0] + lp + np.log(max(pa[0], 1e-300)))
+    dense = logsumexp(lls) + np.log(db); dense_pA = np.exp(logsumexp(l1s) - logsumexp(lls))
+    assert abs(ll[0] - dense) < 1e-4, (ll[0], dense)
+    assert abs(pA[0] - dense_pA) < 1e-4, (pA[0], dense_pA)
+
+
 if __name__ == '__main__':
-    test_exact_small(); test_padding_invariance(); print('2 tests pass')
+    test_exact_small(); test_padding_invariance(); test_adaptive_vs_dense_integral(); print("3 tests pass")
