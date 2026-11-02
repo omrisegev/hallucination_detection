@@ -113,8 +113,12 @@ def _forward(X, M, P, mu0, s0, need_backward=False):
     return ll, pA1, np.where(M, py, np.nan)
 
 
-def fit(x, off, q_anchor=0.30, max_fit_answers=2000, seed=0, th0=None):
-    mu0, s0, t = anchor_fit(x, q_anchor)
+def fit(x, off, q_anchor=0.30, max_fit_answers=2000, seed=0, th0=None, anchor=None, fixed_pi=None):
+    """anchor=(mu0, s0) skips stage A (v2: clean law from labelled answers). fixed_pi fixes pi (v2)."""
+    if anchor is None:
+        mu0, s0, t = anchor_fit(x, q_anchor)
+    else:
+        (mu0, s0), t = anchor, float('nan')
     X, M, n = pad(x, off)
     rng = np.random.default_rng(seed)
     idx = np.sort(rng.choice(len(n), min(len(n), max_fit_answers), replace=False))
@@ -127,7 +131,10 @@ def fit(x, off, q_anchor=0.30, max_fit_answers=2000, seed=0, th0=None):
         np.array([-1.5, -2.5, -3.0, -0.5, np.log(0.7), np.log(s0), 1.0])]
     best = None
     for s in starts:
-        r = minimize(nll, s, method='L-BFGS-B', bounds=[(-8, 8)] * 4 + [(-4, 3), (-4, 3), (-6, 6)],
+        bounds = [(-8, 8)] * 4 + [(-4, 3), (-4, 3), (-6, 6)]
+        if fixed_pi is not None:
+            lp = float(np.log(fixed_pi / (1 - fixed_pi))); bounds[0] = (lp, lp); s = np.array(s, float); s[0] = lp
+        r = minimize(nll, s, method='L-BFGS-B', bounds=bounds,
                      options=dict(maxiter=300))
         if best is None or r.fun < best.fun:
             best = r
