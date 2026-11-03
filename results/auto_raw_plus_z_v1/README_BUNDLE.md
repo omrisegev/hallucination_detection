@@ -57,3 +57,18 @@ RESULTS/BOOTSTRAP/DIAG files byte for byte, and Z17 matched the stored AUTO_N16 
 The telemetry pickles that the PRM rewards and metadata came from are not in the bundle; they are 1.0-1.1 GB
 each. Their content that the run uses (rewards, PRM labels, category, error steps) is in `INPUTS_<prm>.npz`.
 They are on AIRCC at `results/prm_boost_v1/full_prm/` and `results/prm_boost_gen_v1/full_<prm>/`.
+
+## Socratic-PRMBench (`bundle/socratic/`, added 2026-11-03)
+
+The same layout: `inputs/INPUTS_<prm>.npz`; `raw_features/<prm>/` (FEATURES.npz + REWARDS.npz + MANIFEST.json,
+bank_v2); `labels/socratic.json` (gold: per answer `uid`, `correct`, `include`); and `code/`
+(`auto_raw_plus_z_socratic.py`, `make_tables.py`). It also has the README, TABLES and result CSVs, and its own
+`SHA256SUMS.txt`. The INPUTS keys are those of the PRMBench files plus `step_included`, `nonempty`,
+`nonempty_lengths`, `position` and `score__<arm>`. The PRMBench `error_steps` / `classification` keys do not
+apply here.
+
+Rerun on any computer with the repo at this branch:
+`python results/auto_raw_plus_z_v1/socratic/auto_raw_plus_z_socratic.py <repo> <tag> raw_features/<prm>
+labels/socratic.json results/sml_weight_estimator_v1/socratic_sign/RESULTS_socratic_placement.csv <out>`.
+Here `<tag>` is one of qwen_prm_7b, qwen_prm_72b, pure_prm, rlhflow_prm. Point it at a folder holding that PRM's
+FEATURES.npz and REWARDS.npz. Z17 must equal the stored AUTO_N16; the script stops if it does not.

@@ -64,3 +64,16 @@ channel points the other way on PRMBench. `energy_innovation` and `top50_js` do;
 Digit-channel note: Omri decided on 2026-09-17 to exclude digit features from future proposed methods, then
 kept them on 2026-09-30. They are in N16, so they are in AUTO_N16 and here. N13 (the 11 bank11 channels plus
 `realized_z` and `realized_drv`) is the digit-free subset.
+
+## Socratic-PRMBench (`bundle/socratic/`)
+
+The 34 columns are the same: same names, order, source keys, signs and transforms. The source is each PRM's own
+backbone telemetry on Socratic (bank_v2 `FEATURES.npz`, mask1; PRM rewards in `REWARDS.npz`). Differences:
+- Rows are the 26,052 non-empty steps of 2,995 answers. `nonempty` and `nonempty_lengths` map them back to
+  all 26,055 steps; there are 3 empty steps.
+- The global rank -> normal transform pools all non-empty Socratic steps of that PRM. The bank_v2 Socratic
+  banks predate the Math-Shepherd digit fix; the 4 PRMs used here are unaffected.
+- Labels: `step_error` (= not `correct` in the gold) and `step_included` (gold `include`). The gold file
+  itself is `labels/socratic.json`.
+- `position` is the relative step position (k + 0.5)/n, used for the position-only reference.
+  `score__<arm>` holds each arm's fused score.
