@@ -46,15 +46,12 @@ def lead_share(V):
     return float(ev[-1] / ev.sum())
 
 
-def main():
+def build_inputs(feat, tele):
+    """Load one PRM's inputs exactly as the run does; returns (EV, dict of arrays and metadata)."""
     spec = importlib.util.spec_from_file_location('ev', M / 'results/prm_boosting_generalization_v1/evaluate_amended.py')
     EV = importlib.util.module_from_spec(spec); spec.loader.exec_module(EV)
     sys.path.insert(0, str(M))
-    from spectral_utils.fusion_utils import lsml_continuous
-
-    tag, feat, tele, stored, out = sys.argv[1], Path(sys.argv[2]), Path(sys.argv[3]), Path(sys.argv[4]), Path(sys.argv[5])
     SE = M / '.worktrees/readout-quickest-detection-v1/results/step_evidence_v1'
-    out.mkdir(parents=True, exist_ok=True)
     with open(SE / 'OOF_ANSWERS.csv', newline='', encoding='utf-8-sig') as f: A = list(csv.DictReader(f))
     F = dict(np.load(feat)); off_all = F['offsets'].astype(np.int64)
     ans = np.flatnonzero(F['cells'].astype(str) == EV.CELL)
@@ -63,30 +60,35 @@ def main():
     meta = [dict(T[i], idx=i) for i in ids]
     for r in meta:
         if 'native_labels' not in r: r['native_labels'] = [int(v > .5) for v in r['rewards']]
+    rewards = np.concatenate([np.asarray(r['rewards'], float) for r in meta])
     prm = np.concatenate([EV.risk(r['rewards']) for r in meta])
-    prob = np.concatenate([1 - np.asarray(r['rewards'], float) for r in meta])
     native = np.concatenate([np.asarray(r['native_labels'], int) == 0 for r in meta])
     with np.load(SE / 'OOF_STEP_SCORES.npz') as z:
         lab_all = z['labels'].astype(bool); assert np.array_equal(z['offsets'], off_all)
     rows_ = np.concatenate([np.arange(off_all[i], off_all[i + 1]) for i in ans])
-    labels = lab_all[rows_]
-
     fs = importlib.util.spec_from_file_location('prm_fuse', M / 'results/prm_boosting_v1/fuse.py')
     FU = importlib.util.module_from_spec(fs); fs.loader.exec_module(FU); ext = FU.ext
     ext.BN = dict(ext.BN, N16=list(N16))
-    pop = ext.Population(F, ['N16'])
-    cb = pop.cell_bank('N16', ans)
+    cb = ext.Population(F, ['N16']).cell_bank('N16', ans)
     assert np.array_equal(cb['rows'], rows_)
-    Z = np.asarray(cb['V'], float); raw = np.asarray(cb['raw'], float)
-    act = F['digit_active'].astype(bool)[rows_]
+    raw = np.asarray(cb['raw'], float); act = F['digit_active'].astype(bool)[rows_]
     zp = EV.az(prm, o)
-
-    # raw views: global rank-gauss per channel; digit channels only on active steps (0 elsewhere, like masked_std)
     R = np.column_stack([rank_gauss(raw[:, j], act[:, DIG.index(c)] if c in DIG else None) for j, c in enumerate(N16)])
-    rp = rank_gauss(prm)
+    V17 = np.column_stack([zp, np.asarray(cb['V'], float)])
+    V34 = np.column_stack([V17, rank_gauss(prm), R])
+    return EV, {'A': A, 'ans': ans, 'ids': ids, 'o': o, 'meta': meta, 'rewards': rewards, 'prm': prm,
+                'native': native, 'labels': lab_all[rows_], 'raw': raw, 'act': act, 'V17': V17, 'V34': V34}
+
+
+def main():
+    sys.path.insert(0, str(M))
+    from spectral_utils.fusion_utils import lsml_continuous
+    tag, feat, tele, stored, out = sys.argv[1], Path(sys.argv[2]), Path(sys.argv[3]), Path(sys.argv[4]), Path(sys.argv[5])
+    out.mkdir(parents=True, exist_ok=True)
+    EV, I = build_inputs(feat, tele)
+    A, ans, ids, o, meta, prm, native, labels = (I[k] for k in ('A', 'ans', 'ids', 'o', 'meta', 'prm', 'native', 'labels'))
+    prob = 1 - I['rewards']; V17, V34 = I['V17'], I['V34']
     names17 = ['PRM'] + N16
-    V17 = np.column_stack([zp, Z])
-    V34 = np.column_stack([V17, rp, R])
     names34 = ['z:' + c for c in names17] + ['raw:' + c for c in names17]
 
     def lsml(V):
