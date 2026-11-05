@@ -1,0 +1,14 @@
+prmbench qwen_prm_7b {'answers': 6969, 'steps': 94188, 'top10_rule_answer_match_rate': 1.0, 'top10_max_abs': 0.0, 'plain_mean_step_match_rate': 0.2035503461162781, 'stored_modal_share': 0.4977810336773262, 'stored_distinct': 206}
+prmbench qwen_prm_72b {'answers': 6969, 'steps': 94098, 'top10_rule_answer_match_rate': 1.0, 'top10_max_abs': 0.0, 'plain_mean_step_match_rate': 0.2148292205998002, 'stored_modal_share': 0.5388849922421305, 'stored_distinct': 209}
+prmbench pure_prm {'answers': 6969, 'steps': 94188, 'top10_rule_answer_match_rate': 1.0, 'top10_max_abs': 0.0, 'plain_mean_step_match_rate': 0.22263982672951968, 'stored_modal_share': 0.5653267932220665, 'stored_distinct': 203}
+prmbench rlhflow_prm {'answers': 6969, 'steps': 94098, 'top10_rule_answer_match_rate': 1.0, 'top10_max_abs': 0.0, 'plain_mean_step_match_rate': 0.21300133902952242, 'stored_modal_share': 0.470073752895917, 'stored_distinct': 224}
+Traceback (most recent call last):
+  File "/shared/cycle2_tau_averbuch_prj/omrisegev1/results/domfreq_variants_v1/code/metrics.py", line 251, in <module>
+    main()
+  File "/shared/cycle2_tau_averbuch_prj/omrisegev1/results/domfreq_variants_v1/code/metrics.py", line 134, in main
+    c = load_cell(bench, tag)
+        ^^^^^^^^^^^^^^^^^^^^^
+  File "/shared/cycle2_tau_averbuch_prj/omrisegev1/results/domfreq_variants_v1/code/metrics.py", line 46, in load_cell
+    assert (nl == np.diff(o)).all(), 'nonempty step counts'
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: nonempty step counts
