@@ -69,6 +69,7 @@ from spectral_utils.prm_scorer import PRM_MODEL_ID, PRM_SYSTEM_PROMPT, make_step
 from spectral_utils.prmbench import load_prmbench, build_chain, step_token_spans, assert_alignment
 from spectral_utils.prm_adapters import ADAPTERS, get_adapter, OFFICIAL_WRAPPER_COMMIT, OFFICIAL_QWEN_SYSTEM_PROMPT
 from run_teacher_forced import batched  # noqa: E402
+from spectral_utils.rope_extension import apply_dynamic_ntk  # noqa: E402
 
 INSTRUCT_ID = "Qwen/Qwen2.5-Math-7B-Instruct"
 EXIT_INCOMPLETE = 85
@@ -179,6 +180,10 @@ def run_prm(cfg, meta, out_path):
     print('[prm-tel] lm_head check', head_check, flush=True)
     cache = load_cache(out_path); n_done = 0; worst_reward_gap = 0.0
     context = int(mdl.config.max_position_embeddings)
+    if cfg.rope_dynamic_factor:   # DeltaBench long-context adaptation; a no-op for inputs <= the native context
+        head_check['rope_extension'] = apply_dynamic_ntk(mdl, cfg.rope_dynamic_factor)
+        context = head_check['rope_extension']['extended_context']
+        print('[prm-tel] rope extension', head_check['rope_extension'], flush=True)
     device = next(adapter.backbone.parameters()).device
     for i, row in enumerate(meta):
         if i in cache: continue
@@ -262,6 +267,11 @@ def run_instruct(cfg, meta, out_path):
     mdl = AutoModelForCausalLM.from_pretrained(cfg.model, torch_dtype=torch.bfloat16, device_map=device_map,
                                                attn_implementation="sdpa").eval()
     cfg.model_revision = getattr(mdl.config, "_commit_hash", None)
+    context = int(mdl.config.max_position_embeddings)
+    if cfg.rope_dynamic_factor:   # DeltaBench long-context adaptation; a no-op for inputs <= the native context
+        cfg.rope_extension = apply_dynamic_ntk(mdl, cfg.rope_dynamic_factor)
+        context = cfg.rope_extension['extended_context']
+        print('[prm-tel] rope extension', cfg.rope_extension, flush=True)
     items = []
     cache = load_cache(out_path)
     for i, row in enumerate(meta):
@@ -271,9 +281,9 @@ def run_instruct(cfg, meta, out_path):
         spans = fill_empty_spans(spans)
         prompt_ids = standalone_prompt_ids(tok, cfg.prompt_style, row["question"])
         n_input = len(prompt_ids) + len(gen_ids)
-        if n_input > mdl.config.max_position_embeddings:
+        if n_input > context:
             cache[i] = row_record(row, {'failure': 'context_overflow', 'n_input_tokens': n_input,
-                                       'context_limit': mdl.config.max_position_embeddings})
+                                       'context_limit': context})
             continue
         items.append({"idx": i, "prompt_ids": prompt_ids, "gen_ids": gen_ids,
                       "step_token_spans": spans, "align_diag": diag, "row": row})
@@ -314,7 +324,13 @@ def main():
                     help="--mode instruct only: prompt for the standalone model (see the module docstring)")
     ap.add_argument("--answers", default=None, help="external label-free answers.json (Socratic, Hard2Verify); "
                     "output is external_telemetry.pkl")
+    ap.add_argument("--rope-dynamic-factor", type=float, default=None,
+                    help="ADAPTATION: dynamic NTK RoPE scaling by this factor, active only above the native context "
+                         "(spectral_utils/rope_extension.py). Instruct mode requires --max-batch 1, because dynamic "
+                         "scaling depends on the padded batch length")
     cfg = ap.parse_args()
+    if cfg.rope_dynamic_factor and cfg.mode == 'instruct' and cfg.max_batch != 1:
+        ap.error('--rope-dynamic-factor in instruct mode needs --max-batch 1 (per-row sequence length)')
     if cfg.mode == 'prm' and cfg.adapter == 'qwen_prm' and cfg.model and '72B' in cfg.model:
         ap.error('Use --adapter qwen_prm_72b for the 72B official template and chunked vocabulary projection')
     if cfg.mode == 'prm' and getattr(ADAPTERS[cfg.adapter], 'blocked_reason', None):
@@ -343,13 +359,14 @@ def main():
     identity_path = os.path.join(cfg.out, 'run_identity.json')
     identity = {'adapter': cfg.adapter, 'mode': cfg.mode, 'model': cfg.model,
                 **({'prompt_style': cfg.prompt_style} if cfg.mode == 'instruct' and cfg.prompt_style != 'qwen_cot_chat' else {}),
-                'logprob_top_k': cfg.logprob_top_k, 'row_ids': [str(r['idx']) for r in meta],
+                'logprob_top_k': cfg.logprob_top_k,
+                **({'rope_dynamic_factor': cfg.rope_dynamic_factor} if cfg.rope_dynamic_factor else {}), 'row_ids': [str(r['idx']) for r in meta],
                 'questions_steps': [(r['question'], r['steps']) for r in meta]}
     identity = json.loads(json.dumps(identity))
     if os.path.exists(identity_path):
         with open(identity_path) as f: previous = json.load(f)
         n_previous = len(previous['row_ids'])
-        fixed = ('adapter', 'mode', 'model', 'logprob_top_k', 'prompt_style')
+        fixed = ('adapter', 'mode', 'model', 'logprob_top_k', 'prompt_style', 'rope_dynamic_factor')
         same_prefix = (previous['row_ids'] == identity['row_ids'][:n_previous] and
                        previous['questions_steps'] == identity['questions_steps'][:n_previous])
         if not same_prefix or any(previous.get(k) != identity.get(k) for k in fixed):
@@ -391,6 +408,8 @@ def main():
                                  if cfg.mode == 'instruct' or cfg.adapter.startswith('qwen_prm') else None,
                 **({"prompt_style": cfg.prompt_style, "model_revision": getattr(cfg, 'model_revision', None)}
                    if cfg.mode == 'instruct' else {}),
+                "rope_extension": (extra.get('lm_head_check', {}).get('rope_extension') if cfg.mode == 'prm'
+                                   else getattr(cfg, 'rope_extension', None)),
                 "n_boundary_whitespace": int(sum(e.get('n_boundary_whitespace', 0) for e in good)),
                 "token_surprisal_median": float(np.median(surpr)) if len(surpr) else None, "token_surprisal_mean": float(surpr.mean()) if len(surpr) else None,
                 "token_entropy15_median": float(np.median(ent)) if len(ent) else None,
