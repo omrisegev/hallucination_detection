@@ -111,3 +111,15 @@ Input R1 in every cell (raw banks from AIRCC, see README). PRM and AUTO rows: RE
 
 ## ARES
 - Not run. ARES was dropped from deck v2 (Omri, 2026-10-29); no ARES protocol cell was asked here.
+
+## ProcessBench with the PRM gate (NC rule), added 2026-11-08 (c4u_processbench_nc.py, RESULTS_PB_NC.csv)
+
+NC: the PRM decides whether an answer has an error and how many steps; C4U's rank decides which steps. Same rule as AUTO_N16_NC.
+
+| PRM | PRM own thr avg F1 | AUTO NC avg F1 | C4U NC avg F1 | C4U own count avg F1 | PRM own thr macro SLA | C4U NC macro SLA [95% CI] | C4U own count macro SLA |
+|---|---|---|---|---|---|---|---|
+| Qwen-PRM-7B | 72.94 | 63.21 | 69.68 | 1.32 | 61.87 | 57.40 [55.2, 59.6] | 56.65 |
+| Qwen-PRM-72B | 78.20 | 67.27 | 75.64 | 0.90 | 71.22 | 67.08 [64.9, 69.1] | 61.97 |
+| PURE | 52.58 | 37.69 | 42.62 | 0.53 | 38.98 | 28.74 [26.6, 30.8] | 34.39 |
+| RLHFlow | 29.16 | 33.17 | 29.83 | 0.00 | 19.09 | 19.51 [17.7, 21.5] | 17.32 |
+- MtG (Qwen3-8B, no PRM): macro SLA 39.39. PRM native F1 re-computed through eval_processbench, parity 4/4 vs RESULTS_BACKBONE.
