@@ -29,4 +29,7 @@ cd "${CODE_DIR:-$SHARED/code_prm_boost_v1}"
 echo "[sbatch] job $SLURM_JOB_ID on $(hostname) in $(pwd), args: $*"
 WHEELS=$SHARED/wheelhouse/tf_thinkfix_20261010
 python -m pip install -q --user --no-deps "$WHEELS"/*.whl   # compute nodes are offline (2026-10-16)
+if [[ " $* " == *" --rope-dynamic-factor "* ]]; then   # long-context adaptation: CPU checks of the patch in this container first
+  python -m pytest -q -p no:cacheprovider tests/test_rope_extension.py || { echo "[sbatch] ROPE_TEST_FAIL"; exit 3; }
+fi
 exec python cluster/run_prmbench_prm_telemetry.py "$@"
