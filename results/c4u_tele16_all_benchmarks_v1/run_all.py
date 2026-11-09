@@ -35,7 +35,9 @@ if not N.BUNDLE.exists():                                   # the PC keeps the b
     N.BUNDLE = DATA / 'c4u_r1_inputs' / 'auto_raw_plus_z_bundle' / 'inputs'
 MODE = 'prm'
 CROP_BENCHES = ('crv_arith', 'crv_gsm8k', 'prm800k', 'math_shepherd')
-DELTA = os.environ.get('DELTABENCH_BENCH', 'deltabench')   # 'deltabench_ext' once the long-context cells exist
+DELTAS = os.environ.get('DELTABENCH_BENCH', 'deltabench,deltabench_ext').split(',')
+# deltabench = 447 answers common to every cell with a 4,096-token context; deltabench_ext = all 1,236 answers
+# (long answers of Qwen-PRM-7B/72B and PURE scored with dynamic-NTK RoPE x3, see crop_ares_v1/DELTABENCH_EXT_PROVENANCE.md)
 
 
 def bank_path(prm, bench):
@@ -156,6 +158,11 @@ def macro_f1(err, flag):
 
 
 def deltabench(prm):
+    for d in DELTAS:
+        deltabench_one(prm, d)
+
+
+def deltabench_one(prm, DELTA):
     n0 = len(C.ROWS)
     C.CELL_HOOK = hook
     c = C.cab_cell(DELTA, prm)

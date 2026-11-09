@@ -20,7 +20,7 @@ CPU only, stored raw banks, no refit of any frozen recipe. Development data.
 | CRV-Arith, CRV-GSM8K | CROP T6 (T17 cross-domain in c4u_vs_competitors_v1) | complete | yes |
 | PRM800K | CROP T6 | complete | yes (PURE is trained on PRM800K: in-training) |
 | Math-Shepherd | CROP T6 | complete | yes (labels look degenerate: every arm < .5 AUROC, as CROP's Direct PRM .454) |
-| DeltaBench | ARES | RLHFlow complete; Qwen-7B/72B/PURE 508 of 1,236 (4,096-token context) | 447 common answers now; long-context cells pending (branch `claude/deltabench-long-context-2026-11-08`) |
+| DeltaBench | ARES | complete, all 1,236 answers (2026-11-09) | two populations: `deltabench` = 447 answers every cell scored at 4,096 tokens; `deltabench_ext` = all 1,236 (headline) |
 | ClaimTrees, CaptainCook (ARES); GSM8K/AIME RRI (SLIDER); BoN/beam/GRPO (PRISM) | | not collected | out of scope: no math step labels, or needs generation/training |
 
 ## Inputs
@@ -31,6 +31,16 @@ CPU only, stored raw banks, no refit of any frozen recipe. Development data.
   `crop_ares_all/full_sa_<prm>_<bench>/bank_v3` elsewhere). The PRM columns are the same PRM's rewards grafted onto the same answers.
   This is our reading of "C4U standalone": the recipe is unchanged, only the telemetry source differs. TELE16 contains no PRM input.
 - R1 gate (every cell, both modes): answer-z of the raw bank values reproduces the stored N16 channels (< 1e-4, asserted).
+
+## DeltaBench long answers (`deltabench_ext`, 2026-11-09)
+728 of 1,236 DeltaBench answers exceed the 4,096-token context of Qwen-PRM-7B/72B and PURE. Omri approved (2026-11-08) a labelled
+adaptation: dynamic-NTK RoPE x3, active only beyond 4,096 tokens (bit-identical below). Run on AIRCC from branch
+`claude/deltabench-long-context-2026-11-08` (10 GPU jobs, 0 failures); merged cells keep every original row and add the long ones.
+PRM-mode original rows are bit-identical to the old cells; standalone rows reproduce within batching drift (native rows kept).
+Banks/scores: AIRCC job 332509, 30/30 md5 locally; Drive `cluster_results/prm_boost_crop_ares_benchmarks_v1/` verified.
+RLHFlow (8,192-token context) already covered all 1,236: its `deltabench` files are byte-copied under the `_ext` name.
+Local layout and provenance: `crop_ares_v1/DELTABENCH_EXT_PROVENANCE.md`. Adding `deltabench_ext` left every earlier row of
+`RESULTS_{prm,sa}.csv` unchanged (0 removed, 56 added per mode).
 
 ## Parity
 - `prm` mode: 664 checks; 280 C4U rows reproduce `c4u_vs_competitors_v1/RESULTS.csv` exactly (PRMBench, ProcessBench, CROP).
