@@ -102,3 +102,15 @@ Parity:
 - Direct PRM (Qwen-7B) under CROP's protocol vs CROP Table 6: CRV-Arith AUROC .943 / kept 97.4% (CROP .9421 / 97.5),
   CRV-GSM8K .849 / 79.8 (.8659 / 81.7), Math-Shepherd .455 / 1.0 / risk 0.9 (.4537 / 1.0 / 0.9), PRM800K .930 / 68.3
   (.9327 / 67.2).
+
+## DeltaBench long answers (AIRCC, 2026-11-08/09)
+728 of 1,236 DeltaBench answers exceed 4,096 tokens (max about 11,600) for Qwen-PRM-7B/72B and PURE. Omri approved
+(2026-11-08) a labelled adaptation: dynamic-NTK RoPE x3 (`spectral_utils/rope_extension.py`), active only beyond 4,096
+tokens, bit-identical below; driver flag `--rope-dynamic-factor 3`, with `tests/test_rope_extension.py` run inside each job.
+- Smoke: 328762-65. Full: 328769-74 (+ standalone jobs), 10 of 10 COMPLETED, 0 failed rows. Outputs `full_<mode>_<prm>_deltabench_ropedyn3`.
+- Merge (`aircc/merge_longctx.py`) -> `full_<mode>_<prm>_deltabench_ext`, 1,236 rows each; records in `longctx_parity/`.
+  PRM mode: every original row bit-identical (exact PASS). Standalone: original rows kept unchanged; the re-run differs on
+  them by batching drift (entropy median about 0.004 nats, max 0.8), reported as REPORTED_BATCHING_DRIFT.
+- Banks + scores: job 332509 (CPU-only on power-gpu; the cpu partition was full), P0 parity PASS, CAB_DOWNSTREAM_DONE.
+- Drive: `cluster_results/prm_boost_crop_ares_benchmarks_v1/` (raw pkls, banks, scores, code_longctx_v1), rclone check 0 differences.
+- Evaluation: `results/c4u_tele16_all_benchmarks_v1` on branch `claude/c4u-tele16-all-benchmarks-2026-11-08` (`deltabench_ext`).
