@@ -6,6 +6,7 @@ c4u_competitors.build_X, runs the frozen C4U (c4u_new.c4u, unchanged) and saves:
   X_R1                                   R1 matrix (n_steps x 18, float32): col0 answer-z PRM risk, col1 raw PRM p std, 16 telemetry
   arm__<name>                            every per-step arm of the cell (PRM, PRMPROB, ...)
   N16                                    stored answer-z N16 channels (float32)
+  G16, digit_active                      global rank->normal of the raw N16 channels (no per-answer centring)
   c4u_rank, c4u_post, c4u_flags, c4u_k   frozen C4U outputs (rank, DS step posterior, flags, per-answer count)
   lay__uids, lay__nonempty, lay__nonempty_lengths, lay__native_valid   SCORES layout used by eval_processbench
 and, for MODE 'sa' (standalone base-model telemetry, no PRM), the same layout + N16 + arms in sa_*.
@@ -37,9 +38,12 @@ def main():
         c = C.cab_cell('processbench', prm)
         X, ab, rep, g = M.build_X(c, prm, 'processbench'); assert rep == 'R1', rep
         r = M.run_c4u(c, X, ab, f'processbench/{prm}/{rep}')
+        rv, act = M.raw16(c, prm, 'processbench')       # raw N16 values -> global rank->normal (no answer-z): keeps level
+        G16 = np.column_stack([M.rank_gauss(rv[:, j], act[:, M.DIG.index(n)] if n in M.DIG else None)
+                               for j, n in enumerate(M.N16)])
         S = np.load(A.cab_dir('prm', prm, 'processbench') / 'scores' / f'SCORES_prm_{A.PFILE.get(prm, prm)}_processbench.npz')
         d = dict(ids=np.asarray(c.ids).astype(str), off=np.asarray(c.off, np.int64), keep=np.asarray(c.keep, bool),
-                 keep_gold=np.asarray(c.keep_gold, bool), X_R1=X.astype(np.float32),
+                 keep_gold=np.asarray(c.keep_gold, bool), X_R1=X.astype(np.float32), G16=G16.astype(np.float32), digit_active=np.asarray(act, bool),
                  N16=E.channels(c, 'N16').astype(np.float32),
                  c4u_rank=r['rank'], c4u_post=r['posterior'], c4u_flags=np.asarray(r['flags'], bool),
                  c4u_k=np.asarray(r['k'], np.int64), c4u_prevalence=np.array(r['prevalence']), **arms_of(c))
