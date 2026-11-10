@@ -76,7 +76,7 @@ def c4u_t(c, X):
                 unassigned=int((g < 0).sum()), psi=sp['psi'], eta=sp['eta'], s=s)
 
 
-ROWS, FIT, PAR = [], {}, []
+ROWS, FIT, PAR, SAVE = [], {}, [], {}
 
 
 def add(mode, prm, bench, arm, metric, value, **kw):
@@ -105,6 +105,7 @@ def prmbench(mode, prm):
         Xt = X[:, 2:]
     full = N.c4u(c, X, ab)
     tel = c4u_t(c, Xt)
+    W, inv, _ = E.boot_weights(c); SAVE[f'{mode}|prmbench|{prm}|groups'] = inv
     FIT[f'{mode}/prmbench/{prm}'] = fitinfo(tel)
     native = c.flags('PRM_native', 'native')
     for arm, rank, flags, is_native in (('PRM native', c.arms['PRM_native'], native, True),
@@ -112,6 +113,7 @@ def prmbench(mode, prm):
                                         ('C4U-T (telemetry only)', tel['rank'], tel['flags'], False)):
         ps, _ = E.official(c, flags, is_native)
         add(mode, prm, 'prmbench', arm, 'PRMScore', ps)
+        SAVE[f'{mode}|prmbench|{prm}|{arm}|counts'] = E.counts_by_answer(c, flags)
         for kk, v in E.category_scores(c, flags).items():
             add(mode, prm, 'prmbench', arm, f'cat {kk}', v)
         wa = E.per_answer_auc(c.err, rank, c.off, None); wa[~ans_eval] = np.nan
@@ -127,10 +129,13 @@ def processbench(mode, prm):
     X, ab, rep, g = T.build_X(c, prm, 'processbench'); assert rep == 'R1'
     full = N.c4u(c, X, ab)
     tel = c4u_t(c, X[:, 2:])
+    SAVE[f'{mode}|processbench|{prm}|label'] = np.array([T.A.PB_GOLD[u]['label'] for u in c.ids])
+    SAVE[f'{mode}|processbench|{prm}|subset'] = np.array([T.A.PB_GOLD[u]['subset'] for u in c.ids])
     FIT[f'{mode}/processbench/{prm}'] = fitinfo(tel)
     for arm, flags in (('PRM native', c.arms['PRM'] > 0), ('C4U (PRM + telemetry)', full['flags']),
                        ('C4U-T (telemetry only)', tel['flags'])):
         m = T.pb_metrics(c, T.pb_predict(c, flags))
+        SAVE[f'{mode}|processbench|{prm}|{arm}|pred'] = T.pb_predict(c, flags)
         for s in T.SUBSETS:
             for kk in ('TPR', 'TNR', 'F1'):
                 add(mode, prm, 'processbench', arm, f'{s} {kk}', m[s][kk])
@@ -175,6 +180,7 @@ def main():
     parity()
     E.write_csv(HERE / 'RESULTS.csv', ROWS)
     json.dump(FIT, open(HERE / 'FIT.json', 'w'), indent=1, default=float)
+    np.savez_compressed(HERE / 'PER_ANSWER.npz', **SAVE)   # inputs of boot.py (gitignored .npz)
     fails = [p['check'] for p in PAR if not p['ok']]
     json.dump(dict(n_checks=len(PAR), failed=fails, checks=PAR), open(HERE / 'PARITY.json', 'w'), indent=1, default=float)
     print('rows', len(ROWS), 'parity', len(PAR), 'failed', fails)

@@ -12,7 +12,8 @@ quality number, no tuned parameter. Full C4U and PRM rows are recomputed in the 
 | file | what |
 |---|---|
 | `run.py` | runs C4U-T, full C4U and the PRM on PRMBench + ProcessBench, both modes -> `RESULTS.csv`, `FIT.json`, `PARITY.json` |
-| `figures.py` | `fig_prmbench.png`, `fig_processbench.png` |
+| `boot.py` | paired bootstrap CIs (2,000 draws; PRMBench over source questions, ProcessBench over answers within subset) -> `CI.csv` |
+| `figures.py` | `fig_prmscore.png`, `fig_processbench_sla.png`, `fig_processbench_f1.png`, `fig_gap.png` (bars with 95% CI, competitor lines) |
 
 ## PRMBench PRMScore (own flags; PRM at native threshold)
 
@@ -44,3 +45,9 @@ quality number, no tuned parameter. Full C4U and PRM rows are recomputed in the 
 PRISM T6 average F1: PRM 72.9 / 78.2 / 52.6 / 29.2; both C4U versions ~0 (C4U-T bb Qwen-72B 29.7), because the own
 count flags at least one step in almost every answer (correct answers then score 0). C4U-T bb on Qwen-PRM-72B is the
 one cell with K=3 groups and prevalence .11; it leaves 30% of answers unflagged, hence its F1 and its low SLA.
+
+## Telemetry-only minus full C4U, 95% paired CI (`CI.csv`, `fig_gap.png`)
+- PRMBench PRMScore: -2.0 to -3.8 on Qwen-7B/72B/PURE (both modes), -0.4 [-0.5,-0.2] / -0.6 [-0.9,-0.2] on RLHFlow. All 8 below 0.
+  Versus the PRM alone: +1.8 to +3.8 on Qwen-7B/PURE, +13 on RLHFlow, Qwen-72B -2.75 (standalone) / +0.55 [-0.02, 1.11] (backbone).
+- ProcessBench macro SLA: -2.7 to -11.8, Qwen-72B backbone -29.2; RLHFlow +3.1 (sa) / +16.3 (bb).
+- ProcessBench average F1: tie at ~0 except Qwen-72B backbone (+28.8).
