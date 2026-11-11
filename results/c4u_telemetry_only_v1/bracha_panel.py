@@ -59,32 +59,37 @@ def rates(c, f):
     return dict(TPR=100 * float((pv & yv).sum() / yv.sum()), FPR=100 * float((pv & ~yv).sum() / (~yv).sum()))
 
 
-for i, prm in enumerate(P):
-    # PRMBench: standalone cell (same answers/labels as the backbone cell), C4U-T on standalone telemetry
-    RA.MODE = 'sa'
-    c = E.load('prmbench', f'{prm}__standalone')
-    c.arms['PRMPROB'] = 1. - c.extra['reward']; c.arms['PRM'] = c.arms[N.K.prm_arm(c)]
-    X, ab, rep, g = T.build_X(c, prm, 'prmbench')
-    tel = Rn.c4u_t(c, X[:, 2:])
-    OUT[('prmbench', prm)] = dict(value=metric(c, tel['flags']), **rates(c, tel['flags']))
-    # backbone cell: parity of PRM GAP / CHAIN / GSP full against the chart, and their TPR/FPR
-    cb, ans_eval, Xb, abb, _ = N.load('prmbench', prm, 'R1')
-    scale = 'PRM_Q80_PROB' if Rn.C.A.META[f'prmbench/{prm}']['prm_reference_scale'] == '1-reward' else 'PRM_Q80'
-    full = N.c4u(cb, Xb, abb)
-    for arm, f in (('PRM', cb.flags(scale, 'GAP')), ('OCT22', cb.flags('CHAIN_N16', 'GAP')), ('GSP', full['flags'])):
-        v = metric(cb, f); OUT[('prmbench', prm, arm)] = dict(value=v, **rates(cb, f))
-        CHK.append(dict(check=f'prmbench {prm} {arm}', got=round(v, 1), chart=CHART['prmbench'][arm][i], ok=abs(round(v, 1) - CHART['prmbench'][arm][i]) < .051))
-    for bench in ('socratic', 'hard2verify'):
-        c = E.load(bench, prm)
-        tel = Rn.c4u_t(c, sa_X(c, prm, bench))
-        OUT[(bench, prm)] = dict(value=metric(c, tel['flags']))
-        # the chart's PRM row uses the PRM's reference scale (logit PRM or probability PRMPROB, per cell): accept either
-        v = {a: round(metric(c, c.flags(a, 'GAP')), 1) for a in ('PRM', 'PRMPROB')}
-        CHK.append(dict(check=f'{bench} {prm} PRM GAP (PRM or PRMPROB scale)', got=v, chart=CHART[bench]['PRM'][i],
-                        ok=any(abs(x - CHART[bench]['PRM'][i]) < .051 for x in v.values())))
-    print(prm, 'done', flush=True)
+def main():
+    for i, prm in enumerate(P):
+        # PRMBench: standalone cell (same answers/labels as the backbone cell), C4U-T on standalone telemetry
+        RA.MODE = 'sa'
+        c = E.load('prmbench', f'{prm}__standalone')
+        c.arms['PRMPROB'] = 1. - c.extra['reward']; c.arms['PRM'] = c.arms[N.K.prm_arm(c)]
+        X, ab, rep, g = T.build_X(c, prm, 'prmbench')
+        tel = Rn.c4u_t(c, X[:, 2:])
+        OUT[('prmbench', prm)] = dict(value=metric(c, tel['flags']), **rates(c, tel['flags']))
+        # backbone cell: parity of PRM GAP / CHAIN / GSP full against the chart, and their TPR/FPR
+        cb, ans_eval, Xb, abb, _ = N.load('prmbench', prm, 'R1')
+        scale = 'PRM_Q80_PROB' if Rn.C.A.META[f'prmbench/{prm}']['prm_reference_scale'] == '1-reward' else 'PRM_Q80'
+        full = N.c4u(cb, Xb, abb)
+        for arm, f in (('PRM', cb.flags(scale, 'GAP')), ('OCT22', cb.flags('CHAIN_N16', 'GAP')), ('GSP', full['flags'])):
+            v = metric(cb, f); OUT[('prmbench', prm, arm)] = dict(value=v, **rates(cb, f))
+            CHK.append(dict(check=f'prmbench {prm} {arm}', got=round(v, 1), chart=CHART['prmbench'][arm][i], ok=abs(round(v, 1) - CHART['prmbench'][arm][i]) < .051))
+        for bench in ('socratic', 'hard2verify'):
+            c = E.load(bench, prm)
+            tel = Rn.c4u_t(c, sa_X(c, prm, bench))
+            OUT[(bench, prm)] = dict(value=metric(c, tel['flags']))
+            # the chart's PRM row uses the PRM's reference scale (logit PRM or probability PRMPROB, per cell): accept either
+            v = {a: round(metric(c, c.flags(a, 'GAP')), 1) for a in ('PRM', 'PRMPROB')}
+            CHK.append(dict(check=f'{bench} {prm} PRM GAP (PRM or PRMPROB scale)', got=v, chart=CHART[bench]['PRM'][i],
+                            ok=any(abs(x - CHART[bench]['PRM'][i]) < .051 for x in v.values())))
+        print(prm, 'done', flush=True)
 
-rows = [dict(benchmark=k[0], prm=k[1], arm=k[2] if len(k) > 2 else 'C4U-T standalone (no PRM)', **v) for k, v in OUT.items()]
-E.write_csv(HERE / 'BRACHA_PANEL.csv', rows)
-json.dump(CHK, open(HERE / 'BRACHA_PANEL_PARITY.json', 'w'), indent=1)
-for r in CHK: print(r)
+    rows = [dict(benchmark=k[0], prm=k[1], arm=k[2] if len(k) > 2 else 'C4U-T standalone (no PRM)', **v) for k, v in OUT.items()]
+    E.write_csv(HERE / 'BRACHA_PANEL.csv', rows)
+    json.dump(CHK, open(HERE / 'BRACHA_PANEL_PARITY.json', 'w'), indent=1)
+    for r in CHK: print(r)
+
+
+if __name__ == '__main__':
+    main()
