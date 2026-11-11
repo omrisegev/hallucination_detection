@@ -22,6 +22,13 @@ signal disappearing. Three mechanisms, in order of size:
    Hard2Verify -.04 -> -.01, CRV-Arith -.37 -> -.17. ProcessBench and PRM800K stop labelling at the first error, so the
    error is always the last labelled step: position alone gives within-AUC 1.00 / .995 there (within-AUC is not a valid
    localization metric on these two).
+   **Correction (same day, `laststep_check.py`, `T10_last_step.csv`):** part of mechanism 2 is a final-step readout
+   artifact. On Socratic/Hard2Verify the final step is very short (often the bare answer), and the top-10 token-mean
+   readout gives it answer-z about -1.0 / -0.8 for both correct and wrong final steps (PRMBench wrong final step +0.28).
+   The first-error target drops most final steps, so its gain there is partly this artifact. Dropping final steps alone:
+   TELE16-PRM pooled Socratic -.104 -> -.052, Hard2Verify -.040 -> +.004, CRV-GSM8K -.30 -> -.24; PRMBench/ProcessBench
+   unchanged. (PRM800K/ProcessBench final steps are usually the error itself, so the no-final-step numbers there are not
+   comparable.) Length-robust readouts are tested in `readout_alternatives/`.
 3. **PRM strength / in-domain PRMs.** On PRM800K, CRV and ProcessBench the PRMs are near their training distribution
    (pooled AUROC .85-.91); on PRMBench and DeltaBench they are weak (.63-.75), leaving room for telemetry. Supervised
    headroom of adding the 16 channels to the PRM (5-fold answer-grouped LR) is largest on PRMBench (+.076) and smallest on
