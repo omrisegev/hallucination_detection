@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/home/user/hallucination_detection/results/gsp_ablation_baseline_v1/ablation.py", line 132, in <module>
+    main(tuple(sys.argv[1:]) or BENCHES)
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/hallucination_detection/results/gsp_ablation_baseline_v1/ablation.py", line 115, in main
+    c, X, ab = load_cell(bench, prm)
+               ~~~~~~~~~^^^^^^^^^^^^
+  File "/home/user/hallucination_detection/results/gsp_ablation_baseline_v1/ablation.py", line 57, in load_cell
+    c = Rn.C.cab_cell('processbench', prm)
+  File "/home/user/hallucination_detection/results/telemetry_only_vs_competitors_v1/compute.py", line 153, in cab_cell
+    A.REG[key] = dict(mode=MODE, bench=bench, common=A.common_uids(bench))
+                                                     ~~~~~~~~~~~~~^^^^^^^
+  File "/home/user/hallucination_detection/results/prm_sub5_all_benchmarks_v1/sub5_all.py", line 127, in common_uids
+    return set.intersection(*[set(np.load(f)['uids'].astype(str)) for f in files])
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: unbound method set.intersection() needs an argument
