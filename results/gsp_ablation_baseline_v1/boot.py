@@ -64,7 +64,7 @@ def main():
             if bench == 'processbench':
                 preds = {k: T.pb_predict(c, f) for k, f in F.items()}
                 for p in (HERE / 'cells').glob(f'pbcp__{prm}__*.npy'):
-                    name = p.stem.split('__', 2)[2].replace('_', ' ')
+                    name = p.stem.split('__', 2)[2].replace('_', ' ').replace('pi = 12', 'pi = 1/2')
                     f = np.zeros(c.off[-1], bool); pr = np.load(p)
                     for q, a in zip(pr, c.off[:-1]):
                         if q >= 0: f[a + q] = True

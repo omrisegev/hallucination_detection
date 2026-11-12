@@ -25,7 +25,23 @@ CUTS = (10, 30)
 TOK11 = T.N16[:11]
 
 
-def align(c, S):
+def align(c, S, bench=None, prm=None):
+    if bench in ('socratic', 'hard2verify'):
+        # same position rule as bracha_panel.sa_X: the cell keeps the PRM's nonempty steps (full position k);
+        # the readout file holds one row per full step position of the standalone bank
+        P = np.load(Path(E.DATA) / {'socratic': 'socratic', 'hard2verify': 'h2v'}[bench] / f'SCORES_{T.PFILE.get(prm, prm)}.npz')
+        pne = P['nonempty'].astype(bool); pst = np.concatenate([[0], np.cumsum(P['nonempty_lengths'].astype(np.int64))])
+        ppos = {u: j for j, u in enumerate(P['uids'].astype(str))}
+        spos = {u: i for i, u in enumerate(S['uids'].astype(str))}; so, sne = S['offsets'], S['nonempty'].astype(bool)
+        rows = []
+        for u in c.ids:
+            a, b = so[spos[u]], pst[ppos[u]]
+            assert so[spos[u] + 1] - a == pst[ppos[u] + 1] - b, u
+            for k in range(pst[ppos[u] + 1] - b):
+                if pne[b + k]:
+                    assert sne[a + k], (u, k); rows.append(a + k)
+        rows = np.array(rows); assert len(rows) == c.off[-1]
+        return rows
     pos = {u: i for i, u in enumerate(S['uids'].astype(str))}
     so, ne = S['offsets'], S['nonempty'].astype(bool); rows = []
     for u, a, b in zip(c.ids, c.off[:-1], c.off[1:]):
@@ -49,7 +65,7 @@ def main():
             if not p.exists():
                 print('missing', p, flush=True); continue
             c, X, ab = AB.load_cell(bench, prm)
-            S = np.load(p); ix = align(c, S)
+            S = np.load(p); ix = align(c, S, bench, prm)
             names = list(S['channel_names'].astype(str)); rn = list(S['readout_names'].astype(str))
             R = S['readouts'][ix]; ntok = S['ntok'][ix]
             top = np.column_stack([column(R[:, names.index(n), rn.index('top10')], c.off) for n in TOK11])

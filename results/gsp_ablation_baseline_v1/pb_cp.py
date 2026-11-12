@@ -77,7 +77,7 @@ def main():
             arms['CP PRM (anchored)'] = R.map_pred(em(risk, off, w1, w2, B=20, **kw))
             fr = S['rank|GSP full (PRM + tele) own count']
             arms['CP PRM + GSP full rank (anchored)'] = R.map_pred(em(np.column_stack([risk, fr]), off, w1, w2, B=10, **kw))
-        tr = S['rank|GSP-T own count']
+        tr = S[f'rank|GSP-T {VARIANT} own count' if VARIANT else 'rank|GSP-T own count']
         fw1, fw2, _ = free_init(tr, off)
         arms['CP GSP-T rank (free EM)'] = R.map_pred(em(tr, off, fw1, fw2, B=10, iters=30, h=h_from(fw1, off)))
         arms['CP GSP-T rank (free, pi = 1/2)'] = R.map_pred(em(tr, off, fw1, fw2, B=10, iters=30, pi=.5, h=h_from(fw1, off)))
