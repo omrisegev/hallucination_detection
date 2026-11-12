@@ -1,6 +1,7 @@
 """Drop energy_innovation from TELE16 (2026-11-12, Omri: 'if you remove it, how does it affect all benchmarks?').
 Frozen GSP-T (gsp_v, no weight changes) on 16 vs 15 channels; R1 columns; all 4 benchmarks x 4 base models + Qwen3-8B PB.
-Also L-SML + GAP and equal mean + GAP on 16 vs 15 as references. Output RESULTS_drop_ei.csv."""
+Also L-SML + GAP and equal mean + GAP on 16 vs 15 as references. Output RESULTS_drop_ei.csv.
+Env DROP=a,b,c / DROP_TAG / DROP_OUT drop another channel set (RESULTS_drop3.csv: chosen_surprisal, energy_innovation, realized_drv)."""
 import sys, runpy
 from pathlib import Path
 import numpy as np
@@ -10,11 +11,15 @@ import ablation as AB  # noqa: E402
 import r0 as R0  # noqa: E402
 import signed_weights as SW  # noqa: E402
 T, E, N = AB.T, AB.E, AB.N
-DROP = T.N16.index('energy_innovation')
+import os
+DROPN = os.environ.get('DROP', 'energy_innovation').split(',')
+DROP = [T.N16.index(n) for n in DROPN]
+TAG = os.environ.get('DROP_TAG', '15 no EI')
+OUT = os.environ.get('DROP_OUT', 'RESULTS_drop_ei.csv')
 
 
 def run(c, X, bench, prm, rows, pos=None):
-    for tag, Xs in (('16', X), ('15 no EI', np.delete(X, DROP, 1))):
+    for tag, Xs in (('16', X), (TAG, np.delete(X, DROP, 1))):
         tel = SW.gsp_v(c, Xs, False, False)
         arms = {f'GSP-T [{tag}]': tel, f'L-SML [{tag}]': dict(rank=tel['s'], flags=AB.gap(c, tel['s'])),
                 f'mean [{tag}]': dict(rank=Xs.mean(1), flags=AB.gap(c, Xs.mean(1)))}
@@ -38,4 +43,4 @@ for bench in AB.BENCHES:
         run(c, X[:, 2:], bench, prm, rows); print(bench, prm, flush=True); del c
 g = runpy.run_path(str(HERE / 'qwen3_8b_pb.py'))
 run(g['c'], g['X'], 'processbench', 'qwen3_8b_mtg', rows, g['pos'])
-E.write_csv(HERE / 'RESULTS_drop_ei.csv', rows)
+E.write_csv(HERE / OUT, rows)
