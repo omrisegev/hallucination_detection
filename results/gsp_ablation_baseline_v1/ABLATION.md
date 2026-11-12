@@ -111,3 +111,31 @@ Share of steps with fewer than X tokens (Qwen-PRM-7B cell): PRMBench 6.6% (X = 1
 | `pb_cp.py` | Arm E; `RESULTS_pb_cp*.csv` |
 | `boot.py` | `BOOT.csv` |
 | `make_tables.py`, `figures.py` | `TABLES.md`, `charts/<bench>.png` |
+
+## Addendum (2026-11-12): ProcessBench in the Mind the Gap metric (macro SLA)
+
+Macro SLA = share of erroneous answers where the predicted first-error step is exact, mean over the 4 subsets
+(`pb_sla.py`, `PB_SLA.csv`, 95% CI from 2,000 stratified draws). Mind the Gap reports 39.39 with Qwen3-8B.
+
+| Arm (no PRM unless stated) | 7B base | 72B base | PURE base | RLHFlow base |
+|---|---|---|---|---|
+| GSP-T own count | 31.6 | 26.7 | 28.0 | 30.8 |
+| GSP-T + GAP | 34.8 [32.7, 37.1] | 29.0 | 29.5 | 32.9 |
+| GSP-T + GAP, fix X = 10 | 34.3 | 26.9 | 29.3 | 33.1 |
+| Change-point on GSP-T, free EM | 36.8 [34.6, 39.3] | 32.4 | 33.2 | 35.7 |
+| PRM alone, own threshold (uses PRM) | 61.9 | 71.2 | 39.0 | 19.1 |
+
+Same arms on the telemetry of Mind the Gap's own scorer, Qwen3-8B (thinkfix bank, 3,400 answers; `qwen3_8b_pb.py`,
+`PB_QWEN3_8B.csv`):
+
+| Arm | macro SLA [95% CI] |
+|---|---|
+| GSP-T own count | 18.8 [16.9, 20.6] |
+| GSP-T + GAP | 22.1 [20.1, 24.0] |
+| Change-point on GSP-T, free EM | 21.8 [19.8, 23.9] |
+| Control: equal mean of the same 16 columns, argmax | 40.1 [38.0, 42.3] |
+| Control: equal mean of the same 16 columns, GAP | 37.0 [34.7, 39.1] |
+| Mind the Gap (paper) | 39.39 |
+
+- On Qwen3-8B the GSP weighting reduces SLA: the GSP rank with argmax gives 27.5, the equal mean gives 40.1.
+- 13 of 16 single columns with argmax give 19-35; no single column reaches the equal mean.
