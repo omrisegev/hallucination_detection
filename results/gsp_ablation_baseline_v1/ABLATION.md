@@ -138,4 +138,4 @@ Same arms on the telemetry of Mind the Gap's own scorer, Qwen3-8B (thinkfix bank
 | Mind the Gap (paper) | 39.39 |
 
 - On Qwen3-8B the GSP weighting reduces SLA: the GSP rank with argmax gives 27.5, the equal mean gives 40.1.
-- 13 of 16 single columns with argmax give 19-35; no single column reaches the equal mean.
+- All 16 single columns with argmax give 16.4-35.1 (best: digit_spread 35.1); none reaches the equal mean.
