@@ -8,6 +8,8 @@ sys.path.insert(0, str(HERE))
 import calibrate as CB  # noqa: E402
 AB, E, T = CB.AB, CB.E, CB.T
 BASE = 'A0 top10'
+import os
+SUFFIX = os.environ.get('BOOT_SUFFIX', '')   # '__joint' for joint.py cells
 
 
 def pb_sla_boot(c, preds, draws=2000, seed=7):
@@ -25,7 +27,7 @@ def main(benches):
     rows = []
     for bench in benches:
         for prm in AB.PRMS:
-            S = np.load(HERE / 'cells' / f'{bench}__{prm}.npz')
+            S = np.load(HERE / 'cells' / f'{bench}__{prm}{SUFFIX}.npz')
             F = {k[6:]: S[k] for k in S.files if k.startswith('flags|')}
             c, X, ab = AB.load_cell(bench, prm)
             if bench == 'processbench':
@@ -41,7 +43,7 @@ def main(benches):
                     rows.append(dict(bench=bench, prm=prm, arm=f'{k} MINUS {BASE}', kind='diff', value=d[0],
                                      lo=np.percentile(d[1:], 2.5), hi=np.percentile(d[1:], 97.5)))
             print(bench, prm, 'boot done', flush=True); del c
-    E.write_csv(HERE / f'BOOT_{"_".join(benches)}.csv', rows)
+    E.write_csv(HERE / f'BOOT{SUFFIX}_{"_".join(benches)}.csv', rows)
 
 
 if __name__ == '__main__':

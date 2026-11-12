@@ -1,0 +1,369 @@
+{
+ "processbench/qwen_prm_7b": {
+  "B1_readouts": {
+   "q15_H1": "top10",
+   "q15_VE1": "top10_drop1",
+   "chosen_surprisal": "top10",
+   "logprob_margin": "top10_drop1",
+   "true_tail50": "top10_drop1",
+   "energy_level": "top10_drop1",
+   "energy_innovation": "median",
+   "top15_turnover": "top10",
+   "top50_js": "mean",
+   "dominant_freq16": "top10_drop1",
+   "bocpd_p0": "top10"
+  },
+  "B1_rounds": 2,
+  "B1_misfit": [
+   0.03549054440841986,
+   0.036486039227815924
+  ],
+  "B2_choice": {
+   "q15_H1": [
+    "top10",
+    "top1"
+   ],
+   "q15_VE1": [
+    "top10_drop1",
+    "top2"
+   ],
+   "chosen_surprisal": [
+    "top10",
+    "top2"
+   ],
+   "logprob_margin": [
+    "top10",
+    "top1"
+   ],
+   "true_tail50": [
+    "top10_drop1",
+    "top1"
+   ],
+   "energy_level": [
+    "top10_drop1",
+    "top2"
+   ],
+   "energy_innovation": [
+    "mean",
+    "GAP"
+   ],
+   "top15_turnover": [
+    "p90",
+    "q90"
+   ],
+   "top50_js": [
+    "mean",
+    "GAP"
+   ],
+   "dominant_freq16": [
+    "top20pct",
+    "q90"
+   ],
+   "bocpd_p0": [
+    "top20pct",
+    "q90"
+   ],
+   "realized_z": [
+    "stored",
+    "q90"
+   ],
+   "realized_drv": [
+    "stored",
+    "top2"
+   ],
+   "digit_alternative": [
+    "stored",
+    "top1"
+   ],
+   "digit_spread": [
+    "stored",
+    "top1"
+   ],
+   "digit_alternative_innovation": [
+    "stored",
+    "top1"
+   ]
+  },
+  "B2_rounds": 2,
+  "B2_misfit": [
+   0.007834923117464743,
+   0.007302962784987128
+  ]
+ },
+ "processbench/qwen_prm_72b": {
+  "B1_readouts": {
+   "q15_H1": "top10_drop1",
+   "q15_VE1": "top10_drop1",
+   "chosen_surprisal": "top10",
+   "logprob_margin": "top10_drop1",
+   "true_tail50": "top10_drop1",
+   "energy_level": "top10",
+   "energy_innovation": "top10_drop1",
+   "top15_turnover": "top10",
+   "top50_js": "mean",
+   "dominant_freq16": "top10_drop1",
+   "bocpd_p0": "top10"
+  },
+  "B1_rounds": 2,
+  "B1_misfit": [
+   0.10817691345538082,
+   0.11387752445476386
+  ],
+  "B2_choice": {
+   "q15_H1": [
+    "top10_drop1",
+    "top2"
+   ],
+   "q15_VE1": [
+    "median",
+    "q90"
+   ],
+   "chosen_surprisal": [
+    "top10",
+    "top2"
+   ],
+   "logprob_margin": [
+    "top10",
+    "top2"
+   ],
+   "true_tail50": [
+    "top10_drop1",
+    "top1"
+   ],
+   "energy_level": [
+    "top10",
+    "top2"
+   ],
+   "energy_innovation": [
+    "p90",
+    "top1"
+   ],
+   "top15_turnover": [
+    "top10",
+    "q90"
+   ],
+   "top50_js": [
+    "mean",
+    "q90"
+   ],
+   "dominant_freq16": [
+    "top20pct",
+    "q90"
+   ],
+   "bocpd_p0": [
+    "median",
+    "top2"
+   ],
+   "realized_z": [
+    "stored",
+    "q90"
+   ],
+   "realized_drv": [
+    "stored",
+    "top2"
+   ],
+   "digit_alternative": [
+    "stored",
+    "GAP"
+   ],
+   "digit_spread": [
+    "stored",
+    "top1"
+   ],
+   "digit_alternative_innovation": [
+    "stored",
+    "GAP"
+   ]
+  },
+  "B2_rounds": 4,
+  "B2_misfit": [
+   0.05488778665377343,
+   0.05354089338457428,
+   0.05277165035347802,
+   0.05354089338457428
+  ]
+ },
+ "processbench/pure_prm": {
+  "B1_readouts": {
+   "q15_H1": "top10_drop1",
+   "q15_VE1": "top10_drop1",
+   "chosen_surprisal": "top10_drop1",
+   "logprob_margin": "top10",
+   "true_tail50": "top10_drop1",
+   "energy_level": "p90",
+   "energy_innovation": "top10_drop1",
+   "top15_turnover": "top10_drop1",
+   "top50_js": "p90",
+   "dominant_freq16": "median",
+   "bocpd_p0": "top10"
+  },
+  "B1_rounds": 3,
+  "B1_misfit": [
+   0.011660244138200488,
+   0.010942095163675775,
+   0.010942095163675775
+  ],
+  "B2_choice": {
+   "q15_H1": [
+    "top10_drop1",
+    "top2"
+   ],
+   "q15_VE1": [
+    "top10_drop1",
+    "top2"
+   ],
+   "chosen_surprisal": [
+    "top10_drop1",
+    "top2"
+   ],
+   "logprob_margin": [
+    "top10_drop1",
+    "top2"
+   ],
+   "true_tail50": [
+    "top10",
+    "GAP"
+   ],
+   "energy_level": [
+    "frac_above",
+    "q90"
+   ],
+   "energy_innovation": [
+    "top10",
+    "top1"
+   ],
+   "top15_turnover": [
+    "top10",
+    "q90"
+   ],
+   "top50_js": [
+    "top10",
+    "top1"
+   ],
+   "dominant_freq16": [
+    "top20pct",
+    "q90"
+   ],
+   "bocpd_p0": [
+    "top20pct",
+    "GAP"
+   ],
+   "realized_z": [
+    "stored",
+    "q90"
+   ],
+   "realized_drv": [
+    "stored",
+    "top2"
+   ],
+   "digit_alternative": [
+    "stored",
+    "GAP"
+   ],
+   "digit_spread": [
+    "stored",
+    "GAP"
+   ],
+   "digit_alternative_innovation": [
+    "stored",
+    "GAP"
+   ]
+  },
+  "B2_rounds": 2,
+  "B2_misfit": [
+   0.005211363318306235,
+   0.005117818666563883
+  ]
+ },
+ "processbench/rlhflow_prm": {
+  "B1_readouts": {
+   "q15_H1": "top10_drop1",
+   "q15_VE1": "top10_drop1",
+   "chosen_surprisal": "top10",
+   "logprob_margin": "top10",
+   "true_tail50": "top10_drop1",
+   "energy_level": "top10_drop1",
+   "energy_innovation": "frac_above",
+   "top15_turnover": "p90",
+   "top50_js": "frac_above",
+   "dominant_freq16": "median",
+   "bocpd_p0": "top20pct"
+  },
+  "B1_rounds": 3,
+  "B1_misfit": [
+   0.008792257879082862,
+   0.00853647789179327,
+   0.007999447391649478
+  ],
+  "B2_choice": {
+   "q15_H1": [
+    "top10_drop1",
+    "top2"
+   ],
+   "q15_VE1": [
+    "top10_drop1",
+    "top2"
+   ],
+   "chosen_surprisal": [
+    "top10",
+    "top2"
+   ],
+   "logprob_margin": [
+    "top10",
+    "top2"
+   ],
+   "true_tail50": [
+    "top10_drop1",
+    "GAP"
+   ],
+   "energy_level": [
+    "top10_drop1",
+    "top2"
+   ],
+   "energy_innovation": [
+    "top10",
+    "q90"
+   ],
+   "top15_turnover": [
+    "p90",
+    "q90"
+   ],
+   "top50_js": [
+    "frac_above",
+    "GAP"
+   ],
+   "dominant_freq16": [
+    "median",
+    "q90"
+   ],
+   "bocpd_p0": [
+    "top20pct",
+    "top2"
+   ],
+   "realized_z": [
+    "stored",
+    "q90"
+   ],
+   "realized_drv": [
+    "stored",
+    "top2"
+   ],
+   "digit_alternative": [
+    "stored",
+    "GAP"
+   ],
+   "digit_spread": [
+    "stored",
+    "GAP"
+   ],
+   "digit_alternative_innovation": [
+    "stored",
+    "GAP"
+   ]
+  },
+  "B2_rounds": 1,
+  "B2_misfit": [
+   0.005174829916581915
+  ]
+ }
+}
