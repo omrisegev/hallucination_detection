@@ -24,8 +24,8 @@
     "top2"
    ],
    "q15_VE1": [
-    "top10_drop1",
-    "top2"
+    "top10",
+    "GAP"
    ],
    "chosen_surprisal": [
     "top10_drop1",
@@ -36,12 +36,12 @@
     "q80"
    ],
    "true_tail50": [
-    "top10_drop1",
-    "top2"
+    "top10",
+    "q80"
    ],
    "energy_level": [
-    "top10_drop1",
-    "top2"
+    "top10",
+    "GAP"
    ],
    "energy_innovation": [
     "median",
@@ -52,7 +52,7 @@
     "q90"
    ],
    "top50_js": [
-    "p90",
+    "mean",
     "q90"
    ],
    "dominant_freq16": [
@@ -84,12 +84,10 @@
     "GAP"
    ]
   },
-  "B2_rounds": 4,
+  "B2_rounds": 2,
   "B2_misfit": [
    0.008025535634664975,
-   0.006985429904199522,
-   0.00859568389663957,
-   0.007899809360315166
+   0.006847947465290126
   ]
  },
  "hard2verify/qwen_prm_72b": {
@@ -203,19 +201,19 @@
   ],
   "B2_choice": {
    "q15_H1": [
-    "mean",
+    "top20pct",
     "top1"
    ],
    "q15_VE1": [
-    "frac_above",
+    "top20pct",
     "top1"
    ],
    "chosen_surprisal": [
-    "top10",
+    "top10_drop1",
     "q90"
    ],
    "logprob_margin": [
-    "mean",
+    "p90",
     "top1"
    ],
    "true_tail50": [
@@ -235,8 +233,8 @@
     "GAP"
    ],
    "top50_js": [
-    "p90",
-    "top2"
+    "frac_above",
+    "q90"
    ],
    "dominant_freq16": [
     "p90",
@@ -244,7 +242,7 @@
    ],
    "bocpd_p0": [
     "top20pct",
-    "q80"
+    "GAP"
    ],
    "realized_z": [
     "stored",
@@ -267,10 +265,11 @@
     "top1"
    ]
   },
-  "B2_rounds": 2,
+  "B2_rounds": 3,
   "B2_misfit": [
    0.0158884407040489,
-   0.015097629298824071
+   0.016251345273607307,
+   0.017118127538898263
   ]
  },
  "hard2verify/rlhflow_prm": {

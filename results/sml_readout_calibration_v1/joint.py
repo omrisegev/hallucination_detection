@@ -13,7 +13,9 @@ B1  alternate until the grouping does not change (max 4 rounds):
     Then GSP-T + GAP as usual.
 B2  as B1, and each of the 16 columns also chooses its vote rule; the misfit is computed on the +-1 votes (phi
     correlations), because spectral_binary consumes the votes. Vote rules after orientation (sign of corr with the
-    channel-mean anchor, as GSP-T): GAP (current), top-1 and top-2 per answer, global quantile .8 and .9 of the column.
+    L-SML score of the current round, as GSP-T; 2026-11-13 fix, the first run used the fixed channel mean of B1):
+    GAP (current), top-1 and top-2 per answer, global quantile .8 and .9 of the column. Votes are precomputed for
+    both orientations; scoring picks, per column, the votes whose orientation matches the sign GSP-T uses.
     A vote vector with error share < 2% or > 98% is not eligible. GSP-T then uses these votes instead of GAP votes;
     rank and count are unchanged (rank = group scores x log-odds weights, count = GAP on the rank).
 No label is read before scoring. Labels are read only for scoring and the conditional-correlation diagnostic.
@@ -63,6 +65,21 @@ def hier_misfit(R, g):
     return float(((R - model)[off] ** 2).sum() / (R[off] ** 2).sum())
 
 
+def cond_abs_yule_q(V, y):
+    """Mean |Yule's Q| of pairs of +-1 votes within each label class: an association measure that does not shrink
+    only because the votes fire less often (unlike phi). Label diagnostic only."""
+    out = {}
+    for v in (0, 1):
+        B = V[y == v] > 0; p = B.shape[1]; q = []
+        for i in range(p):
+            for j in range(i + 1, p):
+                a = np.sum(B[:, i] & B[:, j]) + .5; d = np.sum(~B[:, i] & ~B[:, j]) + .5
+                b = np.sum(B[:, i] & ~B[:, j]) + .5; cc = np.sum(~B[:, i] & B[:, j]) + .5
+                q.append(abs((a * d - b * cc) / (a * d + b * cc)))
+        out[v] = float(np.mean(q))
+    return out
+
+
 def corr_ok(X):
     if not np.all(np.isfinite(X)) or np.any(X.std(0) < 1e-8):
         return None
@@ -106,11 +123,16 @@ def descend(cols, g, fixed=None, sweeps=2, init=None):
     return ch, best
 
 
-def c4u_t_votes(c, X, V):
-    """c4u_telemetry_only_v1.run.c4u_t with the vote matrix V given (same body otherwise)."""
+def c4u_t_votes(c, X, Vpos, Vneg):
+    """c4u_telemetry_only_v1.run.c4u_t with the votes given (same body otherwise). Vpos / Vneg: votes of each column
+    oriented + / -; column j uses the one that matches the sign c4u_t gives it (corr with the L-SML score)."""
     off = c.off
     s, g, _ = N.lsml(X, X.mean(1))
+    if len(np.unique(g[g >= 0])) < 3:
+        raise Rn.RecipeFailure('L-SML gave fewer than 3 groups')
     sign = np.array([1. if np.corrcoef(X[:, j], s)[0, 1] >= 0 else -1. for j in range(X.shape[1])])
+    V = np.where(sign > 0, Vpos, Vneg)
+    assert np.all(np.isfinite(V)), 'chosen vote rule not eligible in the orientation GSP-T uses'
     Xo = X * sign; Xo = (Xo - Xo.mean(0)) / Xo.std(0)
     VG, XG, gid = [], [], []
     for k in np.unique(g[g >= 0]):
@@ -122,7 +144,7 @@ def c4u_t_votes(c, X, V):
     ag = int(np.argmax([np.corrcoef(XG[:, k], s)[0, 1] for k in range(XG.shape[1])]))
     sp = Rn.spectral_binary(VG, anchor=ag)
     rank = XG @ N.lw(sp['psi'], sp['eta'])
-    return dict(rank=rank, groups=gid, prevalence=float(sp['prevalence']), psi=sp['psi'], eta=sp['eta'])
+    return dict(rank=rank, groups=gid, prevalence=float(sp['prevalence']), psi=sp['psi'], eta=sp['eta'], V=V)
 
 
 def main(benches):
@@ -149,45 +171,53 @@ def main(benches):
             XB1 = np.column_stack([cand[j][ch[j]] for j in range(11)] + [fixed]); chB1 = ch
 
             # ---------------- B2: readout + vote rule <-> grouping (misfit on votes)
-            s0 = XB1.mean(1)
             allc = [[cand[j][r] for r in range(len(READOUTS))] for j in range(11)] + [[fixed[:, j]] for j in range(5)]
-            vc, meta = [], []
+            vp, vn, meta = [], [], []                        # votes with orientation + / - for each (readout, rule)
             for j, cj in enumerate(allc):
-                vj, mj = [], []
+                pj, nj, mj = [], [], []
                 for r, x in enumerate(cj):
                     if x is None: continue
-                    xo = x if np.corrcoef(x, s0)[0, 1] >= 0 else -x
-                    for rule, v in vote_rules(c, xo).items():
-                        vj.append(v); mj.append((r, rule))
+                    rp, rn_ = vote_rules(c, x), vote_rules(c, -x)
+                    for rule in RULES:
+                        if rp[rule] is None and rn_[rule] is None: continue
+                        pj.append(rp[rule]); nj.append(rn_[rule]); mj.append((r, rule))
                 # default first: (current readout of B1 for token channels / 0, GAP)
                 d = mj.index(((chB1[j] if j < 11 else 0), 'GAP'))
-                vj.insert(0, vj.pop(d)); mj.insert(0, mj.pop(d)); vc.append(vj); meta.append(mj)
+                for L in (pj, nj, mj): L.insert(0, L.pop(d))
+                vp.append(pj); vn.append(nj); meta.append(mj)
             chv = [0] * 16; histv = []
             for it in range(4):
                 Xc = np.column_stack([allc[j][meta[j][chv[j]][0]] for j in range(16)])
-                _, g, _ = N.lsml(Xc, Xc.mean(1)); g = np.asarray(g, int)
+                s, g, _ = N.lsml(Xc, Xc.mean(1)); g = np.asarray(g, int)
                 if histv and np.array_equal(g, histv[-1]['g']): break
+                # orient every candidate by the L-SML score of this round (as GSP-T does at scoring)
+                vc = [[(vp[j][k] if np.corrcoef(allc[j][meta[j][k][0]], s)[0, 1] >= 0 else vn[j][k])
+                       for k in range(len(meta[j]))] for j in range(16)]
+                for j in range(16):                           # current choice not eligible in new orientation: reset
+                    if vc[j][chv[j]] is None: chv[j] = 0
                 chv, m = descend(vc, g, init=chv)
                 histv.append(dict(g=g, misfit=m))
             XB2 = np.column_stack([allc[j][meta[j][chv[j]][0]] for j in range(16)])
-            VB2 = np.column_stack([vc[j][chv[j]] for j in range(16)])
+            VB2 = (np.column_stack([vp[j][chv[j]] if vp[j][chv[j]] is not None else np.full(len(XB2), np.nan) for j in range(16)]),
+                   np.column_stack([vn[j][chv[j]] if vn[j][chv[j]] is not None else np.full(len(XB2), np.nan) for j in range(16)]))
 
             # ---------------- score
             A = {'A0 top10': (X[:, 2:], None), 'B1 joint readout+grouping': (XB1, None), 'B2 joint readout+vote rule+grouping': (XB2, VB2)}
             save = dict(ids=np.asarray(c.ids).astype(str), off=np.asarray(c.off))
             for arm, (Xt, Vt) in A.items():
                 CB.RAW.clear()
-                tel = Rn.c4u_t(c, Xt) if Vt is None else c4u_t_votes(c, Xt, Vt)
+                tel = Rn.c4u_t(c, Xt) if Vt is None else c4u_t_votes(c, Xt, *Vt)
                 gf = AB.gap(c, tel['rank']); sc = AB.score(c, bench, tel['rank'], gf)
                 if bench == 'processbench':
                     sc['FE-AUC position-matched'] = CB.pos_matched_fe_auc(c, tel['rank'])
-                Vd = Vt if Vt is not None else np.column_stack([np.where(AB.gap(c, Xt[:, j] * (1 if np.corrcoef(Xt[:, j], Xt.mean(1))[0, 1] >= 0 else -1)), 1., -1.) for j in range(16)])
-                _, gA, _ = N.lsml(Xt, Xt.mean(1))
-                cc, cv = CB.cond_abs_corr(Xt, y), CB.cond_abs_corr(Vd, y)
+                sA, gA, _ = N.lsml(Xt, Xt.mean(1))           # votes oriented by the L-SML score, as GSP-T
+                Vd = tel['V'] if Vt is not None else np.column_stack([np.where(AB.gap(c, Xt[:, j] * (1 if np.corrcoef(Xt[:, j], sA)[0, 1] >= 0 else -1)), 1., -1.) for j in range(16)])
+                cc, cv = CB.cond_abs_corr(Xt, y), CB.cond_abs_corr(Vd, y); cq = cond_abs_yule_q(Vd, y)
                 diag = {'hier misfit continuous (label-free)': hier_misfit(np.corrcoef(Xt.T), gA),
                         'hier misfit votes (label-free)': hier_misfit(np.corrcoef(Vd.T), gA),
                         'cond |corr| y=0': cc[0], 'cond |corr| y=1': cc[1],
                         'cond |corr| votes y=0': cv[0], 'cond |corr| votes y=1': cv[1],
+                        'cond |Yule Q| votes y=0': cq[0], 'cond |Yule Q| votes y=1': cq[1],
                         'K groups': len(tel['groups']), 'prevalence': tel['prevalence'],
                         'max raw eta': float(np.max(CB.RAW['eta'])),
                         'n psi/eta out of [0,1]': int(np.sum((CB.RAW['psi'] < 0) | (CB.RAW['psi'] > 1)) + np.sum((CB.RAW['eta'] < 0) | (CB.RAW['eta'] > 1)))}

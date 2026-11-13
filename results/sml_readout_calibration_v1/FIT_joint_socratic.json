@@ -26,8 +26,8 @@
     "GAP"
    ],
    "q15_VE1": [
-    "top20pct",
-    "q80"
+    "p90",
+    "GAP"
    ],
    "chosen_surprisal": [
     "top10",
@@ -50,7 +50,7 @@
     "q80"
    ],
    "top15_turnover": [
-    "p90",
+    "mean",
     "q90"
    ],
    "top50_js": [
@@ -59,11 +59,11 @@
    ],
    "dominant_freq16": [
     "top20pct",
-    "q90"
+    "q80"
    ],
    "bocpd_p0": [
     "top20pct",
-    "top1"
+    "q80"
    ],
    "realized_z": [
     "stored",
@@ -88,8 +88,8 @@
   },
   "B2_rounds": 2,
   "B2_misfit": [
-   0.022541671182304945,
-   0.023188591799347694
+   0.023559519241544695,
+   0.023969686771697474
   ]
  },
  "socratic/qwen_prm_72b": {
@@ -113,40 +113,40 @@
   ],
   "B2_choice": {
    "q15_H1": [
-    "top10_drop1",
+    "top10",
     "q80"
    ],
    "q15_VE1": [
     "top10_drop1",
-    "top1"
+    "q90"
    ],
    "chosen_surprisal": [
     "top10_drop1",
-    "q80"
+    "GAP"
    ],
    "logprob_margin": [
-    "top10_drop1",
-    "q90"
+    "top10",
+    "GAP"
    ],
    "true_tail50": [
-    "top10_drop1",
-    "q90"
-   ],
-   "energy_level": [
-    "top10_drop1",
-    "q80"
-   ],
-   "energy_innovation": [
-    "frac_above",
-    "q90"
-   ],
-   "top15_turnover": [
     "top10",
     "q90"
    ],
+   "energy_level": [
+    "top10",
+    "q80"
+   ],
+   "energy_innovation": [
+    "top10_drop1",
+    "q90"
+   ],
+   "top15_turnover": [
+    "top10_drop1",
+    "q90"
+   ],
    "top50_js": [
-    "mean",
-    "GAP"
+    "top10",
+    "q90"
    ],
    "dominant_freq16": [
     "top20pct",
@@ -162,7 +162,7 @@
    ],
    "realized_drv": [
     "stored",
-    "q90"
+    "GAP"
    ],
    "digit_alternative": [
     "stored",
@@ -170,7 +170,7 @@
    ],
    "digit_spread": [
     "stored",
-    "q80"
+    "top1"
    ],
    "digit_alternative_innovation": [
     "stored",
@@ -179,9 +179,9 @@
   },
   "B2_rounds": 3,
   "B2_misfit": [
-   0.029794262716587052,
-   0.03782685180232585,
-   0.03727234548675812
+   0.029008038948993058,
+   0.03744594844423735,
+   0.036750144435961474
   ]
  },
  "socratic/pure_prm": {
@@ -306,7 +306,7 @@
     "q90"
    ],
    "chosen_surprisal": [
-    "top10",
+    "top10_drop1",
     "top2"
    ],
    "logprob_margin": [
@@ -322,8 +322,8 @@
     "top2"
    ],
    "energy_innovation": [
-    "top10_drop1",
-    "q90"
+    "frac_above",
+    "top1"
    ],
    "top15_turnover": [
     "p90",
@@ -362,10 +362,11 @@
     "GAP"
    ]
   },
-  "B2_rounds": 2,
+  "B2_rounds": 3,
   "B2_misfit": [
-   0.017342235372824193,
-   0.017465848618235788
+   0.021734335913810413,
+   0.02099707180728497,
+   0.02099707180728497
   ]
  }
 }
