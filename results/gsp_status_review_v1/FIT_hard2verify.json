@@ -1,0 +1,395 @@
+{
+ "gates": {
+  "qwen_prm_7b": {
+   "R1_top10_vs_X": 0.0,
+   "R0_top10_vs_r0cols": 0.0,
+   "R0_nonfinite_candidates": 0,
+   "R0 internal": {
+    "lsml_recon_abs_corr": 1.0,
+    "gspt_recon_maxdiff": 0.0
+   },
+   "R0 A2 internal": {
+    "lsml_recon_abs_corr": 1.0,
+    "gspt_recon_maxdiff": 0.0
+   },
+   "R1 internal": {
+    "lsml_recon_abs_corr": 1.0,
+    "gspt_recon_maxdiff": 0.0
+   },
+   "R1 A2 internal": {
+    "lsml_recon_abs_corr": 1.0,
+    "gspt_recon_maxdiff": 0.0
+   }
+  },
+  "qwen_prm_72b": {
+   "R1_top10_vs_X": 0.0,
+   "R0_top10_vs_r0cols": 0.0,
+   "R0_nonfinite_candidates": 0,
+   "R0 internal": {
+    "lsml_recon_abs_corr": 1.0,
+    "gspt_recon_maxdiff": 0.0
+   },
+   "R0 A2 internal": {
+    "lsml_recon_abs_corr": 0.9999999999999998,
+    "gspt_recon_maxdiff": 0.0
+   },
+   "R1 internal": {
+    "lsml_recon_abs_corr": 1.0,
+    "gspt_recon_maxdiff": 0.0
+   },
+   "R1 A2 internal": {
+    "lsml_recon_abs_corr": 1.0,
+    "gspt_recon_maxdiff": 0.0
+   }
+  },
+  "pure_prm": {
+   "R1_top10_vs_X": 0.0,
+   "R0_top10_vs_r0cols": 0.0,
+   "R0_nonfinite_candidates": 0,
+   "R0 internal": {
+    "lsml_recon_abs_corr": 1.0,
+    "gspt_recon_maxdiff": 0.0
+   },
+   "R0 A2 internal": {
+    "lsml_recon_abs_corr": 0.9999999999999998,
+    "gspt_recon_maxdiff": 0.0
+   },
+   "R1 internal": {
+    "lsml_recon_abs_corr": 1.0,
+    "gspt_recon_maxdiff": 0.0
+   },
+   "R1 A2 internal": {
+    "lsml_recon_abs_corr": 1.0,
+    "gspt_recon_maxdiff": 0.0
+   }
+  },
+  "rlhflow_prm": {
+   "R1_top10_vs_X": 0.0,
+   "R0_top10_vs_r0cols": 0.0,
+   "R0_nonfinite_candidates": 0,
+   "R0 internal": {
+    "lsml_recon_abs_corr": 1.0,
+    "gspt_recon_maxdiff": 0.0
+   },
+   "R0 A2 internal": {
+    "lsml_recon_abs_corr": 0.9999999999999998,
+    "gspt_recon_maxdiff": 0.0
+   },
+   "R1 internal": {
+    "lsml_recon_abs_corr": 0.9999999999999998,
+    "gspt_recon_maxdiff": 0.0
+   },
+   "R1 A2 internal": {
+    "lsml_recon_abs_corr": 1.0,
+    "gspt_recon_maxdiff": 0.0
+   }
+  }
+ },
+ "fits": {
+  "qwen_prm_7b": {
+   "A2_readouts_R1": {
+    "q15_H1": "top10_drop1",
+    "q15_VE1": "top10_drop1",
+    "chosen_surprisal": "top10_drop1",
+    "logprob_margin": "top10_drop1",
+    "true_tail50": "top10_drop1",
+    "energy_level": "top10_drop1",
+    "energy_innovation": "median",
+    "top15_turnover": "top10_drop1",
+    "top50_js": "top10",
+    "dominant_freq16": "top10_drop1",
+    "bocpd_p0": "top10_drop1"
+   },
+   "A2_readouts_R0": {
+    "q15_H1": "top10_drop1",
+    "q15_VE1": "top10_drop1",
+    "chosen_surprisal": "top10_drop1",
+    "logprob_margin": "top10",
+    "true_tail50": "top10_drop1",
+    "energy_level": "top10_drop1",
+    "energy_innovation": "median",
+    "top15_turnover": "p90",
+    "top50_js": "top10",
+    "dominant_freq16": "top10_drop1",
+    "bocpd_p0": "top10_drop1"
+   },
+   "K": {
+    "F1 mean | R0": 1,
+    "F2 L-SML | R0": 4,
+    "F3 GSP-T | R0": 4,
+    "F4a GSP-within + equal across | R0": 4,
+    "F4b GSP-within + rank-one across | R0": 4,
+    "F5 L-SML-within + binary across | R0": 4,
+    "F6 A2 -> F1 mean | R0": 1,
+    "F6 A2 -> F2 L-SML | R0": 5,
+    "F6 A2 -> F3 GSP-T | R0": 5,
+    "F6 A2 -> F4a GSP-within + equal across | R0": 5,
+    "F6 A2 -> F4b GSP-within + rank-one across | R0": 5,
+    "F1 mean | R1": 1,
+    "F2 L-SML | R1": 4,
+    "F3 GSP-T | R1": 4,
+    "F4a GSP-within + equal across | R1": 4,
+    "F4b GSP-within + rank-one across | R1": 4,
+    "F5 L-SML-within + binary across | R1": 4,
+    "F6 A2 -> F1 mean | R1": 1,
+    "F6 A2 -> F2 L-SML | R1": 4,
+    "F6 A2 -> F3 GSP-T | R1": 4,
+    "F6 A2 -> F4a GSP-within + equal across | R1": 4,
+    "F6 A2 -> F4b GSP-within + rank-one across | R1": 4
+   },
+   "eff_n": {
+    "F1 mean | R0": 16.0,
+    "F2 L-SML | R0": 15.213747568104036,
+    "F3 GSP-T | R0": 13.37776960893807,
+    "F4a GSP-within + equal across | R0": 14.421852299082284,
+    "F4b GSP-within + rank-one across | R0": 14.474530763941,
+    "F5 L-SML-within + binary across | R0": 13.442471937459935,
+    "F6 A2 -> F1 mean | R0": 16.0,
+    "F6 A2 -> F2 L-SML | R0": 15.16483553411599,
+    "F6 A2 -> F3 GSP-T | R0": 14.318044128646129,
+    "F6 A2 -> F4a GSP-within + equal across | R0": 12.054215792770247,
+    "F6 A2 -> F4b GSP-within + rank-one across | R0": 14.51718691014901,
+    "F1 mean | R1": 16.0,
+    "F2 L-SML | R1": 15.375645372732443,
+    "F3 GSP-T | R1": 12.017500913403875,
+    "F4a GSP-within + equal across | R1": 14.954859306965274,
+    "F4b GSP-within + rank-one across | R1": 14.589347697595445,
+    "F5 L-SML-within + binary across | R1": 13.83733014356859,
+    "F6 A2 -> F1 mean | R1": 16.0,
+    "F6 A2 -> F2 L-SML | R1": 15.537466416207842,
+    "F6 A2 -> F3 GSP-T | R1": 12.301153488821654,
+    "F6 A2 -> F4a GSP-within + equal across | R1": 13.892569779085317,
+    "F6 A2 -> F4b GSP-within + rank-one across | R1": 14.663018582169604
+   }
+  },
+  "qwen_prm_72b": {
+   "A2_readouts_R1": {
+    "q15_H1": "top10_drop1",
+    "q15_VE1": "top10_drop1",
+    "chosen_surprisal": "top10_drop1",
+    "logprob_margin": "top10_drop1",
+    "true_tail50": "top10_drop1",
+    "energy_level": "top10_drop1",
+    "energy_innovation": "top10_drop1",
+    "top15_turnover": "top10_drop1",
+    "top50_js": "top10",
+    "dominant_freq16": "top10_drop1",
+    "bocpd_p0": "top10_drop1"
+   },
+   "A2_readouts_R0": {
+    "q15_H1": "top10_drop1",
+    "q15_VE1": "top10_drop1",
+    "chosen_surprisal": "top10_drop1",
+    "logprob_margin": "top10_drop1",
+    "true_tail50": "top10_drop1",
+    "energy_level": "top10_drop1",
+    "energy_innovation": "top10_drop1",
+    "top15_turnover": "top10_drop1",
+    "top50_js": "top10",
+    "dominant_freq16": "top10_drop1",
+    "bocpd_p0": "top10_drop1"
+   },
+   "K": {
+    "F1 mean | R0": 1,
+    "F2 L-SML | R0": 4,
+    "F3 GSP-T | R0": 4,
+    "F4a GSP-within + equal across | R0": 4,
+    "F4b GSP-within + rank-one across | R0": 4,
+    "F5 L-SML-within + binary across | R0": 4,
+    "F6 A2 -> F1 mean | R0": 1,
+    "F6 A2 -> F2 L-SML | R0": 4,
+    "F6 A2 -> F3 GSP-T | R0": 4,
+    "F6 A2 -> F4a GSP-within + equal across | R0": 4,
+    "F6 A2 -> F4b GSP-within + rank-one across | R0": 4,
+    "F1 mean | R1": 1,
+    "F2 L-SML | R1": 4,
+    "F3 GSP-T | R1": 4,
+    "F4a GSP-within + equal across | R1": 4,
+    "F4b GSP-within + rank-one across | R1": 4,
+    "F5 L-SML-within + binary across | R1": 4,
+    "F6 A2 -> F1 mean | R1": 1,
+    "F6 A2 -> F2 L-SML | R1": 4,
+    "F6 A2 -> F3 GSP-T | R1": 4,
+    "F6 A2 -> F4a GSP-within + equal across | R1": 4,
+    "F6 A2 -> F4b GSP-within + rank-one across | R1": 4
+   },
+   "eff_n": {
+    "F1 mean | R0": 16.0,
+    "F2 L-SML | R0": 15.531394786413271,
+    "F3 GSP-T | R0": 13.192506519356254,
+    "F4a GSP-within + equal across | R0": 14.728600337268814,
+    "F4b GSP-within + rank-one across | R0": 14.430352848672202,
+    "F5 L-SML-within + binary across | R0": 15.022331245277726,
+    "F6 A2 -> F1 mean | R0": 16.0,
+    "F6 A2 -> F2 L-SML | R0": 15.552427498034787,
+    "F6 A2 -> F3 GSP-T | R0": 13.112501003128097,
+    "F6 A2 -> F4a GSP-within + equal across | R0": 14.75653019339685,
+    "F6 A2 -> F4b GSP-within + rank-one across | R0": 14.47636510036949,
+    "F1 mean | R1": 16.0,
+    "F2 L-SML | R1": 15.581618572007152,
+    "F3 GSP-T | R1": 13.350270509398898,
+    "F4a GSP-within + equal across | R1": 14.810196472463259,
+    "F4b GSP-within + rank-one across | R1": 14.53169820351864,
+    "F5 L-SML-within + binary across | R1": 15.310360039894634,
+    "F6 A2 -> F1 mean | R1": 16.0,
+    "F6 A2 -> F2 L-SML | R1": 15.598826067543088,
+    "F6 A2 -> F3 GSP-T | R1": 13.321454736595403,
+    "F6 A2 -> F4a GSP-within + equal across | R1": 14.82753139603684,
+    "F6 A2 -> F4b GSP-within + rank-one across | R1": 14.564474517078825
+   }
+  },
+  "pure_prm": {
+   "A2_readouts_R1": {
+    "q15_H1": "top10_drop1",
+    "q15_VE1": "top10_drop1",
+    "chosen_surprisal": "top10_drop1",
+    "logprob_margin": "top10_drop1",
+    "true_tail50": "top10_drop1",
+    "energy_level": "top10_drop1",
+    "energy_innovation": "top10_drop1",
+    "top15_turnover": "top10_drop1",
+    "top50_js": "top10_drop1",
+    "dominant_freq16": "top10_drop1",
+    "bocpd_p0": "top10_drop1"
+   },
+   "A2_readouts_R0": {
+    "q15_H1": "top10_drop1",
+    "q15_VE1": "top10_drop1",
+    "chosen_surprisal": "top10_drop1",
+    "logprob_margin": "top10_drop1",
+    "true_tail50": "top10_drop1",
+    "energy_level": "top10_drop1",
+    "energy_innovation": "top10",
+    "top15_turnover": "top10_drop1",
+    "top50_js": "top10_drop1",
+    "dominant_freq16": "top10_drop1",
+    "bocpd_p0": "top10_drop1"
+   },
+   "K": {
+    "F1 mean | R0": 1,
+    "F2 L-SML | R0": 4,
+    "F3 GSP-T | R0": 4,
+    "F4a GSP-within + equal across | R0": 4,
+    "F4b GSP-within + rank-one across | R0": 4,
+    "F5 L-SML-within + binary across | R0": 4,
+    "F6 A2 -> F1 mean | R0": 1,
+    "F6 A2 -> F2 L-SML | R0": 4,
+    "F6 A2 -> F3 GSP-T | R0": 4,
+    "F6 A2 -> F4a GSP-within + equal across | R0": 4,
+    "F6 A2 -> F4b GSP-within + rank-one across | R0": 4,
+    "F1 mean | R1": 1,
+    "F2 L-SML | R1": 4,
+    "F3 GSP-T | R1": 4,
+    "F4a GSP-within + equal across | R1": 4,
+    "F4b GSP-within + rank-one across | R1": 4,
+    "F5 L-SML-within + binary across | R1": 4,
+    "F6 A2 -> F1 mean | R1": 1,
+    "F6 A2 -> F2 L-SML | R1": 4,
+    "F6 A2 -> F3 GSP-T | R1": 4,
+    "F6 A2 -> F4a GSP-within + equal across | R1": 4,
+    "F6 A2 -> F4b GSP-within + rank-one across | R1": 4
+   },
+   "eff_n": {
+    "F1 mean | R0": 16.0,
+    "F2 L-SML | R0": 15.570047499051993,
+    "F3 GSP-T | R0": 15.312358582955126,
+    "F4a GSP-within + equal across | R0": 14.912357509019518,
+    "F4b GSP-within + rank-one across | R0": 14.859046436980924,
+    "F5 L-SML-within + binary across | R0": 14.43175916364718,
+    "F6 A2 -> F1 mean | R0": 16.0,
+    "F6 A2 -> F2 L-SML | R0": 15.59259443857087,
+    "F6 A2 -> F3 GSP-T | R0": 15.27669746989007,
+    "F6 A2 -> F4a GSP-within + equal across | R0": 14.896516156206346,
+    "F6 A2 -> F4b GSP-within + rank-one across | R0": 14.853024850830561,
+    "F1 mean | R1": 16.0,
+    "F2 L-SML | R1": 15.605032242584755,
+    "F3 GSP-T | R1": 15.139476160857596,
+    "F4a GSP-within + equal across | R1": 14.916574651596548,
+    "F4b GSP-within + rank-one across | R1": 14.99552595954145,
+    "F5 L-SML-within + binary across | R1": 14.714198722808538,
+    "F6 A2 -> F1 mean | R1": 16.0,
+    "F6 A2 -> F2 L-SML | R1": 15.61920276959247,
+    "F6 A2 -> F3 GSP-T | R1": 15.259369505836794,
+    "F6 A2 -> F4a GSP-within + equal across | R1": 14.894719353058466,
+    "F6 A2 -> F4b GSP-within + rank-one across | R1": 14.98834221180613
+   }
+  },
+  "rlhflow_prm": {
+   "A2_readouts_R1": {
+    "q15_H1": "top10_drop1",
+    "q15_VE1": "top10_drop1",
+    "chosen_surprisal": "top10_drop1",
+    "logprob_margin": "top10_drop1",
+    "true_tail50": "top10_drop1",
+    "energy_level": "top10_drop1",
+    "energy_innovation": "frac_above",
+    "top15_turnover": "top10_drop1",
+    "top50_js": "top10_drop1",
+    "dominant_freq16": "mean",
+    "bocpd_p0": "mean"
+   },
+   "A2_readouts_R0": {
+    "q15_H1": "top10_drop1",
+    "q15_VE1": "top10_drop1",
+    "chosen_surprisal": "top10_drop1",
+    "logprob_margin": "top10",
+    "true_tail50": "top10_drop1",
+    "energy_level": "top10_drop1",
+    "energy_innovation": "frac_above",
+    "top15_turnover": "top10_drop1",
+    "top50_js": "top10_drop1",
+    "dominant_freq16": "mean",
+    "bocpd_p0": "top20pct"
+   },
+   "K": {
+    "F1 mean | R0": 1,
+    "F2 L-SML | R0": 4,
+    "F3 GSP-T | R0": 4,
+    "F4a GSP-within + equal across | R0": 4,
+    "F4b GSP-within + rank-one across | R0": 4,
+    "F5 L-SML-within + binary across | R0": 4,
+    "F6 A2 -> F1 mean | R0": 1,
+    "F6 A2 -> F2 L-SML | R0": 4,
+    "F6 A2 -> F3 GSP-T | R0": 4,
+    "F6 A2 -> F4a GSP-within + equal across | R0": 4,
+    "F6 A2 -> F4b GSP-within + rank-one across | R0": 4,
+    "F1 mean | R1": 1,
+    "F2 L-SML | R1": 4,
+    "F3 GSP-T | R1": 4,
+    "F4a GSP-within + equal across | R1": 4,
+    "F4b GSP-within + rank-one across | R1": 4,
+    "F5 L-SML-within + binary across | R1": 4,
+    "F6 A2 -> F1 mean | R1": 1,
+    "F6 A2 -> F2 L-SML | R1": 5,
+    "F6 A2 -> F3 GSP-T | R1": 5,
+    "F6 A2 -> F4a GSP-within + equal across | R1": 5,
+    "F6 A2 -> F4b GSP-within + rank-one across | R1": 5
+   },
+   "eff_n": {
+    "F1 mean | R0": 16.0,
+    "F2 L-SML | R0": 15.07627239310695,
+    "F3 GSP-T | R0": 14.154323719301498,
+    "F4a GSP-within + equal across | R0": 15.178657981263386,
+    "F4b GSP-within + rank-one across | R0": 14.465390606002396,
+    "F5 L-SML-within + binary across | R0": 15.017996034316738,
+    "F6 A2 -> F1 mean | R0": 16.0,
+    "F6 A2 -> F2 L-SML | R0": 13.412831541553153,
+    "F6 A2 -> F3 GSP-T | R0": 13.17499015708794,
+    "F6 A2 -> F4a GSP-within + equal across | R0": 12.708714772673163,
+    "F6 A2 -> F4b GSP-within + rank-one across | R0": 13.252381542411385,
+    "F1 mean | R1": 16.0,
+    "F2 L-SML | R1": 15.214849275862566,
+    "F3 GSP-T | R1": 14.20883543366372,
+    "F4a GSP-within + equal across | R1": 15.126209791562276,
+    "F4b GSP-within + rank-one across | R1": 14.923515183028924,
+    "F5 L-SML-within + binary across | R1": 15.018735632464677,
+    "F6 A2 -> F1 mean | R1": 16.0,
+    "F6 A2 -> F2 L-SML | R1": 13.908705061342975,
+    "F6 A2 -> F3 GSP-T | R1": 12.421561650635168,
+    "F6 A2 -> F4a GSP-within + equal across | R1": 11.730560637969269,
+    "F6 A2 -> F4b GSP-within + rank-one across | R1": 12.848412103793287
+   }
+  }
+ },
+ "runtime_s": 26.4964919090271
+}
