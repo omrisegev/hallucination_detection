@@ -1,5 +1,5 @@
 """Run ONCE on the PC (needs hd_collection_data). Exports compact PRMBench per-step arrays of the STANDALONE
-base-model cells (MODE 'sa', same loader as results/pb_first_error_rule_v1/export_pb_cells.py uses for PB) for
+base-model cells (E.load('prmbench', '<prm>__standalone'), the loader of telemetry_only_vs_competitors_v1/compute.prmbench) for
 test 2 (first-error localization on wrong answers). No fitting, no labels used except to be stored for scoring.
 Output: cells/PRMB_<prm>.npz (ids, off, err, arm__<name> for every 1-D per-step arm) + EXPORT_MANIFEST.json.
 
@@ -15,10 +15,10 @@ C = M.C
 OUT = HERE / 'cells'; OUT.mkdir(exist_ok=True)
 man = {}
 for prm in M.N.PRMS:
-    C.MODE, C.CELL_HOOK = 'sa', None
-    c = C.cab_cell('prmbench', prm)
+    c = C.E.load('prmbench', f'{prm}__standalone')      # same loader as compute.prmbench (ABL5 standalone cells)
     n = c.off[-1]
     d = dict(ids=np.asarray(c.ids).astype(str), off=np.asarray(c.off, np.int64), err=np.asarray(c.err, bool),
+             cls=np.asarray(c.cls).astype(str), cat=np.asarray(c.cat).astype(str),
              **{f'arm__{k}': np.asarray(v, np.float64) for k, v in c.arms.items()
                 if isinstance(v, np.ndarray) and v.ndim == 1 and len(v) == n})
     p = OUT / f'PRMB_{prm}.npz'; np.savez_compressed(p, **d)

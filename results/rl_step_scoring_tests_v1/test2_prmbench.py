@@ -15,7 +15,7 @@ for prm in PRMS:
     d = np.load(HERE / 'cells' / f'PRMB_{prm}.npz'); ids = d['ids']; off = d['off']; err = d['err']
     first = np.array([int(np.flatnonzero(err[a:b])[0]) if err[a:b].any() else -1 for a, b in segs(off)])
     E = np.flatnonzero(first >= 0)
-    cat = np.array([str(u).split('|')[0].split('-')[0] for u in ids])
+    cat = d['cls'].astype(str)   # PRMBench classification (error type)
     arms = {'TELE16 standalone + GAP (earliest flag)': gap_first(d['arm__TELE_N16'], off),
             'TELE16 standalone, argmax step': argmax_pred(d['arm__TELE_N16'], off),
             'Always step 0': np.zeros(len(ids), int)}
