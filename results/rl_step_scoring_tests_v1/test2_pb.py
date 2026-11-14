@@ -70,36 +70,41 @@ def score(ids, pred, rng=None):
     return out, hit
 
 
-rows, HITS = [], {}
-rng = np.random.default_rng(0)
-for prm in PRMS:
-    d = np.load(CELLS / f'PB_{prm}.npz'); ids = d['sa_ids']; off = d['sa_off']
-    lab = np.array([GOLD[u]['label'] for u in ids]); n_err = int((lab >= 0).sum())
-    tele = d['sa_arm__TELE_N16']; mean = d['sa_arm__MEAN_N16']
-    arms = {
-        'TELE16 standalone + GAP (earliest flag)': gap_first(tele, off),
-        'TELE16 standalone, argmax step': argmax_pred(tele, off),
-        'PRM native (first p_err>.5, else argmax)': prm_native(d['arm__PRMPROB'], d['off']),
-        'Position only + GAP (earliest flag)': gap_first(d['sa_arm__POS_ONLY'], off),
-        'Always step 0': np.zeros(len(ids), int),
-    }
-    assert (d['ids'] == ids).all() and (d['off'] == off).all()
-    for name, pred in arms.items():
-        m, hit = score(ids, pred, rng); HITS[(prm, name)] = hit
-        rows.append(dict(bench='processbench', prm=prm, arm=name, n_err=n_err, first_error_acc=m['macro'],
-                         lo=m['lo'], hi=m['hi'], **{f'acc_{s}': m[s] for s in SUB}))
-        print(f'{prm:12s} {name:46s} {m["macro"]:6.2f} [{m["lo"]:.2f},{m["hi"]:.2f}]', flush=True)
-    # paired: TELE16+GAP minus PRM native, and minus position-only, same erroneous answers
-    sub = np.array([GOLD[u]['subset'] for u in ids]); err = np.flatnonzero(lab >= 0); by = {s: err[sub[err] == s] for s in SUB}
-    for ref in ('PRM native (first p_err>.5, else argmax)', 'Position only + GAP (earliest flag)'):
-        dlt = HITS[(prm, 'TELE16 standalone + GAP (earliest flag)')] - HITS[(prm, ref)]
-        pt = np.mean([100 * dlt[by[s]].mean() for s in SUB])
-        bs = []
-        for _ in range(B):
-            bs.append(np.mean([100 * dlt[rng.choice(by[s], len(by[s]))].mean() for s in SUB]))
-        lo, hi = np.percentile(bs, [2.5, 97.5])
-        rows.append(dict(bench='processbench', prm=prm, arm=f'DIFF TELE16+GAP minus {ref}', n_err=n_err,
-                         first_error_acc=pt, lo=lo, hi=hi))
-        print(f'{prm:12s}   diff vs {ref[:20]:20s} {pt:+6.2f} [{lo:+.2f},{hi:+.2f}]')
-with open(HERE / 'TEST2_PB.csv', 'w', newline='') as f:
-    keys = list(dict.fromkeys(k for r in rows for k in r)); w = csv.DictWriter(f, fieldnames=keys); w.writeheader(); w.writerows(rows)
+def main():
+  rows, HITS = [], {}
+  rng = np.random.default_rng(0)
+  for prm in PRMS:
+      d = np.load(CELLS / f'PB_{prm}.npz'); ids = d['sa_ids']; off = d['sa_off']
+      lab = np.array([GOLD[u]['label'] for u in ids]); n_err = int((lab >= 0).sum())
+      tele = d['sa_arm__TELE_N16']; mean = d['sa_arm__MEAN_N16']
+      arms = {
+          'TELE16 standalone + GAP (earliest flag)': gap_first(tele, off),
+          'TELE16 standalone, argmax step': argmax_pred(tele, off),
+          'PRM native (first p_err>.5, else argmax)': prm_native(d['arm__PRMPROB'], d['off']),
+          'Position only + GAP (earliest flag)': gap_first(d['sa_arm__POS_ONLY'], off),
+          'Always step 0': np.zeros(len(ids), int),
+      }
+      assert (d['ids'] == ids).all() and (d['off'] == off).all()
+      for name, pred in arms.items():
+          m, hit = score(ids, pred, rng); HITS[(prm, name)] = hit
+          rows.append(dict(bench='processbench', prm=prm, arm=name, n_err=n_err, first_error_acc=m['macro'],
+                           lo=m['lo'], hi=m['hi'], **{f'acc_{s}': m[s] for s in SUB}))
+          print(f'{prm:12s} {name:46s} {m["macro"]:6.2f} [{m["lo"]:.2f},{m["hi"]:.2f}]', flush=True)
+      # paired: TELE16+GAP minus PRM native, and minus position-only, same erroneous answers
+      sub = np.array([GOLD[u]['subset'] for u in ids]); err = np.flatnonzero(lab >= 0); by = {s: err[sub[err] == s] for s in SUB}
+      for ref in ('PRM native (first p_err>.5, else argmax)', 'Position only + GAP (earliest flag)'):
+          dlt = HITS[(prm, 'TELE16 standalone + GAP (earliest flag)')] - HITS[(prm, ref)]
+          pt = np.mean([100 * dlt[by[s]].mean() for s in SUB])
+          bs = []
+          for _ in range(B):
+              bs.append(np.mean([100 * dlt[rng.choice(by[s], len(by[s]))].mean() for s in SUB]))
+          lo, hi = np.percentile(bs, [2.5, 97.5])
+          rows.append(dict(bench='processbench', prm=prm, arm=f'DIFF TELE16+GAP minus {ref}', n_err=n_err,
+                           first_error_acc=pt, lo=lo, hi=hi))
+          print(f'{prm:12s}   diff vs {ref[:20]:20s} {pt:+6.2f} [{lo:+.2f},{hi:+.2f}]')
+  with open(HERE / 'TEST2_PB.csv', 'w', newline='') as f:
+      keys = list(dict.fromkeys(k for r in rows for k in r)); w = csv.DictWriter(f, fieldnames=keys); w.writeheader(); w.writerows(rows)
+
+
+if __name__ == '__main__':
+    main()
