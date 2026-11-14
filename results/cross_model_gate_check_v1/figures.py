@@ -35,7 +35,7 @@ def fig_auc():
     for i, b in enumerate(B):
         ax.plot([i - .42, i + .42], [L[b]] * 2, color=INK, lw=1.5, ls=':', label='length only (n_steps)' if i == 0 else None)
     ax.axhline(.5, color=INK2, lw=.8)
-    ax.set_xticks(range(len(B)), [NAME[b] for b in B]); ax.set_ylim(.4, 1); ax.set_ylabel('answer-level AUROC (within length bins)')
+    ax.set_xticks(range(len(B)), [NAME[b] for b in B]); ax.set_ylim(.25, 1); ax.set_ylabel('answer-level AUROC (within length bins)')
     ax.set_title('(1) Simes answer statistic per base model: answer-error AUROC, length-stratified', loc='left', color=INK)
     style(ax); ax.legend(frameon=False, ncol=5, fontsize=8, loc='upper left')
     fig.tight_layout(); fig.savefig(HERE / 'fig1_auroc.png', dpi=200); plt.close(fig)
@@ -57,7 +57,7 @@ def fig_corr():
     ax.set_xticks(range(len(B)), [NAME[b] for b in B]); ax.set_ylim(0, max(.6, ax.get_ylim()[1]))
     ax.set_ylabel('|Spearman| given the answer label'); style(ax)
     ax.set_title('(2) Conditional dependence of the answer statistics', loc='left', color=INK)
-    ax.legend(frameon=False, fontsize=8, loc='upper left')
+    ax.legend(frameon=False, fontsize=8, loc='lower left')
     fig.tight_layout(); fig.savefig(HERE / 'fig2_cond_corr.png', dpi=200); plt.close(fig)
 
 
