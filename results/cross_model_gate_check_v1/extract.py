@@ -14,19 +14,19 @@ The PRM score is NOT used. Labels are written only for the diagnostic of stage 2
 
 Output: steps/<bench>__<prm>.csv.gz  (uid, step, y, s)  and  EXTRACT_GATE.json.
 
-    COLLECTION_DATA=C:/Users/omris/TAU/hd_collection_data python extract.py [bench ...]
+    COLLECTION_DATA=C:/Users/omris/TAU/hd_collection_data [HD_ROOT=<checkout>] [OUT_DIR=<dir>] python extract.py [bench ...]
 """
-import gzip, json, sys
+import gzip, json, os, sys
 from pathlib import Path
 import numpy as np
 
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parents[1]
+ROOT = Path(os.environ.get('HD_ROOT', HERE.parents[1]))   # a checkout that holds results/gsp_ablation_baseline_v1
 sys.path.insert(0, str(ROOT / 'results/gsp_ablation_baseline_v1'))
 import ablation as AB  # noqa: E402
 E, T, Rn, BP, RA = AB.E, AB.T, AB.Rn, AB.BP, AB.RA
 N = Rn.N
-OUT = HERE / 'steps'; OUT.mkdir(exist_ok=True)
+OUT_DIR = Path(os.environ.get('OUT_DIR', HERE)); OUT = OUT_DIR / 'steps'; OUT.mkdir(exist_ok=True)
 BENCHES = ('prmbench', 'processbench', 'socratic', 'hard2verify', 'crv_arith', 'crv_gsm8k')
 
 
@@ -99,7 +99,7 @@ def main(benches):
                                           answer_error_share=float(np.mean([err[a:b].any() for a, b in zip(off[:-1], off[1:])])))
             print(bench, prm, gate[f'{bench}/{prm}'], flush=True)
             del c, G
-    p = HERE / 'EXTRACT_GATE.json'
+    p = OUT_DIR / 'EXTRACT_GATE.json'
     old = json.loads(p.read_text()) if p.exists() else {}
     old.update(gate); p.write_text(json.dumps(old, indent=1))
 
