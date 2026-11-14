@@ -21,12 +21,47 @@ from pathlib import Path
 import numpy as np
 
 HERE = Path(__file__).resolve().parent
-ROOT = Path(os.environ.get('HD_ROOT', HERE.parents[1]))   # a checkout that holds results/gsp_ablation_baseline_v1
-sys.path.insert(0, str(ROOT / 'results/gsp_ablation_baseline_v1'))
-import ablation as AB  # noqa: E402
-E, T, Rn, BP, RA = AB.E, AB.T, AB.Rn, AB.BP, AB.RA
-N = Rn.N
-OUT_DIR = Path(os.environ.get('OUT_DIR', HERE)); OUT = OUT_DIR / 'steps'; OUT.mkdir(exist_ok=True)
+ROOT = Path(os.environ.get('HD_ROOT', HERE.parents[1]))   # a checkout that holds results/c4u_telemetry_only_v1
+sys.path.insert(0, str(ROOT / 'results/c4u_telemetry_only_v1'))
+import run as Rn  # noqa: E402  (c4u_telemetry_only_v1: brings RA = run_all, T = c4u_competitors, E, N, C)
+E, T, RA, N = Rn.E, Rn.T, Rn.RA, Rn.N
+try:
+    import bracha_panel as BP  # noqa: E402  (only for the Socratic / Hard2Verify R1 gate)
+except ImportError:
+    BP = None
+OUT_DIR = Path(os.environ.get('OUT_DIR', HERE)); OUT = OUT_DIR / 'steps'; OUT.mkdir(parents=True, exist_ok=True)
+_common = Rn.C.A.common_uids
+
+
+def _common_uids(bench):
+    """Copied from gsp_ablation_baseline_v1/ablation.py: ProcessBench = the 3,400 answers if crop_ares_v1/scores is absent."""
+    d = Path(E.DATA) / 'crop_ares_v1' / 'scores'
+    if bench == 'processbench' and not d.exists():
+        S = [set(np.load(f)['uids'].astype(str)) for f in sorted((Path(E.DATA) / 'sub5_all_v1' / 'scores').glob('SCORES_prm_*_processbench.npz'))]
+        u = set.intersection(*S); assert len(S) == 4 and len(u) == 3400
+        return u
+    return _common(bench)
+
+
+Rn.C.A.common_uids = _common_uids
+
+
+def load_cell(bench, prm):
+    """gsp_ablation_baseline_v1/ablation.load_cell (copied, PRM columns dropped): cell c and the stored R1 telemetry
+    columns (None for Socratic / Hard2Verify when bracha_panel is not in HD_ROOT)."""
+    if bench == 'prmbench':
+        RA.MODE = 'sa'; RA.need(prm, 'prmbench')
+        c = E.load('prmbench', f'{prm}__standalone')
+        c.arms['PRMPROB'] = 1. - c.extra['reward']; c.arms['PRM'] = c.arms[N.K.prm_arm(c)]
+        X, ab, rep, g = T.build_X(c, prm, 'prmbench'); assert rep == 'R1'
+        return c, X[:, 2:]
+    if bench == 'processbench':
+        RA.MODE = 'sa'; RA.need(prm, 'processbench')
+        c = Rn.C.cab_cell('processbench', prm)
+        X, ab, rep, g = T.build_X(c, prm, 'processbench'); assert rep == 'R1'
+        return c, X[:, 2:]
+    c = E.load(bench, prm)
+    return c, (BP.sa_X(c, prm, bench) if BP is not None else None)
 BENCHES = ('prmbench', 'processbench', 'socratic', 'hard2verify', 'crv_arith', 'crv_gsm8k')
 
 
@@ -64,10 +99,12 @@ def g16_bank(c, prm, bench):
 def load(bench, prm):
     """-> cell c, G16 (no answer-z), gate value (max |answer_z(G16) - stored R1|, None if no stored R1 here)."""
     if bench in ('prmbench', 'processbench', 'socratic', 'hard2verify'):
-        c, X, _ = AB.load_cell(bench, prm)
+        c, Xr = load_cell(bench, prm)
         G = g16_sa_external(c, prm, bench) if bench in ('socratic', 'hard2verify') else g16_bank(c, prm, bench)
+        if Xr is None:
+            return c, G, None
         Z = np.column_stack([E.answer_z(G[:, j], c.off) for j in range(16)])
-        return c, G, float(np.abs(Z - X[:, 2:]).max())
+        return c, G, float(np.abs(Z - Xr).max())
     RA.MODE = 'sa'; Rn.C.MODE = 'sa'; Rn.C.CELL_HOOK = None
     RA.need(prm, bench)
     c = Rn.C.cab_cell(bench, prm)
