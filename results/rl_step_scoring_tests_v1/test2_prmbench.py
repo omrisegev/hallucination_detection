@@ -19,8 +19,9 @@ for prm in PRMS:
     arms = {'TELE16 standalone + GAP (earliest flag)': gap_first(d['arm__TELE_N16'], off),
             'TELE16 standalone, argmax step': argmax_pred(d['arm__TELE_N16'], off),
             'Always step 0': np.zeros(len(ids), int)}
-    if 'arm__PRMPROB' in d.files:
-        arms['PRM native (first p_err>.5, else argmax)'] = prm_native(d['arm__PRMPROB'], off)
+    # PRM error probability: PRMBench cells store it as PRM_Q80_PROB (= 1 - reward; checked: mean .33-.39 on error
+    # steps vs .06-.20 on valid steps in all 4 cells). Native threshold .5.
+    arms['PRM native (first p_err>.5, else argmax)'] = prm_native(d['arm__PRM_Q80_PROB'], off)
     if 'arm__POS_ONLY' in d.files:
         arms['Position only + GAP (earliest flag)'] = gap_first(d['arm__POS_ONLY'], off)
     for name, pred in arms.items():
