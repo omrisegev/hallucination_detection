@@ -31,6 +31,7 @@ from spectral_utils.external_generalization._bank11.claude_feature_bank_v1 impor
 
 STEP5 = ['realized_z', 'realized_drv', 'digit_alternative', 'digit_spread', 'digit_alternative_innovation']
 STATS = ['top10', 'mean', 'median', 'p90']
+PRMB_CELL = 'prmbench_qwen3_8b'
 
 
 def tokens(item):
@@ -73,8 +74,26 @@ def main():
     # bank: 5 step channels + digit_active, aligned like extract_readouts.py's gate
     F = np.load(a.bank); names = list(F['names'].astype(str)); BV = F['values']; act = F['digit_active'].astype(bool)
     assert names[:11] == list(FEATURE_NAMES), names[:11]
-    bu = (F['uids'] if 'uids' in F.files else F['row_ids']).astype(str); boff = F['offsets'].astype(np.int64)  # adapt key names only
-    pos = {x: j for j, x in enumerate(bu)}
+    # Bank keys (fix 2026-11-18): the PRMBench banks carry 'uids' = '<cell>__<hash>' and 'row_ids' = the run idx; the run
+    # idx is what the raw pkl uses, so prefer 'row_ids'. row_ids repeat across the 9 cells of the PRMBench bank, so when
+    # 'cells' is present only the PRMBench cell's rows are keyed. ProcessBench banks have 'uids' only (unchanged).
+    boff = F['offsets'].astype(np.int64)
+    if 'row_ids' in F.files:
+        bu = F['row_ids'].astype(str); keep = np.ones(len(bu), bool)
+        if 'cells' in F.files and (F['cells'].astype(str) == PRMB_CELL).any():
+            keep = F['cells'].astype(str) == PRMB_CELL
+    else:
+        bu = F['uids'].astype(str); keep = np.ones(len(bu), bool)
+    pos = {}
+    for j in np.flatnonzero(keep):
+        if bu[j] in pos: raise SystemExit(f'duplicate bank key {bu[j]}')
+        pos[bu[j]] = j
+    # V1/V2 banks built by prmb_variant_bank.py: if a bank still keys a variant row by its parent id, map
+    # '<parent>__vX' -> parent through MAP.json (next to the bank). Filler parents are never raw uids, so they are skipped.
+    mp = a.bank.parent / 'MAP.json'
+    if mp.exists():
+        for p, v in json.load(open(mp))['parent_to_variant'].items():
+            if v not in pos and p in pos: pos[v] = pos.pop(p)
     step5 = np.full((len(ne), 5), np.nan, np.float32); dact = np.zeros((len(ne), 3), bool)
     diffs, n_ans, miss = [], 0, []
     for i, u in enumerate(uids):
