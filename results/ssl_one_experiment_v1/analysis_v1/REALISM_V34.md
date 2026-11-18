@@ -70,8 +70,30 @@ The V4 result does not come from the V4 donor steps that are real error steps: t
 
 - Stage S (step readout) needs a variant that passes at step level. None passes, so stage S does not run.
 - Stages A and G (answer score, π̂, gate) name V2 or V1 as the known-wrong set. V3 (both benchmarks) and V4 (PRMBench) pass at answer level. To use them would be a design change, so Omri must decide. The PRMBench gate can add at most +0.62 PRMScore (oracle gate, README section 5), because 86.7% of the PRMBench answers are wrong. The gate question is a PB question. On PB, only V3 passes, and finding 4 applies to it.
-- A cheap way to find out whether V3 can calibrate the PB gate: compute π̂ with V3 as the known-wrong set on PB dev and compare it with the true π (.65). This is CPU only and takes minutes. It has not been run.
+- A cheap way to find out whether V3 can calibrate the PB gate: compute π̂ with V3 as the known-wrong set on PB dev and compare it with the true π (.65). Omri chose this check. It ran and failed (section 8).
 
 ## 7. Figure
 
 `R1_realism_v34_final.png`. Left: classifier AUROC per variant (dark = step level, light = answer level, dashed line = pass limit). Right: mean shift of each channel at step k, compared with real wrong steps.
+
+## 8. π̂ check: V3 as the known-wrong set on PB dev (2026-11-18, Omri's choice on the decision card)
+
+Code: `pihat_dev.py` (commit 86d99a7). Output: `analysis_v1/PIHAT_V3/` (commit aeff3ac). CPU, 5.5 s. Dev only, no test data.
+Method: the same computation as stage G of `run_analysis.py`, with M = 1 (stage A did not run). Answer score = L-SML of the 17 answer features of the dev C pool. 2-fold cross-fit by question group. In each fold, BBE(scores of the V3 answers of the other fold, scores of the C answers of the other fold). π̂ = mean of the 2 folds. Gold labels give only the true π and the AUROC values.
+
+| Measure | Value |
+|---|---|
+| π̂ (fold 1 / fold 2) | .884 / .894, mean .889 |
+| True π (share of wrong answers, PB dev, 1,695 answers) | .646 |
+| Error | .243 (limit .10): **FAIL** |
+| Answer score AUROC: V3 answers vs the C pool | .539 |
+| Answer score AUROC: real wrong vs clean answers | .821 |
+| PU posterior P(wrong): AUROC | .794 |
+| Gate opens on | 88.9% of the answers (70.5% of them are really wrong) |
+| Closed answers that are really clean | 82.5% |
+
+- The V3 answers get almost the same scores as the whole pool (.539). BBE therefore sees the "known wrong" set as a sample of the pool, and π̂ goes toward 1. This is the bias that finding 4 expected.
+- The 2 folds agree within .01, so the error is systematic, not noise.
+- The ranking of the answer score is good (.821). The problem is only the threshold: V3 cannot set it on PB.
+- Result: no synthetic variant (V1 to V5) passes the realism check and also calibrates the PB gate. The stop rule of the pre-registered plan stays in effect.
+
