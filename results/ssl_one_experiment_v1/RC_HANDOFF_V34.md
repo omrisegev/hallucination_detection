@@ -65,3 +65,14 @@ prefix tolerance 1e-4, as pre-registered) -> full run -> bank (frozen builders) 
 ## 6. Report to the thread (Hebrew, tables + bullets)
 Commit, input counts, job ids and states, SMOKE results, GATE PASS lines, the realism table (variant x step / answer AUROC,
 agreement, pass), the code-check line, the push commit and the Drive paths.
+
+## 7. V5 (added 2026-11-18 23:11 Israel, Omri in the thread: new numbers in place of all numbers, not one step)
+V5 = the V3 parents and k; every editable number from step k to the end gets a new value (V3 rule), the same original
+number text always gets the same new text. Code: `make_variants_v5.py`; pipeline and realism_v34.py accept V5.
+1. Update the experiment folder of the frozen checkout to the branch head (same git archive -> tar -x method). Do it while
+   the V4 jobs are inside their full-run step (the files are read only at the start of a step).
+2. `cd $X && python3 make_variants_v5.py --pb-answers $S/code_ssl_one_v1/results/prm_boost_processbench_v1/inputs/answers.json
+   --prmb-meta $S/results/prm_boost_v1/full_prm/prmbench_telemetry.pkl --inputs $W/inputs --out $W/inputs` (refuses to overwrite).
+3. `bash $X/aircc/submit.sh processbench_V5 prmbench_V5` with the STRICT prefix limit (no PREFIX_TOL): Omri approved the
+   report-only limit for V4 only. If a V5 smoke stops: report it, do not resubmit.
+4. Then as V4 (section 4-6): files to Drive and the PC, and ONE final realism run with V1-V5 into analysis_v1\REALISM_V34.

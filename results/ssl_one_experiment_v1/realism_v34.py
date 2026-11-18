@@ -1,4 +1,5 @@
-"""Realism check of the new synthetic errors V3 (numeric edit) and V4 (on-topic donor), DEV only (Omri 2026-11-18,
+"""Realism check of the new synthetic errors V3 (numeric edit), V4 (on-topic donor) and V5 (all numbers from step k on;
+make_variants_v5.py, Omri 2026-11-18 23:11), DEV only (Omri 2026-11-18,
 decision card "Numeric edit + on-topic donor": one dev-only GPU pass, then only the realism check). CPU, minutes.
 
 The check is the pre-registered stop rule of run_analysis.py, unchanged (same functions, same seed):
@@ -34,7 +35,7 @@ import ssl_lib as L
 import ssl_stages as S
 
 N16 = list(L.N16)
-VARS = ('V1', 'V2', 'V3', 'V4')
+VARS = ('V1', 'V2', 'V3', 'V4', 'V5')
 # code check: the same functions on the same pools must give the numbers of the analysis run / DIAG_REALISM.md
 EXPECT = {('prmbench', 'step', 'V2'): .8209, ('prmbench', 'answer', 'V2'): .7232, ('prmbench', 'answer', 'V1'): .806,
           ('processbench', 'answer', 'V1'): .898}
@@ -95,7 +96,7 @@ def figure(R, out):
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
     SURF, INK, INK2, GRID = '#fcfcfb', '#1f1e1c', '#52514e', '#e4e3df'
-    COL = {'real wrong': '#2a78d6', 'V1': '#6250d6', 'V2': '#eb6834', 'V3': '#1baf7a', 'V4': '#d6a12a'}
+    COL = {'real wrong': '#2a78d6', 'V1': '#6250d6', 'V2': '#eb6834', 'V3': '#1baf7a', 'V4': '#d6a12a', 'V5': '#d55181'}
     plt.rcParams.update({'figure.facecolor': SURF, 'axes.facecolor': SURF, 'savefig.facecolor': SURF, 'axes.labelcolor': INK2,
                          'xtick.color': INK2, 'ytick.color': INK2, 'axes.edgecolor': GRID, 'axes.spines.top': False,
                          'axes.spines.right': False, 'font.size': 9.5, 'axes.titlesize': 10.5, 'axes.titleweight': 'bold',
@@ -113,22 +114,21 @@ def figure(R, out):
         for xi, s_, a_ in zip(x, st, an):
             if np.isfinite(s_): a0.text(xi - .19, s_ + .01, f'{s_:.2f}', ha='center', fontsize=8, color=INK)
             a0.text(xi + .19, a_ + .01, f'{a_:.2f}', ha='center', fontsize=8, color=INK)
-        a0.axhline(.65, color=INK, lw=1.2, ls='--'); a0.text(len(vs) - .55, .655, 'pass limit .65', ha='right', va='bottom', fontsize=8, color=INK,
-                                                                 bbox=dict(facecolor=SURF, edgecolor='none', pad=1))
+        a0.axhline(.65, color=INK, lw=1.2, ls='--')
         a0.axhline(.5, color=INK2, lw=.6)
         a0.set_xticks(x); a0.set_xticklabels(vs); a0.set_ylim(.4, 1.06); a0.set_ylabel('classifier AUROC, variant vs real wrong')
-        a0.set_title(f'{b}: realism check (dark = step level, light = answer level)', loc='left')
+        a0.set_title(f'{b}: realism check (dark = step, light = answer;\ndashed line = pass limit .65)', loc='left')
         ch = r.get('step', {}); y = np.arange(16)[::-1]
         if ch:
             first = next(iter(ch.values()))
             a1.scatter(first['d_real'], y, s=34, color=COL['real wrong'], label='real wrong steps', zorder=3, marker='s')
-            for v in ('V2', 'V3', 'V4'):
+            for v in ('V2', 'V3', 'V4', 'V5'):
                 if v in ch: a1.scatter(ch[v]['d_syn'], y, s=26, color=COL[v], label=f'{v} step k', zorder=3)
             a1.axvline(0, color=INK2, lw=.8); a1.set_yticks(y); a1.set_yticklabels(N16)
             a1.set_xlabel('mean shift from real clean steps (clean-step SDs), raw top10 readout')
             a1.set_title(f'{b}: how far each error type moves each channel', loc='left')
             a1.legend(loc='lower right', fontsize=8)
-    fig.suptitle('R1 dev only: do the new synthetic errors (V3 numeric edit, V4 on-topic donor) look like real errors?',
+    fig.suptitle('R1 dev only: do the new synthetic errors (V3 one number, V4 on-topic donor, V5 all numbers from k) look like real errors?',
                  x=.01, ha='left', fontsize=11.5)
     fig.tight_layout(); fig.savefig(out / 'R1_realism_v34.png', dpi=160); plt.close(fig)
 
@@ -155,7 +155,7 @@ def main():
             Vd, nd = RA.aligned(P.subset(P.side == 'dev'), Cd)
             r['counts'][V] = dict(dev_answers=Vd.n, dropped_parent_mismatch=nd)
             dz = None
-            if V in ('V3', 'V4'):
+            if V in ('V3', 'V4', 'V5'):
                 side = D._sidecar(W, bench, V)
                 r['label_checks'][V], dz = label_checks(bench, V, Vd, Cd, side, labels, gold)
             if V != 'V1':
