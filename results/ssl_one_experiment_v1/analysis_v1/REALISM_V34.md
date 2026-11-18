@@ -97,3 +97,33 @@ Method: the same computation as stage G of `run_analysis.py`, with M = 1 (stage 
 - The ranking of the answer score is good (.821). The problem is only the threshold: V3 cannot set it on PB.
 - Result: no synthetic variant (V1 to V5) passes the realism check and also calibrates the PB gate. The stop rule of the pre-registered plan stays in effect.
 
+## 9. V3 + V4 mixture as the known-wrong set (2026-11-19, Omri in the project: "check the V3 + V4 mixture, and whether it also passes the clean proxy")
+
+Code: `mix_v34.py` (commit 4d57e57). Output: `analysis_v1/MIX_V34/` (commit 051b8da). CPU, 19.5 min. Dev only, no test data.
+Mixture = all dev V3 answers + all dev V4 answers. PRMBench: 6,907 answers, 49% V4. PB: 2,111 answers, 20% V4 (V4 exists for 25% of the PB dev answers only).
+The checks are the unchanged stop rule (section 3), the π̂ computation of section 8, and, only where the step level passes, stages S and S2 of `run_analysis.py` with the mixture in place of V2 (same lambdas, guard, keep rules; 500 steps, 2,000 bootstrap draws). Code check: V3 alone and V4 alone give the section 3 and section 8 numbers exactly (all pass).
+
+| Benchmark | Set | Step level | Answer level | Answer vs own original | π̂ (true π) |
+|---|---|---|---|---|---|
+| PRMBench | V3 | .699 fail | .558 pass | .572 | .933 (.865) |
+| PRMBench | V4 | .654 fail | .617 pass | .641 | .793 (.865) |
+| PRMBench | V3 + V4 | **.649 pass** | **.573 pass** | .601 | **.863 (.865)**, folds .853 / .874 |
+| PB | V3 | .676 fail | .637 pass | .610 | .889 (.646) |
+| PB | V4 | .787 fail | .675 fail | .756 | .526 (.646) |
+| PB | V3 + V4 | .669 fail | .629 pass | .628 | .813 (.646) |
+
+Stage S on PRMBench (mixture in place of V2):
+
+| Readout | Dev PRMScore | Conditional abs. correlation of the 16 channels (lower = closer to independent) |
+|---|---|---|
+| top10 (method of record) | 68.33 | .290 |
+| Stage S, chosen λ = 1: N ≈ 1 in all 11 token channels (≈ the largest token of the step) | 67.95 | .239 (drop .051, CI .049 to .053): **kept** |
+| Stage S2 = stage S + clean proxy (bottom 30% of s_g; 95% of these steps are really clean) | 67.90 | .246 (worse than S by .007, CI .006 to .008): **not kept** |
+
+Findings:
+1. On PRMBench the mixture passes all three checks on dev. The step-level pass is at the limit (.6494 against .65).
+2. The PRMBench π̂ lies between V3 (too high) and V4 (too low). The mixture share (49% V4) comes from the coverage of V4, not from a design choice. With another share, π̂ moves between .79 and .93. So the match with the true π can depend on this share. This is not measured yet.
+3. On PB the mixture fails the step level and π̂ (.813 against .646). The gate question is a PB question, so the mixture does not solve it.
+4. The clean proxy (S2) does not help: it makes the conditional correlation worse, so the pre-registered rule does not keep it.
+5. Stage S is kept by the pre-registered rule, but it is not stable: the other half of the questions (half B) chooses N ≈ 39 in channels 3 and 5 and N ≈ 18 in channel 9 (max difference 38). The λ = .1 and .3 fits of half A also choose such large N. The PRMBench gate can add at most +0.62 PRMScore (README section 5).
+
