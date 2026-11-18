@@ -78,6 +78,7 @@ def main():
             p = Path(a.variants) / f'SIDECAR_{bench}_{V}.jsonl'
             side[V] = {s['uid']: s for s in map(json.loads, open(p)) if 'skip' not in s}
         for V in ('V1', 'V2'):
+            if V not in runs: continue          # this job has no V run (a C job, or the other variant)
             res = []
             for u, e in runs.get(V, {}).items():
                 s = side[V][u]; c = runs['C'].get(s['parent_uid'])

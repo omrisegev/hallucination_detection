@@ -73,7 +73,8 @@ def main():
     # bank: 5 step channels + digit_active, aligned like extract_readouts.py's gate
     F = np.load(a.bank); names = list(F['names'].astype(str)); BV = F['values']; act = F['digit_active'].astype(bool)
     assert names[:11] == list(FEATURE_NAMES), names[:11]
-    bu = (F['uids'] if 'uids' in F.files else F['row_ids']).astype(str); boff = F['offsets'].astype(np.int64)  # adapt key names only; pos = {x: j for j, x in enumerate(bu)}
+    bu = (F['uids'] if 'uids' in F.files else F['row_ids']).astype(str); boff = F['offsets'].astype(np.int64)  # adapt key names only
+    pos = {x: j for j, x in enumerate(bu)}
     step5 = np.full((len(ne), 5), np.nan, np.float32); dact = np.zeros((len(ne), 3), bool)
     diffs, n_ans, miss = [], 0, []
     for i, u in enumerate(uids):
