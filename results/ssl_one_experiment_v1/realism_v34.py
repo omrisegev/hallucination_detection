@@ -127,7 +127,7 @@ def figure(R, out):
             a1.axvline(0, color=INK2, lw=.8); a1.set_yticks(y); a1.set_yticklabels(N16)
             a1.set_xlabel('mean shift from real clean steps (clean-step SDs), raw top10 readout')
             a1.set_title(f'{b}: how far each error type moves each channel', loc='left')
-            a1.legend(loc='lower right', fontsize=8)
+            a1.legend(loc='upper center', bbox_to_anchor=(.5, -.09), ncol=5, fontsize=8)
     fig.suptitle('R1 dev only: do the new synthetic errors (V3 one number, V4 on-topic donor, V5 all numbers from k) look like real errors?',
                  x=.01, ha='left', fontsize=11.5)
     fig.tight_layout(); fig.savefig(out / 'R1_realism_v34.png', dpi=160); plt.close(fig)
