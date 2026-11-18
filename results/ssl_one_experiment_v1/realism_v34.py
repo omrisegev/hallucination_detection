@@ -15,6 +15,10 @@ Caveat checks (gold labels as a check only, dev, never a fit):
       parent's first error (ProcessBench).
   V4: share of donor steps that are a labeled error step of the donor (PRMBench) or at / after the donor's first error
       (ProcessBench); and the mean out-of-fold P(synthetic) of the step-level C2ST in each of these strata.
+Pass-validity check (added 2026-11-18 after the V3 run; report only, no decision): the same answer-level classifier,
+  variant answers vs their OWN original answers (parents, dev C). Near .5 = the variant answer is hardly changed, so an
+  answer-level pass can come from "the variant looks like the pool" (most dev answers are already wrong), not from
+  "the variant looks like a real error". Also the share of wrong answers among the parents.
 
     python realism_v34.py --W <dir with steps/ inputs/> --gold <processbench_gold.json> --out <OUT>
 """
@@ -109,7 +113,8 @@ def figure(R, out):
         for xi, s_, a_ in zip(x, st, an):
             if np.isfinite(s_): a0.text(xi - .19, s_ + .01, f'{s_:.2f}', ha='center', fontsize=8, color=INK)
             a0.text(xi + .19, a_ + .01, f'{a_:.2f}', ha='center', fontsize=8, color=INK)
-        a0.axhline(.65, color=INK, lw=1.2, ls='--'); a0.text(-.45, .655, 'pass limit .65', ha='left', va='bottom', fontsize=8, color=INK)
+        a0.axhline(.65, color=INK, lw=1.2, ls='--'); a0.text(len(vs) - .55, .655, 'pass limit .65', ha='right', va='bottom', fontsize=8, color=INK,
+                                                                 bbox=dict(facecolor=SURF, edgecolor='none', pad=1))
         a0.axhline(.5, color=INK2, lw=.6)
         a0.set_xticks(x); a0.set_xticklabels(vs); a0.set_ylim(.4, 1.06); a0.set_ylabel('classifier AUROC, variant vs real wrong')
         a0.set_title(f'{b}: realism check (dark = step level, light = answer level)', loc='left')
@@ -159,6 +164,10 @@ def main():
             FV = RA.feats(AM, Vd, D.readout(Vd), one)[0]
             r['answer'][V] = RA.c2st_answers(FC, Cd.y_ans, Cd.group, nC, FV, Vd.group, np.diff(Vd.off), edges)
             log(bench, V, 'answer C2ST', RA.rnd(r['answer'][V]))
+            pj = RA.parent_index(Vd, Cd)             # parent and child share the group, so they share the fold
+            r.setdefault('answer_vs_own_parent', {})[V] = dict(auroc=L.c2st(FV, FC[pj], Vd.group, Cd.group[pj]),
+                                                              parents_wrong_share=float(Cd.y_ans[pj].mean()), n=int(Vd.n))
+            log(bench, V, 'answer vs own parent (check)', RA.rnd(r['answer_vs_own_parent'][V]))
         r['code_check'] = {f'{lv} {V}': dict(now=r[lv][V]['auroc'], expected=e, pass_=bool(abs(r[lv][V]['auroc'] - e) < .0015))
                            for (b, lv, V), e in EXPECT.items() if b == bench and V in r[lv]}
         log(bench, 'code check', RA.rnd(r['code_check']))
