@@ -1,0 +1,16 @@
+prmbench V3 step {'auroc': 0.6987, 'agreement': 0.9292, 'n_each': 3489, 'pass_': False, 'loudness_median': 0.6034} | answer {'auroc': 0.5583, 'agreement': 0.9948, 'n_each': 3026, 'pass_': True} | vs parent 0.5722 | pi-hat 0.9325 true 0.8648
+prmbench V4 step {'auroc': 0.6539, 'agreement': 0.9453, 'n_each': 3418, 'pass_': False, 'loudness_median': 1.0386} | answer {'auroc': 0.6172, 'agreement': 0.9823, 'n_each': 3026, 'pass_': True} | vs parent 0.6413 | pi-hat 0.7927 true 0.8648
+prmbench V3+V4 step {'auroc': 0.6494, 'agreement': 0.9433, 'n_each': 6305, 'pass_': True, 'loudness_median': 0.7877} | answer {'auroc': 0.5727, 'agreement': 0.9928, 'n_each': 3026, 'pass_': True} | vs parent 0.6008 | pi-hat 0.8634 true 0.8648
+prmbench code check {'step V3': {'now': 0.6987, 'expected': 0.6987, 'pass_': True}, 'step V4': {'now': 0.6539, 'expected': 0.6539, 'pass_': True}, 'answer V3': {'now': 0.5583, 'expected': 0.5583, 'pass_': True}, 'answer V4': {'now': 0.6172, 'expected': 0.6172, 'pass_': True}}
+prmbench S lam 0.1 N [1.0, 1.1, 38.9, 1.1, 38.7, 1.0, 1.0, 1.1, 24.2, 1.1, 1.1] rev 1 PRMScore 66.92 cond 0.24 top10 0.2901 169.6s
+prmbench S lam 0.3 N [1.0, 1.1, 1.0, 1.1, 39.3, 1.0, 1.0, 1.1, 21.4, 1.1, 1.1] rev 1 PRMScore 67.43 cond 0.2366 top10 0.2901 169.1s
+prmbench S lam 1.0 N [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0] rev 0 PRMScore 67.95 cond 0.2392 top10 0.2901 168.9s
+prmbench S lam 3.0 N [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0] rev 0 PRMScore 67.95 cond 0.2392 top10 0.2901 167.4s
+prmbench S chosen 1.0 keep True cond drop 0.0509 [0.0486, 0.0532]
+prmbench S2 keep False drop vs S -0.0067 [-0.0077, -0.0057]
+prmbench verdict {'step': True, 'answer': True, 'pi_hat': True} S/S2 run True
+processbench V3 step {'auroc': 0.6761, 'agreement': 0.9505, 'n_each': 1036, 'pass_': False, 'loudness_median': 0.4909} | answer {'auroc': 0.6366, 'agreement': 0.9885, 'n_each': 1095, 'pass_': True} | vs parent 0.6102 | pi-hat 0.889 true 0.646
+processbench V4 step {'auroc': 0.7865, 'agreement': 0.8646, 'n_each': 421, 'pass_': False, 'loudness_median': 1.3782} | answer {'auroc': 0.6753, 'agreement': 0.9793, 'n_each': 421, 'pass_': False} | vs parent 0.7562 | pi-hat 0.5258 true 0.646
+processbench V3+V4 step {'auroc': 0.6691, 'agreement': 0.9464, 'n_each': 1087, 'pass_': False, 'loudness_median': 0.6511} | answer {'auroc': 0.6291, 'agreement': 0.9924, 'n_each': 1095, 'pass_': True} | vs parent 0.6281 | pi-hat 0.8129 true 0.646
+processbench code check {'step V3': {'now': 0.6761, 'expected': 0.6761, 'pass_': True}, 'step V4': {'now': 0.7865, 'expected': 0.7865, 'pass_': True}, 'answer V3': {'now': 0.6366, 'expected': 0.6366, 'pass_': True}, 'answer V4': {'now': 0.6753, 'expected': 0.6753, 'pass_': True}, 'pi-hat V3': {'now': 0.889, 'expected': 0.889, 'pass_': True}}
+processbench verdict {'step': False, 'answer': True, 'pi_hat': False} S/S2 run False
