@@ -1,0 +1,874 @@
+{
+ "created": "2026-11-18 20:29",
+ "W": "C:/Users/omris/TAU/hd_collection_data/ssl_one_experiment_v1",
+ "steps": 500,
+ "draws": 2000,
+ "lambdas": [
+  0.1,
+  0.3,
+  1.0,
+  3.0
+ ],
+ "prmbench": {
+  "fit": {
+   "N": null,
+   "revert": null,
+   "M": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dev_seconds": 18.6,
+   "seconds": 27.1
+  },
+  "P0": {
+   "metric": "PRMScore",
+   "value": 68.2629,
+   "stored": 68.26,
+   "pass_": true,
+   "lsml": {
+    "K": 7,
+    "groups": [
+     [
+      2,
+      11,
+      12
+     ],
+     [
+      1,
+      5
+     ],
+     [
+      0,
+      3,
+      4
+     ],
+     [
+      13,
+      14,
+      15
+     ],
+     [
+      6,
+      7,
+      8
+     ],
+     [
+      10
+     ],
+     [
+      9
+     ]
+    ],
+    "dropped": []
+   },
+   "n_answers": 6969,
+   "n_steps": 94203,
+   "token_top10_vs_stored": {
+    "answers": 6969,
+    "spearman": [
+     1.0,
+     0.9998,
+     1.0,
+     0.9998,
+     1.0,
+     0.9999,
+     0.9999,
+     0.9968,
+     0.9998,
+     0.9861,
+     0.9995
+    ],
+    "max_abs_diff": 0.9769
+   }
+  },
+  "condition_answers_dropped_parent_mismatch": {
+   "V2d": 0,
+   "V2t": 0,
+   "V1d": 0,
+   "V1t": 0
+  },
+  "split": {
+   "C dev": {
+    "answers": 3499,
+    "steps": 47593
+   },
+   "C test": {
+    "answers": 3470,
+    "steps": 46610
+   },
+   "V2 dev": {
+    "answers": 3499,
+    "steps": 47593
+   },
+   "V2 test": {
+    "answers": 3469,
+    "steps": 46609
+   },
+   "V1 dev": {
+    "answers": 3499,
+    "steps": 47593
+   },
+   "V1 test": {
+    "answers": 3467,
+    "steps": 46605
+   },
+   "true_pi": {
+    "dev": 0.8648,
+    "test": 0.8671
+   }
+  },
+  "dev_top10": {
+   "main": 68.3277,
+   "cond": 0.2901,
+   "cond_ci": [
+    0.286,
+    0.2948
+   ],
+   "cond_wrong": 0.3063,
+   "cond_clean": 0.2738,
+   "auc_channel": [
+    0.7027,
+    0.7106,
+    0.686,
+    0.6765,
+    0.7124,
+    0.7075,
+    0.4082,
+    0.5741,
+    0.4809,
+    0.563,
+    0.6296,
+    0.5571,
+    0.6777,
+    0.6805,
+    0.7005,
+    0.677
+   ],
+   "lsml": {
+    "K": 7,
+    "groups": [
+     [
+      2,
+      11,
+      12
+     ],
+     [
+      1,
+      5
+     ],
+     [
+      0,
+      3,
+      4
+     ],
+     [
+      13,
+      14,
+      15
+     ],
+     [
+      6,
+      7,
+      8
+     ],
+     [
+      10
+     ],
+     [
+      9
+     ]
+    ],
+    "dropped": []
+   }
+  },
+  "realism_step_V2": {
+   "auroc": 0.8209,
+   "agreement": 0.8353,
+   "n_each": 3499,
+   "pass_": false
+  },
+  "stage_S": {
+   "run": false,
+   "reason": "V2 failed the step-level realism check"
+  },
+  "stage_S2": {
+   "run": false
+  },
+  "dev_final_readout": {
+   "main": 68.3277,
+   "cond": 0.2901,
+   "cond_ci": [
+    0.286,
+    0.2948
+   ],
+   "cond_wrong": 0.3063,
+   "cond_clean": 0.2738,
+   "lsml": {
+    "K": 7,
+    "groups": [
+     [
+      2,
+      11,
+      12
+     ],
+     [
+      1,
+      5
+     ],
+     [
+      0,
+      3,
+      4
+     ],
+     [
+      13,
+      14,
+      15
+     ],
+     [
+      6,
+      7,
+      8
+     ],
+     [
+      10
+     ],
+     [
+      9
+     ]
+    ],
+    "dropped": []
+   },
+   "auc_channel": [
+    0.7027,
+    0.7106,
+    0.686,
+    0.6765,
+    0.7124,
+    0.7075,
+    0.4082,
+    0.5741,
+    0.4809,
+    0.563,
+    0.6296,
+    0.5571,
+    0.6777,
+    0.6805,
+    0.7005,
+    0.677
+   ]
+  },
+  "position_length_corr": {
+   "top10 wrong": {
+    "position": [
+     0.0533,
+     0.0458,
+     0.0412,
+     -0.0237,
+     0.2194,
+     -0.0785,
+     -0.1019,
+     -0.2458,
+     -0.3224,
+     -0.0929,
+     -0.1244,
+     -0.166,
+     -0.0657,
+     0.0093,
+     0.0515,
+     -0.0013
+    ],
+    "length": [
+     0.1634,
+     0.3892,
+     0.1613,
+     0.3249,
+     0.0713,
+     0.3627,
+     0.4423,
+     0.4877,
+     0.4572,
+     0.2755,
+     0.3315,
+     -0.0222,
+     0.2378,
+     0.3328,
+     0.3366,
+     0.3358
+    ]
+   },
+   "top10 clean": {
+    "position": [
+     0.09,
+     0.1288,
+     -0.0509,
+     -0.0033,
+     0.3183,
+     0.0484,
+     -0.128,
+     -0.1497,
+     -0.2887,
+     -0.0058,
+     0.0258,
+     -0.231,
+     -0.1067,
+     0.2431,
+     0.2956,
+     0.2068
+    ],
+    "length": [
+     0.1287,
+     0.3289,
+     0.0583,
+     0.3157,
+     -0.0065,
+     0.325,
+     0.5473,
+     0.5645,
+     0.4765,
+     0.2871,
+     0.225,
+     -0.1095,
+     0.1148,
+     0.3514,
+     0.365,
+     0.3599
+    ]
+   },
+   "final wrong": {
+    "position": [
+     0.0533,
+     0.0458,
+     0.0412,
+     -0.0237,
+     0.2194,
+     -0.0785,
+     -0.1019,
+     -0.2458,
+     -0.3224,
+     -0.0929,
+     -0.1244,
+     -0.166,
+     -0.0657,
+     0.0093,
+     0.0515,
+     -0.0013
+    ],
+    "length": [
+     0.1634,
+     0.3892,
+     0.1613,
+     0.3249,
+     0.0713,
+     0.3627,
+     0.4423,
+     0.4877,
+     0.4572,
+     0.2755,
+     0.3315,
+     -0.0222,
+     0.2378,
+     0.3328,
+     0.3366,
+     0.3358
+    ]
+   },
+   "final clean": {
+    "position": [
+     0.09,
+     0.1288,
+     -0.0509,
+     -0.0033,
+     0.3183,
+     0.0484,
+     -0.128,
+     -0.1497,
+     -0.2887,
+     -0.0058,
+     0.0258,
+     -0.231,
+     -0.1067,
+     0.2431,
+     0.2956,
+     0.2068
+    ],
+    "length": [
+     0.1287,
+     0.3289,
+     0.0583,
+     0.3157,
+     -0.0065,
+     0.325,
+     0.5473,
+     0.5645,
+     0.4765,
+     0.2871,
+     0.225,
+     -0.1095,
+     0.1148,
+     0.3514,
+     0.365,
+     0.3599
+    ]
+   }
+  },
+  "length_strata_edges": [
+   7.0,
+   9.0,
+   13.0,
+   18.0
+  ],
+  "realism_answer_V2": {
+   "auroc": 0.7232,
+   "agreement": 0.9248,
+   "n_each": 3026,
+   "pass_": false
+  },
+  "realism_answer_V1": {
+   "auroc": 0.806,
+   "agreement": 0.8936,
+   "n_each": 3026,
+   "pass_": false
+  },
+  "gate_positive": null,
+  "dev_answer_ref": {
+   "cond": 0.4479,
+   "auroc": 0.6758,
+   "lsml": {
+    "K": 4,
+    "groups": [
+     [
+      6,
+      8,
+      11,
+      16
+     ],
+     [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      12
+     ],
+     [
+      7,
+      9,
+      10
+     ],
+     [
+      13,
+      14,
+      15
+     ]
+    ],
+    "dropped": []
+   }
+  },
+  "stage_A": {
+   "run": false
+  },
+  "dev_answer_final": {
+   "cond": 0.4479,
+   "auroc": 0.6758,
+   "lsml": {
+    "K": 4,
+    "groups": [
+     [
+      6,
+      8,
+      11,
+      16
+     ],
+     [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      12
+     ],
+     [
+      7,
+      9,
+      10
+     ],
+     [
+      13,
+      14,
+      15
+     ]
+    ],
+    "dropped": []
+   },
+   "auroc_by_length": [
+    0.8706,
+    0.851,
+    0.8004,
+    0.6906,
+    0.6492
+   ]
+  },
+  "stage_G_dev": {
+   "run": false
+  },
+  "dev_marking": {
+   "method of record (top10, no gate)": {
+    "PRMScore": 68.3277,
+    "flag_rate": 17.1181,
+    "open_share": 100.0,
+    "TPR_err": 49.3586,
+    "FPR_err": 11.1686,
+    "pi_step": 0.1554
+   },
+   "final readout, no gate": {
+    "PRMScore": 68.3277,
+    "flag_rate": 17.1181,
+    "open_share": 100.0,
+    "TPR_err": 49.3586,
+    "FPR_err": 11.1686,
+    "pi_step": 0.1554,
+    "vs_method_of_record": {
+     "PRMScore": {
+      "delta": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ]
+     }
+    }
+   },
+   "final + label-perfect gate (oracle)": {
+    "PRMScore": 68.927,
+    "flag_rate": 14.6429,
+    "open_share": 86.4819,
+    "TPR_err": 49.3586,
+    "FPR_err": 10.4998,
+    "pi_step": 0.1554,
+    "vs_method_of_record": {
+     "PRMScore": {
+      "delta": 0.5993,
+      "ci": [
+       0.4584,
+       0.7474
+      ]
+     }
+    }
+   },
+   "final + Simes gate alpha .05": {
+    "PRMScore": 49.0185,
+    "flag_rate": 0.6787,
+    "open_share": 5.6016,
+    "TPR_err": 3.3293,
+    "FPR_err": 0.2894,
+    "pi_step": 0.1554,
+    "vs_method_of_record": {
+     "PRMScore": {
+      "delta": -19.3092,
+      "ci": [
+       -20.3702,
+       -18.3026
+      ]
+     }
+    }
+   },
+   "final + Simes gate oracle alpha 1.0": {
+    "PRMScore": 68.3277,
+    "flag_rate": 17.1181,
+    "open_share": 100.0,
+    "TPR_err": 49.3586,
+    "FPR_err": 11.1686,
+    "pi_step": 0.1554,
+    "vs_method_of_record": {
+     "PRMScore": {
+      "delta": 0.0,
+      "ci": [
+       0.0,
+       0.0
+      ]
+     }
+    }
+   }
+  },
+  "test": {
+   "answer_auroc": 0.6999,
+   "pi_true": 0.8671,
+   "lsml_step": {
+    "K": 7,
+    "groups": [
+     [
+      2,
+      11,
+      12
+     ],
+     [
+      1,
+      5
+     ],
+     [
+      0,
+      3,
+      4
+     ],
+     [
+      13,
+      14,
+      15
+     ],
+     [
+      6,
+      7,
+      8
+     ],
+     [
+      10
+     ],
+     [
+      9
+     ]
+    ],
+    "dropped": []
+   },
+   "lsml_answer": {
+    "K": 5,
+    "groups": [
+     [
+      7,
+      8,
+      9,
+      10
+     ],
+     [
+      0,
+      1,
+      3,
+      4,
+      5
+     ],
+     [
+      6,
+      11,
+      16
+     ],
+     [
+      13,
+      14,
+      15
+     ],
+     [
+      2,
+      12
+     ]
+    ],
+    "dropped": []
+   },
+   "cond_step": {
+    "top10": {
+     "point": 0.2869,
+     "ci": [
+      0.2825,
+      0.2918
+     ]
+    },
+    "final": {
+     "point": 0.2869,
+     "ci": [
+      0.2825,
+      0.2918
+     ]
+    }
+   },
+   "cond_answer": {
+    "ref": 0.4167,
+    "final": 0.4167
+   },
+   "answer_auroc_by_length": [
+    0.8576,
+    0.8547,
+    0.8,
+    0.7141,
+    0.6384
+   ],
+   "marking": {
+    "method of record (top10, no gate)": {
+     "PRMScore": 68.052,
+     "flag_rate": 18.1098,
+     "open_share": 100.0,
+     "TPR_err": 49.9167,
+     "FPR_err": 11.9344,
+     "pi_step": 0.1601
+    },
+    "final readout, no gate": {
+     "PRMScore": 68.052,
+     "flag_rate": 18.1098,
+     "open_share": 100.0,
+     "TPR_err": 49.9167,
+     "FPR_err": 11.9344,
+     "pi_step": 0.1601,
+     "vs_method_of_record": {
+      "PRMScore": {
+       "delta": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      }
+     }
+    },
+    "final + label-perfect gate (oracle)": {
+     "PRMScore": 68.6723,
+     "flag_rate": 15.4066,
+     "open_share": 86.7147,
+     "TPR_err": 49.9167,
+     "FPR_err": 11.2212,
+     "pi_step": 0.1601,
+     "vs_method_of_record": {
+      "PRMScore": {
+       "delta": 0.6203,
+       "ci": [
+        0.474,
+        0.7879
+       ]
+      }
+     }
+    },
+    "final + Simes gate alpha .05": {
+     "PRMScore": 49.1064,
+     "flag_rate": 0.8131,
+     "open_share": 6.1383,
+     "TPR_err": 3.6055,
+     "FPR_err": 0.3956,
+     "pi_step": 0.1601,
+     "vs_method_of_record": {
+      "PRMScore": {
+       "delta": -18.9456,
+       "ci": [
+        -19.9747,
+        -17.9637
+       ]
+      }
+     }
+    },
+    "final + Simes gate oracle alpha 1.0": {
+     "PRMScore": 68.052,
+     "flag_rate": 18.1098,
+     "open_share": 100.0,
+     "TPR_err": 49.9167,
+     "FPR_err": 11.9344,
+     "pi_step": 0.1601,
+     "vs_method_of_record": {
+      "PRMScore": {
+       "delta": 0.0,
+       "ci": [
+        0.0,
+        0.0
+       ]
+      }
+     }
+    },
+    "baseline: equal mean of 16 R0 + GAP": {
+     "PRMScore": 67.0544,
+     "flag_rate": 17.3053,
+     "open_share": 100.0,
+     "TPR_err": 46.9929,
+     "FPR_err": 11.7034,
+     "pi_step": 0.1601,
+     "vs_method_of_record": {
+      "PRMScore": {
+       "delta": -0.9975,
+       "ci": [
+        -1.5204,
+        -0.474
+       ]
+      }
+     }
+    },
+    "baseline: position only + GAP": {
+     "PRMScore": 51.7631,
+     "flag_rate": 11.4053,
+     "open_share": 100.0,
+     "TPR_err": 14.4221,
+     "FPR_err": 10.9324,
+     "pi_step": 0.1601,
+     "vs_method_of_record": {
+      "PRMScore": {
+       "delta": -16.2889,
+       "ci": [
+        -17.3605,
+        -15.2461
+       ]
+      }
+     }
+    },
+    "baseline: length only + GAP": {
+     "PRMScore": 56.7679,
+     "flag_rate": 19.3885,
+     "open_share": 100.0,
+     "TPR_err": 32.0557,
+     "FPR_err": 17.1234,
+     "pi_step": 0.1601,
+     "vs_method_of_record": {
+      "PRMScore": {
+       "delta": -11.2841,
+       "ci": [
+        -12.3494,
+        -10.1672
+       ]
+      }
+     }
+    },
+    "baseline: mean q15_H1 (entropy) + GAP": {
+     "PRMScore": 59.5813,
+     "flag_rate": 16.5286,
+     "open_share": 100.0,
+     "TPR_err": 33.3283,
+     "FPR_err": 13.7362,
+     "pi_step": 0.1601,
+     "vs_method_of_record": {
+      "PRMScore": {
+       "delta": -8.4707,
+       "ci": [
+        -9.3557,
+        -7.5629
+       ]
+      }
+     }
+    },
+    "baseline: mean chosen_surprisal (perplexity) + GAP": {
+     "PRMScore": 58.3634,
+     "flag_rate": 14.5334,
+     "open_share": 100.0,
+     "TPR_err": 28.4502,
+     "FPR_err": 12.2087,
+     "pi_step": 0.1601,
+     "vs_method_of_record": {
+      "PRMScore": {
+       "delta": -9.6886,
+       "ci": [
+        -10.6155,
+        -8.7752
+       ]
+      }
+     }
+    }
+   }
+  }
+ },
+ "seconds": 31.4
+}
