@@ -1,11 +1,12 @@
 """Smoke checks of the one SSL experiment on the 12-row runs (2026-11-18). CPU, seconds. No labels are read.
 
     python smoke_check.py --runs DIR --variants VARDIR --stored-readouts DIR_readout_steps_sa_v1 --out SMOKE.json
-DIR holds <bench>_<C|V1|V2>/ with the driver's manifest.json and external_telemetry.pkl or prmbench_telemetry.pkl.
+DIR holds <bench>_<C|V1|V2|V3|V4>/ with the driver's manifest.json and external_telemetry.pkl or prmbench_telemetry.pkl.
 Checks:
   S1 every run: manifest status COMPLETE, 0 failed rows; s/row = elapsed_sec / n_rows (includes model load).
-  S2 equal prefix (stop rule, ANSWERS 20): V2 vs its parent C on the tokens of steps 1..k-1, V1 vs C on step 1:
-     gen_token_ids equal, and token_entropies / token_spilled_energies / token_logsumexp max abs diff <= 1e-4.
+  S2 equal prefix (stop rule, ANSWERS 20): V2 / V3 / V4 vs the parent C on the tokens of steps 1..k-1, V1 vs C on step 1:
+     gen_token_ids equal, and token_entropies / token_spilled_energies / token_logsumexp max abs diff <= 1e-4
+     (--prefix-tol changes this limit; default 1e-4 = the pre-registered rule).
      Also reported (no stop): max abs diff of the 11 risk-oriented token channels on the same tokens.
   S3 C vs stored standalone 7B (ANSWERS 14, 20): exact per-step top10 of the 11 token channels vs
      data_export/readout_steps_sa_v1/<bench>__qwen_prm_7b.npz: Spearman per channel (>= .99) and max abs diff.
@@ -39,7 +40,7 @@ def tok_values(e):
     return validate_telemetry(safe_row(r)).astype(float), list(r['step_token_spans'])
 
 
-def prefix_cmp(c, v, n_steps_equal):
+def prefix_cmp(c, v, n_steps_equal, tol=1e-4):
     """Compare the unmasked token arrays of steps 1..n_steps_equal (spans of the parent C row)."""
     sc, sv = c['step_token_spans'], v['step_token_spans']
     if n_steps_equal < 1: return None
@@ -55,7 +56,7 @@ def prefix_cmp(c, v, n_steps_equal):
         out['channels_max_abs_diff'] = float(np.abs(Vc[:e1] - Vv[:e2]).max()) if e1 == e2 and e1 else None
     except Exception as ex:  # report only
         out['channels_error'] = repr(ex)[:200]
-    out['pass'] = bool(out['spans_equal'] and out['ids_equal'] and all(out[q] <= 1e-4 for q in RAWQ))
+    out['pass'] = bool(out['spans_equal'] and out['ids_equal'] and all(out[q] <= tol for q in RAWQ))
     return out
 
 
@@ -63,10 +64,12 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--runs', required=True); ap.add_argument('--variants', required=True)
     ap.add_argument('--stored-readouts', required=True); ap.add_argument('--out', required=True)
-    a = ap.parse_args(); R = {}; ok = True
+    ap.add_argument('--prefix-tol', type=float, default=1e-4)
+    a = ap.parse_args(); R = {'prefix_tol': a.prefix_tol}; ok = True
+    VS = ('V1', 'V2', 'V3', 'V4')
     for bench in ('processbench', 'prmbench'):
         runs = {}
-        for V in ('C', 'V1', 'V2'):
+        for V in ('C',) + VS:
             d = Path(a.runs) / f'{bench}_{V}'
             if not d.exists(): continue
             man, rows = load_run(d); runs[V] = rows
@@ -74,17 +77,16 @@ def main():
                      s_per_row=round(man['elapsed_sec'] / max(1, man['n_rows']), 2), max_input_tokens=man.get('max_input_tokens'))
             r['pass'] = r['status'] == 'COMPLETE' and r['failed'] == 0; ok &= r['pass']; R[f'S1 {bench} {V}'] = r
         side = {}
-        for V in ('V1', 'V2'):
+        for V in VS:
+            if V not in runs: continue          # this job has no V run (a C job, or another variant)
             p = Path(a.variants) / f'SIDECAR_{bench}_{V}.jsonl'
             side[V] = {s['uid']: s for s in map(json.loads, open(p)) if 'skip' not in s}
-        for V in ('V1', 'V2'):
-            if V not in runs: continue          # this job has no V run (a C job, or the other variant)
             res = []
             for u, e in runs.get(V, {}).items():
                 s = side[V][u]; c = runs['C'].get(s['parent_uid'])
                 if c is None: continue
-                n_eq = s['k'] - 1 if V == 'V2' else 1
-                x = prefix_cmp(c, e, n_eq)
+                n_eq = s['k'] - 1 if V in ('V2', 'V3', 'V4') else 1
+                x = prefix_cmp(c, e, n_eq, a.prefix_tol)
                 if x: res.append(dict(uid=u, **x))
             p = bool(res) and all(x['pass'] for x in res); ok &= p
             R[f'S2 {bench} {V} equal prefix'] = dict(n_pairs=len(res), pass_=p,

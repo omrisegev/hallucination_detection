@@ -1,5 +1,6 @@
 #!/bin/bash
-# One job of the one SSL experiment (RC_HANDOFF.md section D): BENCH in {processbench, prmbench}, V in {C, V1, V2}.
+# One job of the one SSL experiment (RC_HANDOFF.md section D): BENCH in {processbench, prmbench}, V in {C, V1, V2, V3, V4}.
+# V3/V4 (dev-only variants, 2026-11-18): the preflight C run uses the C rows of the parents of the first 12 V rows.
 #   1. preflight: 12 rows of C (and of V for a V job) -> smoke_check.py; exit != 0 stops the job (no full run)
 #      ProcessBench also: the bank's FEATURES must not depend on the grafted rewards (zero == PRM rewards, C rows)
 #   2. full run -> $W/runs/<bench>_<V>/   (resumes from --out after preemption/requeue)
@@ -48,10 +49,11 @@ drv() { python cluster/run_prmbench_prm_telemetry.py $DRIVER_ARGS "$@"; }
 
 # 1. preflight + smoke (skipped when an earlier attempt of this job already passed it)
 if [ ! -e $P/SMOKE_PASS ]; then
-  step pre_C drv $(input_args $BENCH C) --n-samples 12 --out $P/${BENCH}_C || finish 10
+  PREC=C; case $V in V3|V4) PREC=preC_$V ;; esac
+  step pre_C drv $(input_args $BENCH $PREC) --n-samples 12 --out $P/${BENCH}_C || finish 10
   if [ $V != C ]; then step pre_$V drv $(input_args $BENCH $V) --n-samples 12 --out $P/${BENCH}_$V || finish 11; fi
   step smoke python -B $X/smoke_check.py --runs $P --variants $W/inputs \
-       --stored-readouts $HD_ROOT/data_export/readout_steps_sa_v1 --out $P/SMOKE.json || finish 12
+       --stored-readouts $HD_ROOT/data_export/readout_steps_sa_v1 --out $P/SMOKE.json ${PREFIX_TOL:+--prefix-tol $PREFIX_TOL} || finish 12
   if [ $BENCH = processbench ]; then   # FEATURES must not depend on the dummy rewards
     PC=$P/${BENCH}_C/external_telemetry.pkl
     step graft_zero python -B $X/aircc/pb_graft.py $PC $P/graft_zero.pkl || finish 13

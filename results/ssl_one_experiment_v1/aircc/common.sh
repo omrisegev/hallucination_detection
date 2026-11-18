@@ -9,7 +9,7 @@ ACCT=cycle4_tau_averbuch_spot_prj; QOS=spot_700; PART=power-gpu   # cycle2/cycle
 MODEL=Qwen/Qwen2.5-Math-7B-Instruct             # one cached snapshot, revision ef9926d7 (checked by snapshot())
 DRIVER_ARGS="--mode instruct --model $MODEL --prompt-style qwen_cot_chat --max-batch 1"
 
-# Inputs: C = the inputs of the stored standalone runs; V1/V2 = make_variants.py outputs.
+# Inputs: C = the inputs of the stored standalone runs; V1/V2 = make_variants.py, V3/V4 = make_variants_v34.py (dev only).
 PB_C=$HD_ROOT/results/prm_boost_processbench_v1/inputs/answers.json
 PRMB_C=$R/prm_boost_v1/full_prm/prmbench_telemetry.pkl
 
@@ -36,9 +36,10 @@ snapshot() {   # exactly one cached snapshot directory of a hub id, or fail loud
 input_args() {   # bench V -> the driver's input flag
   case "$1_$2" in
     processbench_C) echo "--answers $PB_C" ;;
-    processbench_V1|processbench_V2) echo "--answers $W/inputs/pb_$2_answers.json" ;;
+    processbench_V[1-4]|processbench_preC_V[34]) echo "--answers $W/inputs/pb_$2_answers.json" ;;   # preC_V3/4: C rows of the
+                                                         # parents of the first 12 V3/V4 rows (preflight, make_variants_v34.py)
     prmbench_C) echo "--meta-pkl $PRMB_C" ;;
-    prmbench_V1|prmbench_V2) echo "--meta-pkl $W/inputs/prmbench_$2_meta.pkl" ;;
+    prmbench_V[1-4]|prmbench_preC_V[34]) echo "--meta-pkl $W/inputs/prmbench_$2_meta.pkl" ;;
     *) echo "bad bench/V $1 $2" >&2; return 1 ;;
   esac
 }

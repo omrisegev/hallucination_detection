@@ -1,4 +1,4 @@
-"""Id mapping around the UNCHANGED PRMBench bank builder, for the V1/V2 runs (RC_HANDOFF D.3). No labels are read.
+"""Id mapping around the UNCHANGED PRMBench bank builder, for the V1-V4 runs (RC_HANDOFF D.3). No labels are read.
 
 The frozen builder (prm_standalone_telemetry_v1/code/build_bank.py) writes into the rows of the mask1 source bank and
 requires EVERY PRMBench answer id of that bank (cell prmbench_qwen3_8b) in the raw pkl, with the same step count.
@@ -24,7 +24,7 @@ def prepare(var, fill, base, out, mp):
     prep, var_map, failed = {}, {}, []
     for e in V.values():
         u = str(e['idx']); p, sep, tag = u.rpartition('__')
-        if not sep or tag not in ('v1', 'v2'): raise SystemExit('unexpected variant uid ' + u)
+        if not sep or tag not in ('v1', 'v2', 'v3', 'v4'): raise SystemExit('unexpected variant uid ' + u)
         if 'failure' in e: failed.append(u); continue
         r = dict(e); r['idx'] = p; prep[p] = r; var_map[p] = u
     F = pickle.load(open(fill, 'rb')); F = {str(e['idx']): e for e in F.values()}
