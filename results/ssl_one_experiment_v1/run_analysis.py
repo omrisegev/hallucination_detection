@@ -171,19 +171,21 @@ def run_bench(bench, pools, a, R, SC):
         p = Path(a.stored_readouts) / f'{bench}__qwen_prm_7b.npz'
         if p.exists():
             Ds = np.load(p); pos = {u: j for j, u in enumerate(Ds['uids'].astype(str))}; so = Ds['offsets']
+            RD = Ds['readouts'][:, :, 0]          # decode the npz member once (each Ds[key] access decodes it again)
             mine, ref = [], []
             for j, u in enumerate(C.uids):
                 if u in pos and so[pos[u] + 1] - so[pos[u]] == C.off[j + 1] - C.off[j]:
-                    mine.append(raw0[C.off[j]:C.off[j + 1], :11]); ref.append(Ds['readouts'][so[pos[u]]:so[pos[u] + 1], :, 0])
+                    mine.append(raw0[C.off[j]:C.off[j + 1], :11]); ref.append(RD[so[pos[u]]:so[pos[u] + 1]])
             m_, r_ = np.concatenate(mine), np.concatenate(ref)
             p0['token_top10_vs_stored'] = dict(answers=len(mine), spearman=[float(spearmanr(m_[:, j], r_[:, j])[0]) for j in range(11)],
                                                max_abs_diff=float(np.abs(m_ - r_).max()))
     if a.stored_pb_cell and bench == 'processbench':
         Cs = np.load(a.stored_pb_cell); pos = {u: j for j, u in enumerate(Cs['sa_ids'].astype(str))}; so = Cs['sa_off']
+        SA = Cs['sa_N16']                     # decode once
         mine, ref = [], []
         for j, u in enumerate(C.uids):
             if u in pos and so[pos[u] + 1] - so[pos[u]] == C.off[j + 1] - C.off[j]:
-                mine.append(X0[C.off[j]:C.off[j + 1]]); ref.append(Cs['sa_N16'][so[pos[u]]:so[pos[u] + 1]])
+                mine.append(X0[C.off[j]:C.off[j + 1]]); ref.append(SA[so[pos[u]]:so[pos[u] + 1]])
         m_, r_ = np.concatenate(mine), np.concatenate(ref)
         p0['R0_16_vs_stored_sa_N16'] = dict(answers=len(mine), spearman=[float(spearmanr(m_[:, j], r_[:, j])[0]) for j in range(16)])
     out['P0'] = p0; log(bench, 'P0', main, round(ev['main'], 2), 'stored', STORED[bench][1])
