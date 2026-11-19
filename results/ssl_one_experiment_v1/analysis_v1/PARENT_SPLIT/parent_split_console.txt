@@ -1,0 +1,23 @@
+processbench V3 all n 1690 share 1.0 | vs wrong 0.42 vs clean 0.7554 | shift med 0.2106 | c2st 0.6366 | pi-hat 0.889 true 0.646 | gate {'open_share': 0.8891, 'tpr_wrong_opened': 0.9699, 'tnr_clean_closed': 0.2583}
+processbench V3 clean_parent n 599 share 0.3544 | vs wrong 0.2207 vs clean 0.584 | shift med 0.4608 | c2st 0.8421 | pi-hat 0.9836 true 0.646 | gate {'open_share': 0.9835, 'tpr_wrong_opened': 0.9973, 'tnr_clean_closed': 0.0417}
+processbench V3 wrong_parent n 1091 share 0.6456 | vs wrong 0.5294 vs clean 0.8494 | shift med 0.1372 | c2st 0.5689 | pi-hat 0.6505 true 0.646 | gate {'open_share': 0.6507, 'tpr_wrong_opened': 0.8201, 'tnr_clean_closed': 0.6583}
+processbench V4 all n 421 share 1.0 | vs wrong 0.5945 vs clean 0.8938 | shift med 1.3578 | c2st 0.6753 | pi-hat 0.5258 true 0.646 | gate {'open_share': 0.5257, 'tpr_wrong_opened': 0.7059, 'tnr_clean_closed': 0.8033}
+processbench V4 clean_parent n 149 share 0.3539 | vs wrong 0.4692 vs clean 0.8375 | shift med 2.5321 | c2st 0.6826 | pi-hat 0.6612 true 0.646 | gate {'open_share': 0.6614, 'tpr_wrong_opened': 0.8311, 'tnr_clean_closed': 0.6483}
+processbench V4 wrong_parent n 272 share 0.6461 | vs wrong 0.6631 vs clean 0.9247 | shift med 0.8155 | c2st 0.7045 | pi-hat 0.4171 true 0.646 | gate {'open_share': 0.4171, 'tpr_wrong_opened': 0.5781, 'tnr_clean_closed': 0.8767}
+processbench V3+V4 all n 2111 share 1.0 | vs wrong 0.4548 vs clean 0.783 | shift med 0.2824 | c2st 0.6291 | pi-hat 0.8129 true 0.646 | gate {'open_share': 0.813, 'tpr_wrong_opened': 0.926, 'tnr_clean_closed': 0.3933}
+processbench V3+V4 clean_parent n 748 share 0.3543 | vs wrong 0.2702 vs clean 0.6345 | shift med 0.6312 | c2st 0.8123 | pi-hat 0.982 true 0.646 | gate {'open_share': 0.9823, 'tpr_wrong_opened': 0.9973, 'tnr_clean_closed': 0.045}
+processbench V3+V4 wrong_parent n 1363 share 0.6457 | vs wrong 0.5561 vs clean 0.8644 | shift med 0.1787 | c2st 0.5913 | pi-hat 0.598 true 0.646 | gate {'open_share': 0.5982, 'tpr_wrong_opened': 0.7744, 'tnr_clean_closed': 0.7233}
+processbench perfect synthetic pi-hat 0.6856 true 0.646 gate {'open_share': 0.6855, 'tpr_wrong_opened': 0.8447, 'tnr_clean_closed': 0.605}
+processbench code check {'V3': {'now': 0.889, 'expected': 0.889, 'pass_': True}, 'V4': {'now': 0.5258, 'expected': 0.5258, 'pass_': True}, 'V3+V4': {'now': 0.8129, 'expected': 0.8129, 'pass_': True}}
+prmbench V3 all n 3489 share 1.0 | vs wrong 0.505 vs clean 0.6776 | shift med 0.1296 | c2st 0.5583 | pi-hat 0.9325 true 0.8648 | gate {'open_share': 0.9326, 'tpr_wrong_opened': 0.9574, 'tnr_clean_closed': 0.2262}
+prmbench V3 clean_parent n 472 share 0.1353 | vs wrong 0.3543 vs clean 0.5385 | shift med 0.273 | c2st 0.794 | pi-hat 0.9986 true 0.8648 | gate {'open_share': 0.9986, 'tpr_wrong_opened': 0.9997, 'tnr_clean_closed': 0.0085}
+prmbench V3 wrong_parent n 3017 share 0.8647 | vs wrong 0.5286 vs clean 0.6993 | shift med 0.1151 | c2st 0.5703 | pi-hat 0.8865 true 0.8648 | gate {'open_share': 0.8865, 'tpr_wrong_opened': 0.9187, 'tnr_clean_closed': 0.3192}
+prmbench V4 all n 3418 share 1.0 | vs wrong 0.5611 vs clean 0.7226 | shift med 0.4204 | c2st 0.6172 | pi-hat 0.7927 true 0.8648 | gate {'open_share': 0.7928, 'tpr_wrong_opened': 0.8341, 'tnr_clean_closed': 0.4715}
+prmbench V4 clean_parent n 456 share 0.1334 | vs wrong 0.4651 vs clean 0.6461 | shift med 1.2325 | c2st 0.6544 | pi-hat 0.9885 true 0.8648 | gate {'open_share': 0.9886, 'tpr_wrong_opened': 0.9934, 'tnr_clean_closed': 0.0423}
+prmbench V4 wrong_parent n 2962 share 0.8666 | vs wrong 0.5759 vs clean 0.7343 | shift med 0.3531 | c2st 0.6313 | pi-hat 0.7505 true 0.8648 | gate {'open_share': 0.7505, 'tpr_wrong_opened': 0.7921, 'tnr_clean_closed': 0.5159}
+prmbench V3+V4 all n 6907 share 1.0 | vs wrong 0.5328 vs clean 0.6998 | shift med 0.2234 | c2st 0.5727 | pi-hat 0.8634 true 0.8648 | gate {'open_share': 0.8634, 'tpr_wrong_opened': 0.8979, 'tnr_clean_closed': 0.3573}
+prmbench V3+V4 clean_parent n 928 share 0.1344 | vs wrong 0.4087 vs clean 0.5914 | shift med 0.5128 | c2st 0.7442 | pi-hat 0.9986 true 0.8648 | gate {'open_share': 0.9986, 'tpr_wrong_opened': 0.9997, 'tnr_clean_closed': 0.0085}
+prmbench V3+V4 wrong_parent n 5979 share 0.8656 | vs wrong 0.552 vs clean 0.7167 | shift med 0.1943 | c2st 0.5868 | pi-hat 0.7975 true 0.8648 | gate {'open_share': 0.7974, 'tpr_wrong_opened': 0.8374, 'tnr_clean_closed': 0.4588}
+prmbench perfect synthetic pi-hat 0.9038 true 0.8648 gate {'open_share': 0.9037, 'tpr_wrong_opened': 0.9336, 'tnr_clean_closed': 0.2875}
+prmbench code check {'V3': {'now': 0.9325, 'expected': 0.9325, 'pass_': True}, 'V4': {'now': 0.7927, 'expected': 0.7927, 'pass_': True}, 'V3+V4': {'now': 0.8634, 'expected': 0.8634, 'pass_': True}}
+done 15.9 s
