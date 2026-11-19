@@ -188,3 +188,58 @@ Findings:
 7. Limits: "clean parents" uses the gold label of the parent. V4 on clean parents has only 149 PB answers. The change point with prior 1 − P was weaker than GAP (V4 clean parents: F1 37.08, SLA 23.99). This dev data was inspected before.
 
 Next step (not run, needs Omri's OK): V4 on parents that are chosen without labels as "probably clean" (for example, the answers with the lowest sA), on PB dev. Check: |π̂ − π| ≤ .10 and F1 against the true-π gate.
+
+## 11. The error direction and the reaction to several error types (2026-11-19, Omri's ideas in the thread at 10:45 and 10:54 Israel)
+
+Idea: measure the telemetry of an answer, inject an error, measure again. The difference may contain the "direction" of an error, and it may help to learn the answer-level threshold. Omri's second idea: inject several different error types into the same answer, and fuse the differences with SML, because different types may give independent views.
+Code: `analysis_v1/DIRECTION_QUICK/pair_direction.py` and `pair_sml.py` (quick checks, saved unchanged, code base 4d57e57), `reaction_ds.py` (commit 804cd4d). Output: `analysis_v1/DIRECTION_QUICK/` and `analysis_v1/REACTION_DS/` (commit 1e966d11). CPU, less than 1 min each. Dev only, no test data. Code check: the true-π gate gives the GATE_DEV numbers exactly (PB F1 41.653, PRMBench PRMScore 67.7636).
+
+### 11.1 One error direction (Omri's first reading)
+
+Direction = mean of the difference of the 17 z-scored answer features, variant minus its own parent. Learned on one gate fold, applied to the other. Score of an answer = its projection on the direction. No labels.
+
+| AUROC, wrong vs clean answers | PB | PRMBench |
+|---|---|---|
+| Current answer score (answer L-SML) | .820 | .676 |
+| Direction from V3 | .817 | .701 |
+| Direction from V4 | .804 | .732 |
+| Direction from V3 + V4 | .814 | .725 |
+| Direction from V3 + V4, whitened (Σ⁻¹ × difference) | .686 | .740 |
+| Supervised ceiling (logistic regression with labels, cross-fit) | .865 | .822 |
+
+- The direction is stable: cosine between the two folds .997 to .999 (whitened PRMBench V4: .548).
+- π̂ by BBE on the direction score is still wrong: PB .875 / .528 / .788 (V3 / V4 / V3 + V4, true .646); PRMBench .891 / .703 / .796 (true .865).
+
+### 11.2 One direction per error type, fused by SML (Omri's second reading, first form)
+
+| | PB (V1, V3, V4, V5) | PRMBench (V1 to V5) |
+|---|---|---|
+| AUROC of each type's direction | .800 to .822 | .701 to .738 |
+| Cosine between the directions of two types | .82 to .97 | .76 to .97 |
+| Conditional Spearman between the type scores (inside wrong / inside clean) | .976 / .972 | .962 / .975 |
+| SML = L-SML = equal mean | .813 | .727 |
+
+SML gives the same weight to all types (.50 PB, .44 to .45 PRMBench).
+
+### 11.3 Reaction of each answer to each error type, fused by Dawid-Skene (second form)
+
+Reaction r = sA(variant) − sA(parent). Small reaction = "the answer is already wrong". Each type is one view. Binary Dawid-Skene EM with votes cut at the 35%, 50% and 65% quantile of each view, and a Gaussian latent-class EM. No labels in any fit.
+
+| | PB (π .646) | PRMBench (π .865) |
+|---|---|---|
+| Error types (answers) | V1 1,689, V3 1,690, V4 421, V5 1,690 | V1 3,499, V2 3,499, V3 3,489, V4 3,418, V5 3,489 |
+| AUROC of −r, wrong vs clean parent | .73 to .79 | .63 to .74 |
+| The same inside 5 strata of the parent's sA | .54 to .58 | .56 to .71 (V1 .71) |
+| Spearman(r, parent sA) inside wrong / inside clean | −.62 to −.81 / −.40 to −.72 | −.49 to −.70 / −.55 to −.80 |
+| Conditional Spearman between types, mean absolute value (range) | .50 (.21 to .72) | .56 (.35 to .69) |
+| DS π̂, votes cut at 35% / 50% / 65% (all answers) | .35 / .47 / .61 | .36 / .45 / .57 |
+| Gaussian latent-class π̂ (all answers) | .52 | .56 |
+| Gate with these π̂: PB F1 (true-π gate 41.65) / PRMBench PRMScore (no gate 68.33) | 29.3 / 37.1 / 41.4; latent class 39.8 | 57.8 / 60.5 / 63.2; latent class 63.1 |
+
+Findings:
+1. The error direction improves the answer ranking on PRMBench (.676 to about .73; the supervised ceiling is .82). On PB it gives the same ranking as the current score (.80 to .82).
+2. All error types move the answer in almost the same direction: a general rise of the model's uncertainty. The types differ in the size of the move (V3 small, V4 large), not in its direction. So the types are not independent views, and SML on them equals the mean.
+3. The reaction of an answer mostly measures how much room the answer has to rise: it correlates −.4 to −.8 with the parent's own score. Inside strata of the parent score it adds little on PB (.54 to .58). On PRMBench it adds some (up to .71 for V1). This is a possible lead for the PRMBench ranking, not for the threshold.
+4. The reactions to different types are conditionally dependent (.50 PB, .56 PRMBench), because all of them come from the same parent, the same model and the same channels.
+5. The DS π̂ follows the vote cut (PB .35 / .47 / .61 for cuts at 35 / 50 / 65%). So π is not identified. This is the same failure as the cross-model Dawid-Skene check of 2026-11-14 (π̂ ≈ 1 − q).
+6. No label-free route in sections 8 to 11 identifies π on PB. The only set that gave π̂ near the true π was V4 on clean parents chosen by the gold label (section 10).

@@ -5150,7 +5150,9 @@ cannot help (86% wrong; even the true threshold lowers PRMScore), so PRMBench wo
 
 ### Open (not started; Omri chooses)
 1. Label-free choice of "probably clean" originals (lowest answer score, majority final answer) for the known-wrong set.
-2. Known-shift mixture threshold (pool = (1-pi) f + pi f(x - delta), delta from the pairs), consistency across error types.
+2. Known-shift mixture threshold (pool = (1-pi) f + pi f(x - delta)), delta from one near-real error type (V4) on
+   "probably clean" parents. Equal pi across error types is not a valid check: the types shift a clean answer by
+   different amounts (PB median V3 .46, V4 2.53), so their pi values differ by construction.
 3. Separate difference directions on jump channels and level channels as two SML views.
 4. First-error target for the step readout (only step k positive, later steps ignored).
 5. ProcessBench V2 GPU run (pending Omri's decision).
