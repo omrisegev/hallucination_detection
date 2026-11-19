@@ -1,3 +1,18 @@
+## 2026-11-19: one SSL experiment, synthetic known-wrong answers, Step 488 (Claude)
+
+- **Status:** dev diagnostics done; no method adopted. Test half used once (PRMBench, 2026-11-18, PRMScore 68.05 with
+  the method of record). Summary: `results/ssl_one_experiment_v1/analysis_v1/SUMMARY_2026-11-19.md`
+  (branch `claude/ssl-one-experiment-2026-11-18`; Drive `cluster_results/ssl_one_experiment_v1/`).
+- **Realism:** too-loud fakes fail (V1, V2, V5); V3 (one number) and V4 (same-question step) pass at answer level;
+  the V3+V4 mixture is the only step-level pass (PRMBench .649).
+- **Answer gate:** worth it on ProcessBench only (true-pi gate F1 41.7 vs 0 without gate, 54.8 label-perfect). The
+  threshold is right when the synthetic set matches the original's label (V4 clean parents .661, V3 wrong parents
+  .651, true .646), which is not known without labels. On PRMBench every gate lowers PRMScore.
+- **First vs later errors:** the first error is a jump; later errors a raised level (AUROC .81). V4 is the only
+  first-error-like fake.
+- **Next (each needs Omri's go):** label-free "probably clean" originals for the known-wrong set; known-shift mixture
+  threshold; separate jump/level directions for SML; ProcessBench V2 GPU run (pending).
+
 ## 2026-10-29: ProcessBench SLA under GAP decision rule vs Mind the Gap Table 3, Step 483 (Codex/Antigravity)
 
 - **ProcessBench SLA under GAP rule:** Evaluated TELEM16 (`TELE_N16`) with the GAP decision rule (predicting the first chronological flagged step) against published results from "Mind the Gap" (Chen et al., ICML 2026, Table 3) on the 2,221 erroneous answers of ProcessBench.

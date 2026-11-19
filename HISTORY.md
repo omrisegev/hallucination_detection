@@ -24911,3 +24911,31 @@ and GPQA/old LCiteEval RAG as negative-scope panels. Canonical files:
 `docs/research_notes/multi_population_benchmark_working_synthesis_2026-08-23.md`,
 and `configs/multi_population_benchmark_v1_{method_registry,population_registry,compatibility}.csv`.
 
+
+### Step 488 [SSL one experiment] — Synthetic known-wrong answers for a self-supervised readout and answer gate (2026-11-18/19)
+
+**What**: One GPU pass (AIRCC, Qwen2.5-Math-7B standalone, teacher-forced) on PRMBench and ProcessBench answers with
+injected errors at a known place: V1 shuffled steps, V2 foreign step, V3 one number +-1, V4 a step from another
+answer to the same question, V5 every number from step k on changed (Omri's idea). The pre-registered analysis
+(`results/ssl_one_experiment_v1/run_analysis.py`) checks realism by C2ST (AUROC <= .65 and pattern agreement >= .5),
+then fits the step readout (S/S2), answer readout (A) and the answer-gate threshold pi-hat by BBE (G). Follow-up
+dev-only CPU diagnostics: V3+V4 mixture, first vs later errors, the answer gate on dev, synthetic answers split by
+their parent's label, error-direction and per-answer reaction ideas.
+
+**Why**: The advisors asked for a self-supervised calibration and an answer-level gate without gold labels. GAP
+marks a step in every answer, so ProcessBench F1 is 0 without a gate.
+
+**Result**: Parity holds (PRMBench PRMScore 68.26 = stored; PB SLA 38.62 vs 38.47). V2 failed realism (step .821),
+so the test half was scored once with the method of record: PRMScore 68.05; a label-perfect gate adds only +0.62 on
+PRMBench. Dev only afterwards: V3 and V4 pass at answer level; only the V3+V4 mixture passes at step level on
+PRMBench (.649), where its pi-hat is .863 vs true .865 and stage S picks a top-1 readout (68.33 -> 67.95, not
+stable across halves). Real first errors are a jump on all channels and differ from later errors (AUROC .81, .78
+position-matched); vs first errors only, V4 is the only passing fake (.642). The answer gate helps on ProcessBench
+only: true-pi gate F1 41.7 (label-perfect 54.8, no gate 0); V4 from clean parents gives pi-hat .661 and F1 41.9, but
+"clean parents" uses labels. PRMBench gates always lower PRMScore. Error-type directions are nearly identical (SML =
+average); a synthetic-pair direction lifts the PRMBench answer AUROC .676 -> .73; Dawid-Skene pi-hat on reactions is
+not identified. No method is adopted. Summary: `results/ssl_one_experiment_v1/analysis_v1/SUMMARY_2026-11-19.md`;
+details in `README.md`, `METHOD.md`, `REALISM_V34.md`, `DIAG_realism/DIAG_REALISM.md` there. Drive:
+`cluster_results/ssl_one_experiment_v1/`.
+
+---

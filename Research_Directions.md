@@ -5128,3 +5128,29 @@ accuracy, macro over 8 cells):
 - **Open experiment (Omri, 2026-09-27, still wanted):** drop 2-3 level-family channels to break the level group's dominance (top
   Dawid-Skene weight in 40/40 bank-folds, Step 457), then re-run the filter, partition and estimates. Omri's caveat: going from 5
   to 3 level channels need not leave two level groups; check the resulting partition, not only the score.
+
+
+## 2026-11-19 (Claude): self-supervised readout and answer gate from synthetic errors - state (Step 488)
+
+Source: `results/ssl_one_experiment_v1/analysis_v1/SUMMARY_2026-11-19.md` (branch `claude/ssl-one-experiment-2026-11-18`).
+
+### Direction
+Answer-level gate on ProcessBench: a label-free answer score (17 answer features, L-SML) plus a threshold set by the
+estimated share of wrong answers (pi-hat, BBE), with injected errors as free known-wrong answers. On PRMBench the gate
+cannot help (86% wrong; even the true threshold lowers PRMScore), so PRMBench work stays on step localization.
+
+### Evidence so far (dev)
+- Threshold: correct only when the synthetic set matches the original answer's label (V4 from clean originals,
+  V3 from wrong originals). With the true share the gate gives PB F1 41.7; the rest of the gap to 54.8 is ranking.
+- Ranking: a synthetic-pair direction lifts the PRMBench answer AUROC .676 -> .73 (supervised LR .822).
+- Not independent: error-type directions coincide (cosine .76-.97), so SML over types = averaging; Dawid-Skene on
+  per-answer reactions does not identify pi.
+- Localization: real first errors are a jump on all channels, later errors a raised level; V4 is the only
+  first-error-like fake.
+
+### Open (not started; Omri chooses)
+1. Label-free choice of "probably clean" originals (lowest answer score, majority final answer) for the known-wrong set.
+2. Known-shift mixture threshold (pool = (1-pi) f + pi f(x - delta), delta from the pairs), consistency across error types.
+3. Separate difference directions on jump channels and level channels as two SML views.
+4. First-error target for the step readout (only step k positive, later steps ignored).
+5. ProcessBench V2 GPU run (pending Omri's decision).

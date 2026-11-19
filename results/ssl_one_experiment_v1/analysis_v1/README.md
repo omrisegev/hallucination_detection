@@ -1,5 +1,7 @@
 # One SSL experiment: findings (2026-11-18)
 
+Full summary of all runs and dev diagnostics (2026-11-18/19): `SUMMARY_2026-11-19.md`.
+
 Status: PRMBench is complete under the pre-registered rules. ProcessBench has only the parity check (P0), because its V2 GPU run waits for Omri's decision.
 Method (what each step calculates): `METHOD.md`. Code and outputs: branch `claude/ssl-one-experiment-2026-11-18`, folder `results/ssl_one_experiment_v1/` (code commit 641b67d, outputs commit 2f97b5e).
 
