@@ -1,0 +1,106 @@
+{
+ "soft_top_M1_weights_first5": [
+  0.477,
+  0.289,
+  0.14,
+  0.058,
+  0.022
+ ],
+ "processbench": {
+  "pool_copy_answer_c2st": {
+   "auroc": 0.621,
+   "agreement": 0.9898,
+   "n_each": 1095,
+   "pass_": true
+  },
+  "bbe_pool_as_positives": 0.9985,
+  "answer_score_auroc_by_n_steps_quintile": [
+   0.8062,
+   0.8233,
+   0.7655,
+   0.8206,
+   0.8537
+  ],
+  "answer_score_auroc_length_adjusted": 0.8072,
+  "answer_score_auroc": 0.8205,
+  "direction_V4": {
+   "auroc": 0.8044,
+   "by_n_steps_quintile": [
+    0.7868,
+    0.8058,
+    0.7571,
+    0.8127,
+    0.8483
+   ],
+   "length_adjusted": 0.7938,
+   "corr_with_n_steps": 0.135
+  },
+  "direction_V3+V4": {
+   "auroc": 0.8135,
+   "by_n_steps_quintile": [
+    0.7972,
+    0.8142,
+    0.7678,
+    0.8192,
+    0.8474
+   ],
+   "length_adjusted": 0.8014,
+   "corr_with_n_steps": 0.189
+  },
+  "lsml_corr_with_n_steps": 0.24,
+  "rel_position_median": {
+   "real_first_error": 0.375,
+   "V3_k": 0.6,
+   "V3_k_is_last_step_share": 0.213
+  }
+ },
+ "prmbench": {
+  "pool_copy_answer_c2st": {
+   "auroc": 0.5391,
+   "agreement": 0.9906,
+   "n_each": 3026,
+   "pass_": true
+  },
+  "bbe_pool_as_positives": 0.9863,
+  "answer_score_auroc_by_n_steps_quintile": [
+   0.8706,
+   0.851,
+   0.8004,
+   0.6906,
+   0.6492
+  ],
+  "answer_score_auroc_length_adjusted": 0.7714,
+  "answer_score_auroc": 0.6758,
+  "direction_V4": {
+   "auroc": 0.7322,
+   "by_n_steps_quintile": [
+    0.8825,
+    0.8618,
+    0.811,
+    0.7096,
+    0.6796
+   ],
+   "length_adjusted": 0.7881,
+   "corr_with_n_steps": 0.459
+  },
+  "direction_V3+V4": {
+   "auroc": 0.7252,
+   "by_n_steps_quintile": [
+    0.8807,
+    0.8517,
+    0.8094,
+    0.7016,
+    0.6721
+   ],
+   "length_adjusted": 0.7828,
+   "corr_with_n_steps": 0.463
+  },
+  "lsml_corr_with_n_steps": 0.651,
+  "rel_position_median": {
+   "real_first_error": 0.556,
+   "V3_k": 0.571,
+   "V3_k_is_last_step_share": 0.103
+  }
+ },
+ "note": "dev only; gold labels used only for these checks"
+}
