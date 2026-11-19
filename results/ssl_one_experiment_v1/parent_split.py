@@ -105,7 +105,7 @@ def figure(R, curves, out):
                          'axes.spines.right': False, 'font.size': 9.5, 'axes.titlesize': 10.5, 'axes.titleweight': 'bold',
                          'legend.frameon': False, 'axes.grid': True, 'grid.color': GRID, 'grid.linewidth': .6})
     benches = [b for b in ('processbench', 'prmbench') if b in R]
-    fig, ax = plt.subplots(len(benches), 3, figsize=(15, 4.3 * len(benches)), squeeze=False)
+    fig, ax = plt.subplots(len(benches), 3, figsize=(16, 4.6 * len(benches)), squeeze=False)
     for i, b in enumerate(benches):
         for j, V in enumerate(('V3', 'V4')):
             a0 = ax[i, j]
@@ -127,8 +127,8 @@ def figure(R, curves, out):
             a1.scatter(v, yi, s=44, color=PC[part], zorder=3, edgecolor=SURF, linewidth=1.5)
             a1.text(v + .012, yi, f'{v:.3f}', va='center', fontsize=8, color=INK)
         a1.set_yticks(y); a1.set_yticklabels([r[0] for r in rows], fontsize=8); a1.set_xlim(.3, 1.08)
-        a1.set_xlabel(f'pi-hat; black line = true pi {pt:.3f}; grey band = pass (+-.10)')
-        a1.set_title(f'{b} dev: pi-hat by known-wrong set', loc='left')
+        a1.set_xlabel(f'pi-hat (black line = true pi {pt:.3f};\ngrey band = pass, true pi +- .10)')
+        a1.set_title(f'{b} dev:\npi-hat by known-wrong set', loc='left')
     fig.suptitle('Dev only: synthetic answers split by the true label of their parent', x=.01, ha='left', fontsize=11.5)
     fig.tight_layout(); fig.savefig(out / 'R1_parent_split.png', dpi=160); plt.close(fig)
 
