@@ -1,0 +1,15 @@
+processbench V3 n=1690 pi-hat 0.889 (true 0.646) open 0.889 wrong-opened 0.970 clean-closed 0.258 | gate F1 30.90 delta +30.90 [27.66, 33.41] SLA 36.83 | change point F1 19.66 SLA 37.43
+processbench V4 n=421 pi-hat 0.526 (true 0.646) open 0.526 wrong-opened 0.706 clean-closed 0.803 | gate F1 40.21 delta +40.21 [36.55, 43.58] SLA 26.80 | change point F1 28.41 SLA 17.00
+processbench V3+V4 n=2111 pi-hat 0.813 (true 0.646) open 0.813 wrong-opened 0.926 clean-closed 0.393 | gate F1 37.69 delta +37.69 [34.8, 40.36] SLA 35.31 | change point F1 35.79 SLA 34.60
+processbench V3 clean parents n=599 pi-hat 0.984 (true 0.646) open 0.983 wrong-opened 0.997 clean-closed 0.042 | gate F1 6.63 delta +6.63 [4.35, 9.11] SLA 37.91 | change point F1 3.49 SLA 37.23
+processbench V4 clean parents n=149 pi-hat 0.661 (true 0.646) open 0.661 wrong-opened 0.831 clean-closed 0.648 | gate F1 41.91 delta +41.91 [38.41, 45.09] SLA 30.90 | change point F1 37.08 SLA 23.99
+processbench V3+V4 clean parents n=748 pi-hat 0.982 (true 0.646) open 0.982 wrong-opened 0.997 clean-closed 0.045 | gate F1 6.97 delta +6.97 [4.69, 9.4] SLA 37.91 | change point F1 4.02 SLA 37.15
+processbench answers 1695 pi true 0.646 answer-score AUROC 0.8205 | no gate F1 0.0 | oracle gate 54.82 | true-pi gate 41.65 wrong-opened 0.816 clean-closed 0.663 | SLA no gate 38.23 oracle 38.23 true-pi 30.3
+prmbench V3 n=3489 pi-hat 0.932 (true 0.865) open 0.933 wrong-opened 0.957 clean-closed 0.226 | gate PRMScore 68.18 delta -0.14 [-0.33, 0.01]
+prmbench V4 n=3418 pi-hat 0.793 (true 0.865) open 0.793 wrong-opened 0.834 clean-closed 0.471 | gate PRMScore 67.06 delta -1.26 [-1.68, -0.9]
+prmbench V3+V4 n=6907 pi-hat 0.863 (true 0.865) open 0.863 wrong-opened 0.898 clean-closed 0.357 | gate PRMScore 67.78 delta -0.55 [-0.84, -0.28]
+prmbench V3 clean parents n=472 pi-hat 0.999 (true 0.865) open 0.999 wrong-opened 1.000 clean-closed 0.008 | gate PRMScore 68.32 delta -0.01 [-0.02, 0.0]
+prmbench V4 clean parents n=456 pi-hat 0.989 (true 0.865) open 0.989 wrong-opened 0.993 clean-closed 0.042 | gate PRMScore 68.28 delta -0.05 [-0.11, 0.01]
+prmbench V3+V4 clean parents n=928 pi-hat 0.999 (true 0.865) open 0.999 wrong-opened 1.000 clean-closed 0.008 | gate PRMScore 68.32 delta -0.01 [-0.02, 0.0]
+prmbench answers 3499 pi true 0.865 answer-score AUROC 0.6758 | no gate PRMScore 68.33 | oracle gate 68.93 | true-pi gate 67.76 wrong-opened 0.899 clean-closed 0.355
+done 37.8 s
