@@ -2,7 +2,7 @@
 # Mirrors results/ssl_one_experiment_v1/aircc/common.sh (2026-11-18); only the paths change (cycle2 workspace is gone).
 S=/shared/cycle4_tau_averbuch_spot_prj/users/omrisegev1/ws_c4; R=$S/results; H=$S/hf_cache/hub
 W=$R/ssl_step_threshold_h2v_deltabench_v1                 # every output of this experiment
-HD_ROOT=$S/code_rule_c_v4   # frozen code v4 = v3 + C re-run (V=CR) + accept driver exit 2 on the DeltaBench native pass
+HD_ROOT=$S/code_rule_c_v5   # frozen code v5 (v4 had CRLF in common_c4.sh) = v3 + C re-run (V=CR) + accept driver exit 2 on the DeltaBench native pass
 X=$HD_ROOT/results/ssl_one_experiment_v1; Y=$HD_ROOT/results/rule_c_h2v_deltabench_v1
 ACCT=cycle4_tau_averbuch_spot_prj; QOS=spot_700; PART=power-gpu
 MODEL=Qwen/Qwen2.5-Math-7B-Instruct; REV=ef9926d75ab1d54532f6a30dd5e760355eb9aa4d
