@@ -19,7 +19,7 @@
 #SBATCH --container-mounts=/shared/cycle4_tau_averbuch_spot_prj/users/omrisegev1:/shared/cycle4_tau_averbuch_spot_prj/users/omrisegev1
 set -uo pipefail
 : "${BENCH:?}" "${V:?}"
-source /shared/cycle4_tau_averbuch_spot_prj/users/omrisegev1/ws_c4/code_rule_c_v1/results/rule_c_h2v_deltabench_v1/aircc/common_c4.sh
+source /shared/cycle4_tau_averbuch_spot_prj/users/omrisegev1/ws_c4/code_rule_c_v2/results/rule_c_h2v_deltabench_v1/aircc/common_c4.sh
 export HD_ROOT HF_HOME=$S/hf_cache HF_DATASETS_CACHE=$S/hf_cache/datasets HF_HUB_OFFLINE=1 HF_DATASETS_OFFLINE=1 \
        TRANSFORMERS_OFFLINE=1 PIP_CACHE_DIR=$S/pip_cache PYTHONUSERBASE=/tmp/pyuserbase_${SLURM_JOB_ID} \
        PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
@@ -64,11 +64,11 @@ if [ $V = C ]; then
   RAW=$STORED/full_sa_qwen_prm_${BENCH}$([ $BENCH = deltabench ] && echo _ext)/grafted.pkl
   SB=$(dirname $RAW)/bank_v3/FEATURES.npz
   if [ $BENCH = hard2verify ] && [ ! -e $J/BANK_PARITY_PASS ]; then
-    step bank_parity_build bash -c "cd $BANK_CODE && python -B $PB_BUILD --raw $RAW --mask-code $PB_MASK --names-from $PB_NAMES --tokenizer $TOK --out $P/bank_parity --workers 16" || finish 13
+    step bank_parity_build bash -c "cd $BANK_CODE && python -B $Y/aircc/np2_alias_run.py $PB_BUILD --raw $RAW --mask-code $PB_MASK --names-from $PB_NAMES --tokenizer $TOK --out $P/bank_parity --workers 16" || finish 13
     step bank_parity python -B $Y/aircc/bank_parity.py $P/bank_parity/FEATURES.npz $SB || finish 14
     touch $J/BANK_PARITY_PASS
   fi
-  step extract python -B $X/extract_steps.py $RAW $SB $W/steps/STEPS_$T.npz --workers 16 || finish 40
+  step extract python -B $Y/aircc/np2_alias_run.py $X/extract_steps.py $RAW $SB $W/steps/STEPS_$T.npz --workers 16 || finish 40
   finish 0
 fi
 
