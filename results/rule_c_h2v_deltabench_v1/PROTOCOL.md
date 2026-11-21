@@ -46,3 +46,15 @@ benchmarks. Omri approved it on 2026-11-21 ("yes, set up cycle4 and run H2V + De
   - The method-of-record arm must reproduce H2V 47.2247 (common population).
   - The DeltaBench mu-sigma PRM-7B arm must reproduce 29.34 (stored scores).
 - After the evaluation, no arm, threshold or endpoint changes.
+
+## Amendment 1 (2026-11-22, written before any rule C output or label read)
+
+- **C pool = CR.** CR is the C answers re-run in the same nvcr container as the children (jobs 372169 / 372170). It is
+  not the stored C cell, which was made in the native numpy-2 env.
+- **Why:** smoke S3 (report only) on H2V gives top15_turnover Spearman 0.91 / 0.86 between a fresh container run and
+  the stored cell (12 rows). Pseudo pairs compare parent and child prefixes, so both must come from one environment.
+  The 11-18 SSL runs also re-ran C.
+- **The stored cell stays a reference.** The method of record is reported on both pools: stored C must give
+  47.2247 (H2V common), and CR is reported next to it.
+- **Hard2Verify:** the 181 answers with stored telemetry are re-run (all fit 4,096 tokens).
+- **DeltaBench:** all 1,236 answers are re-run, native pass + RoPE x3 pass, merged.

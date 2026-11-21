@@ -13,7 +13,7 @@ Changes (benchmark adapters only):
     k + 1 as target; pseudo-clean prefixes (empty target) are scored 1 if no section is flagged, else 0 ('empty=1'):
     the official script drops empty-target samples, which would remove every pseudo-clean prefix (pre-declared deviation).
 No gold label, no answer correctness and no labelled metric is read in this file.
-    HD_ROOT=$WS/hd python pseudo_ext.py BENCH STEPS_DIR SIDECAR_DIR GROUPS_JSON OUT_DIR V3[,V4]
+    HD_ROOT=$WS/hd python pseudo_ext.py BENCH STEPS_DIR SIDECAR_DIR GROUPS_JSON OUT_DIR V3[,V4] [C|CR]
 """
 import json, sys
 from pathlib import Path
@@ -28,11 +28,12 @@ import deltabench_official as O          # noqa: E402
 
 ONE = np.ones(16)
 bench, sdir, vdir, gpath, outd, VS = sys.argv[1], Path(sys.argv[2]), Path(sys.argv[3]), sys.argv[4], Path(sys.argv[5]), sys.argv[6].split(',')
+CNAME = sys.argv[7] if len(sys.argv) > 7 else 'C'          # 'CR' = C re-run in the children's container (amendment 2026-11-22)
 outd.mkdir(parents=True, exist_ok=True)
 G = json.load(open(gpath))
 
 # ---- full C pool fit (load_dev without labels)
-Cd = A.load_c_pool(sdir / f'STEPS_{bench}_C.npz', bench, groups=G)
+Cd = A.load_c_pool(sdir / f'STEPS_{bench}_{CNAME}.npz', bench, groups=G)
 rawC = D.readout(Cd)
 X0 = L.r0_cols(rawC, Cd.act, Cd.off); s0, W, meta = L.lsml_linear(X0); f0 = L.gap_flags(s0, Cd.off)
 AM = S.AnswerModel(Cd, rawC, s0)
@@ -85,7 +86,7 @@ for be in PS.ALPHAS:
 curve = np.array(curve); best = PS.ALPHAS[np.flatnonzero(curve >= curve.max() - 1e-12)].max()
 tau = -np.inf if best >= 1 else (np.max(refv) if best <= 0 else np.quantile(refv, 1 - best))
 fl_real = f0 & (sg_sign * sgC > tau)
-out = dict(bench=bench, variants=VS, n_answers=int(Cd.n), n_steps=int(Cd.off[-1]), n_groups=int(len(set(Cd.group))),
+out = dict(bench=bench, c_pool=CNAME, variants=VS, n_answers=int(Cd.n), n_steps=int(Cd.off[-1]), n_groups=int(len(set(Cd.group))),
            n_children=n_children, n_pairs=int(npair), n_pairs_by_family={V: int((fam == V).sum()) for V in VS},
            prefix_len_mean=float(np.mean(kk + 1)), sg_vs_s0_corr=rho_sg, lsml=meta,
            pseudo_wrong_hit_rate_gap=float(np.mean(L.pb_predict(rw['f'], Pw.off) == kk)),
