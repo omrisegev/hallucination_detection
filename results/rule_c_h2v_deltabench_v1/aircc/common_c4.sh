@@ -2,7 +2,7 @@
 # Mirrors results/ssl_one_experiment_v1/aircc/common.sh (2026-11-18); only the paths change (cycle2 workspace is gone).
 S=/shared/cycle4_tau_averbuch_spot_prj/users/omrisegev1/ws_c4; R=$S/results; H=$S/hf_cache/hub
 W=$R/ssl_step_threshold_h2v_deltabench_v1                 # every output of this experiment
-HD_ROOT=$S/code_rule_c_v2   # frozen code v2 = v1 + np2_alias_run.py (loader shim for the stored numpy-2 pickles)
+HD_ROOT=$S/code_rule_c_v3   # frozen code v3 = v2 + scale-aware bank_parity.py (v1/v2 absolute 1e-9 too strict, job 372108)
 X=$HD_ROOT/results/ssl_one_experiment_v1; Y=$HD_ROOT/results/rule_c_h2v_deltabench_v1
 ACCT=cycle4_tau_averbuch_spot_prj; QOS=spot_700; PART=power-gpu
 MODEL=Qwen/Qwen2.5-Math-7B-Instruct; REV=ef9926d75ab1d54532f6a30dd5e760355eb9aa4d

@@ -19,7 +19,7 @@
 #SBATCH --container-mounts=/shared/cycle4_tau_averbuch_spot_prj/users/omrisegev1:/shared/cycle4_tau_averbuch_spot_prj/users/omrisegev1
 set -uo pipefail
 : "${BENCH:?}" "${V:?}"
-source /shared/cycle4_tau_averbuch_spot_prj/users/omrisegev1/ws_c4/code_rule_c_v2/results/rule_c_h2v_deltabench_v1/aircc/common_c4.sh
+source /shared/cycle4_tau_averbuch_spot_prj/users/omrisegev1/ws_c4/code_rule_c_v3/results/rule_c_h2v_deltabench_v1/aircc/common_c4.sh
 export HD_ROOT HF_HOME=$S/hf_cache HF_DATASETS_CACHE=$S/hf_cache/datasets HF_HUB_OFFLINE=1 HF_DATASETS_OFFLINE=1 \
        TRANSFORMERS_OFFLINE=1 PIP_CACHE_DIR=$S/pip_cache PYTHONUSERBASE=/tmp/pyuserbase_${SLURM_JOB_ID} \
        PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
