@@ -2,7 +2,7 @@
 # Mirrors results/ssl_one_experiment_v1/aircc/common.sh (2026-11-18); only the paths change (cycle2 workspace is gone).
 S=/shared/cycle4_tau_averbuch_spot_prj/users/omrisegev1/ws_c4; R=$S/results; H=$S/hf_cache/hub
 W=$R/ssl_step_threshold_h2v_deltabench_v1                 # every output of this experiment
-HD_ROOT=$S/code_rule_c_v3   # frozen code v3 = v2 + scale-aware bank_parity.py (v1/v2 absolute 1e-9 too strict, job 372108)
+HD_ROOT=$S/code_rule_c_v4   # frozen code v4 = v3 + C re-run (V=CR) + accept driver exit 2 on the DeltaBench native pass
 X=$HD_ROOT/results/ssl_one_experiment_v1; Y=$HD_ROOT/results/rule_c_h2v_deltabench_v1
 ACCT=cycle4_tau_averbuch_spot_prj; QOS=spot_700; PART=power-gpu
 MODEL=Qwen/Qwen2.5-Math-7B-Instruct; REV=ef9926d75ab1d54532f6a30dd5e760355eb9aa4d
@@ -16,6 +16,7 @@ STORED=$R/prm_boost_crop_ares_benchmarks_v1               # stored standalone C 
 TOK=$H/models--Qwen--Qwen2.5-Math-7B-Instruct/snapshots/$REV/tokenizer.json
 input_args() {   # bench V -> driver input flag
   case "$2" in
+    C|CR) echo "--answers $W/inputs/$1_C_answers.json" ;;   # CR = C re-run in this container (same env as the children)
     V3|V4|preC_V3|preC_V4) echo "--answers $W/inputs/$1_$2_answers.json" ;;
     *) echo "bad V $2" >&2; return 1 ;;
   esac

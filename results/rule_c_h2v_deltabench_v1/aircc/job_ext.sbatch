@@ -1,6 +1,6 @@
 #!/bin/bash
 # One job of the rule C transfer (2026-11-21): BENCH in {hard2verify, deltabench}, V in {C, V3, V4}.
-# Same steps as results/ssl_one_experiment_v1/aircc/job.sbatch (ProcessBench path), cycle4 paths:
+# Same steps as results/ssl_one_experiment_v1/aircc/job.sbatch (ProcessBench path), cycle4 paths. V = CR re-runs C here.
 #   V = C : step table of the STORED standalone C cell (extract_steps.py on the stored raw + bank_v3); hard2verify also
 #           checks the builder environment (bank rebuilt from the stored grafted.pkl == stored bank_v3).
 #   V = V3/V4 : 1. preflight 12 rows of preC_V (parents) and of V -> smoke_check_ext.py (rules unchanged); exit != 0 stops
@@ -19,7 +19,7 @@
 #SBATCH --container-mounts=/shared/cycle4_tau_averbuch_spot_prj/users/omrisegev1:/shared/cycle4_tau_averbuch_spot_prj/users/omrisegev1
 set -uo pipefail
 : "${BENCH:?}" "${V:?}"
-source /shared/cycle4_tau_averbuch_spot_prj/users/omrisegev1/ws_c4/code_rule_c_v3/results/rule_c_h2v_deltabench_v1/aircc/common_c4.sh
+source /shared/cycle4_tau_averbuch_spot_prj/users/omrisegev1/ws_c4/code_rule_c_v4/results/rule_c_h2v_deltabench_v1/aircc/common_c4.sh
 export HD_ROOT HF_HOME=$S/hf_cache HF_DATASETS_CACHE=$S/hf_cache/datasets HF_HUB_OFFLINE=1 HF_DATASETS_OFFLINE=1 \
        TRANSFORMERS_OFFLINE=1 PIP_CACHE_DIR=$S/pip_cache PYTHONUSERBASE=/tmp/pyuserbase_${SLURM_JOB_ID} \
        PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
@@ -49,7 +49,8 @@ drv_rope() { python cluster/run_prmbench_prm_telemetry_longctx.py $DRIVER_ARGS -
 run_any() {   # name input out [n]: hard2verify native only; deltabench native + RoPE pass merged
   local name=$1 inp=$2 out=$3 n=${4:-}
   if [ $BENCH = deltabench ]; then
-    step ${name}_native drv $inp ${n:+--n-samples $n} --out ${out}_native || return 1
+    step ${name}_native drv $inp ${n:+--n-samples $n} --out ${out}_native; local rc=$?
+    [ $rc = 0 ] || [ $rc = 2 ] || return 1        # 2 = COMPLETE_WITH_FAILURES (context_overflow rows; the RoPE pass covers them)
     step ${name}_rope drv_rope $inp ${n:+--n-samples $n} --out ${out}_rope || return 1
     step ${name}_merge python -B $Y/aircc/merge_rope.py ${out}_native ${out}_rope $out || return 1
   else
@@ -72,10 +73,11 @@ if [ $V = C ]; then
   finish 0
 fi
 
-# 1. preflight + smoke
+# 1. preflight + smoke (V=CR: the C answers re-run in this container; parents of the pseudo pairs and the C pool)
 if [ ! -e $P/SMOKE_PASS ]; then
-  run_any pre_C "$(input_args $BENCH preC_$V)" $P/${BENCH}_C 12 || finish 10
-  run_any pre_$V "$(input_args $BENCH $V)" $P/${BENCH}_$V 12 || finish 11
+  PREC=preC_$V; [ $V = CR ] && PREC=C
+  run_any pre_C "$(input_args $BENCH $PREC)" $P/${BENCH}_C 12 || finish 10
+  if [ $V != CR ]; then run_any pre_$V "$(input_args $BENCH $V)" $P/${BENCH}_$V 12 || finish 11; fi
   step smoke python -B $Y/aircc/smoke_check_ext.py --runs $P --variants $W/inputs \
        --stored-readouts $HD_ROOT/data_export/readout_steps_sa_v1 --out $P/SMOKE.json || finish 12
   touch $P/SMOKE_PASS
