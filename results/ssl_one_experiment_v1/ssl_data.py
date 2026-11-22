@@ -68,7 +68,7 @@ def load_pool(W, bench, V, split, gold=None, labels=None):
         P.group = np.array([sc[u]['group'] if u in sc else '' for u in uids])
         P.side = np.array([sc[u]['side'] if u in sc else '' for u in uids])
         P.parent = np.array([sc[u]['parent_uid'] if u in sc else '' for u in uids])
-        if V in ('V2', 'V3', 'V4', 'V5'):      # known (first) wrong step k (V3-V5: make_variants_v34.py / _v5.py, dev only)
+        if V in ('V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8'):   # known (first) wrong step k (V3-V8: make_variants_v34.py / _v5.py / _v678.py, dev only)
             P.k = np.array([loc[j][sc[u]['k'] - 1] if u in sc else -1 for j, u in enumerate(uids)])
             keep_a &= P.k >= 0
         else:

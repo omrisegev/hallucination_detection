@@ -1,10 +1,11 @@
 """Smoke checks of the one SSL experiment on the 12-row runs (2026-11-18). CPU, seconds. No labels are read.
 
     python smoke_check.py --runs DIR --variants VARDIR --stored-readouts DIR_readout_steps_sa_v1 --out SMOKE.json
-DIR holds <bench>_<C|V1|..|V5>/ with the driver's manifest.json and external_telemetry.pkl or prmbench_telemetry.pkl.
+DIR holds <bench>_<C|V1|..|V8>/ with the driver's manifest.json and external_telemetry.pkl or prmbench_telemetry.pkl.
 Checks:
   S1 every run: manifest status COMPLETE, 0 failed rows; s/row = elapsed_sec / n_rows (includes model load).
-  S2 equal prefix (stop rule, ANSWERS 20): V2-V5 vs the parent C on the tokens of steps 1..k-1, V1 vs C on step 1:
+  S2 equal prefix (stop rule, ANSWERS 20): V2-V8 vs the parent C on the tokens of steps 1..k-1, V1 vs C on step 1
+     (a k = 1 row of V6-V8 has no equal prefix and is not compared; make_variants_v678.py picks preflight rows with k >= 2):
      gen_token_ids equal, and token_entropies / token_spilled_energies / token_logsumexp max abs diff <= 1e-4
      (--prefix-tol changes this limit; default 1e-4 = the pre-registered rule).
      Also reported (no stop): max abs diff of the 11 risk-oriented token channels on the same tokens.
@@ -66,7 +67,7 @@ def main():
     ap.add_argument('--stored-readouts', required=True); ap.add_argument('--out', required=True)
     ap.add_argument('--prefix-tol', type=float, default=1e-4)
     a = ap.parse_args(); R = {'prefix_tol': a.prefix_tol}; ok = True
-    VS = ('V1', 'V2', 'V3', 'V4', 'V5')
+    VS = ('V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8')
     for bench in ('processbench', 'prmbench'):
         runs = {}
         for V in ('C',) + VS:
@@ -85,7 +86,7 @@ def main():
             for u, e in runs.get(V, {}).items():
                 s = side[V][u]; c = runs['C'].get(s['parent_uid'])
                 if c is None: continue
-                n_eq = s['k'] - 1 if V in ('V2', 'V3', 'V4', 'V5') else 1
+                n_eq = s['k'] - 1 if V in ('V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8') else 1
                 x = prefix_cmp(c, e, n_eq, a.prefix_tol)
                 if x: res.append(dict(uid=u, **x))
             p = bool(res) and all(x['pass'] for x in res); ok &= p
