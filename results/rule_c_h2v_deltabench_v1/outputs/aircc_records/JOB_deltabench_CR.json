@@ -1,0 +1,81 @@
+{
+ "bench": "deltabench",
+ "variant": "CR",
+ "job_id": "372170",
+ "restart_count": "0",
+ "node": "gpu-node-18.aircc.local",
+ "gpu": "NVIDIA B200, 183359 MiB",
+ "peak_gpu_memory_mib_sampled_20s": 25500,
+ "steps": [
+  {
+   "step": "pre_C_native",
+   "exit_code": "2",
+   "seconds": "10",
+   "utc_end": "2026-11-21T23:52:15Z"
+  },
+  {
+   "step": "pre_C_rope",
+   "exit_code": "0",
+   "seconds": "14",
+   "utc_end": "2026-11-21T23:52:29Z"
+  },
+  {
+   "step": "pre_C_merge",
+   "exit_code": "0",
+   "seconds": "1",
+   "utc_end": "2026-11-21T23:52:30Z"
+  },
+  {
+   "step": "smoke",
+   "exit_code": "0",
+   "seconds": "2",
+   "utc_end": "2026-11-21T23:52:32Z"
+  },
+  {
+   "step": "full_native",
+   "exit_code": "2",
+   "seconds": "65",
+   "utc_end": "2026-11-21T23:53:38Z"
+  },
+  {
+   "step": "full_rope",
+   "exit_code": "0",
+   "seconds": "271",
+   "utc_end": "2026-11-21T23:58:09Z"
+  },
+  {
+   "step": "full_merge",
+   "exit_code": "0",
+   "seconds": "28",
+   "utc_end": "2026-11-21T23:58:37Z"
+  },
+  {
+   "step": "graft",
+   "exit_code": "0",
+   "seconds": "28",
+   "utc_end": "2026-11-21T23:59:05Z"
+  },
+  {
+   "step": "bank",
+   "exit_code": "0",
+   "seconds": "717",
+   "utc_end": "2026-11-22T00:11:02Z"
+  },
+  {
+   "step": "extract",
+   "exit_code": "0",
+   "seconds": "203",
+   "utc_end": "2026-11-22T00:14:25Z"
+  }
+ ],
+ "wall_sec_this_attempt": 1339.0,
+ "full_run": {
+  "status": "COMPLETE",
+  "n_rows": 1236,
+  "n_failed_rows": 0,
+  "elapsed_sec": 324.4418423175812,
+  "s_per_row": 0.262,
+  "max_input_tokens": 11577,
+  "model_revision": "ef9926d75ab1d54532f6a30dd5e760355eb9aa4d"
+ }
+}

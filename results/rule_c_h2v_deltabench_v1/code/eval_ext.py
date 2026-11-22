@@ -96,7 +96,7 @@ else:
         R = {}
         for k, m in M.items():
             f1 = m['F1']; R[k] = dict(f1_macro=100 * float(np.nanmean(f1)), f1_macro_ci=ci([100 * np.nanmean(f1[b]) for b in B]),
-                                      f1_macro_empty1=100 * float(m['F1_empty1'].mean()), **{q: v for q, v in O.summarize(m).items() if q != 'f1_macro'})
+                                      f1_macro_empty1=100 * float(m['F1_empty1'].mean()), **{q: v for q, v in O.summarize(m).items() if q not in ('f1_macro', 'f1_macro_empty1')})
             R[k]['zero_flag_share'] = float(np.mean(np.add.reduceat(arms[k].astype(int), off[:-1]) == 0))
         diff = {}
         for ref in [k for k in M if k != 'rule_C']:

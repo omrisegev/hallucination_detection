@@ -1,128 +1,139 @@
-# Rule C on Hard2Verify and DeltaBench: interim status (2026-11-21)
+# Rule C on Hard2Verify and DeltaBench (2026-11-22)
 
-Status: **the CPU parts are done; the GPU part is blocked.** I submitted no job on AIRCC and deleted no file. I did
-not change rule C (agentS2: beta grid, tie rule, quantile, sg, GAP). I only added benchmark adapters.
+**Result: rule C does not transfer.**
+- On Hard2Verify, rule C is worse than the method of record (GAP, no gate): **-18.07** official step Balanced F1
+  [-23.17, -13.51].
+- On DeltaBench, the frozen label-free fit selects beta = 0, so rule C flags no section and scores **0.00** official
+  macro-F1. The method of record scores 31.09.
 
-## 1. Blockers
+The method itself is unchanged: the agentS2 code, the beta grid, the tie rule, the quantile, sg and GAP. Only benchmark
+adapters were added. The protocol is `PROTOCOL.md` (frozen before any child telemetry; amendment 1 was added before any
+rule C output). There was one labelled evaluation per benchmark. I deleted no file; failed job folders are kept under
+`*.failed_<job>` names.
 
-| Blocker | Facts | Needed |
+## 1. Rule C fit (label-free, `code/pseudo_ext.py`)
+
+| | Hard2Verify | DeltaBench |
 |---|---|---|
-| AIRCC workspace | `/shared/cycle2_tau_averbuch_prj` does not exist any more. The 11-18 jobs used `$S=/shared/cycle2_tau_averbuch_prj/omrisegev1` for code, results, pyenv, wheelhouse and hf_cache. HOME is now `/shared/cycle4_tau_averbuch_spot_prj/users/omrisegev1` (empty). The cycle4 `hf_cache/hub` has no Qwen2.5-Math-7B-Instruct | A new cycle4 setup (section 5) and Omri's yes for sbatch |
-| GPU authorization | The GPU request came through the coordinator note. Omri's own message to this session asked only to verify rule C | Omri: yes or no |
-| PC disk | C: is the only drive and has 0.75 GB free. The DeltaBench ext raw pkl is 2.33 GB. Omri asked for no import to the PC until the cleanup session finishes | Build the DeltaBench step table on AIRCC, or after the cleanup |
-| Guard hook | `guard_git.py` blocked a sparse-checkout change in this worktree. I did not retry it. I extracted the needed files with `git archive 4acda6f6` into the scratch HD_ROOT instead | none |
+| C pool (CR = C re-run in the children's container) | 181 answers, 1,738 steps, 78 question groups | 1,236 answers, 20,324 steps, 1,217 groups |
+| Children | V3 174, V4 141 | V3 1,208 (no V4: only 19 questions have 2 answers) |
+| Pseudo pairs | **315** | **1,208** |
+| Pseudo-metric | PRMScore, keep = ones (pseudo.py) | official macro-F1, pseudo-clean scored "empty=1" |
+| beta / tau | **.46 / 1.9390** | **0.00 / 6.1890** (tau = max: flag nothing) |
+| Pseudo-metric at the choice / with all GAP flags kept | 55.50 / 50.92 | 50.00 / 11.69 |
+| Real share of flags kept | .495 | 0 |
+| Real 0-flag share | **.348** | **1.000** |
+| sg vs s0 correlation (orientation) | +.70 | +.80 |
+| Pseudo-wrong exact GAP hit at k | .241 | .142 |
 
-## 2. Hard2Verify C step table and parity (done)
+Why DeltaBench degenerates: under "empty=1", every flag on a pseudo-clean prefix costs a full point. The GAP hit rate
+at the corrupted step is only .142, so no threshold gains more on pseudo-wrong prefixes than it loses on pseudo-clean
+ones. The maximum is "flag nothing" (50 = all clean prefixes correct, all wrong prefixes 0). On the real data 95% of
+answers have an error section, so 0 flags gives F1 = 0.
 
-| Item | Value |
-|---|---|
-| Source | Drive `prm_boost_crop_ares_benchmarks_v1/full_sa_qwen_prm_hard2verify/grafted.pkl` (123,717,617 B) + bank_v3 (byte-equal to the PC copy) |
-| extract_steps.py (unchanged, 4acda6f6) | GATE PASS (max abs diff 4.8e-7). 181 answers, 1,738 steps, 0 empty steps. 19 rows have no telemetry (18 are longer than 4,096 tokens, 1 other failed row); I did not rerun them |
-| Method of record on the new table (hard top10 + 5 step channels, R0, L-SML, GAP) | Official H2V step Balanced F1 on the 177-answer common set = **47.2247** |
-| Stored reference (SUB5_ALL.csv, TELE_N16 standalone qwen_prm_7b) | 47.2247. Difference 0.0000: **PASS** (gate 0.1) |
-| Note | The brief called 47.2 "PRMScore". It is the official H2V step Balanced F1. `hd_collection_data/h2v/SCORES_qwen_prm.npz` gives 46.71, but it comes from an older bank_v2 run, not the stored cell |
+H2V tau stability (label-free subsamples of pseudo pairs, 200 draws, `outputs/SIZE_CURVE_hard2verify.json`):
 
-## 3. Adapters and variant inputs (done, label-free)
-
-- `code/bench_adapters.py`: builds the C pool from an extract_steps table. It attaches labels only when a gold file is
-  passed (`crop_ares_v1/gold/<bench>.json`: err = not correct, keep = include, y_ans = any err).
-- `code/make_groups.py`: a question group is the sha1 of the whitespace-normalized question text. H2V: 200 answers in
-  79 groups. DeltaBench: 1,236 answers in 1,217 groups.
-- `code/make_variants_ext.py`: imports `make_v3` and `make_v4` from `make_variants_v34.py` without changes. There is
-  no dev/test split (side 'all'). The RNG seed index is 1, the PRMBench index, because external benchmarks are not
-  'processbench'.
-
-| H2V children (181 parents) | Rows | Skipped |
+| pairs | beta 5/50/95% | tau 5/50/95% |
 |---|---|---|
-| V3 numeric edit | 174 | 7 (no editable number in steps 2..n) |
-| V4 on-topic donor | 141 | 10 without a sibling answer, 30 without a donor in the group. Relax levels 0/1/2 = 109/21/11. Same-generator donor: 0.7% |
+| 25 | .08 / .38 / .71 | 0.30 / 2.27 / 4.25 |
+| 50 | .18 / .41 / .64 | 0.84 / 2.04 / 3.35 |
+| 100 | .21 / .43 / .61 | 1.22 / 1.97 / 3.33 |
+| 200 | .34 / .46 / .55 | 1.41 / 1.93 / 2.65 |
+| 315 (all) | .46 | 1.939 |
 
-The driver inputs are in `h2v_inputs/hard2verify_{V3,V4,preC_V3,preC_V4}_answers.json` (format for `--answers`).
-I have not built the DeltaBench children yet. DeltaBench will get V3 only; this is a planned deviation.
+## 2. Labelled evaluation (once, `code/eval_ext.py`; 95% CI by question-group bootstrap, 2,000 draws)
 
-## 4. DeltaBench official evaluation (implemented, checked)
+### 2.1 Hard2Verify, own population (181 answers, 78 groups)
 
-Source: `github.com/OpenStellarTeam/DeltaBench`, commit `6b67c64ad177553ec73f85ff98b18b0e6627341f` (2025-03-04),
-`evaluation.py`. That script evaluates LLM critics, not PRMs. I took these rules from it:
-- Target = set(reason_unuseful + reason_error section numbers).
-- Per-sample P/R/F1 on section-number sets. Predictions above max(target) are dropped.
-- Macro = mean over samples.
-- A sample with an empty target crashes in `max()` and pandas then skips it. All 1,236 samples have a non-empty union
-  target, so none is skipped.
-
-The PRM rule comes from the paper (arXiv 2502.19361v3, sec. 2.5): t = mu - sigma of the rewards over the whole
-dataset, and a section with reward < t is an error. App. A.8 gives the 5% quantile rule.
-
-Checks on our data:
-- Our gold (`crop_ares_v1/gold/deltabench.json`) holds the reason_error sections only. It is equal to them on all
-  1,236 samples. 63 samples have no reason_error section.
-- The stored `score__PRMPROB` is risk-high (corr with native_valid -0.83), so reward = 1 - PRMPROB.
-- The section count matches the gold on 100% of rows: the 20,324 steps are the labelled sections.
-
-| PRM (stored PRM-mode cell) | Our mu-sigma macro-F1 (union / error-only target) | Paper (Table 2) | Gap |
+| Arm | Official step Balanced F1 | PRMScore form | 0-flag share |
 |---|---|---|---|
-| Qwen2.5-Math-PRM-7B (ext) | **29.34** / 28.01 | 29.22 | +0.12 |
-| Qwen2.5-Math-PRM-72B (ext) | 29.95 / 29.97 | 26.38 | +3.57 |
-| PURE-PRM-7B (ext) | 22.40 / 23.32 | not in paper | |
-| RLHFlow-PRM-Mistral-8B | 14.46 / 13.90 | Llama3.1-8B-PRM-Mistral-Data 9.45 (Table 2 column mapping not certain) | |
-| Math-Shepherd (447 answers only) | 11.56 / 10.49 | not in paper | |
+| **Rule C** | **29.32** [24.68, 33.85] | 49.74 [46.72, 52.84] | .348 |
+| Method of record (GAP, no gate) | **47.39** [43.92, 50.73] | 55.69 [53.42, 57.95] | 0 |
+| Qwen2.5-Math-PRM-7B native / GAP | 16.27 / 45.94 | 44.55 / 55.64 | |
+| Qwen2.5-Math-PRM-72B native / GAP | 31.58 / 35.92 | 50.49 / 49.53 | |
+| PURE-PRM-7B native / GAP | 51.37 / 50.72 | 58.55 / 58.39 | |
+| RLHFlow-PRM-Mistral-8B native / GAP | 5.99 / 4.93 | 35.80 / 35.15 | |
 
-Not reproduced:
-- **5% quantile rule.** Paper 7B: 46.48 at threshold 0.2168. Ours: 11.63 with our own 5% quantile, 13.45 with their
-  threshold 0.2168.
-- **HitRate@1.** Paper 7B 49.15 / 72B 41.13. Ours: 27.51 / 27.75.
+| Rule C minus | Balanced F1 [CI] | PRMScore [CI] |
+|---|---|---|
+| **Method of record (primary)** | **-18.07 [-23.17, -13.51]** | -5.95 [-8.95, -3.12] |
+| PRM-7B native | +13.05 [+7.32, +18.65] | +5.19 [+1.96, +8.20] |
+| PRM-7B GAP | -16.61 [-22.39, -10.67] | -5.89 [-9.37, -2.38] |
+| PRM-72B native | -2.26 [-7.91, +3.22] | -0.75 [-3.57, +2.19] |
+| PURE native | -22.05 [-29.01, -15.06] | -8.80 [-13.05, -4.38] |
+| RLHFlow native | +23.33 [+18.01, +28.75] | +13.94 [+10.88, +16.96] |
 
-Likely cause: our cells give ONE reward per section, but the paper's PRM inputs are probably finer (several steps
-inside a section). A recall of 73.86 at a 5% quantile is only possible if each section has many scored units. The
-paper text does not say how section scores are aggregated. So the mu-sigma rule matches only for the 7B. Treat the
-72B and appendix numbers as unmatched.
+On the common population (177 answers, all 5 PRMs, Math-Shepherd included):
+- Rule C 29.20 vs method of record 47.89. Difference -18.69 [-23.83, -13.67].
+- Math-Shepherd native / GAP: 7.87 / 40.12.
 
-### Arms that need no new telemetry (stored scores, point values, union target)
+### 2.2 DeltaBench (1,236 answers, 1,217 groups), official section macro-F1
 
-| Arm | DeltaBench official macro-F1 |
+| Arm | Union target (official script) [CI] | Error-only target | 0-flag share |
+|---|---|---|---|
+| **Rule C** | **0.00** [0.00, 0.00] | 0.00 | 1.000 |
+| Method of record, GAP flags | **31.09** [29.14, 33.11] | 31.68 | 0 |
+| Method of record s0 under mu-sigma (s0 > mu + sigma) | 26.06 [24.17, 28.03] | 26.74 | .089 |
+| Qwen2.5-Math-PRM-7B mu-sigma / GAP | 29.34 / 32.69 | 28.01 / 32.61 | .201 / 0 |
+| Qwen2.5-Math-PRM-72B mu-sigma / GAP | 29.95 / 32.99 | 29.97 / 33.30 | .195 / 0 |
+| PURE-PRM-7B mu-sigma / GAP | 22.40 / 25.48 | 23.32 / 26.38 | |
+| RLHFlow-PRM-Mistral-8B mu-sigma / GAP | 14.46 / 10.60 | 13.90 / 10.77 | |
+
+Rule C minus the method of record (GAP): **-31.09 [-33.11, -29.14]**. Rule C is below every arm.
+
+Paper check (sec. 4 of the interim report, unchanged): with this evaluator, PRM-7B mu-sigma = 29.34 vs the paper's
+29.22. The 72B gives 29.95 vs the paper's 26.38, and the appendix 5% quantile rule and HitRate@1 do not reproduce.
+
+## 3. Parity and checks
+
+| Check | Result |
 |---|---|
-| Method of record s0 (TELE_N16 standalone 7B-Instruct, ext cell), GAP flags | **31.19** (error-only 31.82) |
-| Method of record s0 under mu-sigma (s0 > mu + sigma) | 26.23 |
-| Method of record HitRate@1 | 29.53 |
-| Qwen2.5-Math-PRM-7B mu-sigma / GAP | 29.34 / 32.69 |
-| Qwen2.5-Math-PRM-72B mu-sigma / GAP | 29.95 / 32.99 |
-| PURE-PRM-7B mu-sigma / GAP | 22.40 / 25.48 |
-| RLHFlow-PRM-Mistral-8B mu-sigma / GAP | 14.46 / 10.60 |
+| Model snapshot on cycle4 | every file equals the Hugging Face tree of ef9926d7 (sha256 shards, sha1 others); tokenizer sha256 c0382117 = stored runs |
+| Builder environment: H2V bank rebuilt from the stored grafted.pkl vs the stored bank_v3 | PASS: the 11 token channels bit-identical, 5 step channels <= 1.6e-15, structure exact. My first check was too strict on one unused column, see section 4 |
+| Method of record on the stored H2V C table (PC) | 47.2247 = stored SUB5_ALL 47.2247 (exact) |
+| Method of record on CR (container re-run), H2V common | 47.89 (stored 47.22; CR is a different environment) |
+| PRM-7B GAP on H2V common (stored PRM scores) | 45.82 = stored 45.8199 |
+| CR vs stored C, 16 raw channels, Spearman (`outputs/PARITY_CR_vs_stored_*.json`) | H2V: min .960 (top15_turnover), dominant_freq16 .974, others >= .996. DeltaBench: min .993 |
+| Smoke S1 / S2 (stop rules) | PASS in all 5 child/CR jobs. S2 equal prefix: 12 of 12 pairs, max diff 0.0 (H2V V3, V4, DeltaBench V3) |
+| Smoke S3 (report only, 12 rows vs stored top10) | H2V min Spearman .91 / .86 (top15_turnover); expected >= .99. This is the reason for amendment 1 |
+| extract_steps GATE | PASS on all 7 tables (C, CR, V3, V4 for H2V; C, CR, V3 for DeltaBench) |
+| Full runs | H2V CR 181/181, V3 174/174, V4 141/141; DeltaBench CR 1,236/1,236, V3 1,208/1,208; 0 failed rows after the RoPE merge |
 
-These numbers use labels but come from existing arms: no rule C and no selection step. Rule C needs the V3 telemetry.
-The group-bootstrap CIs will come with the final evaluation.
+## 4. Deviations and incidents (in order)
 
-## 5. Drive inventory for a cycle4 rebuild (read-only, no download)
+1. The cycle2 workspace was gone, so I set up cycle4 from scratch (Omri's approval, 2026-11-21 22:10):
+   - the model from Hugging Face at the pinned revision;
+   - the wheelhouse rebuilt with the exact pins;
+   - the bank code from Drive;
+   - frozen code as `git archive` of this branch (v5 = 24dd1a217).
+   - The jobs = the 11-18 job.sbatch with cycle4 paths, plus a RoPE merge (DeltaBench) and a builder-parity step.
+2. Job 372094 failed: the stored pickles are numpy 2, the container numpy 1.26. Fix: a loader shim
+   (`np2_alias_run.py`), used only for the stored-cell steps.
+3. Job 372108 failed my own bank-parity check (absolute 1e-9). The difference was 1.05e-9 on an unused column with
+   values up to 8.7e4 (relative 1e-14). Fix: a scale-aware check (structure exact; TELE16 <= 1e-12). The smoke rules
+   are unchanged.
+4. Job 372126 (DeltaBench V3) failed: the driver exits 2 on the native pass when rows exceed 4,096 tokens. Fix:
+   accept exit 2 on that pass only; the merged run must still have 0 failures.
+5. Amendment 1 (before any rule C output): the C pool is CR, the C answers re-run in the children's container.
+   - Reason: smoke S3 showed the stored C cell (native env) and the container differ on top15_turnover.
+   - The 11-18 runs also re-ran C.
+6. DeltaBench has no V4 (no siblings). Its pseudo-metric scores pseudo-clean prefixes with "empty=1", because the
+   official script drops samples with an empty target. Both points were pre-declared in PROTOCOL.md.
+7. H2V: the 19 answers with no stored telemetry are not scored. 18 of them are longer than 4,096 tokens, and no RoPE
+   run was made for H2V.
+8. `eval_ext.py` crashed once on DeltaBench (a duplicate dict key) before it wrote any output. I fixed the key and
+   reran. This is still the single evaluation.
+9. The DeltaBench size curve was not run. Beta is 0 on the full set.
 
-| Item (11-18 job) | Drive path | Size | Missing |
-|---|---|---|---|
-| Model Qwen2.5-Math-7B-Instruct | `gdrive:hf_cache_flat/Qwen__Qwen2.5-Math-7B-Instruct/` | 14.20 GiB (30 files) | no. The revision is not verified: check tokenizer sha256 c0382117... after the copy |
-| BANK_CODE `code_thinkfix_bank_553de79` (external builder v2) | `hallucination_detection/aircc_workspace_final/code_thinkfix_bank_553de79/` | 62.4 MiB | no |
-| PB_MASK `code_thinkfix_rescore_v1` | `aircc_workspace_final/code_thinkfix_rescore_v1/` | 17.2 MiB | no |
-| `code_prm_boost_v1/mask_fixed` | `aircc_workspace_final/code_prm_boost_v1/mask_fixed` | 4.8 KiB | no |
-| PB_NAMES `results/prm_boost_v1/bank_prm/FEATURES.npz` | `cluster_results/prm_boost_v1/bank_prm/FEATURES.npz` | 53.9 MB | no |
-| RoPE x3 code (DeltaBench) | `aircc_workspace_final/code_longctx_v1/` (6.25 GiB with data); also branch `claude/deltabench-long-context-2026-11-08` (`spectral_utils/rope_extension.py`) | | no |
-| SSL driver and job scripts | git `4acda6f6` (`results/ssl_one_experiment_v1/aircc/`, `cluster/run_prmbench_prm_telemetry.py`) | small | no |
-| Wheelhouse `$S/wheelhouse/tf_thinkfix_20261010/*.whl` (the compute nodes are offline) | not found (I searched `aircc_workspace_final` to depth 4) | | **yes** |
-| pyenv `pyenv_native_312_20261011` | not found | | **yes**, but the job runs in the nvcr pytorch 25.01 container, so only the wheels are needed |
-| H2V raw C telemetry + bank | `cluster_results/prm_boost_crop_ares_benchmarks_v1/full_sa_qwen_prm_hard2verify/` | 124 MB + 0.65 MB | no |
-| DeltaBench ext raw C telemetry + bank | `.../full_sa_qwen_prm_deltabench_ext/` | 2.33 GB + 7.4 MB | no |
-| H2V V3/V4 driver inputs | this folder, `h2v_inputs/` | 1.5 MB | no |
-| DeltaBench answers (for the V3 build) | PC `hd_collection_data/crop_ares_v1/inputs_text/deltabench/answers.json`; Drive `.../inputs/deltabench/answers.json` | 20.5 MB | no |
+## 5. Files
 
-Setup estimate on cycle4, from the login node:
-1. Copy the model with rclone: 14.2 GiB, about 3-5 min.
-2. Rebuild the wheelhouse (`pip download` of the tf_thinkfix pins on the login node): about 10 min.
-3. Clone the code at 4acda6f6 and copy the bank code: about 5 min.
-4. Change the paths in `common.sh` and `job.sbatch` and the container mount to cycle4: about 15 min. This changes the
-   job scripts (paths only), because the 11-18 paths are hard-coded to cycle2.
-5. Run /preflight and the 12-row smoke: one short GPU job, about 10 min plus the queue wait.
+- `code/`: pseudo_ext.py, eval_ext.py, size_curve_ext.py, parity_cr_vs_stored.py, adapters, DeltaBench evaluator
+- `aircc/`: job scripts
+- `outputs/`: EVAL_*, PSEUDO_LABELFREE_*, SIZE_CURVE_hard2verify, PARITY_*, DELTABENCH_*, NPZ_SHA256.txt (the npz files are not committed)
+- `outputs/aircc_records/`: JOB_*.json and SMOKE_*.json
+- `logs/`
+- Raw AIRCC outputs (runs, banks, steps, pre; about 15 GB): `gdrive:hallucination_detection/cluster_results/ssl_step_threshold_h2v_deltabench_v1/aircc/`. The upload is md5-checked per file; status in section 6.
 
-Total: about 1 h of work before the first real GPU job, plus the queue waits.
+## 6. Upload status
 
-## 6. Files
-
-- `code/`: adapters, groups, variant builder, parity, DeltaBench evaluation
-- `outputs/`: PARITY_H2V.json, DELTABENCH_PRM_CHECK.json, DELTABENCH_BASELINES.json
-- `h2v_inputs/`: groups, sidecars, driver inputs, variant report
-- `logs/h2v_extract_steps.log`
+See the final message for the upload result (it ran after this report was written).
