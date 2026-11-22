@@ -1,3 +1,20 @@
+## 2026-11-22: rule C (synthetic-threshold GAP filter), Step 489 (Claude)
+
+- **Status:** reproduced on ProcessBench / PRMBench; **does not transfer** to Hard2Verify / DeltaBench. No method adopted.
+- **Reproduction (PC):** all Mac numbers are equal. PB test F1 43.34 (+4.36 [+1.72, +6.88] vs the pi-hat gate);
+  PRMBench test +0.39 [+0.0004, +0.79] vs no gate. Label audit clean.
+- **Transfer (cycle4 GPU, Omri 2026-11-21):** H2V Balanced F1 29.32 vs method of record 47.39 (-18.07 [-23.17, -13.51]);
+  DeltaBench official section macro-F1 0.00 (beta 0, no flags) vs 31.09.
+- **New evaluation:** the official DeltaBench protocol is implemented
+  (`results/rule_c_h2v_deltabench_v1/code/deltabench_official.py`). PRM-7B mu-sigma 29.34 matches the paper (29.22);
+  the method of record with GAP scores 31.09.
+- **Infrastructure:** the cycle2 AIRCC workspace is gone. Cycle4 setup: `~/ws_c4` (model ef9926d7 verified,
+  wheelhouse, bank code, frozen code `code_rule_c_v1..v5`).
+- **Open (each needs Omri's go):** a pseudo benchmark that does not reward "flag nothing" on benchmarks with almost no
+  clean answers; a larger pseudo set for H2V.
+- **Sources:** `results/rule_c_h2v_deltabench_v1/{REPORT.md,SUMMARY_HE.md}`, `results/rule_c_repro_v1/REPORT.md`
+  (branch `claude/rule-c-repro-2026-11-21`); Drive `cluster_results/ssl_step_threshold_h2v_deltabench_v1/`.
+
 ## 2026-11-19: one SSL experiment, synthetic known-wrong answers, Step 488 (Claude)
 
 - **Status:** dev diagnostics done; no method adopted. Test half used once (PRMBench, 2026-11-18, PRMScore 68.05 with

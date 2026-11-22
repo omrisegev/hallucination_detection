@@ -85,3 +85,7 @@ F3 (π̂ vs true π) is not made, because stage G did not run.
 
 1. PB V2: re-run with a bf16 tolerance in the smoke check, or drop V2 for PB.
 2. The realism stop on PRMBench: accept it as the finding, or change the synthetic errors or the limit. A change of the limit after this result is a deviation from the pre-registered rule and must be reported as such. The PRMBench test pool was scored only with arms that do not depend on any SSL choice.
+
+## 9. Follow-ups
+
+- Rule C (step threshold from a synthetic V3/V4 pseudo benchmark, Mac agentS2, 2026-11-19): reproduced on the PC for ProcessBench and PRMBench, and tested on Hard2Verify and DeltaBench, where it does not transfer (HISTORY Step 489). Branch `claude/rule-c-repro-2026-11-21`: `results/rule_c_repro_v1/REPORT.md`, `results/rule_c_h2v_deltabench_v1/REPORT.md` and `SUMMARY_HE.md`.

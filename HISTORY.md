@@ -24939,3 +24939,53 @@ details in `README.md`, `METHOD.md`, `REALISM_V34.md`, `DIAG_realism/DIAG_REALIS
 `cluster_results/ssl_one_experiment_v1/`.
 
 ---
+
+### Step 489 [Rule C: synthetic-threshold GAP flag filter] — PC reproduction on ProcessBench / PRMBench; transfer to Hard2Verify and DeltaBench (2026-11-19..22)
+
+**What**: Rule C (Mac agentS2, frozen 2026-11-19) keeps a GAP flag of the method of record (TELE16 R0 + L-SML, GAP)
+only where a global step score sg (RankGauss + L-SML on the pool, no within-answer normalization) is above tau.
+Tau = (1 - beta) quantile of sg on the GAP-flagged pseudo-clean steps. The pseudo benchmark pairs the parent's steps
+0..k (pseudo-clean) with the same steps where step k is corrupted (pseudo-wrong; V3 numeric edit, V4 same-question
+donor step). Beta (grid 0..1, ties -> largest) maximizes the pseudo metric. An answer with no surviving flag gets 0
+steps. No label is used for beta, tau, the sg sign or the flags.
+(1) PC reproduction of the Mac bundle (`cluster_results/ssl_step_threshold_v1_review/`): parity, pseudo.py, eval.py,
+phase 1 / phase 2 on both test halves, size curve, label-use audit. (2) Transfer (Omri 2026-11-21: "yes, set up cycle4
+and run H2V + DeltaBench"): rebuilt the AIRCC environment on cycle4 (the cycle2 workspace is gone), GPU telemetry for
+new V3/V4 children (standalone Qwen2.5-Math-7B-Instruct, rev ef9926d7), C re-run in the same container, rule C fitted
+label-free on the full pool, one labelled evaluation. Implemented the official DeltaBench section evaluation
+(OpenStellarTeam/DeltaBench @ 6b67c64a + the paper's mu - sigma rule).
+
+**Why**: Rule C passed both dev thresholds and the PB test (+4.36 F1 vs the pi-hat gate). The advisors' question is
+whether a self-supervised threshold transfers to other benchmarks.
+
+**Result**:
+
+| Benchmark (official metric) | Rule C | Method of record (GAP, no gate) | Rule C minus MoR [95% CI] | Other |
+|---|---|---|---|---|
+| ProcessBench test half, F1 | 43.34 | 0 (no gate) | +43.34 | vs pi-hat gate +4.36 [+1.72, +6.88]; vs true-pi gate +2.28 [+0.27, +4.26] |
+| ProcessBench test half, SLA | 34.49 | 38.21 | | |
+| PRMBench test half, PRMScore | 68.56 | 68.17 | +0.39 [+0.0004, +0.79] | half B +0.14 [-0.39, +0.69] |
+| Hard2Verify, step Balanced F1 (181 answers) | 29.32 | 47.39 | -18.07 [-23.17, -13.51] | PRM-7B 16.27, 72B 31.58, PURE 51.37 (native rule) |
+| DeltaBench, section macro-F1 (1,236 answers) | 0.00 | 31.09 | -31.09 [-33.11, -29.14] | PRM-7B mu-sigma 29.34 (paper 29.22), 72B 29.95 (paper 26.38) |
+
+- Reproduction: every headline number of the Mac equals the PC value, and the rule C flags are bit-equal. Only the
+  answer score sC drifts (max 0.037). This breaks one bitwise assert in eval.py and changes no metric.
+- Label audit: clean on the tau / beta / flag path.
+- H2V: 315 pseudo pairs, beta .46, tau 1.939, 0-flag share .348. Tau is unstable at this size: with 100 pairs the
+  90% range of tau is [1.22, 3.33].
+- DeltaBench: the GAP hit rate at the corrupted step is .14, so the pseudo metric is maximal with no flag (beta 0).
+  95% of the real answers have an error section, so rule C scores 0.
+- DeltaBench official protocol: the method of record with GAP (31.09) is above PRM-7B mu-sigma (29.34). This replaces
+  the old DeltaBench Macro-F1 56.3, which used a different metric.
+- Verdict: reproduced on PB / PRMBench; does not transfer to H2V / DeltaBench.
+- Caveats: C was picked among 15 rules on dev labels; PB / PRMBench phase 1 and phase 2 ran in one session without an
+  external time stamp; PRMBench test was scored before; 48% of the pseudo-clean prefixes contain a real error.
+- Deviations: numpy-2 loader shim; scale-aware bank parity; driver exit 2 accepted on the native pass (DeltaBench);
+  parents re-run in the container (decided before any rule C output, after smoke S3 showed top15_turnover .86-.91 vs
+  the stored cell); DeltaBench V3 only; 19 H2V answers without telemetry; one eval_ext crash before any output.
+
+Branch `claude/rule-c-repro-2026-11-21`: `results/rule_c_repro_v1/REPORT.md`, `results/rule_c_h2v_deltabench_v1/`
+(REPORT.md, SUMMARY_HE.md, PROTOCOL.md). Drive: `cluster_results/ssl_step_threshold_v1_review/pc_repro_2026-11-21/`,
+`cluster_results/ssl_step_threshold_h2v_deltabench_v1/{aircc,analysis_v1}/`.
+
+---

@@ -5156,3 +5156,16 @@ cannot help (86% wrong; even the true threshold lowers PRMScore), so PRMBench wo
 3. Separate difference directions on jump channels and level channels as two SML views.
 4. First-error target for the step readout (only step k positive, later steps ignored).
 5. ProcessBench V2 GPU run (pending Omri's decision).
+
+### Update 2026-11-22: step threshold from a synthetic benchmark (rule C, Step 489)
+- Rule C keeps a GAP flag only where a global step score is above a threshold. The threshold is chosen on a pseudo
+  benchmark built from the data (parent prefix vs corrupted prefix). The rule needs no estimate of pi and can predict
+  0 error steps.
+- On ProcessBench (test F1 43.34, +4.36 vs the pi-hat gate) and PRMBench (+0.39 vs no gate) it reproduces on the PC.
+- It does not transfer. Hard2Verify: -18.07 Balanced F1 vs the method of record, with an unstable tau from only 315
+  pairs. DeltaBench: the pseudo metric is maximal with no flag (beta 0, F1 0). GAP finds the corrupted step in only
+  14% of the pseudo-wrong prefixes, and 95% of the real answers are wrong.
+- Open: a pseudo metric that does not reward "flag nothing" when clean answers are rare (for example, weight the
+  pseudo-clean prefixes by an estimate of the clean share); more pseudo pairs on small benchmarks.
+- The DeltaBench official protocol is now available: the method of record with GAP gives 31.09, PRM-7B mu-sigma 29.34.
+- Sources: `results/rule_c_h2v_deltabench_v1/SUMMARY_HE.md`, `REPORT.md` (branch `claude/rule-c-repro-2026-11-21`).
