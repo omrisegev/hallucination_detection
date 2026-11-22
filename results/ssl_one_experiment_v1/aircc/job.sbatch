@@ -16,12 +16,12 @@
 #SBATCH --time=06:00:00
 #SBATCH --requeue
 #SBATCH --signal=B:TERM@900
-#SBATCH --output=/shared/cycle2_tau_averbuch_prj/omrisegev1/logs/%x_%j.out
+#SBATCH --output=/shared/cycle4_tau_averbuch_spot_prj/users/omrisegev1/ws_c4/logs/%x_%j.out
 #SBATCH --container-image=nvcr.io/nvidia/pytorch:25.01-py3
-#SBATCH --container-mounts=/shared/cycle2_tau_averbuch_prj/omrisegev1:/shared/cycle2_tau_averbuch_prj/omrisegev1
+#SBATCH --container-mounts=/shared/cycle4_tau_averbuch_spot_prj/users/omrisegev1:/shared/cycle4_tau_averbuch_spot_prj/users/omrisegev1
 set -uo pipefail
 : "${BENCH:?}" "${V:?}"
-source /shared/cycle2_tau_averbuch_prj/omrisegev1/code_ssl_one_v1/results/ssl_one_experiment_v1/aircc/common.sh
+source /shared/cycle4_tau_averbuch_spot_prj/users/omrisegev1/ws_c4/code_ssl_one_v1/results/ssl_one_experiment_v1/aircc/common.sh
 export HD_ROOT HF_HOME=$S/hf_cache HF_DATASETS_CACHE=$S/hf_cache/datasets HF_HUB_OFFLINE=1 HF_DATASETS_OFFLINE=1 \
        TRANSFORMERS_OFFLINE=1 PIP_CACHE_DIR=$S/pip_cache PYTHONUSERBASE=/tmp/pyuserbase_${SLURM_JOB_ID} \
        PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True

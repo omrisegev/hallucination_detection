@@ -1,7 +1,7 @@
 # Sourced by every step of the one SSL experiment on AIRCC (RC_HANDOFF.md sections B-D), 2026-11-18.
 # Paths follow results/prm_standalone_telemetry_v1/aircc/common.sh and
 # results/prm_boost_crop_ares_benchmarks_v1/code/env.sh (checked on AIRCC 2026-11-18).
-S=/shared/cycle2_tau_averbuch_prj/omrisegev1; R=$S/results; H=$S/hf_cache/hub
+S=/shared/cycle4_tau_averbuch_spot_prj/users/omrisegev1/ws_c4; R=$S/results; H=$S/hf_cache/hub
 W=$R/ssl_one_experiment_v1                      # every output of this experiment
 HD_ROOT=$S/code_ssl_one_v1                      # frozen checkout of the pushed branch commit
 X=$HD_ROOT/results/ssl_one_experiment_v1        # this folder inside the frozen checkout
