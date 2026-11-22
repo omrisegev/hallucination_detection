@@ -24,7 +24,7 @@ def prepare(var, fill, base, out, mp):
     prep, var_map, failed = {}, {}, []
     for e in V.values():
         u = str(e['idx']); p, sep, tag = u.rpartition('__')
-        if not sep or tag not in ('v1', 'v2', 'v3', 'v4', 'v5'): raise SystemExit('unexpected variant uid ' + u)
+        if not sep or tag not in ('v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7', 'v8'): raise SystemExit('unexpected variant uid ' + u)
         if 'failure' in e: failed.append(u); continue
         r = dict(e); r['idx'] = p; prep[p] = r; var_map[p] = u
     F = pickle.load(open(fill, 'rb')); F = {str(e['idx']): e for e in F.values()}
